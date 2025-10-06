@@ -1,5 +1,16 @@
-import AppRouter from "@routes/AppRouter.jsx";
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Login from './pages/Login';
 
-export default function App() {
-  return <AppRouter />;
+function App() {
+  return (
+    <Router>
+      <div className="app">
+        <Routes>
+          <Route path="/" element={<Login />} />
+        </Routes>
+      </div>
+    </Router>
+  );
 }
+
+export default App;
