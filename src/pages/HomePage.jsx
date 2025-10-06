@@ -147,9 +147,9 @@ export default function HomePage() {
             <path
               d="M12.8332 7.00008H1.1665M1.1665 7.00008L6.99984 12.8334M1.1665 7.00008L6.99984 1.16675"
               stroke="#848484"
-              stroke-width="1.67"
-              stroke-linecap="round"
-              stroke-linejoin="round"
+              strokeWidth="1.67"
+              strokeLinecap="round"
+              strokeLinejoin="round"
             />
           </svg>
 
@@ -186,9 +186,9 @@ export default function HomePage() {
             <path
               d="M1.1665 7.00008H12.8332M12.8332 7.00008L6.99984 1.16675M12.8332 7.00008L6.99984 12.8334"
               stroke="#848484"
-              stroke-width="1.67"
-              stroke-linecap="round"
-              stroke-linejoin="round"
+              strokeWidth="1.67"
+              strokeLinecap="round"
+              strokeLinejoin="round"
             />
           </svg>
         </button>
