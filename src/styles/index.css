@@ -1,0 +1,33 @@
+@import "tailwindcss";
+
+/* SF Pro Display Regular */
+@font-face {
+  font-family: "SF Pro Display";
+  src: url("@assets/fonts/SF-Pro-Display-Regular.woff") format("woff");
+  font-weight: 400;
+  font-style: normal;
+}
+
+/* SF Pro Display Bold */
+@font-face {
+  font-family: "SF Pro Display";
+  src: url("@assets/fonts/SF-Pro-Display-Bold.woff") format("woff");
+  font-weight: 800;
+  font-style: normal;
+}
+
+/* SF Pro Text Regular */
+@font-face {
+  font-family: "SF Pro Text";
+  src: url("@assets/fonts/sf-pro-text-regular.woff") format("woff");
+  font-weight: 400;
+  font-style: normal;
+}
+
+/* SF Pro Text Regular Italic */
+@font-face {
+  font-family: "SF Pro Text";
+  src: url("@assets/fonts/SF-Pro-Text-RegularItalic.woff") format("woff");
+  font-weight: 400;
+  font-style: italic;
+}

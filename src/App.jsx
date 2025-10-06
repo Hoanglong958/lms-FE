@@ -1,9 +1,5 @@
-function App() {
-  return (
-    <>
-      <h1>Base React</h1>
-    </>
-  );
-}
+import AppRouter from "@routes/AppRouter.jsx";
 
-export default App;
+export default function App() {
+  return <AppRouter />;
+}

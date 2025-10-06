@@ -1,0 +1,298 @@
+.footer-container {
+  position: relative;
+  width: 1440px;
+  height: 564px;
+  overflow: hidden;
+  background-color: #dd673c;
+  margin: 0 auto;
+}
+
+.footer-bg-banner img {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  left: 0;
+  bottom: 0;
+  object-fit: cover;
+  mix-blend-mode: color-burn;
+  z-index: 0;
+}
+
+.footer-top {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 0 32px 0;
+  gap: 12px;
+
+  position: absolute;
+  width: 1200px;
+  height: 144px;
+  left: 50%;
+  top: 100px;
+  transform: translateX(-50%);
+
+  border-bottom: 1px solid #fff;
+  z-index: 1;
+}
+
+/* Logo box */
+.footer-logo-box {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 8px 16px;
+  gap: 4px;
+  width: 79px;
+  height: 72px;
+  background: #fff;
+  border-radius: 8px;
+}
+
+/* Logo hình ảnh */
+.logo-background {
+  width: 47px;
+  height: 56px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.footer-logo {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* Title */
+.footer-title {
+  width: 673px;
+  height: 28px;
+  font-family: "SF Pro Display";
+  font-weight: 800; /* Heavy */
+  font-style: normal; /* không italic */
+  font-size: 18px;
+  line-height: 28px; /* giống Figma */
+  letter-spacing: 0.011em;
+  color: #ffffff;
+
+  /* vertical center text nếu muốn */
+  display: flex;
+  align-items: center;
+}
+
+/* Divider */
+.footer-divider {
+  width: 100%;
+  height: 1px;
+  background: #fff;
+}
+
+/* middle */
+.footer-social {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 0;
+  gap: 16px;
+
+  position: absolute;
+  width: 200px;
+  height: 64px;
+  left: 633px;
+  top: 298px;
+}
+
+.footer-heading {
+  width: 200px;
+  height: 24px;
+  font-family: "SF Pro Display", sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 24px;
+  color: #fff;
+}
+
+.social-icons {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 16px;
+  width: 64px;
+  height: 24px;
+}
+
+.social-icon {
+  width: 24px;
+  height: 24px;
+  position: relative;
+}
+
+/* Footer quote */
+.footer-quote {
+  width: 379px;
+  margin: 298px 0 0 941px;
+}
+
+/* Quote text */
+.quote-text {
+  font-family: "SF Pro Display";
+  font-weight: 0;
+  font-style: normal;
+  font-size: 14px;
+  line-height: 20px;
+  margin: 0;
+  color: #ffffff;
+}
+
+/* CEO name / italic */
+.quote-ceo {
+  font-family: "SF Pro Text", sans-serif;
+  font-weight: 400;
+  font-style: italic;
+  font-size: 14px;
+  line-height: 20px;
+  color: #ffffff;
+  margin: 0;
+  text-align: right;
+}
+
+.footer-quote-2 {
+  width: 379px;
+  margin: 12px 0 0 941px;
+}
+
+.quote-text-2 {
+  font-family: "SF Pro Display";
+  font-weight: 800;
+  font-style: italic;
+  font-size: 14px;
+  line-height: 20px;
+  color: #ffffff;
+  text-align: right;
+  margin: 0;
+  letter-spacing: 0.025em;
+}
+
+.footer-contact {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  position: absolute;
+  width: 378px;
+  top: 298px;
+  left: 120px;
+}
+
+/* Heading chính */
+.contact-heading-main {
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 24px;
+  color: #fff;
+  margin: 0;
+}
+
+/* Mỗi dòng info */
+.contact-item {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+/* Icon */
+.contact-icon {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+}
+
+.contact-detail-inline {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.contact-label {
+  width: 63px; /* đúng theo Figma */
+  height: 28px; /* đúng theo Figma */
+
+  font-family: "SF Pro Display";
+  font-style: normal;
+  font-weight: 600; /* Bold */
+  font-size: 18px;
+  line-height: 28px;
+  /* letter-spacing: 0.02em;  */
+
+  display: flex; /* để căn giữa dọc */
+  align-items: center;
+
+  color: #ffffff;
+
+  flex-shrink: 0; /* không bị co khi container nhỏ */
+  order: 0;
+  flex-grow: 0;
+}
+
+.contact-value {
+  max-width: 263px; /* chiều rộng tối đa theo Figma */
+  min-height: 48px; /* đảm bảo đủ chỗ cho 2 dòng nếu cần */
+
+  font-family: "SF Pro Display";
+  font-style: normal;
+  font-weight: 400; /* Regular */
+  font-size: 16px;
+  line-height: 24px; /* 150% */
+  color: #ffffff;
+
+  display: inline-block; /* để xuống dòng khi quá dài nhưng vẫn cạnh label */
+  word-break: break-word; /* ngắt từ nếu dài quá width */
+  white-space: normal; /* cho phép xuống dòng */
+
+  flex-shrink: 1; /* value có thể co khi container nhỏ */
+  order: 1;
+  flex-grow: 0;
+}
+
+/* Footer bottom container */
+.footer-bottom {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 4px;
+
+  position: absolute;
+  width: 341px;
+  height: 18px;
+  left: 120px;
+  bottom: 16px;
+}
+
+/* Copyright icon */
+.footer-copyright-icon {
+  width: 16px;
+  height: 16px;
+  position: relative;
+}
+
+.footer-copyright-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* Copyright text */
+.footer-copyright-text {
+  width: 321px;
+  height: 18px;
+  font-family: "SF Pro Display";
+  font-style: normal;
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 18px;
+  color: #ffffff;
+  margin: 0;
+}

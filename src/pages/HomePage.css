@@ -1,0 +1,443 @@
+.home-page {
+  display: flex;
+  flex-direction: column;
+  width: 1440px;
+  min-height: 100vh;
+  background-color: #f5f5f5;
+  margin: 0 auto;
+}
+
+/* HomePage.css - Hero Banner */
+.hero-banner {
+  position: relative;
+  width: 1440px;
+  height: 640px;
+  margin: 0 auto;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1); /* hoặc màu bạn muốn */
+  background: linear-gradient(
+    275.76deg,
+    #ad502f -13.47%,
+    #f37142 26.69%,
+    #f37142 60.68%,
+    #ad502f 110.11%
+  );
+  overflow: hidden;
+  opacity: 1;
+}
+
+/* Text block */
+.hero-text {
+  position: absolute;
+  top: 230px;
+  left: 120px;
+  width: 584px;
+  height: 180px;
+  color: #fff;
+  font-size: 18px;
+  line-height: 1.5;
+}
+
+.hero-text span {
+  display: block;
+  margin-top: 10px;
+  font-weight: bold;
+  font-size: 20px;
+}
+
+/* Image block */
+.hero-img {
+  position: absolute;
+  top: 65px;
+  left: 810px;
+  width: 500px;
+  height: 510px;
+}
+
+.hero-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* HomePage.css - Quotes in Hero Banner */
+.quote {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  opacity: 0.8;
+}
+
+/* quotes1 layout */
+.quote1 {
+  top: 169px;
+  left: 80px;
+  transform: rotate(0deg);
+}
+
+/* quotes2 layout */
+.quote2 {
+  top: 402px;
+  left: 700px;
+}
+
+/* HomePage.css - Pagination Dots */
+.pagination-dots {
+  display: flex;
+  gap: 8px; /* khoảng cách giữa các dot */
+  position: absolute; /* nếu cần đặt trên hero banner */
+  bottom: 20px; /* điều chỉnh vị trí */
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #f9bea8; /* inactive dot */
+  flex: none;
+}
+
+.dot.active {
+  background: #ffffff; /* active dot */
+}
+
+/* HomePage.css - Courses Section */
+.courses-title {
+  width: 318px; /* đúng Figma */
+  height: 44px; /* đúng Figma */
+  font-family: "SF Pro Display", sans-serif;
+  font-weight: 600;
+  font-size: 32px;
+  line-height: 44px;
+  color: #000000; /* màu chữ */
+  margin: 80px auto 24px auto; /* căn giữa và khoảng cách trên dưới */
+}
+
+/* Container cho các course */
+.course-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 32px; /* khoảng cách giữa các dòng */
+}
+
+.course-row {
+  display: flex;
+  flex-direction: row;
+  gap: 24px; /* khoảng cách giữa 3 course trong cùng dòng */
+  justify-content: flex-start;
+  margin: 0 auto;
+}
+
+/* ----------------- Course Card ----------------- */
+.course-card {
+  width: 379px;
+  height: 464px;
+  padding-bottom: 24px;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0px -4px 6px -2px #10182808, 0px 12px 16px -4px #10182814;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+}
+
+/* Hover effect */
+.course-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0px 20px 25px -5px rgba(16, 24, 40, 0.08),
+    0px 12px 20px -4px rgba(16, 24, 40, 0.14);
+}
+
+/* ----------------- Image ----------------- */
+/* Container card image */
+.course-image-wrapper {
+  width: 379px; /* giữ container chuẩn */
+  height: 272px; /* giữ container chuẩn */
+  position: relative; /* để căn image bên trong */
+  overflow: hidden; /* để border-radius image không tràn */
+  border-radius: 12px 12px 0 0; /* nếu muốn bo tròn trên */
+}
+
+/* Image bên trong */
+.course-image-wrapper .course-image {
+  width: 348.06px; /* đúng Figma */
+  height: 240px; /* đúng Figma */
+  position: absolute;
+  top: 16px; /* khoảng cách từ trên */
+  left: 15px; /* khoảng cách từ trái */
+  border-radius: 12px; /* bo tròn image */
+  object-fit: cover; /* giữ tỉ lệ */
+}
+
+/* ----------------- Content ----------------- */
+.course-content {
+  width: 379px;
+  height: 168px;
+  padding: 0 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-sizing: border-box;
+}
+
+/* ----------------- Level Badge ----------------- */
+.level-badge {
+  width: 84px !important;
+  height: 28px !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+/* ----------------- Course Info ----------------- */
+.course-info {
+  width: 324px;
+  height: 60px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0;
+}
+
+/* ----------------- Meta Info ----------------- */
+.course-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px; /* khoảng cách giữa các item + divider */
+  width: 317px;
+  height: 20px;
+}
+
+/* ----------------- Meta Item ----------------- */
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 8px; /* khoảng cách icon - text */
+  height: 20px;
+  flex-shrink: 0; /* không co khi container hẹp */
+}
+
+/* Width từng item theo Figma */
+.meta-item.duration {
+  width: 84px;
+}
+.meta-item.lessons {
+  width: 95px;
+}
+.meta-item.teacher {
+  width: 106px;
+}
+
+/* Text trong meta item */
+.meta-item span {
+  font-family: "SF Pro Display", sans-serif;
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 20px;
+  color: #3d3d3d;
+  display: flex;
+  align-items: center;
+}
+
+/* Icon SVG trong meta item */
+.meta-item img.meta-icon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  color: #dd673c;
+}
+.meta-item.clock svg {
+  color: #dd673c;
+}
+/* ----------------- Divider ----------------- */
+.divider {
+  width: 1px;
+  height: 20px;
+  background: #dddddd;
+  flex-shrink: 0;
+}
+
+/* ----------------- Course Title ----------------- */
+.course-info h3 {
+  width: 324px;
+  height: 32px;
+  font-family: "SF Pro Display", sans-serif;
+  font-weight: 600;
+  font-size: 24px;
+  line-height: 32px;
+  color: #000;
+  margin: 0;
+}
+
+/* ----------------- Learn Now Button ----------------- */
+/* Button Learn Now */
+.btn-learn {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  padding: 12px 20px;
+  gap: 8px;
+  margin: 0;
+  width: 347px;
+  height: 48px;
+  border-radius: 8px;
+
+  background: #f8e9ea; /* default */
+  border: 1px solid #f8e9ea;
+  box-shadow: 0px 1px 2px rgba(16, 24, 40, 0.05);
+
+  font-family: "SF Pro Display", sans-serif;
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 24px;
+  color: #dd673c; /* text màu đỏ default */
+
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+/* Hover */
+.btn-learn:hover {
+  background: #dd673c;
+  border-color: #dd673c;
+}
+
+.btn-learn:hover .btn-icon,
+.btn-learn:hover span {
+  filter: brightness(0) invert(1);
+}
+
+/* Text */
+.btn-learn span {
+  display: inline-block;
+}
+
+/* Icon */
+.btn-learn .btn-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  stroke: currentColor; /* tự đổi theo color của button */
+}
+
+/* pagination */
+.pagination-container {
+  margin: 48px auto 100px auto;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  width: 1200px;
+  height: 60px;
+  padding-top: 20px;
+  top: 2860px;
+  left: 120px;
+  border-top: 1px solid #cccccc;
+  gap: 20px;
+}
+
+.page-btn {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  width: auto;
+  height: 20px;
+  background: none;
+  border: none;
+  font-family: "Inter", sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  color: #848484;
+  cursor: pointer;
+  position: relative;
+}
+
+.page-btn .page-icon {
+  width: 20px;
+  height: 20px;
+  color: #848484;
+}
+
+.page-number {
+  width: 40px;
+  height: 40px;
+  border-radius: 20px; /* Brand/50 */
+  background: #fef1ec;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: "Inter", sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  color: #848484; /* Gray/600 */
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.page-number {
+  width: 40px;
+  height: 40px;
+  background: #fef1ec;
+  border-radius: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: "Inter", sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  color: #848484;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.page-number.active {
+  color: #f37142; /* Brand/500 */
+  background: #fef1ec; /* Brand/50 */
+}
+
+.pagination {
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+  margin-top: 20px;
+  align-items: center;
+}
+
+.page-number {
+  width: 40px;
+  height: 40px;
+  border-radius: 20px;
+  background: #fef1ec;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: "Inter", sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  color: #848484;
+  cursor: pointer;
+  border: none;
+  transition: all 0.3s;
+}
+
+.page-number:hover {
+  background: #f37142;
+  color: #fff;
+}
+
+.dots {
+  font-family: "Inter", sans-serif;
+  font-size: 14px;
+  color: #848484;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 20px;
+}
