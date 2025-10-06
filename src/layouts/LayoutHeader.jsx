@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "./Header.css";
 import mankaiLogo from "@assets/logos/mankai-logo.svg";
 import homeIcon from "@assets/icons/home-icon.svg";
@@ -10,8 +11,11 @@ import avatarDropDown from "@assets/images/avatar-dropdown.svg";
 import logoutIcon from "@assets/icons/logout-icon.svg";
 
 export default function Header() {
+  const navigate = useNavigate();
   const [openDropdown, setOpenDropdown] = useState(false);
-
+  const handleLogout = () => {
+    navigate("/login");
+  };
   return (
     <header className="header-container">
       <div className="header-left">
@@ -65,7 +69,7 @@ export default function Header() {
               <div className="dropdown-item">Hồ sơ của tôi</div>
               <div className="dropdown-item">Khóa học của tôi</div>
               <div className="divider"></div>
-              <div className="dropdown-item logout">
+              <div className="dropdown-item logout" onClick={handleLogout}>
                 <img src={logoutIcon} alt="Logout" className="logout-icon" />
                 <span>Đăng xuất</span>
               </div>

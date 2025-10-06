@@ -14,6 +14,7 @@ import profileIcon from "@assets/icons/profile-icon.svg";
 import Level from "@assets/images/Level.svg";
 import arrowUpRight from "@assets/icons/arrow-up-right-icon.svg";
 import pattern from "@assets/pattern/clip-path-group.svg";
+
 export default function HomePage() {
   return (
     <div className="home-page">
