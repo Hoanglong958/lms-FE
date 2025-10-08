@@ -17,6 +17,7 @@ export default defineConfig({
       "@utils": path.resolve(__dirname, "./src/utils"), // alias @utils → src/utils
       "@assets": path.resolve(__dirname, "./src/assets"), // alias @assets → src/assets
       "@styles": path.resolve(__dirname, "./src/styles"), // alias @styles → src/styles
+      "@hooks": path.resolve(__dirname, "./src/hooks"), // alias @hooks → src/hooks
     },
   },
 });
