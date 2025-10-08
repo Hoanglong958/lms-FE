@@ -56,9 +56,9 @@ export default function HomePage() {
   ];
 
   let repetitions;
-  if (width > 1024) {
+  if (width > 820) {
     repetitions = 3; // Desktop: 3 bản sao
-  } else if (width > 819) {
+  } else if (width > 375) {
     repetitions = 2; // Tablet: 2 bản sao
   } else {
     repetitions = 1; // Mobile: 1 bản sao

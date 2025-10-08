@@ -531,71 +531,71 @@
     left: 366px;
     top: 354px;
   }
-}
 
-.courses-title {
-  width: auto;
-  font-size: 30px;
-}
+  .courses-title {
+    width: auto;
+    font-size: 30px;
+  }
 
-.course-row {
-  display: flex;
-  justify-content: center;
-  gap: 24px;
-  flex-wrap: wrap;
-  width: 100%;
-}
+  .course-row {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    flex-wrap: wrap;
+    width: 100%;
+  }
 
-.course-card {
-  width: 374px;
-  height: 270px;
-  border-radius: 8px;
-  flex-shrink: 0;
+  .course-card {
+    width: 374px;
+    height: 270px;
+    border-radius: 8px;
+    flex-shrink: 0;
 
-  background: #fff;
-  box-shadow: 0px 4px 16px -4px rgba(16, 24, 40, 0.08);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
+    background: #fff;
+    box-shadow: 0px 4px 16px -4px rgba(16, 24, 40, 0.08);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
 
-.course-image-wrapper {
-  width: 374px;
-  height: 186px;
-}
+  .course-image-wrapper {
+    width: 374px;
+    height: 186px;
+  }
 
-.course-image {
-  position: absolute;
-  top: 12px;
-  left: 13.08px;
+  .course-image {
+    position: absolute;
+    top: 12px;
+    left: 13.08px;
 
-  width: 347.83px;
-  height: 162px;
-  border-radius: 8px;
-  object-fit: cover;
-}
+    width: 347.83px;
+    height: 162px;
+    border-radius: 8px;
+    object-fit: cover;
+  }
 
-.course-content {
-  display: flex;
-  flex-direction: column;
-  width: 374px;
-  height: 84px;
-  padding: 0 12px 12px 12px;
-  box-sizing: border-box;
-}
+  .course-content {
+    display: flex;
+    flex-direction: column;
+    width: 374px;
+    height: 84px;
+    padding: 0 12px 12px 12px;
+    box-sizing: border-box;
+  }
 
-.btn-learn {
-  display: none;
-}
+  .btn-learn {
+    display: none;
+  }
 
-.course-info {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
+  .course-info {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
 
-.course-info .course-title-card {
-  order: -1;
+  .course-info .course-title-card {
+    order: -1;
+  }
 }
 @media (max-width: 375px) {
 }
