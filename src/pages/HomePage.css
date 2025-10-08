@@ -424,9 +424,7 @@
   width: 20px;
 }
 
-/* ================================================= */
-/* === KHỐI RESPONSIVE - KHÔNG ẢNH HƯỞNG DESKTOP === */
-/* ================================================= */
+/* resposive */
 @media (max-width: 820px) {
   .home-page,
   .hero-banner,

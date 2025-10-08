@@ -13,6 +13,7 @@ import avatarDropDown from "@assets/images/avatar-dropdown.svg";
 import logoutIcon from "@assets/icons/logout-icon.svg";
 import lessonIcon from "@assets/icons/lesson-icon.svg";
 import menuIcon from "@assets/icons/menu-icon.svg";
+import logoutIcon2 from "@assets/icons/logout-icon-2.svg";
 
 export default function Header() {
   const navigate = useNavigate();
@@ -135,22 +136,24 @@ export default function Header() {
           </div>
           <div className="mobile-menu-footer">
             <div className="user-info-mobile">
-              <img
-                src={avatarDropDown}
-                alt="Avatar"
-                className="avatar-mobile"
-              />
-              <div className="text-info">
-                <div className="name">Nguyễn Ánh Viên</div>
-                <div className="email">vien@gmail.com</div>
+              <div className="avatarlablegroup">
+                <img
+                  src={avatarDropDown}
+                  alt="Avatar"
+                  className="avatar-mobile"
+                />
+                <div className="text-info">
+                  <div className="name">Nguyễn Ánh Viên</div>
+                  <div className="email">vien@gmail.com</div>
+                </div>
               </div>
+              <img
+                src={logoutIcon2}
+                alt="Logout"
+                onClick={() => handleNavigate("/login")}
+                className="logout-icon-mobile"
+              />
             </div>
-            <img
-              src={logoutIcon}
-              alt="Logout"
-              onClick={() => handleNavigate("/login")}
-              className="logout-icon-mobile"
-            />
           </div>
         </div>
       </div>
