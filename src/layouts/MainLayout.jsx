@@ -6,7 +6,9 @@ export default function MainLayout() {
   return (
     <div>
       <main>
+        <LayoutHeader />
         <Outlet />
+        <LayoutFooter />
       </main>
     </div>
   );

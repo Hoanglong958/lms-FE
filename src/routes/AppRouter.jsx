@@ -4,6 +4,7 @@ import HomePage from "@pages/HomePage";
 import Login from "@features/login/pages/login";
 import LessonLayout from "@layouts/LayoutLesson";
 import LessonPage from "@features/lesson/pages/lessonPage";
+import { Layout } from "antd";
 
 export default function AppRouter() {
   return (
