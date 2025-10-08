@@ -30,34 +30,18 @@ export default function HomePage() {
     {
       img: N1ChillClass,
       title: "N1 Chill Class",
-      level: "Beginner",
-      duration: "360 phút",
-      lessons: "32 Chương",
-      teacher: "Giang Sensei",
     },
     {
       img: N2ChillClass,
       title: "N2 Chill Class",
-      level: "Intermediate",
-      duration: "420 phút",
-      lessons: "40 Chương",
-      teacher: "Giang Sensei",
     },
     {
       img: PhatAmJVoice,
       title: "Phát Âm J-Voice",
-      level: "Beginner",
-      duration: "180 phút",
-      lessons: "15 Chương",
-      teacher: "Giang Sensei",
     },
     {
       img: ITTalk,
       title: "IT Talk",
-      level: "Advanced",
-      duration: "240 phút",
-      lessons: "20 Chương",
-      teacher: "Giang Sensei",
     },
   ];
 
@@ -109,7 +93,11 @@ export default function HomePage() {
             <div className="course-row" key={index}>
               {/* Lặp 3 lần để tạo 3 bản sao trên cùng 1 hàng */}
               {repetitionArray.map((_, subIndex) => (
-                <div className="course-card" key={subIndex}>
+                <div
+                  className="course-card"
+                  key={subIndex}
+                  onClick={() => handleNavigate("/lesson")}
+                >
                   <div className="course-image-wrapper">
                     <img
                       src={course.img}
@@ -152,7 +140,10 @@ export default function HomePage() {
                     </div>
                     <button
                       className="btn-learn"
-                      onClick={() => handleNavigate("/lesson")}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleNavigate("/lesson");
+                      }}
                     >
                       <span>HỌC NGAY</span>
                       <img
