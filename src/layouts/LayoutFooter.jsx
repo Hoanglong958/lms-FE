@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import "./Footer.css";
 import mankaiLogo from "@assets/logos/mankai-logo.svg";
 import facebookIcon from "@assets/icons/facebook-icon.svg";

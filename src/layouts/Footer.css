@@ -374,7 +374,7 @@
 
       position: absolute;
       width: 343px;
-      height: 180px;
+      height: 140px;
       left: 422px;
       top: 220px;
       margin: 0;
@@ -423,14 +423,40 @@
   }
 
   .quote-text {
+    width: 343px;
+    height: 140px;
+
+    font-family: "SF Pro Display";
+    font-style: normal;
+    font-weight: 400;
     font-size: 14px;
-    line-height: 20px;
+    line-height: 20px; /* 143% */
+    color: #ffffff;
+
+    flex: none;
+    order: 0;
+    align-self: stretch;
+    flex-grow: 0;
   }
 
   .quote-ceo,
-  .quote-text-2 {
+  .footer-quote-2 {
+    margin: 0;
+    width: 343px;
+    height: 20px;
+
+    font-family: "SF Pro Display";
+    font-style: italic;
+    font-weight: 800;
     font-size: 14px;
-    line-height: 20px;
+    line-height: 20px; /* 143% */
+    text-align: right;
+    color: #ffffff;
+
+    flex: none;
+    order: 1;
+    align-self: stretch;
+    flex-grow: 0;
   }
 
   .footer-bottom {
@@ -445,8 +471,81 @@
     font-size: 12px;
     line-height: 18px;
   }
-}
 
-.footer-social {
-  top: 408px;
+  .footer-contact {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 0;
+    gap: 8px;
+
+    position: absolute;
+    width: 347px;
+    height: 164px;
+    left: 24px;
+    top: 220px;
+  }
+
+  .contact-heading-main {
+    width: 347px;
+    height: 20px;
+    font-family: "SF Pro Display";
+    font-style: normal;
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 20px;
+    color: #ffffff;
+    margin: 0;
+  }
+
+  .contact-item {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    padding: 0;
+    gap: 8px;
+    width: 347px;
+    height: 40px;
+  }
+
+  .contact-icon {
+    width: 32px;
+    height: 32px;
+    background: #ffffff;
+    border-radius: 24px;
+    flex-shrink: 0;
+  }
+
+  .contact-detail-inline {
+    display: flex;
+    flex-direction: row;
+    align-items: top;
+    gap: 8px;
+  }
+
+  .contact-label {
+    display: flex;
+    align-items: flex-start;
+    font-family: "SF Pro Display";
+    font-style: normal;
+    font-weight: 800;
+    font-size: 14px;
+    line-height: 20px;
+    color: #ffffff;
+  }
+
+  .contact-value {
+    display: flex;
+    align-items: flex-start;
+    font-family: "SF Pro Display";
+    font-style: normal;
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 20px;
+    color: #ffffff;
+    word-break: break-word;
+  }
+  .footer-social {
+    top: 408px;
+  }
 }
