@@ -3,11 +3,10 @@
   flex-direction: column;
   width: 1440px;
   min-height: 100vh;
-  background-color: #f5f5f5;
+  background-color: #fafafa;
   margin: 0 auto;
 }
 
-/* HomePage.css - Hero Banner */
 .hero-banner {
   position: relative;
   width: 1440px;
@@ -25,7 +24,6 @@
   opacity: 1;
 }
 
-/* Text block */
 .hero-text {
   position: absolute;
   top: 230px;
@@ -44,7 +42,6 @@
   font-size: 20px;
 }
 
-/* Image block */
 .hero-img {
   position: absolute;
   top: 65px;
@@ -59,7 +56,6 @@
   object-fit: cover;
 }
 
-/* HomePage.css - Quotes in Hero Banner */
 .quote {
   position: absolute;
   width: 40px;
@@ -67,25 +63,22 @@
   opacity: 0.8;
 }
 
-/* quotes1 layout */
 .quote1 {
   top: 169px;
   left: 80px;
   transform: rotate(0deg);
 }
 
-/* quotes2 layout */
 .quote2 {
   top: 402px;
   left: 700px;
 }
 
-/* HomePage.css - Pagination Dots */
 .pagination-dots {
   display: flex;
-  gap: 8px; /* khoảng cách giữa các dot */
-  position: absolute; /* nếu cần đặt trên hero banner */
-  bottom: 20px; /* điều chỉnh vị trí */
+  gap: 8px;
+  position: absolute;
+  bottom: 20px;
   left: 50%;
   transform: translateX(-50%);
 }
@@ -94,15 +87,14 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #f9bea8; /* inactive dot */
+  background: #f9bea8;
   flex: none;
 }
 
 .dot.active {
-  background: #ffffff; /* active dot */
+  background: #ffffff;
 }
 
-/* HomePage.css - Courses Section */
 .courses-title {
   width: 318px;
   height: 44px;
@@ -114,18 +106,17 @@
   margin: 80px auto 24px auto;
 }
 
-/* Container cho các course */
 .course-grid {
   display: flex;
-  flex-direction: column; /* Xếp các .course-row chồng lên nhau */
+  flex-direction: column;
   align-items: center;
-  gap: 32px; /* Khoảng cách giữa các hàng */
+  gap: 32px;
 }
 
 .course-row {
   display: flex;
   flex-direction: row;
-  gap: 24px; /* khoảng cách giữa 3 course trong cùng dòng */
+  gap: 24px;
   justify-content: flex-start;
   margin: 0 auto;
 }
@@ -144,7 +135,6 @@
   cursor: pointer;
 }
 
-/* Hover effect */
 .course-card:hover {
   transform: translateY(-8px);
   box-shadow: 0px 20px 25px -5px rgba(16, 24, 40, 0.08),
@@ -152,13 +142,12 @@
 }
 
 /* ----------------- Image ----------------- */
-/* Container card image */
 .course-image-wrapper {
-  width: 379px; /* giữ container chuẩn */
-  height: 272px; /* giữ container chuẩn */
-  position: relative; /* để căn image bên trong */
-  overflow: hidden; /* để border-radius image không tràn */
-  border-radius: 12px 12px 0 0; /* nếu muốn bo tròn trên */
+  width: 379px;
+  height: 272px;
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px 12px 0 0;
 }
 
 /* Image bên trong */
@@ -207,7 +196,7 @@
 .course-meta {
   display: flex;
   align-items: center;
-  gap: 8px; /* khoảng cách giữa các item + divider */
+  gap: 8px;
   width: 317px;
   height: 20px;
 }
@@ -216,12 +205,11 @@
 .meta-item {
   display: flex;
   align-items: center;
-  gap: 8px; /* khoảng cách icon - text */
+  gap: 8px;
   height: 20px;
-  flex-shrink: 0; /* không co khi container hẹp */
+  flex-shrink: 0;
 }
 
-/* Width từng item theo Figma */
 .meta-item.duration {
   width: 84px;
 }
@@ -232,7 +220,6 @@
   width: 106px;
 }
 
-/* Text trong meta item */
 .meta-item span {
   font-family: "SF Pro Display", sans-serif;
   font-weight: 400;
@@ -243,7 +230,6 @@
   align-items: center;
 }
 
-/* Icon SVG trong meta item */
 .meta-item img.meta-icon {
   width: 20px;
   height: 20px;
@@ -274,7 +260,6 @@
 }
 
 /* ----------------- Learn Now Button ----------------- */
-/* Button Learn Now */
 .btn-learn {
   display: flex;
   flex-direction: row;
@@ -287,7 +272,7 @@
   height: 48px;
   border-radius: 8px;
 
-  background: #f8e9ea; /* default */
+  background: #f8e9ea;
   border: 1px solid #f8e9ea;
   box-shadow: 0px 1px 2px rgba(16, 24, 40, 0.05);
 
@@ -295,13 +280,12 @@
   font-weight: 600;
   font-size: 16px;
   line-height: 24px;
-  color: #dd673c; /* text màu đỏ default */
+  color: #dd673c;
 
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
-/* Hover */
 .btn-learn:hover {
   background: #dd673c;
   border-color: #dd673c;
@@ -312,20 +296,17 @@
   filter: brightness(0) invert(1);
 }
 
-/* Text */
 .btn-learn span {
   display: inline-block;
 }
 
-/* Icon */
 .btn-learn .btn-icon {
   width: 20px;
   height: 20px;
   flex-shrink: 0;
-  stroke: currentColor; /* tự đổi theo color của button */
+  stroke: currentColor;
 }
 
-/* pagination */
 .pagination-container {
   margin: 48px auto 100px auto;
   display: flex;
@@ -368,7 +349,7 @@
 .page-number {
   width: 40px;
   height: 40px;
-  border-radius: 20px; /* Brand/50 */
+  border-radius: 20px;
   background: #fef1ec;
   display: flex;
   justify-content: center;
@@ -376,7 +357,7 @@
   font-family: "Inter", sans-serif;
   font-weight: 500;
   font-size: 14px;
-  color: #848484; /* Gray/600 */
+  color: #848484;
   cursor: pointer;
   transition: all 0.3s;
 }
@@ -399,8 +380,8 @@
 }
 
 .page-number.active {
-  color: #f37142; /* Brand/500 */
-  background: #fef1ec; /* Brand/50 */
+  color: #f37142;
+  background: #fef1ec;
 }
 
 .pagination {
@@ -446,21 +427,17 @@
 /* ================================================= */
 /* === KHỐI RESPONSIVE - KHÔNG ẢNH HƯỞNG DESKTOP === */
 /* ================================================= */
-
-/* --- Dành cho Tablet và các màn hình nhỏ hơn (<= 820px) --- */
 @media (max-width: 820px) {
-  /* Cho phép layout co dãn theo chiều rộng màn hình */
   .home-page,
   .hero-banner,
   .pagination-container {
     width: 100%;
   }
 
-  /* --- Sửa Hero Banner --- */
   .hero-banner {
     width: 820px;
     height: 440px;
-    flex-direction: row; /* Chuyển layout banner sang chiều dọc */
+    flex-direction: row;
     box-sizing: border-box;
   }
   .quote1 {
@@ -486,25 +463,19 @@
   }
 
   .hero-img {
-    /* Vị trí tuyệt đối so với thẻ cha (.hero-banner) */
     position: absolute;
     top: 36px;
     left: 436px;
-
-    /* Kích thước */
     width: 360px;
     height: 368px;
-
-    /* Các thuộc tính khác (đây là giá trị mặc định) */
     opacity: 1;
     transform: rotate(0deg);
   }
 
   .hero-img img {
-    /* Cho ảnh lấp đầy 100% thẻ div cha của nó */
     width: 100%;
     height: 100%;
-    object-fit: cover; /* Giữ tỷ lệ ảnh và lấp đầy khung, có thể cắt bớt phần thừa */
+    object-fit: cover;
   }
 
   .hero-text {
@@ -562,6 +533,69 @@
   }
 }
 
-/* --- Dành riêng cho Mobile (<= 375px) --- */
+.courses-title {
+  width: auto;
+  font-size: 30px;
+}
+
+.course-row {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.course-card {
+  width: 374px;
+  height: 270px;
+  border-radius: 8px;
+  flex-shrink: 0;
+
+  background: #fff;
+  box-shadow: 0px 4px 16px -4px rgba(16, 24, 40, 0.08);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.course-image-wrapper {
+  width: 374px;
+  height: 186px;
+}
+
+.course-image {
+  position: absolute;
+  top: 12px;
+  left: 13.08px;
+
+  width: 347.83px;
+  height: 162px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.course-content {
+  display: flex;
+  flex-direction: column;
+  width: 374px;
+  height: 84px;
+  padding: 0 12px 12px 12px;
+  box-sizing: border-box;
+}
+
+.btn-learn {
+  display: none;
+}
+
+.course-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.course-info .course-title-card {
+  order: -1;
+}
 @media (max-width: 375px) {
 }
