@@ -11,19 +11,17 @@ import notiIcon from "@assets/icons/noti-icon.svg";
 import avatar from "@assets/images/avatar.svg";
 import avatarDropDown from "@assets/images/avatar-dropdown.svg";
 import logoutIcon from "@assets/icons/logout-icon.svg";
-import lessonIcon from "@assets/icons/lesson-icon.svg"; // Icon cho "Bài học"
-import menuIcon from "@assets/icons/menu-icon.svg"; // Icon hamburger
+import lessonIcon from "@assets/icons/lesson-icon.svg";
+import menuIcon from "@assets/icons/menu-icon.svg";
 
 export default function Header() {
   const navigate = useNavigate();
-  const [openDropdown, setOpenDropdown] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // State mới cho menu mobile
-
-  // Hàm này giúp đóng menu sau khi chuyển trang
   const handleNavigate = (path) => {
     navigate(path);
     setIsMobileMenuOpen(false);
   };
+  const [openDropdown, setOpenDropdown] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
     <>

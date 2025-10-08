@@ -1,5 +1,7 @@
-import React from "react";
-import useWindowSize from "@hooks/useWindowSize"; // Đảm bảo đường dẫn này đúng
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+
+import useWindowSize from "@hooks/useWindowSize";
 import "./HomePage.css";
 
 // Import các hình ảnh của bạn
@@ -18,6 +20,10 @@ import arrowUpRight from "@assets/icons/arrow-up-right-icon.svg";
 import pattern from "@assets/pattern/clip-path-group.svg";
 
 export default function HomePage() {
+  const navigate = useNavigate();
+  const handleNavigate = (path) => {
+    navigate(path);
+  };
   const { width } = useWindowSize();
 
   const originalCourses = [
@@ -144,7 +150,10 @@ export default function HomePage() {
                       </div>
                       <h3 className="course-title-card">{course.title}</h3>
                     </div>
-                    <button className="btn-learn">
+                    <button
+                      className="btn-learn"
+                      onClick={() => handleNavigate("/lesson")}
+                    >
                       <span>HỌC NGAY</span>
                       <img
                         src={arrowUpRight}
