@@ -1,0 +1,14 @@
+.lesson-body {
+  display: flex; /* Bắt buộc để main và aside nằm ngang */
+  flex-direction: row; /* Xếp ngang */
+  justify-content: space-between;
+  align-items: flex-start;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Main content */
+.lesson-content {
+  flex: 1;
+  margin-right: 16px;
+}

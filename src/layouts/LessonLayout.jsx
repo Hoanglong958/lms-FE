@@ -1,10 +1,13 @@
 import { Outlet } from "react-router-dom";
 import LessonSidebar from "@features/lesson/components/LessonSidebar";
+import LayoutHeader from "./LayoutHeader";
+import "./Lesson.css";
 
 export default function LessonLayout() {
   return (
     <div className="lesson-layout">
       {/* Header */}
+      <LayoutHeader />
 
       {/* Phần nội dung chính + sidebar */}
       <div className="lesson-body">
@@ -13,7 +16,7 @@ export default function LessonLayout() {
         </main>
 
         {/* Sidebar bên phải */}
-        <aside className="lesson-sidebar">
+        <aside className="lesson-sidebar-container">
           <LessonSidebar />
         </aside>
       </div>
