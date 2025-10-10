@@ -1,3 +1,4 @@
+/* HomePage.css */
 .home-page {
   display: flex;
   flex-direction: column;
@@ -14,13 +15,11 @@
   height: 640px;
   margin: 0 auto;
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-  background: linear-gradient(
-    275.76deg,
-    #ad502f -13.47%,
-    #f37142 26.69%,
-    #f37142 60.68%,
-    #ad502f 110.11%
-  );
+  background: linear-gradient(275.76deg,
+      #ad502f -13.47%,
+      #f37142 26.69%,
+      #f37142 60.68%,
+      #ad502f 110.11%);
   overflow: hidden;
   opacity: 1;
 }
@@ -83,9 +82,9 @@
 /* HomePage.css - Pagination Dots */
 .pagination-dots {
   display: flex;
-  gap: 8px; /* khoảng cách giữa các dot */
-  position: absolute; /* nếu cần đặt trên hero banner */
-  bottom: 20px; /* điều chỉnh vị trí */
+  gap: 8px;
+  position: absolute;
+  bottom: 20px;
   left: 50%;
   transform: translateX(-50%);
 }
@@ -94,37 +93,37 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #f9bea8; /* inactive dot */
+  background: #f9bea8;
   flex: none;
 }
 
 .dot.active {
-  background: #ffffff; /* active dot */
+  background: #ffffff;
 }
 
 /* HomePage.css - Courses Section */
 .courses-title {
-  width: 318px; /* đúng Figma */
-  height: 44px; /* đúng Figma */
+  width: 318px;
+  height: 44px;
   font-family: "SF Pro Display", sans-serif;
   font-weight: 600;
   font-size: 32px;
   line-height: 44px;
-  color: #000000; /* màu chữ */
-  margin: 80px auto 24px auto; /* căn giữa và khoảng cách trên dưới */
+  color: #000000;
+  margin: 80px auto 24px auto;
 }
 
 /* Container cho các course */
 .course-grid {
   display: flex;
   flex-direction: column;
-  gap: 32px; /* khoảng cách giữa các dòng */
+  gap: 32px;
 }
 
 .course-row {
   display: flex;
   flex-direction: row;
-  gap: 24px; /* khoảng cách giữa 3 course trong cùng dòng */
+  gap: 24px;
   justify-content: flex-start;
   margin: 0 auto;
 }
@@ -153,22 +152,22 @@
 /* ----------------- Image ----------------- */
 /* Container card image */
 .course-image-wrapper {
-  width: 379px; /* giữ container chuẩn */
-  height: 272px; /* giữ container chuẩn */
-  position: relative; /* để căn image bên trong */
-  overflow: hidden; /* để border-radius image không tràn */
-  border-radius: 12px 12px 0 0; /* nếu muốn bo tròn trên */
+  width: 379px;
+  height: 272px;
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px 12px 0 0;
 }
 
 /* Image bên trong */
 .course-image-wrapper .course-image {
-  width: 348.06px; /* đúng Figma */
-  height: 240px; /* đúng Figma */
+  width: 348.06px;
+  height: 240px;
   position: absolute;
-  top: 16px; /* khoảng cách từ trên */
-  left: 15px; /* khoảng cách từ trái */
-  border-radius: 12px; /* bo tròn image */
-  object-fit: cover; /* giữ tỉ lệ */
+  top: 16px;
+  left: 15px;
+  border-radius: 12px;
+  object-fit: cover;
 }
 
 /* ----------------- Content ----------------- */
@@ -206,7 +205,7 @@
 .course-meta {
   display: flex;
   align-items: center;
-  gap: 8px; /* khoảng cách giữa các item + divider */
+  gap: 8px;
   width: 317px;
   height: 20px;
 }
@@ -215,18 +214,20 @@
 .meta-item {
   display: flex;
   align-items: center;
-  gap: 8px; /* khoảng cách icon - text */
+  gap: 8px;
   height: 20px;
-  flex-shrink: 0; /* không co khi container hẹp */
+  flex-shrink: 0;
 }
 
 /* Width từng item theo Figma */
 .meta-item.duration {
   width: 84px;
 }
+
 .meta-item.lessons {
   width: 95px;
 }
+
 .meta-item.teacher {
   width: 106px;
 }
@@ -249,9 +250,7 @@
   object-fit: contain;
   color: #dd673c;
 }
-.meta-item.clock svg {
-  color: #dd673c;
-}
+
 /* ----------------- Divider ----------------- */
 .divider {
   width: 1px;
@@ -273,7 +272,6 @@
 }
 
 /* ----------------- Learn Now Button ----------------- */
-/* Button Learn Now */
 .btn-learn {
   display: flex;
   flex-direction: row;
@@ -285,22 +283,18 @@
   width: 347px;
   height: 48px;
   border-radius: 8px;
-
-  background: #f8e9ea; /* default */
+  background: #f8e9ea;
   border: 1px solid #f8e9ea;
   box-shadow: 0px 1px 2px rgba(16, 24, 40, 0.05);
-
   font-family: "SF Pro Display", sans-serif;
   font-weight: 600;
   font-size: 16px;
   line-height: 24px;
-  color: #dd673c; /* text màu đỏ default */
-
+  color: #dd673c;
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
-/* Hover */
 .btn-learn:hover {
   background: #dd673c;
   border-color: #dd673c;
@@ -311,17 +305,15 @@
   filter: brightness(0) invert(1);
 }
 
-/* Text */
 .btn-learn span {
   display: inline-block;
 }
 
-/* Icon */
 .btn-learn .btn-icon {
   width: 20px;
   height: 20px;
   flex-shrink: 0;
-  stroke: currentColor; /* tự đổi theo color của button */
+  stroke: currentColor;
 }
 
 /* pagination */
@@ -334,8 +326,6 @@
   width: 1200px;
   height: 60px;
   padding-top: 20px;
-  top: 2860px;
-  left: 120px;
   border-top: 1px solid #cccccc;
   gap: 20px;
 }
@@ -355,7 +345,6 @@
   font-size: 14px;
   color: #848484;
   cursor: pointer;
-  position: relative;
 }
 
 .page-btn .page-icon {
@@ -367,52 +356,6 @@
 .page-number {
   width: 40px;
   height: 40px;
-  border-radius: 20px; /* Brand/50 */
-  background: #fef1ec;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-family: "Inter", sans-serif;
-  font-weight: 500;
-  font-size: 14px;
-  color: #848484; /* Gray/600 */
-  cursor: pointer;
-  transition: all 0.3s;
-}
-
-.page-number {
-  width: 40px;
-  height: 40px;
-  background: #fef1ec;
-  border-radius: 20px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-family: "Inter", sans-serif;
-  font-weight: 500;
-  font-size: 14px;
-  color: #848484;
-  border: none;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-
-.page-number.active {
-  color: #f37142; /* Brand/500 */
-  background: #fef1ec; /* Brand/50 */
-}
-
-.pagination {
-  display: flex;
-  gap: 4px;
-  justify-content: center;
-  margin-top: 20px;
-  align-items: center;
-}
-
-.page-number {
-  width: 40px;
-  height: 40px;
   border-radius: 20px;
   background: #fef1ec;
   display: flex;
@@ -422,8 +365,8 @@
   font-weight: 500;
   font-size: 14px;
   color: #848484;
-  cursor: pointer;
   border: none;
+  cursor: pointer;
   transition: all 0.3s;
 }
 
@@ -440,4 +383,117 @@
   justify-content: center;
   align-items: center;
   width: 20px;
+}
+
+/* Search Section */
+.search-section {
+  width: 1440px;
+  margin: 20px auto;
+  background-color: #f37142;
+  padding: 20px;
+  border-radius: 8px;
+}
+
+.search-title {
+  font-family: "SF Pro Display", sans-serif;
+  font-weight: 600;
+  font-size: 24px;
+  line-height: 32px;
+  color: #fff;
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+.search-bar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  justify-content: center;
+}
+
+.search-input {
+  width: 400px;
+  padding: 10px;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  font-family: "Inter", sans-serif;
+  color: #333;
+}
+
+.search-button {
+  padding: 10px 20px;
+  background-color: #fff;
+  color: #f37142;
+  border: none;
+  border-radius: 4px;
+  font-family: "Inter", sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.search-button:hover {
+  background-color: #e07a2a;
+  color: #fff;
+}
+
+.course-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.course-card {
+  background-color: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  padding: 10px;
+  width: 200px;
+  height: 300px;
+}
+
+.course-image-wrapper {
+  width: 100%;
+  height: 150px;
+  overflow: hidden;
+}
+
+.course-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.course-title {
+  font-family: "SF Pro Display", sans-serif;
+  font-weight: 500;
+  font-size: 16px;
+  color: #333;
+  margin: 10px 0;
+}
+
+.course-link {
+  display: inline-block;
+  padding: 5px 10px;
+  background-color: #f37142;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 4px;
+  font-family: "Inter", sans-serif;
+  font-size: 14px;
+}
+
+.course-link:hover {
+  background-color: #e07a2a;
+}
+
+.no-results {
+  color: #fff;
+  text-align: center;
+  font-family: "Inter", sans-serif;
+  font-size: 16px;
 }

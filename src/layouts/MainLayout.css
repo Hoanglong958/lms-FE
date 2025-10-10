@@ -1,0 +1,18 @@
+/* One unified 1440px container for header + content */
+.page-container {
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  background: #FFFFFF;
+}
+
+.content {
+  padding: 0 0; /* BlogDetail itself sets internal padding as needed */
+}
+
+@media (max-width: 1024px) {
+  .content {
+    padding: 0 24px;
+  }
+}
+

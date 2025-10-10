@@ -1,16 +1,21 @@
 /* Header container */
 .header-container {
-  margin: 0 auto;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  width: 1440px;
+  width: 100%;
   height: 96px;
   padding: 26px 120px;
   background: #ffffff;
   border-bottom: 1px solid #dddddd;
   box-sizing: border-box;
   opacity: 1;
+}
+
+@media (max-width: 1024px) {
+  .header-container {
+    padding: 16px 24px;
+  }
 }
 
 /* Left part: logo + menu */

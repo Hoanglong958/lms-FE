@@ -13,22 +13,41 @@ import logoutIcon from "@assets/icons/logout-icon.svg";
 export default function Header() {
   const navigate = useNavigate();
   const [openDropdown, setOpenDropdown] = useState(false);
+
   const handleLogout = () => {
     navigate("/login");
   };
+
   return (
     <header className="header-container">
       <div className="header-left">
-        <img src={mankaiLogo} alt="Mankai Logo" className="logo-img" />
+        {/* Logo */}
+        <img
+          src={mankaiLogo}
+          alt="Mankai Logo"
+          className="logo-img"
+          onClick={() => navigate("/")}
+          style={{ cursor: "pointer" }}
+        />
 
+        {/* Menu */}
         <nav className="menu">
           <div className="logo-divider"></div>
           <div className="menu-items">
-            <div className="menu-item">
+            <div
+              className="menu-item"
+              onClick={() => navigate("/")}
+              style={{ cursor: "pointer" }}
+            >
               <img src={homeIcon} alt="Home" />
               <span>Trang Chủ</span>
             </div>
-            <div className="menu-item">
+
+            <div
+              className="menu-item"
+              onClick={() => navigate("/baiviet")}
+              style={{ cursor: "pointer" }}
+            >
               <img src={bookIcon} alt="Posts" />
               <span>Bài Viết</span>
             </div>
@@ -37,7 +56,7 @@ export default function Header() {
       </div>
 
       <div className="header-right">
-        <button className="icon-btn">
+        <button className="icon-btn" onClick={() => navigate("/search")}>
           <img src={searchIcon} alt="Search" />
         </button>
 
@@ -69,6 +88,7 @@ export default function Header() {
               <div className="dropdown-item">Hồ sơ của tôi</div>
               <div className="dropdown-item">Khóa học của tôi</div>
               <div className="divider"></div>
+
               <div className="dropdown-item logout" onClick={handleLogout}>
                 <img src={logoutIcon} alt="Logout" className="logout-icon" />
                 <span>Đăng xuất</span>
