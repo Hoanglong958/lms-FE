@@ -13,7 +13,10 @@ const QuizComponent = ({ item }) => {
         </div>
         <p className="quiz-summary">{item.summary}</p>
       </div>
-      <button className="start-quiz-button">Bắt đầu làm bài</button>
+      <button className="start-quiz-button">
+        Bắt đầu làm bài
+        <span className="arrow-icon"></span>
+      </button>
     </div>
   );
 };
