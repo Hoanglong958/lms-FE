@@ -6,13 +6,10 @@ import ScrollToTop from "@components/common/ScrollToTop";
 import HomePage from "@pages/HomePage";
 import LessonPage from "@features/lesson/pages/LessonPage";
 import Login from "@features/login/pages/login";
-import BlogList from "../pages/BlogList";
-import Posts from "../pages/Posts";
-import BlogDetail from "../pages/BlogDetail";
-import SearchPage from "../features/login/pages/SearchPage";
-
-
-
+import BlogList from "@features/baiviet/pages/BlogList";
+import Posts from "@features/baiviet/pages/Posts";
+import BlogDetail from "@features/baiviet/pages/BlogDetail";
+import SearchPage from "@features/search/pages/SearchPage";
 
 export default function AppRouter() {
   return (

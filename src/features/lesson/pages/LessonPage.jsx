@@ -2,7 +2,7 @@ import React, { useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { courses } from "@data/courseData";
 import LessonContentDisplay from "@features/lesson/components/LessonContentDisplay";
-import "@styles/lesson/lesson.css";
+import "./lesson.css";
 
 const Breadcrumbs = ({ courseTitle }) => (
   <nav className="breadcrumbs" aria-label="breadcrumb">

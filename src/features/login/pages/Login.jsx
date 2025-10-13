@@ -1,5 +1,6 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import "./login.css";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -17,6 +18,17 @@ export default function Login() {
 
   return (
     <div className="login-page">
+      <h1
+        style={{
+          color: "red",
+          fontSize: "50px",
+          textAlign: "center",
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: "100%",
+        }}
+      ></h1>
       <div className="login-container">
         <div className="login-form">
           <img src="/logo.png" alt="Mankai Academy Logo" className="logo" />

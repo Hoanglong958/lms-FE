@@ -1,6 +1,6 @@
 /* --- Style cho Layout cha --- */
 .lesson-layout {
-  background-color: #f9fafb;
+  background-color: #ffffff;
 }
 
 /* --- Body chính chứa Main và Sidebar --- */
@@ -131,19 +131,76 @@
   font-weight: 500;
   color: #555;
 }
+.lesson-description {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 24px;
+  gap: 16px;
+
+  width: 100%;
+  max-width: 1066px;
+  background: #fafafa;
+  border-radius: 12px;
+  box-sizing: border-box;
+
+  margin: 40px auto; /* tạo khoảng cách tự nhiên thay cho top: 913px */
+}
+
+/* Tiêu đề “Mô tả” */
 .lesson-description h3 {
-  font-size: 20px;
-  margin-bottom: 8px;
-}
-.lesson-description p {
-  font-size: 16px;
-  line-height: 1.6;
-  color: #444;
-}
-.lesson-description a {
-  color: #f37142;
+  font-family: "SF Pro Display", sans-serif;
+  font-style: normal;
   font-weight: 600;
+  font-size: 20px;
+  line-height: 30px;
+  color: #000000;
+  margin: 0;
+}
+
+/* Nội dung mô tả */
+.lesson-description p {
+  font-family: "SF Pro Display", sans-serif;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 24px;
+  color: #3d3d3d;
+  margin: 0;
+}
+
+/* Chữ in đậm trong mô tả */
+.lesson-description p b {
+  font-weight: 600;
+  color: #000;
+}
+
+/* Nút “Xem thêm” */
+.lesson-description a {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0;
+  height: 24px;
+
+  font-family: "SF Pro Display", sans-serif;
+  font-style: normal;
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 24px;
+  color: #f37142;
   text-decoration: none;
+
+  border-radius: 8px;
+  box-shadow: 0px 0px 0px 4px #f2f4f7, 0px 1px 2px rgba(16, 24, 40, 0.05);
+  transition: all 0.2s ease;
+}
+
+/* Hover effect */
+.lesson-description a:hover {
+  color: #fff;
+  background-color: #f37142;
+  box-shadow: 0px 0px 0px 2px #f37142;
 }
 
 /* quiz */

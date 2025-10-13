@@ -9,15 +9,15 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"), // alias @ → src
-      "@components": path.resolve(__dirname, "./src/components"), // alias @components → src/components
+      "@components": path.resolve(__dirname, "./src/shared/components"), // alias @components → src/components
       "@features": path.resolve(__dirname, "./src/features"), // alias @features → src/features
-      "@layouts": path.resolve(__dirname, "./src/layouts"), // alias @layouts → src/layouts
+      "@layouts": path.resolve(__dirname, "./src/shared/layouts"), // alias @layouts → src/layouts
       "@pages": path.resolve(__dirname, "./src/pages"), // alias @pages → src/pages
       "@routes": path.resolve(__dirname, "./src/routes"), // alias @routes → src/routes
       "@utils": path.resolve(__dirname, "./src/utils"), // alias @utils → src/utils
       "@assets": path.resolve(__dirname, "./src/assets"), // alias @assets → src/assets
       "@styles": path.resolve(__dirname, "./src/styles"), // alias @styles → src/styles
-      "@hooks": path.resolve(__dirname, "./src/hooks"), // alias @hooks → src/hooks
+      "@hooks": path.resolve(__dirname, "./src/shared/hooks"), // alias @hooks → src/hooks
       "@data": path.resolve(__dirname, "./src/data"), // alias @data → src/data
       "@services": path.resolve(__dirname, "./src/services"), // alias @services → src/services
       "@config": path.resolve(__dirname, "./src/config"), // alias @config → src/config

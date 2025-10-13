@@ -66,7 +66,11 @@ export default function HomePage() {
     { id: 2, title: "N2 Chill Class", image: N2ChillClass },
     { id: 3, title: "Phát Âm J-Voice", image: PhatAmJVoice },
     { id: 4, title: "IT Talk", image: ITTalk },
-    { id: 5, title: "Authentication & Authorization trong ReactJS", image: N1ChillClass },
+    {
+      id: 5,
+      title: "Authentication & Authorization trong ReactJS",
+      image: N1ChillClass,
+    },
   ];
 
   const filteredCourses = courses.filter((c) =>
@@ -90,8 +94,8 @@ export default function HomePage() {
             thi JLPT, mong muốn giúp các bạn rút ngắn thời gian, vượt qua khó
             khăn trong việc học tiếng Nhật, và <b>chinh phục tấm bằng JLPT</b>.
             Hãy biến học tập thành không chỉ là mục tiêu phát triển bản thân mà
-            còn là hành trình hạnh phúc để hiện thực hóa những giấc mơ.
-            Hạnh phúc là điểm khởi đầu của giáo dục và cũng là đích đến cuối cùng...
+            còn là hành trình hạnh phúc để hiện thực hóa những giấc mơ. Hạnh
+            phúc là điểm khởi đầu của giáo dục và cũng là đích đến cuối cùng...
           </p>
           <span>Giang Sensei</span>
         </div>
@@ -100,20 +104,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Search Section */}
-      <section className="search-section">
-        <h1 className="search-title">Tìm kiếm</h1>
-        <div className="search-bar">
-          <input
-            type="text"
-            placeholder="Tìm khóa học..."
-            className="search-input"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-          <button className="search-button">Tìm kiếm</button>
-        </div>
-      </section>
       {/* --- Course Grid --- */}
       <section className="courses">
         <h2 className="courses-title">TẤT CẢ KHÓA HỌC</h2>
@@ -185,38 +175,6 @@ export default function HomePage() {
                   </div>
                 </div>
               ))}
-            </div>
-          ))}
-          {(searchQuery ? filteredCourses : courses).map((course) => (
-            <div className="course-card" key={course.id}>
-              <div className="course-image-wrapper">
-                <img src={course.image} alt={course.title} className="course-image" />
-              </div>
-
-              <div className="course-content">
-                <img src={Level} alt="level" className="level-badge" />
-                <div className="course-info">
-                  <div className="course-meta">
-                    <div className="meta-item">
-                      <img src={clockIcon} alt="clock" className="meta-icon" />
-                      <span>360 phút</span>
-                    </div>
-                    <div className="meta-item">
-                      <img src={bookIcon} alt="book" className="meta-icon" />
-                      <span>32 chương</span>
-                    </div>
-                    <div className="meta-item">
-                      <img src={profileIcon} alt="teacher" className="meta-icon" />
-                      <span>Giang Sensei</span>
-                    </div>
-                  </div>
-                  <h3 className="course-title">{course.title}</h3>
-                </div>
-                <button className="btn-learn">
-                  <span>Học Ngay</span>
-                  <img src={arrowUpRight} alt="arrow" className="btn-icon" />
-                </button>
-              </div>
             </div>
           ))}
         </div>
