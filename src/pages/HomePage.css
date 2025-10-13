@@ -1,3 +1,4 @@
+/* HomePage.css */
 .home-page {
   display: flex;
   flex-direction: column;
@@ -13,13 +14,11 @@
   height: 640px;
   margin: 0 auto;
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-  background: linear-gradient(
-    275.76deg,
-    #ad502f -13.47%,
-    #f37142 26.69%,
-    #f37142 60.68%,
-    #ad502f 110.11%
-  );
+  background: linear-gradient(275.76deg,
+      #ad502f -13.47%,
+      #f37142 26.69%,
+      #f37142 60.68%,
+      #ad502f 110.11%);
   overflow: hidden;
   opacity: 1;
 }
@@ -79,6 +78,9 @@
   gap: 8px;
   position: absolute;
   bottom: 20px;
+  gap: 8px;
+  position: absolute;
+  bottom: 20px;
   left: 50%;
   transform: translateX(-50%);
 }
@@ -93,15 +95,20 @@
 
 .dot.active {
   background: #ffffff;
+  background: #ffffff;
 }
 
 .courses-title {
+  width: 318px;
+  height: 44px;
   width: 318px;
   height: 44px;
   font-family: "SF Pro Display", sans-serif;
   font-weight: 600;
   font-size: 32px;
   line-height: 44px;
+  color: #000000;
+  margin: 80px auto 24px auto;
   color: #000000;
   margin: 80px auto 24px auto;
 }
@@ -116,6 +123,7 @@
 .course-row {
   display: flex;
   flex-direction: row;
+  gap: 24px;
   gap: 24px;
   justify-content: flex-start;
   margin: 0 auto;
@@ -148,13 +156,24 @@
   position: relative;
   overflow: hidden;
   border-radius: 12px 12px 0 0;
+  width: 379px;
+  height: 272px;
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px 12px 0 0;
 }
 
 /* Image bên trong */
 .course-image-wrapper .course-image {
   width: 348.06px;
   height: 240px;
+  width: 348.06px;
+  height: 240px;
   position: absolute;
+  top: 16px;
+  left: 15px;
+  border-radius: 12px;
+  object-fit: cover;
   top: 16px;
   left: 15px;
   border-radius: 12px;
@@ -197,6 +216,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  gap: 8px;
   width: 317px;
   height: 20px;
 }
@@ -206,16 +226,20 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  gap: 8px;
   height: 20px;
+  flex-shrink: 0;
   flex-shrink: 0;
 }
 
 .meta-item.duration {
   width: 84px;
 }
+
 .meta-item.lessons {
   width: 95px;
 }
+
 .meta-item.teacher {
   width: 106px;
 }
@@ -236,9 +260,7 @@
   object-fit: contain;
   color: #dd673c;
 }
-.meta-item.clock svg {
-  color: #dd673c;
-}
+
 /* ----------------- Divider ----------------- */
 .divider {
   width: 1px;
@@ -275,7 +297,6 @@
   background: #f8e9ea;
   border: 1px solid #f8e9ea;
   box-shadow: 0px 1px 2px rgba(16, 24, 40, 0.05);
-
   font-family: "SF Pro Display", sans-serif;
   font-weight: 600;
   font-size: 16px;
@@ -305,6 +326,7 @@
   height: 20px;
   flex-shrink: 0;
   stroke: currentColor;
+  stroke: currentColor;
 }
 
 .pagination-container {
@@ -316,8 +338,6 @@
   width: 1200px;
   height: 60px;
   padding-top: 20px;
-  top: 2860px;
-  left: 120px;
   border-top: 1px solid #cccccc;
   gap: 20px;
 }
@@ -337,7 +357,6 @@
   font-size: 14px;
   color: #848484;
   cursor: pointer;
-  position: relative;
 }
 
 .page-btn .page-icon {
@@ -404,8 +423,8 @@
   font-weight: 500;
   font-size: 14px;
   color: #848484;
-  cursor: pointer;
   border: none;
+  cursor: pointer;
   transition: all 0.3s;
 }
 

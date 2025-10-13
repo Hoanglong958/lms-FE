@@ -59,14 +59,30 @@ export default function HomePage() {
   }
   const repetitionArray = Array.from({ length: repetitions });
 
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const courses = [
+    { id: 1, title: "N1 Chill Class", image: N1ChillClass },
+    { id: 2, title: "N2 Chill Class", image: N2ChillClass },
+    { id: 3, title: "Phát Âm J-Voice", image: PhatAmJVoice },
+    { id: 4, title: "IT Talk", image: ITTalk },
+    { id: 5, title: "Authentication & Authorization trong ReactJS", image: N1ChillClass },
+  ];
+
+  const filteredCourses = courses.filter((c) =>
+    c.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <div className="home-page">
+      {/* Hero Section */}
       <section className="hero-banner">
         <div className="pattern">
           <img src={pattern} alt="Pattern" />
         </div>
         <img src={quotes1} alt="Quote Start" className="quote quote1" />
         <img src={quotes2} alt="Quote End" className="quote quote2" />
+
         <div className="hero-text">
           <p>
             Hạnh phúc là điểm khởi đầu của giáo dục và cũng là đích đến cuối
@@ -75,22 +91,32 @@ export default function HomePage() {
             khăn trong việc học tiếng Nhật, và <b>chinh phục tấm bằng JLPT</b>.
             Hãy biến học tập thành không chỉ là mục tiêu phát triển bản thân mà
             còn là hành trình hạnh phúc để hiện thực hóa những giấc mơ.
+            Hạnh phúc là điểm khởi đầu của giáo dục và cũng là đích đến cuối cùng...
           </p>
           <span>Giang Sensei</span>
         </div>
         <div className="hero-img">
           <img src={heroImg} alt="Giang Sensei" />
         </div>
-        <div className="pagination-dots">
-          <span className="dot active"></span>
-          <span className="dot"></span>
-          <span className="dot"></span>
+      </section>
+
+      {/* Search Section */}
+      <section className="search-section">
+        <h1 className="search-title">Tìm kiếm</h1>
+        <div className="search-bar">
+          <input
+            type="text"
+            placeholder="Tìm khóa học..."
+            className="search-input"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          <button className="search-button">Tìm kiếm</button>
         </div>
       </section>
       {/* --- Course Grid --- */}
       <section className="courses">
         <h2 className="courses-title">TẤT CẢ KHÓA HỌC</h2>
-
         <div className="course-grid">
           {/* Cấu trúc này sẽ nhóm các bài học giống nhau vào cùng 1 hàng */}
           {originalCourses.map((course, index) => (
@@ -161,68 +187,52 @@ export default function HomePage() {
               ))}
             </div>
           ))}
+          {(searchQuery ? filteredCourses : courses).map((course) => (
+            <div className="course-card" key={course.id}>
+              <div className="course-image-wrapper">
+                <img src={course.image} alt={course.title} className="course-image" />
+              </div>
+
+              <div className="course-content">
+                <img src={Level} alt="level" className="level-badge" />
+                <div className="course-info">
+                  <div className="course-meta">
+                    <div className="meta-item">
+                      <img src={clockIcon} alt="clock" className="meta-icon" />
+                      <span>360 phút</span>
+                    </div>
+                    <div className="meta-item">
+                      <img src={bookIcon} alt="book" className="meta-icon" />
+                      <span>32 chương</span>
+                    </div>
+                    <div className="meta-item">
+                      <img src={profileIcon} alt="teacher" className="meta-icon" />
+                      <span>Giang Sensei</span>
+                    </div>
+                  </div>
+                  <h3 className="course-title">{course.title}</h3>
+                </div>
+                <button className="btn-learn">
+                  <span>Học Ngay</span>
+                  <img src={arrowUpRight} alt="arrow" className="btn-icon" />
+                </button>
+              </div>
+            </div>
+          ))}
         </div>
       </section>
 
       {/* --- Pagination --- */}
       <section className="pagination-container">
-        {/* Previous button */}
-        <button className="page-btn prev">
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 14 14"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M12.8332 7.00008H1.1665M1.1665 7.00008L6.99984 12.8334M1.1665 7.00008L6.99984 1.16675"
-              stroke="#848484"
-              strokeWidth="1.67"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-
-          <span>Trước</span>
-        </button>
-
-        {/* Page Numbers */}
+        <button className="page-btn prev">← Trước</button>
         <div className="pagination">
-          {[1, 2, 3].map((num) => (
-            <button key={num} className="page-number">
-              {num}
-            </button>
-          ))}
-
-          <span className="dots">…</span>
-
-          {[8, 9, 10].map((num) => (
+          {[1, 2, 3, 4, 5].map((num) => (
             <button key={num} className="page-number">
               {num}
             </button>
           ))}
         </div>
-
-        {/* Next button */}
-        <button className="page-btn next">
-          <span>Sau</span>
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 14 14"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M1.1665 7.00008H12.8332M12.8332 7.00008L6.99984 1.16675M12.8332 7.00008L6.99984 12.8334"
-              stroke="#848484"
-              strokeWidth="1.67"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </button>
+        <button className="page-btn next">Sau →</button>
       </section>
     </div>
   );

@@ -6,6 +6,13 @@ import ScrollToTop from "@components/common/ScrollToTop";
 import HomePage from "@pages/HomePage";
 import LessonPage from "@features/lesson/pages/LessonPage";
 import Login from "@features/login/pages/login";
+import BlogList from "../pages/BlogList";
+import Posts from "../pages/Posts";
+import BlogDetail from "../pages/BlogDetail";
+import SearchPage from "../features/login/pages/SearchPage";
+
+
+
 
 export default function AppRouter() {
   return (
@@ -20,6 +27,10 @@ export default function AppRouter() {
         {/* Home - có header/footer */}
         <Route element={<MainLayout />}>
           <Route path="/" element={<HomePage />} />
+          <Route path="/bai-viet" element={<BlogList />} />
+          <Route path="/bai-viet/:id" element={<BlogDetail />} />
+          <Route path="/baiviet" element={<Posts />} />
+          <Route path="/search" element={<SearchPage />} />
         </Route>
 
         {/* Lesson - có sidebar, không footer */}

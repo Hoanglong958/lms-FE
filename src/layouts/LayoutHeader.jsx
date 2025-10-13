@@ -45,7 +45,7 @@ export default function Header() {
               </div>
               <div
                 className="menu-item"
-                onClick={() => handleNavigate("/posts")}
+                onClick={() => navigate("/baiviet")}
               >
                 <img src={bookIcon} alt="Posts" />
                 <span>Bài Viết</span>
@@ -56,7 +56,7 @@ export default function Header() {
 
         {/* Phần bên phải (Desktop) */}
         <div className="header-right-desktop">
-          <button className="icon-btn">
+        <button className="icon-btn" onClick={() => navigate("/search")}>
             <img src={searchIcon} alt="Search" />
           </button>
           <button className="icon-btn">
