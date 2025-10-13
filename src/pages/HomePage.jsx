@@ -28,18 +28,22 @@ export default function HomePage() {
 
   const originalCourses = [
     {
+      id: "n1-chill-class",
       img: N1ChillClass,
       title: "N1 Chill Class",
     },
     {
+      id: "n2-chill-class",
       img: N2ChillClass,
       title: "N2 Chill Class",
     },
     {
+      id: "phat-am-j-voice",
       img: PhatAmJVoice,
       title: "Phát Âm J-Voice",
     },
     {
+      id: "it-talk",
       img: ITTalk,
       title: "IT Talk",
     },
@@ -96,7 +100,7 @@ export default function HomePage() {
                 <div
                   className="course-card"
                   key={subIndex}
-                  onClick={() => handleNavigate("/lesson")}
+                  onClick={() => navigate(`/lessons/${course.id}`)}
                 >
                   <div className="course-image-wrapper">
                     <img
@@ -142,7 +146,7 @@ export default function HomePage() {
                       className="btn-learn"
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleNavigate("/lesson");
+                        handleNavigate(`/lessons/${course.id}`);
                       }}
                     >
                       <span>HỌC NGAY</span>

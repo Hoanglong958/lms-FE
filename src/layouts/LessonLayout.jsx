@@ -1,7 +1,7 @@
 import { Outlet } from "react-router-dom";
 import LessonSidebar from "@features/lesson/components/LessonSidebar";
 import LayoutHeader from "./LayoutHeader";
-import "./Lesson.css";
+import "./LessonLayout.css";
 
 export default function LessonLayout() {
   return (

@@ -23,8 +23,9 @@ export default function AppRouter() {
         </Route>
 
         {/* Lesson - có sidebar, không footer */}
-        <Route element={<LessonLayout />}>
-          <Route path="/lesson" element={<LessonPage />} />
+        <Route path="/lessons/:courseId" element={<LessonLayout />}>
+          <Route index element={<LessonPage />} />
+          <Route path=":lessonId" element={<LessonPage />} />
         </Route>
       </Routes>
     </>
