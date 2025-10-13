@@ -37,7 +37,6 @@
   z-index: 1;
 }
 
-/* Logo box */
 .footer-logo-box {
   display: flex;
   flex-direction: column;
@@ -50,7 +49,6 @@
   border-radius: 8px;
 }
 
-/* Logo hình ảnh */
 .logo-background {
   width: 47px;
   height: 56px;
@@ -65,19 +63,17 @@
   object-fit: contain;
 }
 
-/* Title */
 .footer-title {
   width: 673px;
   height: 28px;
   font-family: "SF Pro Display";
-  font-weight: 800; /* Heavy */
-  font-style: normal; /* không italic */
+  font-weight: 800;
+  font-style: normal;
   font-size: 18px;
-  line-height: 28px; /* giống Figma */
+  line-height: 28px;
   letter-spacing: 0.011em;
   color: #ffffff;
 
-  /* vertical center text nếu muốn */
   display: flex;
   align-items: center;
 }
@@ -129,13 +125,11 @@
   position: relative;
 }
 
-/* Footer quote */
 .footer-quote {
   width: 379px;
   margin: 298px 0 0 941px;
 }
 
-/* Quote text */
 .quote-text {
   font-family: "SF Pro Display";
   font-weight: 0;
@@ -146,7 +140,6 @@
   color: #ffffff;
 }
 
-/* CEO name / italic */
 .quote-ceo {
   font-family: "SF Pro Text", sans-serif;
   font-weight: 400;
@@ -186,7 +179,6 @@
   left: 120px;
 }
 
-/* Heading chính */
 .contact-heading-main {
   font-weight: 400;
   font-size: 16px;
@@ -195,7 +187,6 @@
   margin: 0;
 }
 
-/* Mỗi dòng info */
 .contact-item {
   display: flex;
   flex-direction: row;
@@ -203,7 +194,6 @@
   gap: 12px;
 }
 
-/* Icon */
 .contact-icon {
   width: 32px;
   height: 32px;
@@ -217,47 +207,45 @@
 }
 
 .contact-label {
-  width: 63px; /* đúng theo Figma */
-  height: 28px; /* đúng theo Figma */
+  width: 63px;
+  height: 28px;
 
   font-family: "SF Pro Display";
   font-style: normal;
-  font-weight: 600; /* Bold */
+  font-weight: 600;
   font-size: 18px;
   line-height: 28px;
-  /* letter-spacing: 0.02em;  */
 
-  display: flex; /* để căn giữa dọc */
+  display: flex;
   align-items: center;
 
   color: #ffffff;
 
-  flex-shrink: 0; /* không bị co khi container nhỏ */
+  flex-shrink: 0;
   order: 0;
   flex-grow: 0;
 }
 
 .contact-value {
-  max-width: 263px; /* chiều rộng tối đa theo Figma */
-  min-height: 48px; /* đảm bảo đủ chỗ cho 2 dòng nếu cần */
+  max-width: 263px;
+  min-height: 48px;
 
   font-family: "SF Pro Display";
   font-style: normal;
-  font-weight: 400; /* Regular */
+  font-weight: 400;
   font-size: 16px;
-  line-height: 24px; /* 150% */
+  line-height: 24px;
   color: #ffffff;
 
-  display: inline-block; /* để xuống dòng khi quá dài nhưng vẫn cạnh label */
-  word-break: break-word; /* ngắt từ nếu dài quá width */
-  white-space: normal; /* cho phép xuống dòng */
+  display: inline-block;
+  word-break: break-word;
+  white-space: normal;
 
-  flex-shrink: 1; /* value có thể co khi container nhỏ */
+  flex-shrink: 1;
   order: 1;
   flex-grow: 0;
 }
 
-/* Footer bottom container */
 .footer-bottom {
   display: flex;
   flex-direction: row;
@@ -271,7 +259,6 @@
   bottom: 16px;
 }
 
-/* Copyright icon */
 .footer-copyright-icon {
   width: 16px;
   height: 16px;
@@ -284,7 +271,6 @@
   object-fit: contain;
 }
 
-/* Copyright text */
 .footer-copyright-text {
   width: 321px;
   height: 18px;
@@ -295,4 +281,256 @@
   line-height: 18px;
   color: #ffffff;
   margin: 0;
+}
+
+/* ========================= */
+/* Responsive cho iPad (820px) */
+/* ========================= */
+@media (max-width: 820px) {
+  .footer-container {
+    width: 820px;
+    height: 534px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .footer-top {
+    width: 760px;
+    height: 120px;
+    top: 60px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding-bottom: 24px;
+  }
+
+  .footer-contact {
+    width: 343px;
+    top: 220px;
+    left: 24px;
+    gap: 12px;
+  }
+
+  .contact-heading-main {
+    font-size: 14px;
+    line-height: 20px;
+  }
+
+  .contact-label {
+    font-size: 14px;
+    line-height: 20px;
+  }
+
+  .contact-value {
+    font-size: 14px;
+    line-height: 20px;
+  }
+
+  .footer-social {
+    width: 200px;
+    height: 52px;
+    left: 24px;
+    top: 408px;
+    gap: 8px;
+  }
+
+  .footer-heading {
+    font-size: 14px;
+    line-height: 20px;
+  }
+
+  .social-icons {
+    gap: 16px;
+    width: 64px;
+    height: 24px;
+  }
+
+  .social-icon {
+    width: 24px;
+    height: 24px;
+  }
+
+  @media (max-width: 820px) {
+    .footer-quote {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      padding: 0;
+      gap: 20px;
+
+      position: absolute;
+      width: 343px;
+      height: 140px;
+      left: 422px;
+      top: 220px;
+      margin: 0;
+    }
+
+    .footer-quote .quote-text {
+      width: 343px;
+      height: 140px;
+      font-family: "SF Pro Display";
+      font-style: normal;
+      font-weight: 400;
+      font-size: 14px;
+      line-height: 20px;
+      color: #ffffff;
+
+      flex: none;
+      order: 0;
+      align-self: stretch;
+      flex-grow: 0;
+    }
+
+    .footer-quote-2 {
+      position: absolute;
+      width: 343px;
+      height: 20px;
+      left: 422px;
+      top: 400px;
+    }
+
+    .footer-quote-2 .quote-text-2 {
+      width: 343px;
+      height: 20px;
+      font-family: "SF Pro Display";
+      font-style: italic;
+      font-weight: 800;
+      font-size: 14px;
+      line-height: 20px;
+      text-align: right;
+      color: #ffffff;
+
+      flex: none;
+      order: 1;
+      align-self: stretch;
+      flex-grow: 0;
+    }
+  }
+
+  .quote-text {
+    width: 343px;
+    height: 140px;
+
+    font-family: "SF Pro Display";
+    font-style: normal;
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 20px;
+    color: #ffffff;
+
+    flex: none;
+    order: 0;
+    align-self: stretch;
+    flex-grow: 0;
+  }
+
+  .quote-ceo,
+  .footer-quote-2 {
+    margin: 0;
+    width: 343px;
+    height: 20px;
+
+    font-family: "SF Pro Display";
+    font-style: italic;
+    font-weight: 800;
+    font-size: 14px;
+    line-height: 20px;
+    text-align: right;
+    color: #ffffff;
+
+    flex: none;
+    order: 1;
+    align-self: stretch;
+    flex-grow: 0;
+  }
+
+  .footer-bottom {
+    width: 341px;
+    height: 18px;
+    left: calc(50% - 341px / 2);
+    bottom: 24px;
+    gap: 4px;
+  }
+
+  .footer-copyright-text {
+    font-size: 12px;
+    line-height: 18px;
+  }
+
+  .footer-contact {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 0;
+    gap: 8px;
+
+    position: absolute;
+    width: 347px;
+    height: 164px;
+    left: 24px;
+    top: 220px;
+  }
+
+  .contact-heading-main {
+    width: 347px;
+    height: 20px;
+    font-family: "SF Pro Display";
+    font-style: normal;
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 20px;
+    color: #ffffff;
+    margin: 0;
+  }
+
+  .contact-item {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    padding: 0;
+    gap: 8px;
+    width: 347px;
+    height: 40px;
+  }
+
+  .contact-icon {
+    width: 32px;
+    height: 32px;
+    background: #ffffff;
+    border-radius: 24px;
+    flex-shrink: 0;
+  }
+
+  .contact-detail-inline {
+    display: flex;
+    flex-direction: row;
+    align-items: top;
+    gap: 8px;
+  }
+
+  .contact-label {
+    display: flex;
+    align-items: flex-start;
+    font-family: "SF Pro Display";
+    font-style: normal;
+    font-weight: 800;
+    font-size: 14px;
+    line-height: 20px;
+    color: #ffffff;
+  }
+
+  .contact-value {
+    display: flex;
+    align-items: flex-start;
+    font-family: "SF Pro Display";
+    font-style: normal;
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 20px;
+    color: #ffffff;
+    word-break: break-word;
+  }
+  .footer-social {
+    top: 408px;
+  }
 }

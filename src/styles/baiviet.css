@@ -1,0 +1,117 @@
+.baiviet-banner {
+    background: linear-gradient(90deg, #ff7b00, #ff4500);
+    color: #fff;
+    text-align: center;
+    padding: 60px 0 40px;
+}
+
+.baiviet-banner h1 {
+    font-size: 36px;
+    margin: 0;
+    font-weight: 700;
+}
+
+.baiviet-container {
+    max-width: 1200px;
+    margin: 40px auto;
+}
+
+.baiviet-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.baiviet-header h3 span {
+    color: gray;
+    font-weight: 400;
+    font-size: 14px;
+}
+
+.baiviet-list {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 32px;
+}
+
+.baiviet-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    transition: transform 0.2s ease;
+}
+
+.baiviet-card:hover {
+    transform: translateY(-4px);
+}
+
+.baiviet-card img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+}
+
+.baiviet-info {
+    padding: 16px;
+}
+
+.baiviet-info .category {
+    color: #ff6600;
+    font-size: 14px;
+    margin-bottom: 4px;
+}
+
+.baiviet-info h4 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.baiviet-info .meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    color: gray;
+}
+
+.baiviet-pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 40px 0;
+    gap: 16px;
+}
+
+.baiviet-pagination .pages span {
+    margin: 0 6px;
+    cursor: pointer;
+    color: gray;
+}
+
+.baiviet-pagination .pages span.active {
+    color: #ff6600;
+    font-weight: bold;
+}
+
+.baiviet-footer {
+    background: linear-gradient(90deg, #ff7b00, #ff4500);
+    color: #fff;
+    padding: 60px 0;
+    margin-top: 40px;
+}
+
+.footer-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.footer-columns {
+    display: flex;
+    justify-content: space-around;
+    width: 100%;
+    margin-top: 30px;
+}

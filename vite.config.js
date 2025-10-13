@@ -17,7 +17,10 @@ export default defineConfig({
       "@utils": path.resolve(__dirname, "./src/utils"), // alias @utils → src/utils
       "@assets": path.resolve(__dirname, "./src/assets"), // alias @assets → src/assets
       "@styles": path.resolve(__dirname, "./src/styles"), // alias @styles → src/styles
-      "@assets": path.resolve(__dirname, "./src/assets"), // alias @src/assets → src/assets
+      "@hooks": path.resolve(__dirname, "./src/hooks"), // alias @hooks → src/hooks
+      "@data": path.resolve(__dirname, "./src/data"), // alias @data → src/data
+      "@services": path.resolve(__dirname, "./src/services"), // alias @services → src/services
+      "@config": path.resolve(__dirname, "./src/config"), // alias @config → src/config
     },
   },
 });

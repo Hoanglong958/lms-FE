@@ -1,0 +1,250 @@
+/* --- Style cho Layout cha --- */
+.lesson-layout {
+  background-color: #f9fafb;
+}
+
+/* --- Body chính chứa Main và Sidebar --- */
+
+/* --- Nội dung chính (Bên trái) --- */
+.lesson-detail-container {
+  margin-right: 16px;
+  margin-left: 48px;
+}
+/* --- Nội dung bài học chi tiết --- */
+.breadcrumbs {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+
+  /* Vị trí: Dùng margin để tạo khoảng cách linh hoạt thay vì position: absolute */
+  /* Điều này giúp layout không bị vỡ khi responsive */
+}
+
+/* --- Style chung cho tất cả các phần tử text (link, dấu gạch, text) --- */
+.breadcrumbs a,
+.breadcrumbs span {
+  font-family: "SF Pro Display", sans-serif;
+  font-style: normal;
+  font-size: 18px;
+  line-height: 28px;
+  text-decoration: none; /* Bỏ gạch chân cho link */
+}
+
+/* --- Style cho các mục không active (link và dấu gạch) --- */
+.breadcrumbs a,
+.breadcrumbs .breadcrumb-divider {
+  font-weight: 400;
+  color: #b5b5b5;
+  transition: color 0.2s ease;
+}
+
+/* Thêm hiệu ứng hover cho link */
+.breadcrumbs a:hover {
+  color: #888888;
+}
+
+/* --- Style cho mục active (trang hiện tại) --- */
+.breadcrumbs .breadcrumb-active {
+  font-weight: 600;
+  color: #3d3d3d;
+}
+/* --- Container chính cho 2 nút điều hướng --- */
+.lesson-navigation {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: auto;
+  gap: 16px;
+}
+
+/* --- Style chung cho cả 2 nút --- */
+.nav-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+
+  /* Style cho chữ */
+  font-family: "Inter", sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 20px;
+  color: #dd673c;
+
+  transition: opacity 0.2s ease;
+}
+
+.nav-button:hover {
+  opacity: 0.8;
+}
+
+/* Tự động đổi màu icon theo màu chữ */
+.nav-icon {
+  stroke: currentColor;
+}
+
+/* Style cho nút bị vô hiệu hóa (disabled) */
+.nav-button:disabled {
+  color: #cccccc;
+  cursor: not-allowed;
+  opacity: 1;
+}
+
+/*  */
+.video-player-wrapper {
+  width: 100%;
+  height: fit-content;
+  background-color: #000;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 24px;
+}
+.lesson-page-header {
+  margin-top: 48px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #eee;
+}
+.lesson-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #eee;
+}
+.lesson-title-group h2 {
+  font-size: 24px;
+  font-weight: 600;
+  margin: 0 0 4px 0;
+}
+.lesson-title-group span {
+  font-size: 14px;
+  color: #888;
+}
+.lesson-progress {
+  font-size: 14px;
+  font-weight: 500;
+  color: #555;
+}
+.lesson-description h3 {
+  font-size: 20px;
+  margin-bottom: 8px;
+}
+.lesson-description p {
+  font-size: 16px;
+  line-height: 1.6;
+  color: #444;
+}
+.lesson-description a {
+  color: #f37142;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+/* quiz */
+.quiz-wrapper {
+  margin-top: 24px;
+  height: 601px;
+  border: 1px solid #dddddd;
+  border-radius: 12px;
+}
+
+.quiz-illustration {
+  width: 359px;
+  height: 288px;
+  margin: 0 auto;
+  margin-top: 52px;
+  object-fit: cover;
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+}
+
+.quiz-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+
+  width: 100%;
+  max-width: 544px;
+  margin: 100px auto 0 auto; /* thay cho absolute top:372px */
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.quiz-content-title-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  text-align: center;
+}
+
+/* Tiêu đề [Quiz] JS Cơ bản */
+.quiz-title {
+  font-family: "SF Pro Display", sans-serif;
+  font-style: normal;
+  font-weight: 600;
+  font-size: 32px;
+  line-height: 40px;
+  color: #000000;
+  margin: 0;
+}
+
+/* Nhóm Type: Bài kiểm tra • 6 câu hỏi */
+.quiz-meta {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  font-family: "SF Pro Display", sans-serif;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 24px;
+  color: #676767;
+}
+
+/* Mô tả dài */
+.quiz-content p {
+  font-family: "SF Pro Display", sans-serif;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 24px;
+  color: #505050;
+  text-align: center;
+  margin: 0;
+  margin-top: 8px;
+}
+
+/* ============================================= */
+/* ========== RESPONSIVE ========== */
+/* ============================================= */
+@media (max-width: 1200px) {
+  .lesson-body {
+    padding: 0;
+  }
+}
+
+@media (max-width: 992px) {
+  .lesson-body {
+    flex-direction: column;
+    padding: 20px;
+  }
+  .lesson-sidebar {
+    width: 100%;
+    order: 1; /* Đưa sidebar xuống dưới video */
+  }
+  .lesson-content {
+    width: 100%;
+  }
+}

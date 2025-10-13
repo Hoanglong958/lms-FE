@@ -1,0 +1,12 @@
+.lesson-body {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-start;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.lesson-content {
+  flex: 1;
+}
