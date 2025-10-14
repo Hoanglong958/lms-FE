@@ -1,10 +1,12 @@
 // src/features/lesson/components/VideoPlayer.jsx
 import React from "react";
+import "./VideoPlayer.css";
 
 const VideoPlayer = ({ item }) => {
   return (
     <div className="video-player-wrapper">
       <iframe
+        style={{ margin: "0 auto", display: "block" }}
         width="100%"
         height="100%"
         src={item.videoUrl}

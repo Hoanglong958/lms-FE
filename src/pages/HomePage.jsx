@@ -50,12 +50,12 @@ export default function HomePage() {
   ];
 
   let repetitions;
-  if (width > 820) {
-    repetitions = 3; // Desktop: 3 bản sao
-  } else if (width > 375) {
-    repetitions = 2; // Tablet: 2 bản sao
+  if (width >= 1440) {
+    repetitions = 3;
+  } else if (width >= 820) {
+    repetitions = 2;
   } else {
-    repetitions = 1; // Mobile: 1 bản sao
+    repetitions = 1;
   }
   const repetitionArray = Array.from({ length: repetitions });
 
