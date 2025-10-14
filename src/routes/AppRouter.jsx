@@ -10,6 +10,7 @@ import BlogList from "@features/baiviet/pages/BlogList";
 import Posts from "@features/baiviet/pages/Posts";
 import BlogDetail from "@features/baiviet/pages/BlogDetail";
 import SearchPage from "@features/search/pages/SearchPage";
+import QuizExamPage from "@features/lesson/components/QuizExamPage";
 
 export default function AppRouter() {
   return (
@@ -35,6 +36,7 @@ export default function AppRouter() {
           <Route index element={<LessonPage />} />
           <Route path=":lessonId" element={<LessonPage />} />
         </Route>
+        <Route path="/quiz-exam/:quizId" element={<QuizExamPage />} />
       </Routes>
     </>
   );
