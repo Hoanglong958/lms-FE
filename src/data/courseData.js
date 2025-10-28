@@ -1,4 +1,3 @@
-// Import các icon bạn sẽ dùng cho từng loại bài học
 import checkIconSvg from "@assets/icons/lesson-type-icons/check-icon.svg";
 import documentIconSvg from "@assets/icons/lesson-type-icons/document-icon.svg";
 import quizIconSvg from "@assets/icons/lesson-type-icons/quiz-icon.svg";
@@ -6,9 +5,7 @@ import videoIconSvg from "@assets/icons/lesson-type-icons/video-icon.svg";
 import terminalIconSvg from "@assets/icons/lesson-type-icons/terminal-icon.svg";
 import { Descriptions } from "antd";
 
-// Dữ liệu cho tất cả các khóa học
 export const courses = {
-  // Dữ liệu cho khóa học có id là 'n1-chill-class'
   "n1-chill-class": {
     courseTitle: "N1 Chill Class",
     sessions: [
@@ -40,12 +37,46 @@ export const courses = {
               },
               {
                 id: "3",
-                type: "video",
+                type: "document",
                 title: "Tổng quan về Git",
-                duration: "10:34",
-                img: videoIconSvg,
-                videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
-                content: "Nội dung video về Git.",
+                duration: "5 phút đọc",
+                img: documentIconSvg,
+                imageUrl:
+                  "[https://placehold.co/1066x600/f0f0f0/333?text=Hinh+Minh+Hoa](https://placehold.co/1066x600/f0f0f0/333?text=Hinh+Minh+Hoa)", // Đường dẫn đến ảnh ở cuối bài
+                content: `
+              <h2>1. Git là gì?</h2>
+              <p>
+                Git là một hệ thống quản lý phiên bản phân tán (Distributed Version Control System - DVCS) miễn phí, mã nguồn mở. 
+                Nó được thiết kế để xử lý mọi thứ từ các dự án nhỏ đến rất lớn với tốc độ và hiệu quả. 
+                Git giúp các lập trình viên theo dõi các thay đổi trong mã nguồn, cho phép nhiều người cùng làm việc
+                trên một dự án mà không làm ảnh hưởng lẫn nhau.
+              </p>
+              
+              <h2>2. Các khái niệm quan trọng trong Git</h2>
+              <p>
+                Hiểu rõ các thuật ngữ này là chìa khóa để làm chủ Git:
+              </p>
+              <ul>
+                <li>
+                  <strong>Repository (Repo):</strong> Là nơi chứa tất cả các file của dự án cùng với lịch sử thay đổi của chúng.
+                  Có hai loại repo: Local Repository (trên máy của bạn) và Remote Repository (trên server như GitHub).
+                </li>
+                <li>
+                  <strong>Local Repository:</strong> Là bản sao của kho lưu trữ trên máy tính cá nhân của bạn. 
+                  Bạn sẽ thực hiện các thay đổi, commit tại đây.
+                </li>
+                <li>
+                  <strong>Remote Repository:</strong> Là kho lưu trữ được host trên Internet hoặc mạng nội bộ (ví dụ: GitHub, GitLab). 
+                  Đây là nơi để chia sẻ code và cộng tác với người khác.
+                </li>
+                <li>
+                  <strong>Working Directory (Thư mục làm việc):</strong> Là nơi chứa phiên bản hiện tại của các file dự án mà bạn đang chỉnh sửa.
+                </li>
+              </ul>
+              <p>
+                Để làm việc hiệu quả, chúng ta cần biết cách đồng bộ giữa các kho lưu trữ này.
+              </p>
+            `,
               },
               {
                 id: "4",
@@ -177,7 +208,7 @@ export const courses = {
     ],
   },
 
-  // Dữ liệu cho các khóa học khác (bạn có thể thêm vào sau)
+
   "n2-chill-class": {
     courseTitle: "N2 Chill Class",
     sessions: [
@@ -206,13 +237,11 @@ export const courses = {
   "phat-am-jvoice": {
     courseTitle: "Phát Âm J-Voice",
     sessions: [
-      /* Thêm dữ liệu cho khóa học này */
     ],
   },
   "it-talk": {
     courseTitle: "IT Talk",
     sessions: [
-      /* Thêm dữ liệu cho khóa học này */
     ],
   },
 };
