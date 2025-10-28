@@ -1,33 +1,41 @@
+/* Container chính cho bài viết */
 .document-components-wrapper {
   width: 100%;
-  max-width: 1066px;
+  max-width: 1066px; /* Giống với video player để giữ sự đồng nhất */
   margin: 0 auto;
+  /*
+    Xóa padding-top để tiêu đề bên trong căn đúng lề.
+    Chúng ta sẽ thêm padding-top vào .document-content
+  */
   padding: 0 0 24px 0;
   font-family: "SF Pro Display", sans-serif;
 }
 
+/* Tiêu đề chính của bài viết (từ DocumentComponents) */
 .document-title {
-  display: block;
-  font-size: 32px;
+  display: block; /* Hiện tiêu đề */
+  font-size: 32px; /* Kích thước từ Figma (ước lượng) */
   font-weight: 700;
   color: #1a1a1a;
   margin-bottom: 8px;
 }
 
+/* Ngày tháng đăng bài (từ DocumentComponents) */
 .document-date {
-  display: block;
+  display: block; /* Hiện ngày tháng */
   font-size: 14px;
   color: #888;
-  margin-bottom: 32px;
+  margin-bottom: 32px; /* Khoảng cách trước khi bắt đầu nội dung */
 }
 
-
+/* Container chứa nội dung HTML */
 .document-content {
   font-size: 16px;
-  line-height: 1.5;
-  padding-top: 24px;
+  line-height: 1.5; /* 24px line-height */
+  padding-top: 24px; /* Thêm padding-top đã xóa ở trên */
 }
 
+/* Style cho các tiêu đề phụ (ví dụ: 1. Git là gì?) - TỪ FIGMA */
 .document-content h2 {
   font-family: "SF Pro Display", sans-serif;
   font-style: normal;
@@ -35,13 +43,15 @@
   font-size: 16px;
   line-height: 24px;
   color: #3d3d3d;
-  margin-top: 40px;
-  margin-bottom: 8px;
+  margin-top: 40px; /* Thêm khoảng cách giữa các phần */
+  margin-bottom: 8px; /* Gap: 8px */
 }
+/* Thêm style cho h2 đầu tiên để không bị margin-top quá lớn */
 .document-content h2:first-of-type {
   margin-top: 0;
 }
 
+/* Style cho các đoạn văn bản - TỪ FIGMA */
 .document-content p {
   font-family: "SF Pro Display", sans-serif;
   font-style: normal;
@@ -52,6 +62,7 @@
   margin-bottom: 20px;
 }
 
+/* Style cho các danh sách (ul) */
 .document-content ul {
   list-style-type: disc;
   list-style-position: inside;
@@ -66,18 +77,28 @@
   padding-left: 8px;
 }
 
+/* Style cho chữ in đậm */
 .document-content strong {
   font-weight: 600;
   color: #3d3d3d;
 }
 
+/* Style cho hình ảnh ở cuối bài (từ ảnh chụp) */
 .document-image {
-  width: 100%;
+  width: 100%; /* Giữ 100% để vừa với container */
+  height: 584px; /* Áp dụng chiều cao cố định từ Figma */
+  object-fit: cover; /* Đảm bảo ảnh lấp đầy khung mà không bị méo */
   border-radius: 12px;
   margin-top: 32px;
 }
 
-.lesson-header,
-.lesson-description {
+/* Ẩn khối header và description GỐC từ LessonPage
+  chỉ khi component Document này được tải.
+  
+  Sử dụng selector .lesson-detail-container > ... để tăng độ ưu tiên (specificity)
+  để đảm bảo nó ghi đè lên các style khác.
+*/
+.lesson-detail-container > .lesson-header,
+.lesson-detail-container > .lesson-description {
   display: none;
 }

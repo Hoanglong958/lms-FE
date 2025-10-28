@@ -65,23 +65,7 @@ main {
   max-width: 1440px;
   margin: 0 auto;
   width: 100%;
-  padding-left: 16px;
-  padding-right: 16px;
 }
-
-/* Đảm bảo responsive mượt */
-@media (max-width: 1440px) {
-  #root,
-  body > div,
-  main {
-    padding-left: 16px;
-    padding-right: 16px;
-  }
-}
-
-/* ==============================
-   BlogDetail Styles
-============================== */
 
 .bd-article {
   font-size: 14px; /* body text */

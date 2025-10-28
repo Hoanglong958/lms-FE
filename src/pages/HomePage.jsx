@@ -50,9 +50,9 @@ export default function HomePage() {
   ];
 
   let repetitions;
-  if (width >= 1440) {
+  if (width >= 820) {
     repetitions = 3;
-  } else if (width >= 820) {
+  } else if (width >= 375) {
     repetitions = 2;
   } else {
     repetitions = 1;

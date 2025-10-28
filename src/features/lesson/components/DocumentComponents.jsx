@@ -14,9 +14,9 @@ const DocumentComponents = ({ item }) => {
         className="document-content"
         dangerouslySetInnerHTML={createMarkup()}
       />
-      {item.imageUrl && (
+      {item.img1 && (
         <img
-          src={item.imageUrl}
+          src={item.img1}
           alt="Nội dung bài học"
           className="document-image"
         />

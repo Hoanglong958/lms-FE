@@ -3,6 +3,7 @@ import documentIconSvg from "@assets/icons/lesson-type-icons/document-icon.svg";
 import quizIconSvg from "@assets/icons/lesson-type-icons/quiz-icon.svg";
 import videoIconSvg from "@assets/icons/lesson-type-icons/video-icon.svg";
 import terminalIconSvg from "@assets/icons/lesson-type-icons/terminal-icon.svg";
+import anh1 from "../../public/anh1.png";
 import { Descriptions } from "antd";
 
 export const courses = {
@@ -41,8 +42,7 @@ export const courses = {
                 title: "Tổng quan về Git",
                 duration: "5 phút đọc",
                 img: documentIconSvg,
-                imageUrl:
-                  "[https://placehold.co/1066x600/f0f0f0/333?text=Hinh+Minh+Hoa](https://placehold.co/1066x600/f0f0f0/333?text=Hinh+Minh+Hoa)", // Đường dẫn đến ảnh ở cuối bài
+                img1: anh1,
                 content: `
               <h2>1. Git là gì?</h2>
               <p>
@@ -208,7 +208,6 @@ export const courses = {
     ],
   },
 
-
   "n2-chill-class": {
     courseTitle: "N2 Chill Class",
     sessions: [
@@ -236,12 +235,10 @@ export const courses = {
   },
   "phat-am-jvoice": {
     courseTitle: "Phát Âm J-Voice",
-    sessions: [
-    ],
+    sessions: [],
   },
   "it-talk": {
     courseTitle: "IT Talk",
-    sessions: [
-    ],
+    sessions: [],
   },
 };
