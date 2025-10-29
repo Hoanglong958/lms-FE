@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Header.css";
 
-// Import tất cả các icon cần thiết
 import mankaiLogo from "@assets/logos/mankai-logo.svg";
 import homeIcon from "@assets/icons/home-icon.svg";
 import bookIcon from "@assets/icons/book-icon.svg";
@@ -17,18 +16,29 @@ import logoutIcon2 from "@assets/icons/logout-icon-2.svg";
 
 export default function Header() {
   const navigate = useNavigate();
+  const [openDropdown, setOpenDropdown] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
   const handleNavigate = (path) => {
     navigate(path);
     setIsMobileMenuOpen(false);
   };
-  const [openDropdown, setOpenDropdown] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // ✅ Hàm xử lý đăng xuất (an toàn)
+  const handleLogout = () => {
+  localStorage.removeItem("loggedInUser");
+  setOpenDropdown(false);
+  setIsMobileMenuOpen(false);
+  navigate("/login", { replace: true });
+};
+
+
+
 
   return (
     <>
       {/* HEADER CHÍNH */}
       <header className="header-container">
-        {/* Phần bên trái (Desktop) */}
         <div className="header-left">
           <img
             src={mankaiLogo}
@@ -43,10 +53,7 @@ export default function Header() {
                 <img src={homeIcon} alt="Home" />
                 <span>Trang Chủ</span>
               </div>
-              <div
-                className="menu-item"
-                onClick={() => navigate("/baiviet")}
-              >
+              <div className="menu-item" onClick={() => navigate("/baiviet")}>
                 <img src={bookIcon} alt="Posts" />
                 <span>Bài Viết</span>
               </div>
@@ -54,14 +61,15 @@ export default function Header() {
           </nav>
         </div>
 
-        {/* Phần bên phải (Desktop) */}
         <div className="header-right-desktop">
-        <button className="icon-btn" onClick={() => navigate("/search")}>
+          <button className="icon-btn" onClick={() => navigate("/search")}>
             <img src={searchIcon} alt="Search" />
           </button>
           <button className="icon-btn">
             <img src={notiIcon} alt="Notification" />
           </button>
+
+          {/* Dropdown avatar */}
           <div className="avatar-dropdown">
             <button
               className="avatar-btn"
@@ -84,10 +92,9 @@ export default function Header() {
                 <div className="dropdown-item">Hồ sơ của tôi</div>
                 <div className="dropdown-item">Khóa học của tôi</div>
                 <div className="divider"></div>
-                <div
-                  className="dropdown-item logout"
-                  onClick={() => handleNavigate("/login")}
-                >
+
+                {/* 🔒 Đăng xuất */}
+                <div className="dropdown-item logout" onClick={handleLogout}>
                   <img src={logoutIcon} alt="Logout" className="logout-icon" />
                   <span>Đăng xuất</span>
                 </div>
@@ -96,7 +103,7 @@ export default function Header() {
           </div>
         </div>
 
-        {/* Nút Hamburger (Chỉ hiển thị trên Mobile) */}
+        {/* MENU MOBILE */}
         <button
           className="hamburger-menu"
           onClick={() => setIsMobileMenuOpen(true)}
@@ -105,14 +112,10 @@ export default function Header() {
         </button>
       </header>
 
-      {/* MENU OVERLAY (Chỉ hiển thị trên Mobile khi được kích hoạt) */}
+      {/* OVERLAY MENU MOBILE */}
       <div className={`mobile-menu-overlay ${isMobileMenuOpen ? "open" : ""}`}>
         <div className="mobile-menu-header">
-          <img
-            src={mankaiLogo}
-            alt="Mankai Logo"
-            className="mobile-menu-logo"
-          />
+          <img src={mankaiLogo} alt="Mankai Logo" className="mobile-menu-logo" />
           <div className="close-btn" onClick={() => setIsMobileMenuOpen(false)}>
             &times;
           </div>
@@ -147,10 +150,12 @@ export default function Header() {
                   <div className="email">vien@gmail.com</div>
                 </div>
               </div>
+
+              {/* 🔒 Logout Mobile */}
               <img
                 src={logoutIcon2}
                 alt="Logout"
-                onClick={() => handleNavigate("/login")}
+                onClick={handleLogout}
                 className="logout-icon-mobile"
               />
             </div>
