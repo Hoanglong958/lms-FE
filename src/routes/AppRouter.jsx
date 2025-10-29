@@ -1,42 +1,69 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
+import ScrollToTop from "@components/common/ScrollToTop";
+import PrivateRoute from "@components/common/PrivateRoute";
+
+// Layouts
 import MainLayout from "@layouts/MainLayout";
 import LessonLayout from "@layouts/LessonLayout";
 import AuthLayout from "@layouts/AuthLayout";
-import ScrollToTop from "@components/common/ScrollToTop";
+import AdminLayout from "@layouts/AdminLayout";
+
+// Pages (user)
 import HomePage from "@pages/HomePage";
-import LessonPage from "@features/lesson/pages/LessonPage";
-import Login from "@features/login/pages/login";
 import BlogList from "@features/baiviet/pages/BlogList";
-import Posts from "@features/baiviet/pages/Posts";
 import BlogDetail from "@features/baiviet/pages/BlogDetail";
+import Posts from "@features/baiviet/pages/Posts";
 import SearchPage from "@features/search/pages/SearchPage";
+import LessonPage from "@features/lesson/pages/LessonPage";
 import QuizExamPage from "@features/lesson/components/QuizExamPage";
+import Login from "@features/login/pages/login";
+
+// Pages (admin)
+import Dashboard from "@features/Admin/Dashboard/Dashboard";
+import AdminHomePage from "@pages/AdminHomePage";
+// import Users from "@features/Admin/Users/AdminUsers";
 
 export default function AppRouter() {
   return (
     <>
       <ScrollToTop />
       <Routes>
-        {/* Login - không header/footer */}
+        {/* ===== CHUYỂN TRANG MẶC ĐỊNH ===== */}
+        <Route path="/" element={<Navigate to="/login" replace />} />
+
+        {/* ===== AUTH ROUTES ===== */}
         <Route element={<AuthLayout />}>
           <Route path="/login" element={<Login />} />
         </Route>
 
-        {/* Home - có header/footer */}
-        <Route element={<MainLayout />}>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/bai-viet" element={<BlogList />} />
-          <Route path="/bai-viet/:id" element={<BlogDetail />} />
-          <Route path="/baiviet" element={<Posts />} />
-          <Route path="/search" element={<SearchPage />} />
+        {/* ===== USER ROUTES ===== */}
+        <Route element={<PrivateRoute role="user" />}>
+          <Route element={<MainLayout />}>
+            <Route path="/home" element={<HomePage />} />
+            <Route path="/bai-viet" element={<BlogList />} />
+            <Route path="/bai-viet/:id" element={<BlogDetail />} />
+            <Route path="/baiviet" element={<Posts />} />
+            <Route path="/search" element={<SearchPage />} />
+          </Route>
+
+          <Route path="/lessons/:courseId" element={<LessonLayout />}>
+            <Route index element={<LessonPage />} />
+            <Route path=":lessonId" element={<LessonPage />} />
+          </Route>
+          <Route path="/quiz-exam/:quizId" element={<QuizExamPage />} />
         </Route>
 
-        {/* Lesson - có sidebar, không footer */}
-        <Route path="/lessons/:courseId" element={<LessonLayout />}>
-          <Route index element={<LessonPage />} />
-          <Route path=":lessonId" element={<LessonPage />} />
+        {/* ===== ADMIN ROUTES ===== */}
+        <Route element={<PrivateRoute role="admin" />}>
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<Dashboard />} />
+            <Route path="dashboard" element={<Dashboard />} />
+            <Route path="home" element={<AdminHomePage />} />
+          </Route>
         </Route>
-        <Route path="/quiz-exam/:quizId" element={<QuizExamPage />} />
+
+        {/* ===== Fallback nếu route không tồn tại ===== */}
+        <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </>
   );
