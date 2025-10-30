@@ -92,13 +92,3 @@
   margin-top: 32px;
 }
 
-/* Ẩn khối header và description GỐC từ LessonPage
-  chỉ khi component Document này được tải.
-  
-  Sử dụng selector .lesson-detail-container > ... để tăng độ ưu tiên (specificity)
-  để đảm bảo nó ghi đè lên các style khác.
-*/
-.lesson-detail-container > .lesson-header,
-.lesson-detail-container > .lesson-description {
-  display: none;
-}
