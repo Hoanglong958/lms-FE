@@ -98,7 +98,4 @@
   Sử dụng selector .lesson-detail-container > ... để tăng độ ưu tiên (specificity)
   để đảm bảo nó ghi đè lên các style khác.
 */
-.lesson-detail-container > .lesson-header,
-.lesson-detail-container > .lesson-description {
-  display: none;
-}
+
