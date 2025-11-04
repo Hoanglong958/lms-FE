@@ -1,0 +1,115 @@
+/* AdminSidebar.css */
+.admin-sidebar {
+  width: 260px; /* Chiều rộng của sidebar */
+  height: 100vh; /* Chiều cao đầy màn hình */
+  background-color: #212529; /* Màu nền tối */
+  color: #f8f9fa; /* Màu chữ sáng */
+  display: flex;
+  flex-direction: column;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  top: 0;
+  left: 0;
+  border-right: 1px solid #343a40;
+}
+
+/* Header */
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #343a40; /* Đường viền mờ */
+}
+
+.sidebar-logo {
+  width: 36px;
+  height: 36px;
+  background-color: #dc3545; /* Màu đỏ như trong ảnh */
+  color: white;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin-right: 12px;
+}
+
+.sidebar-header h2 {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: white;
+}
+
+.collapse-btn {
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: #adb5bd;
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 0 5px;
+}
+
+/* Navigation */
+.sidebar-nav {
+  flex-grow: 1; /* Tự động lấp đầy không gian còn lại */
+  overflow-y: auto; /* Tự động cuộn nếu quá dài */
+  padding: 1rem 0;
+}
+
+.sidebar-nav ul {
+  list-style: none;
+  margin: 0;
+  padding: 0 0.75rem; /* Khoảng cách hai bên cho các mục */
+}
+
+.sidebar-nav li {
+  margin-bottom: 0.25rem;
+}
+
+.sidebar-nav li a {
+  display: flex;
+  align-items: center;
+  padding: 0.8rem 1rem;
+  text-decoration: none;
+  color: #ced4da; /* Màu chữ cho link */
+  border-radius: 6px;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.sidebar-nav li a .icon {
+  margin-right: 1rem;
+  font-size: 1.1rem;
+  width: 24px; /* Giữ cho các icon thẳng hàng */
+  text-align: center;
+}
+
+.sidebar-nav li a .label {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+/* Trạng thái Hover và Active */
+.sidebar-nav li a:hover {
+  background-color: #343a40;
+  color: #ffffff;
+}
+
+.sidebar-nav li.active a {
+  background-color: #dc3545; /* Màu đỏ active */
+  color: #ffffff;
+  font-weight: 600;
+}
+
+/* Footer */
+.sidebar-footer {
+  padding: 1.25rem;
+  border-top: 1px solid #343a40;
+  font-size: 0.8rem;
+  color: #868e96;
+}
+
+.sidebar-footer p {
+  margin: 0.25rem 0;
+}

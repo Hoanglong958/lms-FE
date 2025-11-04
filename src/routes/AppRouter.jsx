@@ -20,8 +20,22 @@ import Login from "@features/login/pages/login";
 
 // Pages (admin)
 import Dashboard from "@features/Admin/Dashboard/Dashboard";
-import AdminHomePage from "@pages/AdminHomePage";
-// import Users from "@features/Admin/Users/AdminUsers";
+// import AdminHomePage from "@pages/AdminHomePage"; // Route này không có trong sidebar mới
+// import Users from "@features/Admin/Users/AdminUsers"; // Bạn đã bình luận dòng này
+
+// === CÁC IMPORT MỚI CHO TRANG ADMIN ===
+// (Bạn cần tạo các component này và đảm bảo đường dẫn import chính xác)
+// import ManageUsers from "@admin/Users/ManageUsers";
+import ManageCourses from "@admin/Courses/ManageCourses";
+import ManageLessons from "@admin/Courses/ManageLessons";
+// import QuestionBank from "@admin/QuestionBank/QuestionBank";
+// import ManageQuizzes from "@admin/Quizzes/ManageQuizzes";
+// import ManageExams from "@admin/Exams/ManageExams";
+// import ManageAssignments from "@admin/Assignments/ManageAssignments";
+// import StudentProgress from "@admin/Progress/StudentProgress";
+// import Reports from "@admin/Reports/Reports";
+// import SystemSettings from "@admin/Settings/SystemSettings";
+// ======================================
 
 export default function AppRouter() {
   return (
@@ -53,12 +67,24 @@ export default function AppRouter() {
           <Route path="/quiz-exam/:quizId" element={<QuizExamPage />} />
         </Route>
 
-        {/* ===== ADMIN ROUTES ===== */}
+        {/* ===== ADMIN ROUTES (ĐÃ CẬP NHẬT) ===== */}
         <Route element={<PrivateRoute role="admin" />}>
           <Route path="/admin" element={<AdminLayout />}>
+            {/* Routes mặc định */}
             <Route index element={<Dashboard />} />
             <Route path="dashboard" element={<Dashboard />} />
-            <Route path="home" element={<AdminHomePage />} />
+
+            {/* Các routes từ sidebar */}
+            {/* <Route path="users" element={<ManageUsers />} /> */}
+            <Route path="courses" element={<ManageCourses />} />
+            <Route path="parts/:courseId" element={<ManageLessons />} />
+            {/* <Route path="question-bank" element={<QuestionBank />} /> */}
+            {/* <Route path="quizzes" element={<ManageQuizzes />} /> */}
+            {/* <Route path="exams" element={<ManageExams />} /> */}
+            {/* <Route path="assignments" element={<ManageAssignments />} /> */}
+            {/* <Route path="progress" element={<StudentProgress />} /> */}
+            {/* <Route path="reports" element={<Reports />} /> */}
+            {/* <Route path="settings" element={<SystemSettings />} /> */}
           </Route>
         </Route>
 
