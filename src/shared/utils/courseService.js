@@ -1,5 +1,4 @@
-// src/utils/courseService.js
-import { mockCourses, mockSections, mockLessons } from "@data/mockData";
+import { mockCourses, mockSections, mockLessons } from "@data/mockData.js";
 
 // --- Khởi tạo ---
 // Tự động chép dữ liệu mock vào localStorage nếu chưa có
@@ -91,9 +90,17 @@ export const courseService = {
     return getStorage("courses").find((c) => c.id === id);
   },
 
+  /**
+   * ĐÃ CẬP NHẬT:
+   * Thêm "progress: 0" làm giá trị mặc định cho khóa học mới
+   */
   addCourse: (courseData) => {
     const courses = getStorage("courses");
-    const newCourse = { id: `c${Date.now()}`, ...courseData };
+    const newCourse = {
+      id: `c${Date.now()}`,
+      progress: 0, // Giá trị mặc định cho tiến độ
+      ...courseData, // Bao gồm title, description, isPrerequisite từ form
+    };
     const newCourses = [newCourse, ...courses];
     setStorage("courses", newCourses);
     return newCourse;
@@ -113,6 +120,7 @@ export const courseService = {
     courses = courses.filter((c) => c.id !== courseId);
     setStorage("courses", courses);
 
+    // Xóa lồng: Xóa tất cả phân học (và bài học) thuộc khóa học này
     const sectionsToDelete = lessonService.getSectionsByCourseId(courseId);
     sectionsToDelete.forEach((section) => {
       lessonService.deleteSection(section.id);

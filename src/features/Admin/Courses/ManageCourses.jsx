@@ -1,31 +1,47 @@
 import React, { useState } from "react";
-// Dùng Link chuẩn, không cần useNavigate
 import { Link } from "react-router-dom";
-// Import service thay vì mock data
 import { courseService } from "@utils/courseService.js";
 import styles from "./ManageCourses.module.css";
 
+// Giá trị khởi tạo cho form
+const initialFormData = {
+  title: "",
+  description: "",
+  isPrerequisite: false, // THÊM MỚI: Trạng thái (Bắt buộc/Không)
+};
+
 export default function ManageCourses() {
-  // 1. Đọc dữ liệu từ service (localStorage)
   const [courses, setCourses] = useState(() => courseService.getCourses());
   const [showModal, setShowModal] = useState(false);
   const [currentCourse, setCurrentCourse] = useState(null);
-  const [formData, setFormData] = useState({ title: "", description: "" });
+  const [formData, setFormData] = useState(initialFormData);
 
+  // CẬP NHẬT: Xử lý cả text input và checkbox
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    const { name, value, type, checked } = e.target;
+    // Nếu là checkbox, lấy 'checked'. Nếu là input, lấy 'value'.
+    const val = type === "checkbox" ? checked : value;
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: val,
+    }));
   };
 
   const handleAdd = () => {
     setCurrentCourse(null);
-    setFormData({ title: "", description: "" });
+    setFormData(initialFormData); // CẬP NHẬT: Dùng giá trị khởi tạo
     setShowModal(true);
   };
 
   const handleEdit = (course) => {
     setCurrentCourse(course);
-    setFormData({ title: course.title, description: course.description });
+    // CẬP NHẬT: Tải tất cả dữ liệu vào form
+    setFormData({
+      title: course.title,
+      description: course.description,
+      isPrerequisite: course.isPrerequisite,
+    });
     setShowModal(true);
   };
 
@@ -35,9 +51,7 @@ export default function ManageCourses() {
         "Bạn có chắc muốn xóa khóa học này? (Toàn bộ nội dung bên trong sẽ bị xóa)"
       )
     ) {
-      // 2. Gọi service để xóa
       courseService.deleteCourse(courseId);
-      // 3. Đọc lại dữ liệu từ service để cập nhật UI
       setCourses(courseService.getCourses());
     }
   };
@@ -45,13 +59,12 @@ export default function ManageCourses() {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (currentCourse) {
-      // 2. Gọi service để cập nhật
+      // CẬP NHẬT: Gộp formData vào currentCourse
       courseService.updateCourse({ ...currentCourse, ...formData });
     } else {
-      // 2. Gọi service để thêm mới
+      // Logic thêm mới đã đúng, vì formData đã chứa tất cả trường
       courseService.addCourse(formData);
     }
-    // 3. Đọc lại dữ liệu từ service để cập nhật UI
     setCourses(courseService.getCourses());
     setShowModal(false);
   };
@@ -73,6 +86,9 @@ export default function ManageCourses() {
           <tr>
             <th>Tên khóa học</th>
             <th>Mô tả</th>
+            {/* THÊM MỚI */}
+            <th>Tiến độ</th>
+            <th>Trạng thái</th>
             <th>Hành động</th>
           </tr>
         </thead>
@@ -81,8 +97,26 @@ export default function ManageCourses() {
             <tr key={course.id}>
               <td>{course.title}</td>
               <td>{course.description}</td>
+
+              {/* THÊM MỚI: Hiển thị tiến độ */}
+              <td>
+                <span className={styles.progress}>{course.progress || 0}%</span>
+              </td>
+
+              {/* THÊM MỚI: Hiển thị trạng thái */}
+              <td>
+                {course.isPrerequisite ? (
+                  <span className={`${styles.status} ${styles.statusRequired}`}>
+                    Bắt buộc
+                  </span>
+                ) : (
+                  <span className={`${styles.status} ${styles.statusOptional}`}>
+                    Không
+                  </span>
+                )}
+              </td>
+
               <td className={styles.actions}>
-                {/* Dùng Link đơn giản. Sẽ luôn hoạt động! */}
                 <Link
                   to={`/admin/parts/${course.id}`}
                   className={`${styles.btn} ${styles.btnDetail}`}
@@ -133,6 +167,21 @@ export default function ManageCourses() {
                   onChange={handleInputChange}
                 />
               </div>
+
+              {/* THÊM MỚI: Checkbox cho Trạng thái */}
+              <div className={`${styles.formGroup} ${styles.formGroupCheck}`}>
+                <input
+                  type="checkbox"
+                  id="isPrerequisite"
+                  name="isPrerequisite"
+                  checked={formData.isPrerequisite}
+                  onChange={handleInputChange}
+                />
+                <label htmlFor="isPrerequisite">
+                  Đây là khóa học bắt buộc (tiên quyết)?
+                </label>
+              </div>
+
               <div className={styles.formActions}>
                 <button
                   type="button"
