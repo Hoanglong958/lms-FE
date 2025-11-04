@@ -6,40 +6,19 @@
 }
 
 /* Sidebar */
-
-
-.sidebar-logo {
-  font-size: 22px;
-  font-weight: bold;
-  margin-bottom: 30px;
-  text-align: center;
-}
-
-.admin-sidebar nav ul {
-  list-style: none;
-  padding: 0;
-}
-
-.admin-sidebar nav li {
-  margin-bottom: 15px;
-}
-
-.admin-sidebar nav a {
-  text-decoration: none;
-  font-size: 16px;
-  transition: color 0.3s;
-}
-
-.admin-sidebar nav li.active a,
-.admin-sidebar nav a:hover {
-  color: #fbbf24;
-}
+/* (Các style cho .admin-sidebar, .sidebar-logo, nav... 
+   nằm trong file AdminSidebar.css riêng) */
 
 /* Main area */
 .admin-main {
   flex: 1;
   display: flex;
   flex-direction: column;
+
+  /* === SỬA LỖI Ở ĐÂY === */
+  /* Thêm dòng này để đẩy nội dung sang phải.
+     Con số 250px phải khớp với 'width' trong AdminSidebar.css */
+  margin-left: 250px;
 }
 
 .admin-header {
@@ -76,6 +55,8 @@
   padding: 30px;
   background-color: #f3f4f6;
 }
+
+/* --- Dashboard Page Styles --- */
 .dashboard-page {
   display: flex;
   flex-direction: column;
