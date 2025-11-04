@@ -1,0 +1,203 @@
+.exam-report-container {
+  padding: 24px;
+  background-color: #f8fafc;
+  font-family: "Inter", sans-serif;
+}
+
+.exam-report-header {
+  margin-bottom: 24px;
+}
+
+.exam-report-header h2 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.exam-report-header p {
+  color: #64748b;
+  margin-top: 4px;
+}
+
+.btn-back {
+  background: none;
+  border: none;
+  color: #2563eb;
+  cursor: pointer;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.exam-summary {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.summary-card {
+  flex: 1;
+  background: white;
+  border-radius: 10px;
+  padding: 16px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  text-align: center;
+}
+
+.summary-card p {
+  font-size: 14px;
+  color: #64748b;
+  margin-bottom: 6px;
+}
+
+.summary-card h3 {
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.summary-card.blue {
+  border-left: 5px solid #3b82f6;
+}
+
+.summary-card.green {
+  border-left: 5px solid #10b981;
+}
+
+.summary-card.orange {
+  border-left: 5px solid #f59e0b;
+}
+
+.summary-card.purple {
+  border-left: 5px solid #8b5cf6;
+}
+
+.exam-status h4 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 8px;
+}
+
+.status-bar {
+  display: flex;
+  border-radius: 8px;
+  overflow: hidden;
+  height: 28px;
+  margin-bottom: 24px;
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.bar.ontime {
+  background: #16a34a;
+}
+
+.bar.late {
+  background: #f97316;
+}
+
+.bar.missing {
+  background: #94a3b8;
+}
+
+.exam-submissions {
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  padding: 16px;
+}
+
+.submissions-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.exam-search {
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 14px;
+}
+
+.btn-export {
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.exam-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.exam-table th,
+.exam-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid #e2e8f0;
+  text-align: left;
+}
+
+.exam-table th {
+  background: #f1f5f9;
+  color: #475569;
+  font-weight: 600;
+}
+
+.status-tag {
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: white;
+}
+
+.status-tag.ontime {
+  background: #16a34a;
+}
+
+.status-tag.late {
+  background: #f97316;
+}
+
+.status-tag.missing {
+  background: #94a3b8;
+}
+
+.text-gray {
+  color: #94a3b8;
+}
+
+.text-green {
+  color: #16a34a;
+}
+
+.bold {
+  font-weight: 600;
+}
+
+.btn-view {
+  background: #f97316;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-size: 13px;
+}
