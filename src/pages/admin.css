@@ -14,11 +14,6 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-
-  /* === SỬA LỖI Ở ĐÂY === */
-  /* Thêm dòng này để đẩy nội dung sang phải.
-     Con số 250px phải khớp với 'width' trong AdminSidebar.css */
-  margin-left: 250px;
 }
 
 .admin-header {
