@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from "react";
-// Bỏ useLocation, chỉ cần useParams, useNavigate, Link
 import { useParams, useNavigate, Link } from "react-router-dom";
-// Import cả 2 service
 import { courseService, lessonService } from "@utils/courseService.js";
 import styles from "./ManageLessons.module.css";
 
@@ -11,62 +9,266 @@ import styles from "./ManageLessons.module.css";
  * ============================================
  */
 function LessonManager({ sectionId }) {
-  // 1. Đọc dữ liệu từ service
   const [lessons, setLessons] = useState(() =>
     lessonService.getLessonsBySectionId(sectionId)
   );
 
+  const [showModal, setShowModal] = useState(false);
+  const [formData, setFormData] = useState({
+    title: "",
+    description: "",
+    type: "video",
+    content: {},
+  });
+
   const handleAddLesson = () => {
-    const title = prompt("Nhập tên bài học mới:");
-    if (title) {
-      // 2. Ghi vào service
-      lessonService.addLesson({ sectionId: sectionId, title });
-      // 3. Đọc lại từ service
-      setLessons(lessonService.getLessonsBySectionId(sectionId));
-    }
+    setFormData({
+      title: "",
+      description: "",
+      type: "video",
+      content: {},
+    });
+    setShowModal(true);
   };
 
-  const handleEditLesson = (lesson) => {
-    const newTitle = prompt("Nhập tên bài học mới:", lesson.title);
-    if (newTitle && newTitle !== lesson.title) {
-      // 2. Ghi vào service
-      lessonService.updateLesson({ ...lesson, title: newTitle });
-      // 3. Đọc lại từ service
-      setLessons(lessonService.getLessonsBySectionId(sectionId));
-    }
+  const handleSubmitLesson = (e) => {
+    e.preventDefault();
+
+    let title = formData.title;
+    if (formData.type === "quiz") title = `[Quizz] ${title}`;
+
+    lessonService.addLesson({
+      sectionId,
+      ...formData,
+      title,
+    });
+
+    setLessons(lessonService.getLessonsBySectionId(sectionId));
+    setShowModal(false);
   };
 
   const handleDeleteLesson = (lessonId) => {
     if (window.confirm("Xóa bài học này?")) {
-      // 2. Ghi vào service
       lessonService.deleteLesson(lessonId);
-      // 3. Đọc lại từ service
       setLessons(lessonService.getLessonsBySectionId(sectionId));
     }
   };
 
   return (
-    <ul className={styles.lessonList}>
-      {lessons.map((lesson) => (
-        <li key={lesson.id}>
-          <span>{lesson.title}</span>
-          <div className={styles.lessonActions}>
-            <button onClick={() => handleEditLesson(lesson)}>Sửa</button>
-            <button
-              onClick={() => handleDeleteLesson(lesson.id)}
-              className={styles.delete}
-            >
-              Xóa
-            </button>
-          </div>
+    <>
+      <ul className={styles.lessonList}>
+        {lessons.map((lesson) => (
+          <li key={lesson.id}>
+            <span>{lesson.title}</span>
+            <div className={styles.lessonActions}>
+              <button
+                onClick={() => handleDeleteLesson(lesson.id)}
+                className={styles.delete}
+              >
+                Xóa
+              </button>
+            </div>
+          </li>
+        ))}
+        <li>
+          <button onClick={handleAddLesson} className={styles.btnAddLesson}>
+            + Thêm bài học
+          </button>
         </li>
+      </ul>
+
+      {/* MODAL THÊM BÀI HỌC */}
+      {showModal && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modalContent}>
+            <h2>Thêm Bài học mới</h2>
+            <form onSubmit={handleSubmitLesson}>
+              <div className={styles.formGroup}>
+                <label>Tiêu đề</label>
+                <input
+                  value={formData.title}
+                  onChange={(e) =>
+                    setFormData({ ...formData, title: e.target.value })
+                  }
+                  required
+                />
+              </div>
+
+              <div className={styles.formGroup}>
+                <label>Mô tả</label>
+                <textarea
+                  value={formData.description}
+                  onChange={(e) =>
+                    setFormData({ ...formData, description: e.target.value })
+                  }
+                  placeholder="Nhập mô tả ngắn gọn về bài học..."
+                />
+              </div>
+
+              <div className={styles.formGroup}>
+                <label>Dạng bài học</label>
+                <select
+                  value={formData.type}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      type: e.target.value,
+                      content: {},
+                    })
+                  }
+                  required
+                >
+                  <option value="video">Video</option>
+                  <option value="document">Document</option>
+                  <option value="quiz">Quizz</option>
+                </select>
+              </div>
+
+              {formData.type === "video" && (
+                <VideoForm formData={formData} setFormData={setFormData} />
+              )}
+              {formData.type === "document" && (
+                <DocumentForm formData={formData} setFormData={setFormData} />
+              )}
+              {formData.type === "quiz" && (
+                <QuizForm formData={formData} setFormData={setFormData} />
+              )}
+
+              <div className={styles.formActions}>
+                <button
+                  type="button"
+                  onClick={() => setShowModal(false)}
+                  className={styles.btn}
+                >
+                  Hủy
+                </button>
+                <button
+                  type="submit"
+                  className={`${styles.btn} ${styles.btnPrimary}`}
+                >
+                  Lưu
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
+/**
+ * FORM CON: Video
+ */
+function VideoForm({ formData, setFormData }) {
+  return (
+    <div className={styles.formGroup}>
+      <label>Link video (YouTube hoặc file)</label>
+      <input
+        type="text"
+        value={formData.content.videoUrl || ""}
+        onChange={(e) =>
+          setFormData({
+            ...formData,
+            content: { ...formData.content, videoUrl: e.target.value },
+          })
+        }
+        placeholder="https://youtube.com/..."
+      />
+    </div>
+  );
+}
+
+/**
+ * FORM CON: Document (tài liệu có nhiều phần nhỏ)
+ */
+function DocumentForm({ formData, setFormData }) {
+  const sections = formData.content.sections || [];
+
+  const addSubSection = () => {
+    const newSec = { id: Date.now(), title: "", content: "" };
+    setFormData({
+      ...formData,
+      content: { sections: [...sections, newSec] },
+    });
+  };
+
+  const updateSubSection = (id, key, value) => {
+    const updated = sections.map((s) =>
+      s.id === id ? { ...s, [key]: value } : s
+    );
+    setFormData({ ...formData, content: { sections: updated } });
+  };
+
+  return (
+    <div className={styles.formGroup}>
+      <label>Tài liệu chi tiết</label>
+      {sections.map((s) => (
+        <div key={s.id} className={styles.subSection}>
+          <input
+            type="text"
+            placeholder="Tiêu đề nhỏ"
+            value={s.title}
+            onChange={(e) => updateSubSection(s.id, "title", e.target.value)}
+          />
+          <textarea
+            placeholder="Nội dung"
+            value={s.content}
+            onChange={(e) => updateSubSection(s.id, "content", e.target.value)}
+          />
+        </div>
       ))}
-      <li>
-        <button onClick={handleAddLesson} className={styles.btnAddLesson}>
-          + Thêm bài học
-        </button>
-      </li>
-    </ul>
+      <button type="button" onClick={addSubSection} className={styles.btnSmall}>
+        + Thêm phần nhỏ
+      </button>
+    </div>
+  );
+}
+
+/**
+ * FORM CON: Quizz (thêm câu hỏi & đáp án)
+ */
+function QuizForm({ formData, setFormData }) {
+  const questions = formData.content.questions || [];
+
+  const addQuestion = () => {
+    const newQ = { id: Date.now(), question: "", answer: "" };
+    setFormData({
+      ...formData,
+      content: { questions: [...questions, newQ] },
+    });
+  };
+
+  const updateQuestion = (id, key, value) => {
+    const updated = questions.map((q) =>
+      q.id === id ? { ...q, [key]: value } : q
+    );
+    setFormData({ ...formData, content: { questions: updated } });
+  };
+
+  return (
+    <div className={styles.formGroup}>
+      <label>Danh sách câu hỏi</label>
+      {questions.map((q) => (
+        <div key={q.id} className={styles.quizItem}>
+          <input
+            type="text"
+            placeholder="Câu hỏi"
+            value={q.question}
+            onChange={(e) => updateQuestion(q.id, "question", e.target.value)}
+          />
+          <input
+            type="text"
+            placeholder="Đáp án"
+            value={q.answer}
+            onChange={(e) => updateQuestion(q.id, "answer", e.target.value)}
+          />
+        </div>
+      ))}
+      <button type="button" onClick={addQuestion} className={styles.btnSmall}>
+        + Thêm câu hỏi
+      </button>
+    </div>
   );
 }
 
@@ -86,10 +288,6 @@ export default function ManageLessons() {
   const [currentSection, setCurrentSection] = useState(null);
   const [formData, setFormData] = useState({ title: "" });
 
-  /**
-   * CẬP NHẬT LOGIC:
-   * Chỉ cần đọc từ service. Sẽ không bao giờ thất bại.
-   */
   useEffect(() => {
     if (courseId) {
       const foundCourse = courseService.getCourseById(courseId);
@@ -97,13 +295,10 @@ export default function ManageLessons() {
         setCourse(foundCourse);
         setSections(lessonService.getSectionsByCourseId(courseId));
       } else {
-        // Nếu ai đó nhập URL bậy, văng về
         navigate("/admin/courses");
       }
     }
   }, [courseId, navigate]);
-
-  // --- CRUD cho PHÂN HỌC (Section) ---
 
   const handleDeleteSection = (sectionId) => {
     if (
@@ -112,7 +307,7 @@ export default function ManageLessons() {
       )
     ) {
       lessonService.deleteSection(sectionId);
-      setSections(lessonService.getSectionsByCourseId(courseId)); // Đọc lại
+      setSections(lessonService.getSectionsByCourseId(courseId));
     }
   };
 
@@ -135,11 +330,10 @@ export default function ManageLessons() {
     } else {
       lessonService.addSection({ courseId: courseId, ...formData });
     }
-    setSections(lessonService.getSectionsByCourseId(courseId)); // Đọc lại
+    setSections(lessonService.getSectionsByCourseId(courseId));
     setShowModal(false);
   };
 
-  // Render thông báo nếu vào từ sidebar
   if (!courseId) {
     return (
       <div className={styles.page}>
@@ -152,7 +346,6 @@ export default function ManageLessons() {
     );
   }
 
-  // Tránh lỗi render (chỉ xảy ra trong 1 frame)
   if (!course) {
     return (
       <div className={styles.page}>
@@ -161,7 +354,6 @@ export default function ManageLessons() {
     );
   }
 
-  // Render trang quản lý
   return (
     <div className={styles.page}>
       <div className={styles.header}>
@@ -179,7 +371,6 @@ export default function ManageLessons() {
         </button>
       </div>
 
-      {/* Danh sách các Phân học */}
       <div className={styles.sectionList}>
         {sections.map((section) => (
           <div key={section.id} className={styles.sectionItem}>
@@ -200,7 +391,6 @@ export default function ManageLessons() {
                 </button>
               </div>
             </div>
-            {/* Quản lý Bài học lồng bên trong */}
             <LessonManager sectionId={section.id} />
           </div>
         ))}
@@ -209,7 +399,6 @@ export default function ManageLessons() {
         )}
       </div>
 
-      {/* Modal Thêm/Sửa Phân học */}
       {showModal && (
         <div className={styles.modalOverlay}>
           <div className={styles.modalContent}>

@@ -4,7 +4,6 @@ import "./AdminSidebar.css";
 
 export default function AdminSidebar() {
   const [openSection, setOpenSection] = useState({
-    course: false,
     evaluate: true,
     community: false,
   });
@@ -19,8 +18,6 @@ export default function AdminSidebar() {
         {/* Header */}
         <div className="admin-sidebar-header">
           <img src="/logo.png" alt="Logo" className="admin-sidebar-logo" />
-          <h2 className="admin-sidebar-title">Mankai Academy</h2>
-          <p className="admin-sidebar-subtitle">Admin Dashboard</p>
         </div>
 
         {/* Menu */}
@@ -35,85 +32,27 @@ export default function AdminSidebar() {
             Dashboard
           </NavLink>
 
-          {/* Quản lý người dùng */}
-          <div className="admin-sidebar-group">
-            <div
-              className="admin-sidebar-item"
-              onClick={() => toggleSection("users")}
-            >
-              <i className="fa-solid fa-users"></i>
-              <span>Quản lý người dùng</span>
-              <i
-                className={`fa-solid fa-chevron-${
-                  openSection.users ? "up" : "down"
-                } sidebar-arrow`}
-              ></i>
-            </div>
-            {openSection.users && (
-              <div className="admin-sidebar-submenu">
-                <NavLink
-                  to="/admin/users"
-                  className={({ isActive }) =>
-                    isActive
-                      ? "admin-sidebar-subitem active"
-                      : "admin-sidebar-subitem"
-                  }
-                >
-                  Quản lý người dùng
-                </NavLink>
-              </div>
-            )}
-          </div>
+          {/* Quản lý người dùng - không dropdown */}
+          <NavLink
+            to="/admin/users"
+            className={({ isActive }) =>
+              isActive ? "admin-sidebar-item active" : "admin-sidebar-item"
+            }
+          >
+            <i className="fa-solid fa-users"></i>
+            Quản lý người dùng
+          </NavLink>
 
-          {/* Nội dung khóa học */}
-          <div className="admin-sidebar-group">
-            <div
-              className="admin-sidebar-item"
-              onClick={() => toggleSection("course")}
-            >
-              <i className="fa-solid fa-book"></i>
-              <span>Nội dung khóa học</span>
-              <i
-                className={`fa-solid fa-chevron-${
-                  openSection.course ? "up" : "down"
-                } sidebar-arrow`}
-              ></i>
-            </div>
-            {openSection.course && (
-              <div className="admin-sidebar-submenu">
-                <NavLink
-                  to="/admin/courses"
-                  className={({ isActive }) =>
-                    isActive
-                      ? "admin-sidebar-subitem active"
-                      : "admin-sidebar-subitem"
-                  }
-                >
-                  Khóa học
-                </NavLink>
-                <NavLink
-                  to="/admin/lessons"
-                  className={({ isActive }) =>
-                    isActive
-                      ? "admin-sidebar-subitem active"
-                      : "admin-sidebar-subitem"
-                  }
-                >
-                  Chương & Bài học
-                </NavLink>
-                <NavLink
-                  to="/admin/classes"
-                  className={({ isActive }) =>
-                    isActive
-                      ? "admin-sidebar-subitem active"
-                      : "admin-sidebar-subitem"
-                  }
-                >
-                  Lớp học
-                </NavLink>
-              </div>
-            )}
-          </div>
+          {/* Nội dung khóa học - không dropdown */}
+          <NavLink
+            to="/admin/courses"
+            className={({ isActive }) =>
+              isActive ? "admin-sidebar-item active" : "admin-sidebar-item"
+            }
+          >
+            <i className="fa-solid fa-book"></i>
+            Nội dung khóa học
+          </NavLink>
 
           {/* Đánh giá */}
           <div className="admin-sidebar-group">
@@ -141,8 +80,6 @@ export default function AdminSidebar() {
                 >
                   Quiz
                 </NavLink>
-
-                {/* 🟧 Sửa đường dẫn Bài kiểm tra */}
                 <NavLink
                   to="/admin/exam"
                   className={({ isActive }) =>
@@ -153,7 +90,6 @@ export default function AdminSidebar() {
                 >
                   Bài kiểm tra
                 </NavLink>
-
                 <NavLink
                   to="/admin/exercises"
                   className={({ isActive }) =>
@@ -208,6 +144,7 @@ export default function AdminSidebar() {
             )}
           </div>
 
+          {/* Cài đặt */}
           <NavLink
             to="/admin/settings"
             className={({ isActive }) =>

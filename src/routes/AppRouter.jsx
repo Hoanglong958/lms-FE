@@ -79,18 +79,17 @@ export default function AppRouter() {
             <Route index element={<Dashboard />} />
             {/* Mặc định chuyển về dashboard */}
             <Route index element={<Navigate to="dashboard" replace />} />
-
             {/* Các trang con của admin */}
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="home" element={<AdminHomePage />} />
             <Route path="quiz" element={<QuizManagement />} />
             <Route path="exam" element={<ExamManagement />} />
-            <Route path="exam/:quizId/report" element={<ExamReport />} /> {/* ✅ Thêm route báo cáo */}
-
+            <Route path="exam/:quizId/report" element={<ExamReport />} />{" "}
+            {/* ✅ Thêm route báo cáo */}
             {/* Các routes từ sidebar */}
             {/* <Route path="users" element={<ManageUsers />} /> */}
             <Route path="courses" element={<ManageCourses />} />
-            <Route path="parts/:courseId" element={<ManageLessons />} />
+            <Route path="courses/part/:courseId" element={<ManageLessons />} />
             {/* <Route path="question-bank" element={<QuestionBank />} /> */}
             {/* <Route path="quizzes" element={<ManageQuizzes />} /> */}
             {/* <Route path="exams" element={<ManageExams />} /> */}
@@ -103,7 +102,7 @@ export default function AppRouter() {
 
         {/* ===== Fallback nếu route không tồn tại ===== */}
         <Route path="*" element={<Navigate to="/login" replace />} />
-      </Routes> 
+      </Routes>
     </>
   );
 }

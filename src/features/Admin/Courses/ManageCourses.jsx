@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { courseService } from "@utils/courseService.js";
 import styles from "./ManageCourses.module.css";
 
@@ -15,6 +15,7 @@ export default function ManageCourses() {
   const [showModal, setShowModal] = useState(false);
   const [currentCourse, setCurrentCourse] = useState(null);
   const [formData, setFormData] = useState(initialFormData);
+  const { courseId } = useParams();
 
   // CẬP NHẬT: Xử lý cả text input và checkbox
   const handleInputChange = (e) => {
@@ -118,11 +119,12 @@ export default function ManageCourses() {
 
               <td className={styles.actions}>
                 <Link
-                  to={`/admin/parts/${course.id}`}
+                  to={`/admin/courses/part/${course.id}`}
                   className={`${styles.btn} ${styles.btnDetail}`}
                 >
                   Nội dung
                 </Link>
+
                 <button
                   onClick={() => handleEdit(course)}
                   className={`${styles.btn} ${styles.btnEdit}`}
