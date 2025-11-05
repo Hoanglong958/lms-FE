@@ -48,9 +48,9 @@ export default function QuizManagement() {
     }
   };
 
+  // ✅ Hàm báo cáo chuyển đúng route
   const handleReport = (quiz) => {
-    alert(`Xem báo cáo quiz: ${quiz.name}`);
-    // navigate(`/admin/quiz/report/${quiz.id}`);
+    navigate(`/admin/quiz/${quiz.id}/report`);
   };
 
   return (
@@ -114,9 +114,14 @@ export default function QuizManagement() {
                   </span>
                 </td>
                 <td className="quiz-actions">
-                  <button className="btn-icon" onClick={() => handleReport(quiz)}>
+                  {/* 🟧 Nút báo cáo */}
+                  <button
+                    className="btn-icon report"
+                    onClick={() => handleReport(quiz)}
+                  >
                     📄
                   </button>
+
                   <button className="btn-icon" onClick={() => handleView(quiz)}>
                     👁️
                   </button>

@@ -73,7 +73,7 @@ export default function ExamReport() {
     },
   ];
 
-  const handleBack = () => navigate("/admin/exam");
+  const handleBack = () => navigate("/admin/quiz");
   const handleExport = () => alert("📄 Đang xuất báo cáo...");
 
   return (
@@ -84,38 +84,38 @@ export default function ExamReport() {
           ← Quay lại danh sách bài kiểm tra
         </button>
         <h2>{exam.title}</h2>
-        <p>Thống kê kết quả và bài nộp của học viên</p>
+        <p>Báo cáo tổng hợp kết quả và tình trạng bài nộp</p>
       </div>
 
       {/* Thẻ thống kê */}
       <div className="exam-summary">
         <div className="summary-card blue">
-          <p>Tổng học viên</p>
           <h3>{exam.totalStudents}</h3>
+          <p>Tổng học viên</p>
         </div>
         <div className="summary-card green">
-          <p>Đã nộp</p>
           <h3>
             {exam.submitted}/{exam.totalStudents}
           </h3>
+          <p>Đã nộp</p>
         </div>
         <div className="summary-card orange">
-          <p>Đã chấm</p>
           <h3>
             {exam.graded}/{exam.submitted}
           </h3>
+          <p>Đã chấm</p>
         </div>
         <div className="summary-card purple">
-          <p>Điểm trung bình</p>
           <h3>
-            {exam.avgScore}/{exam.maxScore} ({exam.percentAvg}%)
+            {exam.avgScore}/{exam.maxScore}
           </h3>
+          <p>Điểm trung bình ({exam.percentAvg}%)</p>
         </div>
       </div>
 
       {/* Biểu đồ trạng thái */}
       <div className="exam-status">
-        <h4>Tổng quan trạng thái</h4>
+        <h4>Tổng quan trạng thái nộp bài</h4>
         <div className="status-bar">
           <div className="bar ontime" style={{ width: "40%" }}>
             Nộp đúng hạn ({exam.statusSummary.onTime})
@@ -151,7 +151,7 @@ export default function ExamReport() {
               <th>Học viên</th>
               <th>Email</th>
               <th>Thời gian nộp</th>
-              <th>Thời gian làm</th>
+              <th>Thời lượng</th>
               <th>Trạng thái</th>
               <th>Điểm số</th>
               <th>Thao tác</th>

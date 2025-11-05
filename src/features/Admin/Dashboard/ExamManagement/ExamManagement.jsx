@@ -5,7 +5,6 @@ import { useNavigate } from "react-router-dom";
 export default function ExamManagement() {
   const navigate = useNavigate();
 
-  // 🧩 Dữ liệu mẫu (mock data)
   const exams = [
     {
       id: 1,
@@ -39,34 +38,52 @@ export default function ExamManagement() {
     },
   ];
 
-  // 🟢 Các hàm xử lý hành động
+  const handleAddExam = () => {
+    alert("📝 Tạo bài kiểm tra mới");
+    // navigate("/admin/exam/create");
+  };
+
+  const handleQuestionBank = () => {
+    alert("📚 Mở ngân hàng câu hỏi");
+    // navigate("/admin/question-bank");
+  };
+
+  // ✅ Bấm 📄 -> chuyển sang trang chi tiết bài kiểm tra
   const handleReport = (exam) => {
-    alert(`📄 Xem báo cáo kỳ thi: ${exam.name}`);
-    // navigate(`/admin/exams/report/${exam.id}`);
+    navigate(`/admin/exam/${exam.id}/detail`);
   };
 
   const handleView = (exam) => {
     alert(`👁️ Xem chi tiết kỳ thi: ${exam.name}`);
-    // navigate(`/admin/exams/${exam.id}`);
   };
 
   const handleEdit = (exam) => {
     alert(`✏️ Chỉnh sửa kỳ thi: ${exam.name}`);
-    // navigate(`/admin/exams/edit/${exam.id}`);
   };
 
   const handleDelete = (exam) => {
     if (window.confirm(`Bạn có chắc muốn xóa "${exam.name}" không?`)) {
       alert(`🗑️ Đã xóa kỳ thi: ${exam.name}`);
-      // TODO: Gọi API xóa tại đây
     }
   };
 
   return (
     <div className="exam-management-container">
       <div className="exam-header">
-        <h2>Quản lý kỳ thi</h2>
-        <p>Danh sách các kỳ thi và thống kê chi tiết</p>
+        <div>
+          <h2>Quản lý bài kiểm tra</h2>
+          <p>Danh sách bài kiểm tra và chi tiết học viên</p>
+        </div>
+
+        {/* Nút thao tác */}
+        <div className="exam-actions-top">
+          <button className="btn-secondary" onClick={handleQuestionBank}>
+            📚 Ngân hàng câu hỏi
+          </button>
+          <button className="btn-primary" onClick={handleAddExam}>
+            + Tạo bài kiểm tra
+          </button>
+        </div>
       </div>
 
       {/* Thống kê tổng quan */}
@@ -90,11 +107,11 @@ export default function ExamManagement() {
         </div>
       </div>
 
-      {/* Bảng danh sách kỳ thi */}
+      {/* Bảng danh sách */}
       <div className="exam-table-section">
         <input
           type="text"
-          placeholder="🔍 Tìm kiếm kỳ thi..."
+          placeholder="🔍 Tìm kiếm bài kiểm tra..."
           className="exam-search"
         />
 
@@ -142,9 +159,14 @@ export default function ExamManagement() {
                   </span>
                 </td>
                 <td className="exam-actions">
-                  <button className="btn-icon" onClick={() => handleReport(exam)}>
+                  {/* 📄 Nút xem chi tiết */}
+                  <button
+                    className="btn-icon"
+                    onClick={() => handleReport(exam)}
+                  >
                     📄
                   </button>
+
                   <button className="btn-icon" onClick={() => handleView(exam)}>
                     👁️
                   </button>

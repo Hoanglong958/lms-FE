@@ -1,20 +1,94 @@
+/* === Exam Detail Page === */
+.exam-detail-container {
+  padding: 24px;
+  background-color: #f8fafc;
+  font-family: "Inter", sans-serif;
+  color: #1e293b;
+}
 .exam-management-container {
   padding: 24px;
   background-color: #f8fafc;
   font-family: "Inter", sans-serif;
 }
 
+/* --- HEADER --- */
+.exam-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
 .exam-header h2 {
   font-size: 24px;
   font-weight: 700;
   color: #1e293b;
+  margin-bottom: 6px;
 }
 
 .exam-header p {
   color: #64748b;
-  margin-bottom: 20px;
+  margin: 0;
+  font-size: 14px;
 }
 
+/* --- BUTTONS --- */
+.exam-header-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.exam-btn {
+  border: none;
+  border-radius: 10px;
+  padding: 10px 18px;
+  font-size: 14.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: inherit;
+  transform: translateY(0);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+/* Nút Ngân hàng câu hỏi */
+.exam-btn.bank {
+  background-color: #ffffff;
+  color: #1e293b;
+  border: 1px solid #e2e8f0;
+}
+
+.exam-btn.bank:hover {
+  background-color: #f9fafb;
+  border-color: #d1d5db;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+  transform: translateY(-1px);
+}
+
+/* Nút Tạo bài kiểm tra */
+.exam-btn.add {
+  background: linear-gradient(135deg, #fb923c, #f97316);
+  color: #ffffff;
+  border: 1px solid #f97316;
+  box-shadow: 0 2px 6px rgba(249, 115, 22, 0.25);
+}
+
+.exam-btn.add:hover {
+  background: linear-gradient(135deg, #f97316, #ea580c);
+  box-shadow: 0 4px 10px rgba(249, 115, 22, 0.35);
+  transform: translateY(-1px);
+}
+
+.exam-btn:active {
+  transform: scale(0.97);
+  box-shadow: none;
+}
+
+/* --- STATS --- */
 .exam-stats {
   display: flex;
   gap: 16px;
@@ -40,6 +114,7 @@
   color: #0f172a;
 }
 
+/* --- SEARCH --- */
 .exam-search {
   width: 100%;
   padding: 10px 14px;
@@ -48,12 +123,14 @@
   border-radius: 8px;
   font-size: 14px;
   outline: none;
+  transition: border-color 0.2s ease;
 }
 
 .exam-search:focus {
   border-color: #f97316;
 }
 
+/* --- TABLE --- */
 .exam-table {
   width: 100%;
   border-collapse: collapse;
@@ -84,6 +161,7 @@
   font-size: 13px;
 }
 
+/* --- STATUS --- */
 .text-green {
   color: #16a34a;
 }
@@ -92,24 +170,25 @@
   color: #dc2626;
 }
 
-.status-progress {
-  background: #ffedd5;
-  color: #c2410c;
-  padding: 4px 8px;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 500;
-}
-
-.status-complete {
+.status-active {
   background: #dcfce7;
-  color: #16a34a;
+  color: #166534;
   padding: 4px 8px;
   border-radius: 6px;
   font-size: 13px;
   font-weight: 500;
 }
 
+.status-paused {
+  background: #fee2e2;
+  color: #b91c1c;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* --- ACTIONS --- */
 .exam-actions {
   display: flex;
   gap: 8px;
@@ -120,8 +199,14 @@
   border: none;
   cursor: pointer;
   font-size: 16px;
+  transition: transform 0.15s ease;
+}
+
+.btn-icon:hover {
+  transform: scale(1.2);
 }
 
 .btn-icon.delete {
   color: #ef4444;
 }
+
