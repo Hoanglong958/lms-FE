@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { courseService } from "@utils/courseService.js";
 import styles from "./ManageCourses.module.css";
 
@@ -7,37 +7,105 @@ import styles from "./ManageCourses.module.css";
 const initialFormData = {
   title: "",
   description: "",
-  isPrerequisite: false, // THÊM MỚI: Trạng thái (Bắt buộc/Không)
+  isPrerequisite: false,
 };
 
+// Component Card Khóa học (dùng nội bộ)
+function CourseCard({ course, onEdit, onDelete }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const isPublic = !course.isPrerequisite;
+
+  return (
+    <div className={styles.courseCard}>
+      {/* Nút Sửa/Xóa (dấu "...") */}
+      <div className={styles.cardActions}>
+        <button
+          onClick={() => setMenuOpen(!menuOpen)}
+          className={styles.actionMenuBtn}
+        >
+          {/* Bạn có thể dùng icon ... (ví dụ: <i className="fa-solid fa-ellipsis-vertical"></i>) */}
+          ...
+        </button>
+        {menuOpen && (
+          <div className={styles.actionMenuDropdown}>
+            <a
+              onClick={() => {
+                onEdit();
+                setMenuOpen(false);
+              }}
+            >
+              Sửa khóa học
+            </a>
+            <a
+              onClick={() => {
+                onDelete();
+                setMenuOpen(false);
+              }}
+              className={styles.deleteAction}
+            >
+              Xóa khóa học
+            </a>
+          </div>
+        )}
+      </div>
+
+      {/* ẢNH BÌA (placeholder) VÀ LINK ĐẾN TRANG PART */}
+      {/* === SỬA LỖI ĐƯỜNG DẪN 1 === */}
+      <Link
+        to={`/admin/courses/part/${course.id}`}
+        className={styles.cardImageLink}
+      >
+        <div className={styles.cardImagePlaceholder}>
+          {/* Bạn có thể dùng icon (ví dụ: <i className="fa-solid fa-chart-simple"></i>) */}
+          📊
+        </div>
+      </Link>
+
+      {/* NỘI DUNG CARD VÀ LINK ĐẾN TRANG PART */}
+      <div className={styles.cardContent}>
+        {/* === SỬA LỖI ĐƯỜNG DẪN 2 === */}
+        <Link
+          to={`/admin/courses/part/${course.id}`}
+          className={styles.cardTitleLink}
+        >
+          <h3 className={styles.cardTitle}>{course.title}</h3>
+        </Link>
+        <div className={styles.cardTags}>
+          <span
+            className={`${styles.cardTag} ${
+              isPublic ? styles.tagPublic : styles.tagRequired
+            }`}
+          >
+            {isPublic ? "Tùy chọn" : "Bắt buộc"}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Component Trang Chính
 export default function ManageCourses() {
   const [courses, setCourses] = useState(() => courseService.getCourses());
   const [showModal, setShowModal] = useState(false);
   const [currentCourse, setCurrentCourse] = useState(null);
   const [formData, setFormData] = useState(initialFormData);
-  const { courseId } = useParams();
 
-  // CẬP NHẬT: Xử lý cả text input và checkbox
+  // --- Các hàm xử lý (giữ nguyên logic) ---
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
-    // Nếu là checkbox, lấy 'checked'. Nếu là input, lấy 'value'.
     const val = type === "checkbox" ? checked : value;
-
-    setFormData((prev) => ({
-      ...prev,
-      [name]: val,
-    }));
+    setFormData((prev) => ({ ...prev, [name]: val }));
   };
 
   const handleAdd = () => {
     setCurrentCourse(null);
-    setFormData(initialFormData); // CẬP NHẬT: Dùng giá trị khởi tạo
+    setFormData(initialFormData);
     setShowModal(true);
   };
 
   const handleEdit = (course) => {
     setCurrentCourse(course);
-    // CẬP NHẬT: Tải tất cả dữ liệu vào form
     setFormData({
       title: course.title,
       description: course.description,
@@ -47,11 +115,7 @@ export default function ManageCourses() {
   };
 
   const handleDelete = (courseId) => {
-    if (
-      window.confirm(
-        "Bạn có chắc muốn xóa khóa học này? (Toàn bộ nội dung bên trong sẽ bị xóa)"
-      )
-    ) {
+    if (window.confirm("Bạn có chắc muốn xóa khóa học này?")) {
       courseService.deleteCourse(courseId);
       setCourses(courseService.getCourses());
     }
@@ -60,90 +124,110 @@ export default function ManageCourses() {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (currentCourse) {
-      // CẬP NHẬT: Gộp formData vào currentCourse
       courseService.updateCourse({ ...currentCourse, ...formData });
     } else {
-      // Logic thêm mới đã đúng, vì formData đã chứa tất cả trường
       courseService.addCourse(formData);
     }
     setCourses(courseService.getCourses());
     setShowModal(false);
   };
 
+  // --- Dữ liệu cho thẻ Stats (tính toán từ 'courses') ---
+  const totalCourses = courses.length;
+  const publicCourses = courses.filter((c) => !c.isPrerequisite).length;
+  const totalStudents = 1690; // Dữ liệu giả
+  const avgProgress = 67; // Dữ liệu giả
+
   return (
     <div className={styles.page}>
+      {/* Header của trang (Tiêu đề + Nút Thêm) */}
       <div className={styles.header}>
-        <h1>Quản lý khóa học</h1>
+        <div className={styles.headerInfo}>
+          <h1>Quản lý khóa học</h1>
+          <p>Danh sách và quản lý khóa học</p>
+        </div>
         <button
           onClick={handleAdd}
           className={`${styles.btn} ${styles.btnPrimary}`}
         >
-          Thêm khóa học mới
+          {/* Bạn có thể dùng icon (ví dụ: <i className="fa-solid fa-plus"></i>) */}
+          + Thêm khóa học
         </button>
       </div>
 
-      <table className={styles.table}>
-        <thead>
-          <tr>
-            <th>Tên khóa học</th>
-            <th>Mô tả</th>
-            {/* THÊM MỚI */}
-            <th>Tiến độ</th>
-            <th>Trạng thái</th>
-            <th>Hành động</th>
-          </tr>
-        </thead>
-        <tbody>
-          {courses.map((course) => (
-            <tr key={course.id}>
-              <td>{course.title}</td>
-              <td>{course.description}</td>
+      {/* 4 Thẻ Thống kê */}
+      <div className={styles.statsGrid}>
+        <div className={styles.statCard}>
+          <div className={`${styles.statIcon} ${styles.iconBgOrange}`}>
+            {/* <i className="fa-solid fa-layer-group"></i> */}
+            📚
+          </div>
+          <div className={styles.statInfo}>
+            <p>Tổng khóa học</p>
+            <span>{totalCourses}</span>
+          </div>
+        </div>
+        <div className={styles.statCard}>
+          <div className={`${styles.statIcon} ${styles.iconBgBlue}`}>
+            {/* <i className="fa-solid fa-users"></i> */}
+            👥
+          </div>
+          <div className={styles.statInfo}>
+            <p>Tổng học viên</p>
+            <span>{totalStudents.toLocaleString("vi-VN")}</span>
+          </div>
+        </div>
+        <div className={styles.statCard}>
+          <div className={`${styles.statIcon} ${styles.iconBgGreen}`}>
+            {/* <i className="fa-solid fa-chart-line"></i> */}
+            📈
+          </div>
+          <div className={styles.statInfo}>
+            <p>Tiến độ TB</p>
+            <span>{avgProgress}%</span>
+          </div>
+        </div>
+        <div className={styles.statCard}>
+          <div className={`${styles.statIcon} ${styles.iconBgYellow}`}>
+            {/* <i className="fa-solid fa-globe"></i> */}
+            🌍
+          </div>
+          <div className={styles.statInfo}>
+            <p>Đã công khai</p>
+            <span>{publicCourses}</span>
+          </div>
+        </div>
+      </div>
 
-              {/* THÊM MỚI: Hiển thị tiến độ */}
-              <td>
-                <span className={styles.progress}>{course.progress || 0}%</span>
-              </td>
+      {/* Thanh Tìm kiếm và Lọc */}
+      <div className={styles.filterBar}>
+        <div className={styles.searchInput}>
+          {/* <i className="fa-solid fa-search"></i> */}
 
-              {/* THÊM MỚI: Hiển thị trạng thái */}
-              <td>
-                {course.isPrerequisite ? (
-                  <span className={`${styles.status} ${styles.statusRequired}`}>
-                    Bắt buộc
-                  </span>
-                ) : (
-                  <span className={`${styles.status} ${styles.statusOptional}`}>
-                    Không
-                  </span>
-                )}
-              </td>
+          <input type="text" placeholder="🔍 Tìm kiếm khóa học..." />
+        </div>
+        <div className={styles.selectDropdown}>
+          <select>
+            <option value="">Tất cả danh mục ▼</option>
+            {/* Thêm <option> khác nếu cần */}
+          </select>
+          {/* <i className="fa-solid fa-chevron-down"></i> */}
+        </div>
+      </div>
 
-              <td className={styles.actions}>
-                <Link
-                  to={`/admin/courses/part/${course.id}`}
-                  className={`${styles.btn} ${styles.btnDetail}`}
-                >
-                  Nội dung
-                </Link>
+      {/* Lưới các khóa học (thay thế table) */}
+      <div className={styles.courseGrid}>
+        {courses.map((course) => (
+          <CourseCard
+            key={course.id}
+            course={course}
+            onEdit={() => handleEdit(course)}
+            onDelete={() => handleDelete(course.id)}
+          />
+        ))}
+      </div>
 
-                <button
-                  onClick={() => handleEdit(course)}
-                  className={`${styles.btn} ${styles.btnEdit}`}
-                >
-                  Sửa
-                </button>
-                <button
-                  onClick={() => handleDelete(course.id)}
-                  className={`${styles.btn} ${styles.btnDelete}`}
-                >
-                  Xóa
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-
-      {/* Modal Thêm/Sửa */}
+      {/* Modal (giữ nguyên, chỉ ẩn đi) */}
       {showModal && (
         <div className={styles.modalOverlay}>
           <div className={styles.modalContent}>
@@ -169,8 +253,6 @@ export default function ManageCourses() {
                   onChange={handleInputChange}
                 />
               </div>
-
-              {/* THÊM MỚI: Checkbox cho Trạng thái */}
               <div className={`${styles.formGroup} ${styles.formGroupCheck}`}>
                 <input
                   type="checkbox"
@@ -183,7 +265,6 @@ export default function ManageCourses() {
                   Đây là khóa học bắt buộc (tiên quyết)?
                 </label>
               </div>
-
               <div className={styles.formActions}>
                 <button
                   type="button"

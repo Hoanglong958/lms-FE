@@ -14,6 +14,9 @@ function LessonManager({ sectionId }) {
   );
 
   const [showModal, setShowModal] = useState(false);
+  const [editingLesson, setEditingLesson] = useState(null); // ✅ NEW
+  const [viewLesson, setViewLesson] = useState(null); // ✅ NEW
+
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -21,7 +24,12 @@ function LessonManager({ sectionId }) {
     content: {},
   });
 
+  const refreshLessons = () => {
+    setLessons(lessonService.getLessonsBySectionId(sectionId));
+  };
+
   const handleAddLesson = () => {
+    setEditingLesson(null);
     setFormData({
       title: "",
       description: "",
@@ -31,27 +39,49 @@ function LessonManager({ sectionId }) {
     setShowModal(true);
   };
 
+  const handleEditLesson = (lesson) => {
+    setEditingLesson(lesson);
+    setFormData({
+      title: lesson.title.replace(/^\[Quizz\]\s*/, ""),
+      description: lesson.description || "",
+      type: lesson.type || "video",
+      content: lesson.content || {},
+    });
+    setShowModal(true);
+  };
+
   const handleSubmitLesson = (e) => {
     e.preventDefault();
-
     let title = formData.title;
     if (formData.type === "quiz") title = `[Quizz] ${title}`;
 
-    lessonService.addLesson({
-      sectionId,
-      ...formData,
-      title,
-    });
+    if (editingLesson) {
+      lessonService.updateLesson({
+        ...editingLesson,
+        ...formData,
+        title,
+      });
+    } else {
+      lessonService.addLesson({
+        sectionId,
+        ...formData,
+        title,
+      });
+    }
 
-    setLessons(lessonService.getLessonsBySectionId(sectionId));
+    refreshLessons();
     setShowModal(false);
   };
 
   const handleDeleteLesson = (lessonId) => {
     if (window.confirm("Xóa bài học này?")) {
       lessonService.deleteLesson(lessonId);
-      setLessons(lessonService.getLessonsBySectionId(sectionId));
+      refreshLessons();
     }
+  };
+
+  const handleViewLesson = (lesson) => {
+    setViewLesson(lesson);
   };
 
   return (
@@ -59,8 +89,37 @@ function LessonManager({ sectionId }) {
       <ul className={styles.lessonList}>
         {lessons.map((lesson) => (
           <li key={lesson.id}>
-            <span>{lesson.title}</span>
+            <span
+              onClick={() => handleViewLesson(lesson)}
+              className={styles.lessonTitle}
+            >
+              {lesson.title}{" "}
+              <span
+                className={styles.lessonTypeLabel}
+                style={{
+                  backgroundColor:
+                    lesson.type === "video"
+                      ? "#007bff"
+                      : lesson.type === "document"
+                      ? "#28a745"
+                      : "#ff8800",
+                  color: "white",
+                  padding: "2px 6px",
+                  borderRadius: "4px",
+                  fontSize: "0.75rem",
+                  marginLeft: "8px",
+                }}
+              >
+                {lesson.type.toUpperCase()}
+              </span>
+            </span>
             <div className={styles.lessonActions}>
+              <button
+                onClick={() => handleEditLesson(lesson)}
+                className={styles.edit}
+              >
+                Sửa
+              </button>
               <button
                 onClick={() => handleDeleteLesson(lesson.id)}
                 className={styles.delete}
@@ -77,11 +136,89 @@ function LessonManager({ sectionId }) {
         </li>
       </ul>
 
-      {/* MODAL THÊM BÀI HỌC */}
+      {/* ✅ NEW - MODAL XEM CHI TIẾT */}
+      {viewLesson && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modalContent}>
+            <h2>{viewLesson.title}</h2>
+            <p>
+              <strong>Mô tả:</strong> {viewLesson.description || "Không có"}
+            </p>
+
+            {viewLesson.type === "video" && viewLesson.content?.videoUrl && (
+              <div className={styles.videoWrapper}>
+                <p>
+                  <strong>Video:</strong>
+                </p>
+                {/* Tự động nhúng YouTube nếu là link youtube, còn không thì hiển thị link */}
+                {viewLesson.content.videoUrl.includes("youtube.com") ||
+                viewLesson.content.videoUrl.includes("youtu.be") ? (
+                  <iframe
+                    width="480"
+                    height="270"
+                    src={viewLesson.content.videoUrl
+                      .replace("watch?v=", "embed/")
+                      .replace("youtu.be/", "www.youtube.com/embed/")}
+                    title="Video bài học"
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  ></iframe>
+                ) : (
+                  <a href={viewLesson.content.videoUrl} target="_blank">
+                    {viewLesson.content.videoUrl}
+                  </a>
+                )}
+              </div>
+            )}
+
+            {viewLesson.type === "document" &&
+              viewLesson.content?.sections?.length > 0 && (
+                <div>
+                  <h4>Nội dung tài liệu:</h4>
+                  {viewLesson.content.sections.map((s) => (
+                    <div key={s.id} className={styles.subSection}>
+                      <h5>{s.title}</h5>
+                      <p>{s.content}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+            {viewLesson.type === "quiz" &&
+              viewLesson.content?.questions?.length > 0 && (
+                <div>
+                  <h4>Câu hỏi trắc nghiệm:</h4>
+                  {viewLesson.content.questions.map((q) => (
+                    <div key={q.id} className={styles.quizItem}>
+                      <p>
+                        <strong>Q:</strong> {q.question}
+                      </p>
+                      <p>
+                        <strong>A:</strong> {q.answer}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+            <div className={styles.formActions}>
+              <button
+                onClick={() => setViewLesson(null)}
+                className={styles.btn}
+              >
+                Đóng
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL THÊM / SỬA BÀI HỌC */}
       {showModal && (
         <div className={styles.modalOverlay}>
           <div className={styles.modalContent}>
-            <h2>Thêm Bài học mới</h2>
+            <h2>{editingLesson ? "Sửa Bài học" : "Thêm Bài học mới"}</h2>
             <form onSubmit={handleSubmitLesson}>
               <div className={styles.formGroup}>
                 <label>Tiêu đề</label>
@@ -117,6 +254,7 @@ function LessonManager({ sectionId }) {
                     })
                   }
                   required
+                  disabled={!!editingLesson} // ✅ giữ nguyên type khi sửa
                 >
                   <option value="video">Video</option>
                   <option value="document">Document</option>
@@ -157,9 +295,7 @@ function LessonManager({ sectionId }) {
   );
 }
 
-/**
- * FORM CON: Video
- */
+/* === FORM CON: VIDEO === */
 function VideoForm({ formData, setFormData }) {
   return (
     <div className={styles.formGroup}>
@@ -179,9 +315,7 @@ function VideoForm({ formData, setFormData }) {
   );
 }
 
-/**
- * FORM CON: Document (tài liệu có nhiều phần nhỏ)
- */
+/* === FORM CON: DOCUMENT === */
 function DocumentForm({ formData, setFormData }) {
   const sections = formData.content.sections || [];
 
@@ -225,9 +359,7 @@ function DocumentForm({ formData, setFormData }) {
   );
 }
 
-/**
- * FORM CON: Quizz (thêm câu hỏi & đáp án)
- */
+/* === FORM CON: QUIZZ === */
 function QuizForm({ formData, setFormData }) {
   const questions = formData.content.questions || [];
 

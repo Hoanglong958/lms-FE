@@ -1,526 +1,277 @@
-/* @features/Admin/Courses/ManageCourses.module.css */
+@reference "tailwindcss";
 
-/* --- Cài đặt chung --- */
+/* === BASE LAYOUT === */
 .page {
-  padding: 2rem;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-    "Helvetica Neue", Arial, sans-serif;
-  background-color: #f4f7f6;
-  min-height: 100vh;
+  @apply p-8 font-sans bg-gray-50 min-h-screen;
 }
 
-/* --- Header --- */
 .header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid #dee2e6;
+  @apply flex justify-between items-center mb-8;
+}
+.headerInfo h1 {
+  @apply text-2xl font-bold text-gray-900 m-0;
+}
+.headerInfo p {
+  @apply text-sm text-gray-500 mt-1;
 }
 
-.header h1 {
-  margin: 0;
-  font-size: 2rem;
-  font-weight: 600;
-  color: #212529;
+.backLink {
+  @apply text-orange-500 text-sm font-medium mb-2 inline-block hover:underline;
 }
 
-/* --- Buttons --- */
+/* === BUTTONS === */
 .btn {
-  padding: 0.6rem 1.25rem;
-  border: 1px solid transparent;
-  border-radius: 0.375rem;
-  cursor: pointer;
-  font-size: 0.9rem;
-  font-weight: 500;
-  text-decoration: none;
-  display: inline-block;
-  transition: all 0.15s ease-in-out;
-  line-height: 1.5;
-  text-align: center;
+  @apply inline-flex items-center gap-2 px-4 py-2 rounded-md font-semibold text-sm cursor-pointer transition-all border border-transparent;
 }
-
 .btn:hover {
-  opacity: 0.85;
   transform: translateY(-1px);
+  opacity: 0.9;
 }
-
 .btnPrimary {
-  background-color: #0d6efd;
-  color: white;
-  border-color: #0d6efd;
+  @apply bg-orange-500 text-white border-orange-500 shadow-md;
 }
 
-.btnDetail {
-  background-color: #0dcaf0;
-  color: white;
-  border-color: #0dcaf0;
+/* Small icon buttons */
+.btnIcon {
+  @apply w-8 h-8 flex items-center justify-center rounded-full text-gray-500 transition;
+}
+.btnIcon:hover {
+  @apply bg-gray-100 text-gray-900;
+}
+.btnIcon.delete:hover {
+  @apply bg-red-50 text-red-500;
 }
 
-.btnEdit {
-  background-color: #ffc107;
-  color: #000;
-  border-color: #ffc107;
+/* === FILTER BAR === */
+.filterBar {
+  @apply flex justify-between items-center gap-6 mb-8 bg-white p-4 rounded-xl border border-gray-200;
+}
+.searchInput {
+  @apply relative flex-grow;
+}
+.searchInput input {
+  @apply w-full pl-9 pr-3 py-2 rounded-md border border-gray-200 text-sm focus:outline-none focus:border-orange-500;
+}
+.searchInput i {
+  @apply absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-base;
 }
 
-.btnDelete {
-  background-color: #dc3545;
-  color: white;
-  border-color: #dc3545;
+/* === SECTION LIST === */
+.sectionList {
+  @apply flex flex-col gap-6;
+}
+.sectionItem {
+  @apply bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden;
+}
+.sectionHeader {
+  @apply flex justify-between items-center px-6 py-5;
+}
+.sectionHeader h3 {
+  @apply text-lg font-semibold text-gray-900 m-0;
 }
 
-/* --- Table --- */
-.table {
-  width: 100%;
-  border-collapse: collapse;
-  background-color: #ffffff;
-  border-radius: 0.5rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  overflow: hidden;
+/* === LESSON LIST === */
+.lessonList {
+  @apply list-none px-6 pb-6 pt-0 m-0 border-t border-gray-200;
+}
+.lessonList li {
+  @apply flex justify-between items-center py-5 border-b border-gray-100 transition-colors duration-200;
+}
+.lessonList li:last-of-type {
+  @apply border-b-0;
+}
+.lessonList li:hover {
+  @apply bg-gray-50;
+}
+.lessonTitle {
+  @apply font-medium text-gray-700 cursor-pointer transition-colors duration-200;
+}
+.lessonTitle:hover {
+  @apply text-blue-600 underline;
+}
+.lessonActions {
+  @apply flex items-center gap-2;
+}
+.lessonActions button {
+  @apply bg-transparent border-none text-gray-500 cursor-pointer transition-colors;
+}
+.lessonActions button:hover {
+  @apply text-gray-900;
 }
 
-.table th,
-.table td {
-  padding: 1.25rem 1rem;
-  text-align: left;
-  border-bottom: 1px solid #e9ecef;
-  vertical-align: middle;
+/* Add lesson button */
+.btnAddLesson {
+  @apply inline-flex items-center gap-2 font-semibold text-orange-500 mt-4 py-3 bg-transparent border-none cursor-pointer rounded-md hover:opacity-80;
 }
 
-.table th {
-  background-color: #f8f9fa;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #495057;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.table tr:last-child td {
-  border-bottom: none;
-}
-
-.table tr:hover {
-  background-color: #fcfcfc;
-}
-
-.actions {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.actions .btn {
-  padding: 0.4rem 0.8rem;
-  font-size: 0.85rem;
-}
-
-/* --- Modal chung (Fix scroll) --- */
+/* === MODAL === */
 .modalOverlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.4);
-  z-index: 1000;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  overflow-y: auto;
-  padding: 3rem 1rem;
-  backdrop-filter: blur(2px);
+  @apply fixed inset-0 bg-black/40 grid place-items-center z-[1000] backdrop-blur-sm p-8 overflow-y-auto;
 }
-
 .modalContent {
-  background: white;
-  padding: 2rem;
-  border-radius: 0.5rem;
-  width: 90%;
-  max-width: 600px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-  animation: modalFadeIn 0.3s ease-out;
-  max-height: 90vh;
-  overflow-y: auto;
+  @apply bg-white p-8 rounded-lg w-[90%] max-w-xl shadow-2xl m-auto animate-[modalFadeIn_0.25s_ease-out];
 }
-
 @keyframes modalFadeIn {
   from {
     opacity: 0;
-    transform: translateY(-20px);
+    transform: translateY(-10px) scale(0.98);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
   }
 }
 
-.modalContent h2 {
-  margin-top: 0;
-  margin-bottom: 1.5rem;
-  color: #212529;
-}
-
+/* === FORM === */
 .formGroup {
-  margin-bottom: 1.25rem;
+  @apply mb-5;
 }
-
 .formGroup label {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-weight: 500;
-  color: #495057;
+  @apply block mb-2 font-medium text-gray-700;
 }
-
 .formGroup input[type="text"],
+.formGroup textarea,
+.formGroup select {
+  @apply w-full px-4 py-3 border border-gray-300 rounded-md text-sm focus:border-orange-500 focus:ring-2 focus:ring-orange-100 outline-none;
+}
 .formGroup textarea {
-  width: 100%;
-  padding: 0.75rem 1rem;
-  border: 1px solid #ced4da;
-  border-radius: 0.375rem;
-  box-sizing: border-box;
-  font-size: 1rem;
-  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+  @apply min-h-[120px];
 }
-
-.formGroup input[type="text"]:focus,
-.formGroup textarea:focus {
-  border-color: #0d6efd;
-  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
-  outline: none;
-}
-
-.formGroup textarea {
-  min-height: 120px;
-  resize: vertical;
-}
-
 .formActions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.75rem;
-  margin-top: 2rem;
+  @apply flex justify-end gap-3 mt-8;
 }
-
 .formActions .btn {
-  background-color: #f8f9fa;
-  color: #212529;
-  border-color: #dee2e6;
+  @apply bg-gray-100 text-gray-800 border border-gray-300;
 }
-
 .formActions .btnPrimary {
-  background-color: #0d6efd;
-  color: white;
-  border-color: #0d6efd;
+  @apply bg-orange-500 text-white border-orange-500;
 }
 
-/* --- ManageLessons --- */
-
-.backLink {
-  font-size: 0.95rem;
-  font-weight: 500;
-  color: #0d6efd;
-  text-decoration: none;
-  display: inline-block;
-  margin-bottom: 0.75rem;
+/* === LESSON TYPE SELECTOR === */
+.lessonTypeSelector {
+  @apply flex gap-3 mb-5;
 }
-.backLink:hover {
-  text-decoration: underline;
+.lessonTypeSelector button {
+  @apply flex-1 px-4 py-3 rounded-md border border-gray-200 bg-gray-50 font-medium text-gray-700 transition;
 }
-
-/* Danh sách Chương/Phần học */
-.sectionList {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
+.lessonTypeSelector button:hover {
+  @apply border-orange-500 text-orange-500 bg-orange-50;
+}
+.lessonTypeSelector button.active {
+  @apply bg-orange-500 text-white border-orange-500 shadow-md;
 }
 
-.sectionItem {
-  background-color: #ffffff;
-  border-radius: 0.5rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  border: 1px solid #e9ecef;
-  overflow: hidden;
+/* === VIDEO PREVIEW === */
+.videoPreviewWrapper {
+  @apply relative w-full pt-[56.25%] rounded-md overflow-hidden bg-black shadow-md mt-3;
+}
+.videoPreviewWrapper iframe {
+  @apply absolute top-0 left-0 w-full h-full border-0;
 }
 
-.sectionHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.25rem 1.5rem;
-  background-color: #f8f9fa;
-  border-bottom: 1px solid #e9ecef;
+/* === DOCUMENT BUILDER === */
+.documentBuilder {
+  @apply mt-6 flex flex-col gap-4;
 }
-
-.sectionHeader h3 {
-  margin: 0;
-  font-size: 1.3rem;
-  font-weight: 600;
-  color: #343a40;
-}
-
-.sectionActions {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.sectionActions .btn {
-  padding: 0.4rem 0.8rem;
-  font-size: 0.85rem;
-}
-
-/* Danh sách Bài học */
-.lessonList {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.lessonList li {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 1.5rem;
-  border-bottom: 1px solid #f1f3f5;
-}
-
-.lessonList li:last-child {
-  border-bottom: none;
-}
-
-.lessonList li span {
-  font-weight: 500;
-  color: #495057;
-}
-
-.lessonActions {
-  display: flex;
-  gap: 0.75rem;
-}
-
-.lessonActions button {
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 0.85rem;
-  font-weight: 500;
-  color: #0d6efd;
-  padding: 0.25rem;
-}
-
-.lessonActions button:hover {
-  text-decoration: underline;
-}
-
-.lessonActions .delete {
-  color: #dc3545;
-}
-
-.btnAddLesson {
-  width: 100%;
-  background-color: #f8f9fa;
-  border: none;
-  padding: 0.9rem;
-  cursor: pointer;
-  color: #495057;
-  font-weight: 500;
-  font-size: 0.9rem;
-  transition: background-color 0.15s ease;
-}
-.btnAddLesson:hover {
-  background-color: #e9ecef;
-}
-
-/* --- Modal thêm bài học (Add Lesson) --- */
-.addLessonModal {
-  background: white;
-  padding: 2rem;
-  border-radius: 0.5rem;
-  width: 95%;
-  max-width: 700px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-  animation: modalFadeIn 0.3s ease-out;
-  max-height: 90vh;
-  overflow-y: auto;
-}
-
-.addLessonModal h2 {
-  margin-top: 0;
-  font-size: 1.4rem;
-  margin-bottom: 1.25rem;
-  color: #212529;
-}
-
-/* Lựa chọn loại bài học */
-.lessonTypeSelect {
-  width: 100%;
-  padding: 0.75rem 1rem;
-  border-radius: 0.375rem;
-  border: 1px solid #ced4da;
-  background-color: #fff;
-  font-size: 1rem;
-  margin-bottom: 1.25rem;
-}
-
-.lessonTypeSelect:focus {
-  border-color: #0d6efd;
-  outline: none;
-  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
-}
-
-/* Form thêm quiz/video/document */
-.lessonForm {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.lessonForm label {
-  font-weight: 500;
-  margin-bottom: 0.25rem;
-  color: #495057;
-}
-
-.lessonForm input[type="text"],
-.lessonForm input[type="url"],
-.lessonForm textarea {
-  width: 100%;
-  padding: 0.75rem 1rem;
-  border: 1px solid #ced4da;
-  border-radius: 0.375rem;
-  font-size: 1rem;
-  box-sizing: border-box;
-}
-
-.lessonForm textarea {
-  resize: vertical;
-  min-height: 100px;
-}
-
-.lessonForm input:focus,
-.lessonForm textarea:focus {
-  border-color: #0d6efd;
-  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
-  outline: none;
-}
-
-/* Form nội dung Document */
 .documentSection {
-  background-color: #f8f9fa;
-  border: 1px solid #dee2e6;
-  border-radius: 0.375rem;
-  padding: 1rem;
-  margin-bottom: 1rem;
+  @apply bg-white border border-gray-200 rounded-lg p-4 shadow-sm;
 }
-
-.documentSection h4 {
-  margin: 0 0 0.5rem 0;
-  font-size: 1rem;
-  color: #343a40;
+.documentSection input[type="text"],
+.documentSection textarea {
+  @apply w-full px-3 py-2 border border-gray-300 rounded-md text-sm mb-3;
 }
-
+.documentSection textarea {
+  @apply min-h-[100px] resize-y;
+}
 .addSubSectionBtn {
-  display: inline-block;
-  margin-top: 0.5rem;
-  background-color: #e9ecef;
-  color: #495057;
-  font-size: 0.85rem;
-  padding: 0.4rem 0.75rem;
-  border-radius: 0.25rem;
-  border: none;
-  cursor: pointer;
+  @apply inline-flex items-center gap-1 text-sm text-orange-500 font-semibold bg-transparent border-none cursor-pointer mt-2 hover:opacity-80;
 }
 
-.addSubSectionBtn:hover {
-  background-color: #dee2e6;
+/* === QUIZ LIST === */
+.quizList {
+  @apply flex flex-col gap-4 mt-4;
+}
+.quizItem {
+  @apply bg-white border border-gray-200 rounded-lg p-4 shadow-sm;
+}
+.quizItem h4 {
+  @apply text-base font-semibold text-gray-900 mb-2;
+}
+.quizItem p {
+  @apply text-sm text-gray-700 mb-1;
+}
+.quizItem small {
+  @apply block text-xs text-gray-400 italic mt-1;
 }
 
-/* Quiz Question */
-.quizQuestion {
-  background-color: #f8f9fa;
-  border: 1px solid #dee2e6;
-  border-radius: 0.375rem;
-  padding: 0.75rem 1rem;
-  margin-bottom: 0.75rem;
+/* === MODAL VIEW (READ-ONLY LESSON/DOC) === */
+.modalViewContent {
+  @apply bg-white rounded-xl shadow-2xl p-8 w-[90%] max-w-2xl mx-auto border border-gray-200 overflow-hidden relative animate-[modalFadeIn_0.25s_ease-out];
+}
+.modalViewHeader {
+  @apply border-b border-gray-100 pb-4 mb-6;
+}
+.modalViewHeader h2 {
+  @apply text-2xl font-semibold text-gray-900 m-0;
+}
+.modalViewHeader span {
+  @apply text-sm font-medium text-orange-500 uppercase tracking-wide;
+}
+.modalViewSection {
+  @apply mb-6;
+}
+.modalViewSection h4 {
+  @apply text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2;
+}
+.modalViewSection h4::before {
+  content: "";
+  @apply w-1.5 h-5 bg-orange-500 rounded-sm;
+}
+.modalViewDescription {
+  @apply bg-gray-50 border border-gray-100 rounded-lg p-4 text-gray-700 text-sm mb-6 leading-relaxed;
+}
+.modalViewDocWrapper {
+  @apply flex flex-col gap-4;
+}
+.modalViewDocItem {
+  @apply bg-gray-50 border border-gray-200 rounded-lg p-4 shadow-sm transition hover:shadow-md;
+}
+.modalViewDocItem h5 {
+  @apply text-base font-semibold text-gray-900 mb-2;
+}
+.modalViewDocItem p {
+  @apply text-sm text-gray-700 leading-relaxed whitespace-pre-line;
+}
+.modalViewActions {
+  @apply flex justify-end pt-4 mt-6 border-t border-gray-100;
+}
+.modalViewBtn {
+  @apply bg-orange-500 text-white px-5 py-2.5 rounded-md font-semibold text-sm hover:bg-orange-600 transition;
 }
 
-.quizQuestion input[type="text"] {
-  width: 100%;
-  margin-bottom: 0.5rem;
+/* === DOCUMENT DETAIL SCROLL === */
+.documentScroll {
+  @apply max-h-[65vh] overflow-y-auto pr-2;
 }
-
-.addQuestionBtn {
-  display: inline-block;
-  background-color: #0dcaf0;
-  color: #fff;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 0.25rem;
-  font-size: 0.85rem;
-  cursor: pointer;
+.documentScroll::-webkit-scrollbar {
+  width: 6px;
 }
-
-.addQuestionBtn:hover {
-  opacity: 0.9;
+.documentScroll::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1;
+  border-radius: 3px;
 }
-
-/* Video Preview */
-.videoPreview {
-  width: 100%;
-  max-height: 320px;
-  margin-top: 0.75rem;
-  border-radius: 0.375rem;
-  overflow: hidden;
-  background: #000;
+.documentScroll::-webkit-scrollbar-thumb:hover {
+  background-color: #94a3b8;
 }
-
-.videoPreview iframe,
-.videoPreview video {
-  width: 100%;
-  height: 100%;
-  display: block;
+.subSection {
+  @apply bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4 transition-colors duration-200;
 }
-
-/* Form actions */
-.addLessonActions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.75rem;
-  margin-top: 1.5rem;
+.subSection:hover {
+  @apply bg-gray-100;
 }
-
-.addLessonActions .btn {
-  background-color: #f8f9fa;
-  color: #212529;
-  border-color: #dee2e6;
+.subSection h5 {
+  @apply text-base font-semibold text-gray-900 mb-2;
 }
-
-.addLessonActions .btnPrimary {
-  background-color: #0d6efd;
-  color: white;
-  border-color: #0d6efd;
-}
-
-/* Tag loại bài học */
-.lessonTag {
-  display: inline-block;
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: #fff;
-  background-color: #6c757d;
-  border-radius: 0.25rem;
-  padding: 0.2rem 0.5rem;
-  margin-right: 0.5rem;
-}
-
-.lessonTag.quiz {
-  background-color: #6610f2;
-}
-
-.lessonTag.video {
-  background-color: #198754;
-}
-
-.lessonTag.document {
-  background-color: #fd7e14;
+.subSection p {
+  @apply text-sm text-gray-700 leading-relaxed whitespace-pre-line;
 }
