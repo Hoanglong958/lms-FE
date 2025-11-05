@@ -1,0 +1,130 @@
+.assignment-container {
+  padding: 20px;
+  background: #fafafa;
+  color: #333;
+}
+
+.assignment-header h2 {
+  font-size: 22px;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+
+.assignment-stats {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 25px;
+}
+
+.stat-box {
+  flex: 1;
+  border-radius: 10px;
+  padding: 15px;
+  color: #fff;
+  text-align: center;
+}
+
+.stat-box.orange { background: #ff6b00; }
+.stat-box.blue { background: #4f9eff; }
+.stat-box.green { background: #22c55e; }
+.stat-box.red { background: #f87171; }
+
+.assignment-content {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 20px;
+}
+
+.assignment-search-bar {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 15px;
+}
+
+.assignment-search-bar input {
+  width: 70%;
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+}
+
+.assignment-search-bar select {
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+}
+
+.assignment-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.assignment-table th, .assignment-table td {
+  padding: 10px 15px;
+  border-bottom: 1px solid #eee;
+  text-align: left;
+}
+
+.assignment-table th {
+  background: #f8f8f8;
+}
+
+.text-green { color: #22c55e; }
+.text-red { color: #ef4444; }
+
+.status-open {
+  color: #22c55e;
+  font-weight: 500;
+}
+.status-closed {
+  color: #6b7280;
+}
+
+.tag {
+  padding: 3px 8px;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 12px;
+}
+.tag.react { background: #4f9eff; }
+.tag.python { background: #3572a5; }
+.tag.flutter { background: #02569b; }
+.tag.uiux { background: #ff6b00; }
+.tag.aws { background: #f7b93e; }
+
+.recent-submissions {
+  background: #fff;
+  border-radius: 10px;
+  padding: 15px;
+}
+
+.submission-card {
+  background: #fff;
+  border-bottom: 1px solid #eee;
+  padding: 10px 0;
+}
+
+.badge {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.badge.success { background: #d1fae5; color: #16a34a; }
+.badge.pending { background: #ffedd5; color: #ff6b00; }
+
+.btn-grade {
+  width: 100%;
+  background: #ff6b00;
+  color: #fff;
+  border: none;
+  padding: 6px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+}

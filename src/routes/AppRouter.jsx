@@ -39,7 +39,9 @@ import ManageLessons from "@admin/Courses/ManageLessons";
 import AdminHomePage from "@pages/AdminHomePage";
 import QuizManagement from "@features/Admin/Dashboard/ExamManagement/QuizManagement";
 import ExamManagement from "@features/Admin/Dashboard/ExamManagement/ExamManagement";
-import ExamReport from "@features/Admin/Dashboard/ExamManagement/ExamReport"; // ✅ Thêm dòng này
+import ExamDetail from "@features/Admin/Dashboard/ExamManagement/ExamDetail";
+import ExamReport from "@features/Admin/Dashboard/ExamManagement/ExamReport";
+import AssignmentManagement from "@features/Admin/Dashboard/ExamManagement/AssignmentManagement"; // ✅ thêm dòng này
 
 export default function AppRouter() {
   return (
@@ -97,10 +99,18 @@ export default function AppRouter() {
             {/* <Route path="progress" element={<StudentProgress />} /> */}
             {/* <Route path="reports" element={<Reports />} /> */}
             {/* <Route path="settings" element={<SystemSettings />} /> */}
+            <Route path="exercises" element={<AssignmentManagement />} /> {/* ✅ thêm dòng này */}
+
+            {/* ✅ Trang chi tiết bài kiểm tra */}
+            <Route path="exam/:examId/detail" element={<ExamDetail />} />
+
+            {/* ✅ Báo cáo */}
+            <Route path="exam/:quizId/report" element={<ExamReport />} />
+            <Route path="quiz/:quizId/report" element={<ExamReport />} />
           </Route>
         </Route>
 
-        {/* ===== Fallback nếu route không tồn tại ===== */}
+        {/* ===== Fallback ===== */}
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </>
