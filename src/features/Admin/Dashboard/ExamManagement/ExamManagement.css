@@ -1,14 +1,9 @@
-/* === Exam Detail Page === */
-.exam-detail-container {
-  padding: 24px;
-  background-color: #f8fafc;
-  font-family: "Inter", sans-serif;
-  color: #1e293b;
-}
+/* === Exam Management Page (Mankai UI Premium Style) === */
 .exam-management-container {
   padding: 24px;
   background-color: #f8fafc;
   font-family: "Inter", sans-serif;
+  color: #1e293b;
 }
 
 /* --- HEADER --- */
@@ -35,7 +30,8 @@
 /* --- BUTTONS --- */
 .exam-header-buttons {
   display: flex;
-  gap: 12px;
+  gap: 14px;
+  align-items: center;
 }
 
 .exam-btn {
@@ -57,35 +53,42 @@
 
 /* Nút Ngân hàng câu hỏi */
 .exam-btn.bank {
-  background-color: #ffffff;
-  color: #1e293b;
-  border: 1px solid #e2e8f0;
+  background: #fff8f1;
+  color: #f97316;
+  border: 1px solid #fdba74;
+  box-shadow: 0 1px 3px rgba(249, 115, 22, 0.1);
 }
 
 .exam-btn.bank:hover {
-  background-color: #f9fafb;
-  border-color: #d1d5db;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+  background: #ffedd5;
+  border-color: #fb923c;
+  color: #ea580c;
   transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(249, 115, 22, 0.15);
 }
 
 /* Nút Tạo bài kiểm tra */
 .exam-btn.add {
-  background: linear-gradient(135deg, #fb923c, #f97316);
+  background: linear-gradient(135deg, #ff8b26, #ff6b00);
   color: #ffffff;
-  border: 1px solid #f97316;
-  box-shadow: 0 2px 6px rgba(249, 115, 22, 0.25);
+  border: 1px solid #ff7b26;
+  box-shadow: 0 2px 8px rgba(255, 107, 0, 0.25);
 }
 
 .exam-btn.add:hover {
-  background: linear-gradient(135deg, #f97316, #ea580c);
-  box-shadow: 0 4px 10px rgba(249, 115, 22, 0.35);
-  transform: translateY(-1px);
+  background: linear-gradient(135deg, #ffa04f, #ff7b26);
+  box-shadow: 0 4px 12px rgba(255, 107, 0, 0.35);
+  transform: translateY(-2px);
 }
 
-.exam-btn:active {
-  transform: scale(0.97);
+.exam-btn.add:active {
+  transform: scale(0.96);
   box-shadow: none;
+}
+
+.exam-btn i {
+  font-size: 16px;
+  line-height: 0;
 }
 
 /* --- STATS --- */
@@ -101,6 +104,12 @@
   border-radius: 10px;
   padding: 16px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.exam-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .exam-card-title {
@@ -112,6 +121,7 @@
   margin-top: 4px;
   font-size: 22px;
   color: #0f172a;
+  font-weight: 700;
 }
 
 /* --- SEARCH --- */
@@ -209,4 +219,3 @@
 .btn-icon.delete {
   color: #ef4444;
 }
-

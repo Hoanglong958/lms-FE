@@ -1,0 +1,148 @@
+/* QuestionCreate.css */
+.question-create-container {
+  max-width: 900px;
+  margin: 24px auto;
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
+  font-family: "Inter", sans-serif;
+  color: #0f172a;
+}
+
+/* Header */
+.question-create-container h2 {
+  margin: 0 0 6px 0;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.question-create-container p {
+  margin: 0 0 16px 0;
+  color: #64748b;
+  font-size: 14px;
+}
+
+/* Form */
+.question-create-container form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.question-create-container label {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: #334155;
+}
+
+/* Inputs */
+.question-create-container input[type="text"],
+.question-create-container input[type="number"],
+.question-create-container textarea,
+.question-create-container select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #e6edf3;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #0f172a;
+  background: #fbfdff;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.5);
+}
+
+.question-create-container textarea {
+  resize: vertical;
+  min-height: 88px;
+}
+
+.question-create-container input:focus,
+.question-create-container textarea:focus,
+.question-create-container select:focus {
+  border-color: #f97316; /* cam nhạt */
+  box-shadow: 0 4px 10px rgba(249, 115, 22, 0.06);
+}
+
+/* Row layout for compact fields */
+.question-create-container .form-row {
+  display: flex;
+  gap: 12px;
+}
+
+.question-create-container .form-row .form-group {
+  flex: 1;
+}
+
+/* Buttons */
+.form-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+/* Cancel button */
+.btn-cancel {
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  color: #374151;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.btn-cancel:hover {
+  transform: translateY(-2px);
+  background: #e9eef2;
+}
+
+/* Save button */
+.btn-save {
+  background: linear-gradient(90deg, #ff8b26, #ff6b00);
+  color: #ffffff;
+  border: none;
+  padding: 9px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 700;
+  box-shadow: 0 6px 18px rgba(255, 107, 0, 0.18);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn-save:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(255, 107, 0, 0.22);
+}
+
+/* Empty / helper text */
+.empty-message {
+  color: #64748b;
+  font-style: italic;
+  margin-top: 12px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .question-create-container {
+    padding: 16px;
+    margin: 12px;
+  }
+
+  .question-create-container .form-row {
+    flex-direction: column;
+  }
+
+  .form-actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .btn-save, .btn-cancel {
+    width: 100%;
+  }
+}

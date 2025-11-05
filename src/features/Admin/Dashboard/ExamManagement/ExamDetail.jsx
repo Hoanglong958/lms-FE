@@ -9,7 +9,7 @@ export default function ExamDetail() {
   return (
     <div className="exam-detail-container">
       <button className="exam-export-btn" onClick={() => navigate("/admin/exam")}>
-        ← Quay lại danh sách bài kiểm tra
+        ← Quay lại danh sách câu hỏi
       </button>
 
       {/* Header */}

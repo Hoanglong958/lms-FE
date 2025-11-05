@@ -62,7 +62,8 @@
   overflow: hidden;
 }
 
-.assignment-table th, .assignment-table td {
+.assignment-table th, 
+.assignment-table td {
   padding: 10px 15px;
   border-bottom: 1px solid #eee;
   text-align: left;
@@ -83,12 +84,26 @@
   color: #6b7280;
 }
 
+/* 🌟 Cải tiến phần TAG */
 .tag {
-  padding: 3px 8px;
-  border-radius: 6px;
+  display: inline-block;
+  padding: 6px 14px;
+  border-radius: 20px;
   color: #fff;
-  font-size: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;      /* Giữ text trên 1 dòng */
+  min-width: 120px;         /* Giúp tag rộng và cân */
+  text-align: center;
+  transition: all 0.2s ease-in-out;
 }
+
+.tag:hover {
+  transform: scale(1.05);
+  opacity: 0.9;
+}
+
+/* 🎨 Màu từng loại tag */
 .tag.react { background: #4f9eff; }
 .tag.python { background: #3572a5; }
 .tag.flutter { background: #02569b; }
@@ -127,4 +142,8 @@
   border-radius: 6px;
   cursor: pointer;
   font-weight: 500;
+}
+
+.btn-grade:hover {
+  background: #ff8b26;
 }

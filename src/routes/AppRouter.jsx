@@ -20,28 +20,19 @@ import Login from "@features/login/pages/login";
 
 // ===== Pages (Admin) =====
 import Dashboard from "@features/Admin/Dashboard/Dashboard";
-// import AdminHomePage from "@pages/AdminHomePage"; // Route này không có trong sidebar mới
-// import Users from "@features/Admin/Users/AdminUsers"; // Bạn đã bình luận dòng này
-
-// === CÁC IMPORT MỚI CHO TRANG ADMIN ===
-// (Bạn cần tạo các component này và đảm bảo đường dẫn import chính xác)
-// import ManageUsers from "@admin/Users/ManageUsers";
 import ManageCourses from "@admin/Courses/ManageCourses";
 import ManageLessons from "@admin/Courses/ManageLessons";
-// import QuestionBank from "@admin/QuestionBank/QuestionBank";
-// import ManageQuizzes from "@admin/Quizzes/ManageQuizzes";
-// import ManageExams from "@admin/Exams/ManageExams";
-// import ManageAssignments from "@admin/Assignments/ManageAssignments";
-// import StudentProgress from "@admin/Progress/StudentProgress";
-// import Reports from "@admin/Reports/Reports";
-// import SystemSettings from "@admin/Settings/SystemSettings";
-// ======================================
 import AdminHomePage from "@pages/AdminHomePage";
 import QuizManagement from "@features/Admin/Dashboard/ExamManagement/QuizManagement";
 import ExamManagement from "@features/Admin/Dashboard/ExamManagement/ExamManagement";
 import ExamDetail from "@features/Admin/Dashboard/ExamManagement/ExamDetail";
 import ExamReport from "@features/Admin/Dashboard/ExamManagement/ExamReport";
-import AssignmentManagement from "@features/Admin/Dashboard/ExamManagement/AssignmentManagement"; // ✅ thêm dòng này
+import AssignmentManagement from "@features/Admin/Dashboard/ExamManagement/AssignmentManagement";
+import ExamCreate from "@features/Admin/Dashboard/ExamManagement/ExamCreate";
+
+// ✅ Thêm mới
+import QuestionBank from "@features/Admin/Dashboard/ExamManagement/QuestionBank";
+import QuestionCreate from "@features/Admin/Dashboard/ExamManagement/QuestionCreate";
 
 export default function AppRouter() {
   return (
@@ -74,39 +65,37 @@ export default function AppRouter() {
           <Route path="/quiz-exam/:quizId" element={<QuizExamPage />} />
         </Route>
 
-        {/* ===== ADMIN ROUTES (ĐÃ CẬP NHẬT) ===== */}
+        {/* ===== ADMIN ROUTES ===== */}
         <Route element={<PrivateRoute role="admin" />}>
           <Route path="/admin" element={<AdminLayout />}>
-            {/* Routes mặc định */}
+            {/* Route mặc định */}
             <Route index element={<Dashboard />} />
-            {/* Mặc định chuyển về dashboard */}
             <Route index element={<Navigate to="dashboard" replace />} />
-            {/* Các trang con của admin */}
+
+            {/* Dashboard và các trang con */}
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="home" element={<AdminHomePage />} />
             <Route path="quiz" element={<QuizManagement />} />
             <Route path="exam" element={<ExamManagement />} />
-            <Route path="exam/:quizId/report" element={<ExamReport />} />{" "}
-            {/* ✅ Thêm route báo cáo */}
-            {/* Các routes từ sidebar */}
-            {/* <Route path="users" element={<ManageUsers />} /> */}
-            <Route path="courses" element={<ManageCourses />} />
-            <Route path="courses/part/:courseId" element={<ManageLessons />} />
-            {/* <Route path="question-bank" element={<QuestionBank />} /> */}
-            {/* <Route path="quizzes" element={<ManageQuizzes />} /> */}
-            {/* <Route path="exams" element={<ManageExams />} /> */}
-            {/* <Route path="assignments" element={<ManageAssignments />} /> */}
-            {/* <Route path="progress" element={<StudentProgress />} /> */}
-            {/* <Route path="reports" element={<Reports />} /> */}
-            {/* <Route path="settings" element={<SystemSettings />} /> */}
-            <Route path="exercises" element={<AssignmentManagement />} /> {/* ✅ thêm dòng này */}
 
-            {/* ✅ Trang chi tiết bài kiểm tra */}
+            {/* ✅ Thêm route TẠO bài kiểm tra */}
+            <Route path="exam/create" element={<ExamCreate />} />
+
+            {/* ✅ Thêm route NGÂN HÀNG CÂU HỎI */}
+            <Route path="question-bank" element={<QuestionBank />} />
+            <Route path="question-bank/create" element={<QuestionCreate />} />
+
+            {/* ✅ Các route chi tiết, báo cáo */}
             <Route path="exam/:examId/detail" element={<ExamDetail />} />
-
-            {/* ✅ Báo cáo */}
             <Route path="exam/:quizId/report" element={<ExamReport />} />
             <Route path="quiz/:quizId/report" element={<ExamReport />} />
+
+            {/* ✅ Trang bài tập */}
+            <Route path="exercises" element={<AssignmentManagement />} />
+
+            {/* ✅ Quản lý khóa học */}
+            <Route path="courses" element={<ManageCourses />} />
+            <Route path="courses/part/:courseId" element={<ManageLessons />} />
           </Route>
         </Route>
 
