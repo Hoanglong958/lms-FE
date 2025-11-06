@@ -23,16 +23,16 @@ import Dashboard from "@features/Admin/Dashboard/Dashboard";
 import ManageCourses from "@admin/Courses/ManageCourses";
 import ManageLessons from "@admin/Courses/ManageLessons";
 import AdminHomePage from "@pages/AdminHomePage";
-import QuizManagement from "@features/Admin/Dashboard/ExamManagement/QuizManagement";
-import ExamManagement from "@features/Admin/Dashboard/ExamManagement/ExamManagement";
-import ExamDetail from "@features/Admin/Dashboard/ExamManagement/ExamDetail";
-import ExamReport from "@features/Admin/Dashboard/ExamManagement/ExamReport";
-import AssignmentManagement from "@features/Admin/Dashboard/ExamManagement/AssignmentManagement";
-import ExamCreate from "@features/Admin/Dashboard/ExamManagement/ExamCreate";
+import QuizManagement from "@features/Admin/ExamManagement/QuizManagement";
+import ExamManagement from "@features/Admin/ExamManagement/ExamManagement";
+import ExamDetail from "@features/Admin/ExamManagement/ExamDetail";
+import ExamReport from "@features/Admin/ExamManagement/ExamReport";
+import AssignmentManagement from "@features/Admin/ExamManagement/AssignmentManagement";
+import ExamCreate from "@features/Admin/ExamManagement/ExamCreate";
 
 // ✅ Thêm mới
-import QuestionBank from "@features/Admin/Dashboard/ExamManagement/QuestionBank";
-import QuestionCreate from "@features/Admin/Dashboard/ExamManagement/QuestionCreate";
+import QuestionBank from "@features/Admin/ExamManagement/QuestionBank";
+import QuestionCreate from "@features/Admin/ExamManagement/QuestionCreate";
 
 export default function AppRouter() {
   return (

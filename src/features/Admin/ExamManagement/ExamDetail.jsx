@@ -8,7 +8,10 @@ export default function ExamDetail() {
 
   return (
     <div className="exam-detail-container">
-      <button className="exam-export-btn" onClick={() => navigate("/admin/exam")}>
+      <button
+        className="exam-export-btn"
+        onClick={() => navigate("/admin/exam")}
+      >
         ← Quay lại danh sách câu hỏi
       </button>
 
@@ -111,7 +114,9 @@ export default function ExamDetail() {
               <td>nguyenvana@email.com</td>
               <td>15/11/2024 10:30</td>
               <td>85 phút</td>
-              <td><span className="badge badge-success">Đúng hạn</span></td>
+              <td>
+                <span className="badge badge-success">Đúng hạn</span>
+              </td>
               <td>45/50</td>
               <td>
                 <button className="exam-action-btn">
@@ -125,7 +130,9 @@ export default function ExamDetail() {
               <td>tranthib@email.com</td>
               <td>15/11/2024 14:20</td>
               <td>110 phút</td>
-              <td><span className="badge badge-warning">Nộp muộn</span></td>
+              <td>
+                <span className="badge badge-warning">Nộp muộn</span>
+              </td>
               <td>35/50</td>
               <td>
                 <button className="exam-action-btn">

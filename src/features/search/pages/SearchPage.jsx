@@ -1,99 +1,69 @@
-import { Routes, Route, Navigate } from "react-router-dom";
-import ScrollToTop from "@components/common/ScrollToTop";
-import PrivateRoute from "@components/common/PrivateRoute";
+import React, { useState } from "react";
+import "@/index.css";
+import "./SearchPage.css";
+import CourseCard from "@components/CourseCard";
 
-// ===== Layouts =====
-import MainLayout from "@layouts/MainLayout";
-import LessonLayout from "@layouts/LessonLayout";
-import AuthLayout from "@layouts/AuthLayout";
-import AdminLayout from "@layouts/AdminLayout";
+const sampleCourses = Array.from({ length: 12 }).map((_, i) => ({
+  id: i + 1,
+  title:
+    i < 9 ? "N1 Chill Class" : "Authentication & Authorization trong ReactJS",
+  image: i < 9 ? "/students.jpg" : "/students.jpg",
+  level: i < 9 ? "Beginner" : "Front-End",
+  type: i < 9 ? "Khóa học" : "Bài viết",
+  lessons: i < 9 ? 30 : 10,
+  students: i < 9 ? 520 : 98,
+  price: i < 9 ? "349.000đ" : "Miễn phí",
+}));
 
-// ===== Pages (User) =====
-import HomePage from "@pages/HomePage";
-import BlogList from "@features/baiviet/pages/BlogList";
-import BlogDetail from "@features/baiviet/pages/BlogDetail";
-import Posts from "@features/baiviet/pages/Posts";
-import SearchPage from "@features/search/pages/SearchPage";
-import LessonPage from "@features/lesson/pages/LessonPage";
-import QuizExamPage from "@features/lesson/components/QuizExamPage";
-import Login from "@features/login/pages/login";
+export default function SearchPage() {
+  const [query, setQuery] = useState("");
+  const results = sampleCourses.filter((c) =>
+    c.title.toLowerCase().includes(query.toLowerCase())
+  );
 
-// ===== Pages (Admin) =====
-import Dashboard from "@features/Admin/Dashboard/Dashboard";
-import AdminHomePage from "@pages/AdminHomePage";
-import QuizManagement from "@features/Admin/Dashboard/ExamManagement/QuizManagement";
-import ExamManagement from "@features/Admin/Dashboard/ExamManagement/ExamManagement";
-import ExamDetail from "@features/Admin/Dashboard/ExamManagement/ExamDetail";
-import ExamReport from "@features/Admin/Dashboard/ExamManagement/ExamReport";
-import AssignmentManagement from "@features/Admin/Dashboard/ExamManagement/AssignmentManagement";
-import ManageCourses from "@admin/Courses/ManageCourses";
-import ManageLessons from "@admin/Courses/ManageLessons";
-
-// ✅ Import mới cho trang tạo bài kiểm tra
-import ExamCreate from "@features/Admin/Dashboard/ExamManagement/ExamCreate";
-
-export default function AppRouter() {
   return (
-    <>
-      <ScrollToTop />
-      <Routes>
-        {/* ===== CHUYỂN TRANG MẶC ĐỊNH ===== */}
-        <Route path="/" element={<Navigate to="/login" replace />} />
+    <div className="search-page">
+      <div className="search-hero">
+        <div className="container">
+          <div className="crumbs">Trang chủ / Tìm kiếm</div>
+          <h1>Tìm kiếm</h1>
+          <p className="subtitle">Tìm khóa học, bài viết...</p>
+          <div className="search-bar">
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Tìm kiếm khóa học, bài viết..."
+            />
+            <button>Tìm</button>
+          </div>
+        </div>
+      </div>
 
-        {/* ===== AUTH ROUTES ===== */}
-        <Route element={<AuthLayout />}>
-          <Route path="/login" element={<Login />} />
-        </Route>
+      <div className="container results-section">
+        <div className="results-header">
+          <div>
+            Có {results.length} kết quả cho từ khóa{" "}
+            <strong>"{query || "Web"}"</strong>
+          </div>
+          <div className="sort">Sắp xếp: Mới nhất ▾</div>
+        </div>
 
-        {/* ===== USER ROUTES ===== */}
-        <Route element={<PrivateRoute role="user" />}>
-          <Route element={<MainLayout />}>
-            <Route path="/home" element={<HomePage />} />
-            <Route path="/bai-viet" element={<BlogList />} />
-            <Route path="/bai-viet/:id" element={<BlogDetail />} />
-            <Route path="/baiviet" element={<Posts />} />
-            <Route path="/search" element={<SearchPage />} />
-          </Route>
+        <div className="grid-courses">
+          {results.map((course) => (
+            <CourseCard key={course.id} course={course} />
+          ))}
+        </div>
+      </div>
 
-          <Route path="/lessons/:courseId" element={<LessonLayout />}>
-            <Route index element={<LessonPage />} />
-            <Route path=":lessonId" element={<LessonPage />} />
-          </Route>
-
-          <Route path="/quiz-exam/:quizId" element={<QuizExamPage />} />
-        </Route>
-
-        {/* ===== ADMIN ROUTES ===== */}
-        <Route element={<PrivateRoute role="admin" />}>
-          <Route path="/admin" element={<AdminLayout />}>
-            {/* Trang chính */}
-            <Route index element={<Dashboard />} />
-            <Route index element={<Navigate to="dashboard" replace />} />
-            <Route path="dashboard" element={<Dashboard />} />
-            <Route path="home" element={<AdminHomePage />} />
-            <Route path="quiz" element={<QuizManagement />} />
-
-            {/* ===== Phần bài kiểm tra ===== */}
-            <Route path="exam" element={<ExamManagement />} />
-            <Route path="exam/create" element={<ExamCreate />} /> {/* ✅ Trang tạo bài kiểm tra */}
-            <Route path="exam/:examId/detail" element={<ExamDetail />} /> {/* ✅ Chi tiết */}
-            <Route path="exam/:quizId/report" element={<ExamReport />} /> {/* ✅ Báo cáo */}
-
-            {/* ===== Khóa học & bài học ===== */}
-            <Route path="courses" element={<ManageCourses />} />
-            <Route path="courses/part/:courseId" element={<ManageLessons />} />
-
-            {/* ===== Bài tập ===== */}
-            <Route path="exercises" element={<AssignmentManagement />} />
-
-            {/* Route trùng quiz/report vẫn giữ */}
-            <Route path="quiz/:quizId/report" element={<ExamReport />} />
-          </Route>
-        </Route>
-
-        {/* ===== Fallback ===== */}
-        <Route path="*" element={<Navigate to="/login" replace />} />
-      </Routes>
-    </>
+      <footer className="search-footer">
+        <div className="container">
+          <div className="footer-card">
+            <p>
+              Mankai Academy — Học viện đào tạo phát triển năng lực thực chiến
+            </p>
+          </div>
+        </div>
+      </footer>
+    </div>
   );
 }
