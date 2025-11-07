@@ -32,6 +32,16 @@ export default function AdminSidebar() {
             Dashboard
           </NavLink>
 
+          <NavLink
+            to="/admin/statistics"
+            className={({ isActive }) =>
+              isActive ? "admin-sidebar-item active" : "admin-sidebar-item"
+            }
+          >
+            <i className="fa-solid fa-chart-pie"></i>
+            Thống kê
+          </NavLink>
+
           {/* Quản lý người dùng - không dropdown */}
           <NavLink
             to="/admin/users"
@@ -51,7 +61,7 @@ export default function AdminSidebar() {
             }
           >
             <i className="fa-solid fa-book"></i>
-            Nội dung khóa học
+            Quản lý khóa học
           </NavLink>
 
           {/* Đánh giá */}

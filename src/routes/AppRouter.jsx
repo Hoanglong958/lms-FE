@@ -29,8 +29,7 @@ import ExamDetail from "@features/Admin/ExamManagement/ExamDetail";
 import ExamReport from "@features/Admin/ExamManagement/ExamReport";
 import AssignmentManagement from "@features/Admin/ExamManagement/AssignmentManagement";
 import ExamCreate from "@features/Admin/ExamManagement/ExamCreate";
-
-// ✅ Thêm mới
+import StatisticManagement from "@features/Admin/StatisticManagement/StatisticManagement.jsx";
 import QuestionBank from "@features/Admin/ExamManagement/QuestionBank";
 import QuestionCreate from "@features/Admin/ExamManagement/QuestionCreate";
 
@@ -96,6 +95,9 @@ export default function AppRouter() {
             {/* ✅ Quản lý khóa học */}
             <Route path="courses" element={<ManageCourses />} />
             <Route path="courses/part/:courseId" element={<ManageLessons />} />
+
+            {/* ✅ Quản lý thống kê */}
+            <Route path="statistics" element={<StatisticManagement />} />
           </Route>
         </Route>
 
