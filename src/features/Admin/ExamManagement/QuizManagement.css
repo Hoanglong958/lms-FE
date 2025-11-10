@@ -6,6 +6,12 @@
 }
 
 /* --- Header --- */
+.quiz-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
 .quiz-header h2 {
   font-size: 24px;
   font-weight: 700;
@@ -15,6 +21,35 @@
 .quiz-header p {
   color: #64748b;
   margin-bottom: 20px;
+}
+
+/* 🟩 Thêm phần nút hành động ở header */
+.quiz-header-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.quiz-btn {
+  padding: 8px 14px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.2s ease;
+}
+
+.quiz-btn.bank {
+  background-color: #2563eb; /* xanh dương */
+  color: white;
+}
+
+.quiz-btn.create {
+  background-color: #10b981; /* xanh lá */
+  color: white;
+}
+
+.quiz-btn:hover {
+  opacity: 0.9;
 }
 
 /* --- Thẻ thống kê --- */
