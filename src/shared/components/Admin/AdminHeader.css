@@ -1,11 +1,17 @@
 .admin-header {
+  position: sticky;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+  width: 100%;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #1e293b;
-  color: #fff;
+  background-color: #ffffff;
+  color: inherit;
   padding: 15px 25px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  /* ❌ bỏ margin-bottom đi */
 }
 
 .admin-title {
