@@ -65,7 +65,7 @@ export default function ExamManagement() {
   };
 
   const handleView = (exam) => {
-    alert(`👁️ Xem chi tiết kỳ thi: ${exam.name}`);
+    navigate(`/admin/exam/${exam.id}/preview`);
   };
 
   const handleEdit = (exam) => {

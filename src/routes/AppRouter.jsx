@@ -29,10 +29,14 @@ import ExamDetail from "@features/Admin/ExamManagement/ExamDetail";
 import ExamReport from "@features/Admin/ExamManagement/ExamReport";
 import AssignmentManagement from "@features/Admin/ExamManagement/AssignmentManagement";
 import ExamCreate from "@features/Admin/ExamManagement/ExamCreate";
+import QuizCreate from "@features/Admin/ExamManagement/QuizCreate";
 
 // ✅ Thêm mới
 import QuestionBank from "@features/Admin/ExamManagement/QuestionBank";
 import QuestionCreate from "@features/Admin/ExamManagement/QuestionCreate";
+
+// ✅ Trang thi thử (Exam Preview)
+import ExamPreview from "@features/Admin/ExamManagement/ExamPreview";
 
 export default function AppRouter() {
   return (
@@ -76,19 +80,22 @@ export default function AppRouter() {
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="home" element={<AdminHomePage />} />
             <Route path="quiz" element={<QuizManagement />} />
-            <Route path="exam" element={<ExamManagement />} />
+            <Route path="quiz/create" element={<QuizCreate />} />
+            <Route path="quiz/:quizId/report" element={<ExamReport />} />
 
-            {/* ✅ Thêm route TẠO bài kiểm tra */}
+            {/* ✅ Trang thi thử */}
+            <Route path="exam/:examId/preview" element={<ExamPreview />} />
+
+            <Route path="exam" element={<ExamManagement />} />
             <Route path="exam/create" element={<ExamCreate />} />
 
-            {/* ✅ Thêm route NGÂN HÀNG CÂU HỎI */}
+            {/* ✅ NGÂN HÀNG CÂU HỎI */}
             <Route path="question-bank" element={<QuestionBank />} />
             <Route path="question-bank/create" element={<QuestionCreate />} />
 
             {/* ✅ Các route chi tiết, báo cáo */}
             <Route path="exam/:examId/detail" element={<ExamDetail />} />
             <Route path="exam/:quizId/report" element={<ExamReport />} />
-            <Route path="quiz/:quizId/report" element={<ExamReport />} />
 
             {/* ✅ Trang bài tập */}
             <Route path="exercises" element={<AssignmentManagement />} />
