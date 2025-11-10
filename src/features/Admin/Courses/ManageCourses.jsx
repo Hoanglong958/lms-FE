@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { courseService } from "@utils/courseService.js";
 import styles from "./ManageCourses.module.css";
+import AdminHeader from "@components/Admin/AdminHeader"; // chỉ chỉnh import header
 
 // Giá trị khởi tạo cho form
 const initialFormData = {
@@ -23,7 +24,6 @@ function CourseCard({ course, onEdit, onDelete }) {
           onClick={() => setMenuOpen(!menuOpen)}
           className={styles.actionMenuBtn}
         >
-          {/* Bạn có thể dùng icon ... (ví dụ: <i className="fa-solid fa-ellipsis-vertical"></i>) */}
           ...
         </button>
         {menuOpen && (
@@ -50,20 +50,15 @@ function CourseCard({ course, onEdit, onDelete }) {
       </div>
 
       {/* ẢNH BÌA (placeholder) VÀ LINK ĐẾN TRANG PART */}
-      {/* === SỬA LỖI ĐƯỜNG DẪN 1 === */}
       <Link
         to={`/admin/courses/part/${course.id}`}
         className={styles.cardImageLink}
       >
-        <div className={styles.cardImagePlaceholder}>
-          {/* Bạn có thể dùng icon (ví dụ: <i className="fa-solid fa-chart-simple"></i>) */}
-          📊
-        </div>
+        <div className={styles.cardImagePlaceholder}>📊</div>
       </Link>
 
       {/* NỘI DUNG CARD VÀ LINK ĐẾN TRANG PART */}
       <div className={styles.cardContent}>
-        {/* === SỬA LỖI ĐƯỜNG DẪN 2 === */}
         <Link
           to={`/admin/courses/part/${course.id}`}
           className={styles.cardTitleLink}
@@ -91,7 +86,7 @@ export default function ManageCourses() {
   const [currentCourse, setCurrentCourse] = useState(null);
   const [formData, setFormData] = useState(initialFormData);
 
-  // --- Các hàm xử lý (giữ nguyên logic) ---
+  // --- Các hàm xử lý ---
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     const val = type === "checkbox" ? checked : value;
@@ -132,66 +127,53 @@ export default function ManageCourses() {
     setShowModal(false);
   };
 
-  // --- Dữ liệu cho thẻ Stats (tính toán từ 'courses') ---
+  // --- Dữ liệu cho thẻ Stats ---
   const totalCourses = courses.length;
   const publicCourses = courses.filter((c) => !c.isPrerequisite).length;
-  const totalStudents = 1690; // Dữ liệu giả
-  const avgProgress = 67; // Dữ liệu giả
+  const totalStudents = 1690;
+  const avgProgress = 67;
 
   return (
     <div className={styles.page}>
-      {/* Header của trang (Tiêu đề + Nút Thêm) */}
-      <div className={styles.header}>
-        <div className={styles.headerInfo}>
-          <h1>Quản lý khóa học</h1>
-          <p>Danh sách và quản lý khóa học</p>
-        </div>
-        <button
-          onClick={handleAdd}
-          className={`${styles.btn} ${styles.btnPrimary}`}
-        >
-          {/* Bạn có thể dùng icon (ví dụ: <i className="fa-solid fa-plus"></i>) */}
-          + Thêm khóa học
-        </button>
-      </div>
+      {/* Header của page */}
+      <AdminHeader
+        title="Quản lý khóa học"
+        breadcrumb={<span>Admin / Courses</span>}
+        actions={
+          <button
+            onClick={handleAdd}
+            className={`${styles.btn} ${styles.btnPrimary}`}
+          >
+            + Thêm khóa học
+          </button>
+        }
+      />
 
-      {/* 4 Thẻ Thống kê */}
+      {/* 4 Thẻ thống kê */}
       <div className={styles.statsGrid}>
         <div className={styles.statCard}>
-          <div className={`${styles.statIcon} ${styles.iconBgOrange}`}>
-            {/* <i className="fa-solid fa-layer-group"></i> */}
-            📚
-          </div>
+          <div className={`${styles.statIcon} ${styles.iconBgOrange}`}>📚</div>
           <div className={styles.statInfo}>
             <p>Tổng khóa học</p>
             <span>{totalCourses}</span>
           </div>
         </div>
         <div className={styles.statCard}>
-          <div className={`${styles.statIcon} ${styles.iconBgBlue}`}>
-            {/* <i className="fa-solid fa-users"></i> */}
-            👥
-          </div>
+          <div className={`${styles.statIcon} ${styles.iconBgBlue}`}>👥</div>
           <div className={styles.statInfo}>
             <p>Tổng học viên</p>
             <span>{totalStudents.toLocaleString("vi-VN")}</span>
           </div>
         </div>
         <div className={styles.statCard}>
-          <div className={`${styles.statIcon} ${styles.iconBgGreen}`}>
-            {/* <i className="fa-solid fa-chart-line"></i> */}
-            📈
-          </div>
+          <div className={`${styles.statIcon} ${styles.iconBgGreen}`}>📈</div>
           <div className={styles.statInfo}>
             <p>Tiến độ TB</p>
             <span>{avgProgress}%</span>
           </div>
         </div>
         <div className={styles.statCard}>
-          <div className={`${styles.statIcon} ${styles.iconBgYellow}`}>
-            {/* <i className="fa-solid fa-globe"></i> */}
-            🌍
-          </div>
+          <div className={`${styles.statIcon} ${styles.iconBgYellow}`}>🌍</div>
           <div className={styles.statInfo}>
             <p>Đã công khai</p>
             <span>{publicCourses}</span>
@@ -202,20 +184,16 @@ export default function ManageCourses() {
       {/* Thanh Tìm kiếm và Lọc */}
       <div className={styles.filterBar}>
         <div className={styles.searchInput}>
-          {/* <i className="fa-solid fa-search"></i> */}
-
           <input type="text" placeholder="🔍 Tìm kiếm khóa học..." />
         </div>
         <div className={styles.selectDropdown}>
           <select>
             <option value="">Tất cả danh mục ▼</option>
-            {/* Thêm <option> khác nếu cần */}
           </select>
-          {/* <i className="fa-solid fa-chevron-down"></i> */}
         </div>
       </div>
 
-      {/* Lưới các khóa học (thay thế table) */}
+      {/* Lưới các khóa học */}
       <div className={styles.courseGrid}>
         {courses.map((course) => (
           <CourseCard
@@ -227,7 +205,7 @@ export default function ManageCourses() {
         ))}
       </div>
 
-      {/* Modal (giữ nguyên, chỉ ẩn đi) */}
+      {/* Modal */}
       {showModal && (
         <div className={styles.modalOverlay}>
           <div className={styles.modalContent}>
