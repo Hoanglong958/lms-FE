@@ -1,3 +1,5 @@
+// src/routes/AppRouter.jsx (ĐÃ SỬA LỖI)
+
 import { Routes, Route, Navigate } from "react-router-dom";
 import ScrollToTop from "@components/common/ScrollToTop";
 import PrivateRoute from "@components/common/PrivateRoute";
@@ -19,7 +21,12 @@ import QuizExamPage from "@features/lesson/components/QuizExamPage";
 import Login from "@features/login/pages/login";
 
 // ===== Pages (Admin) =====
+// (Import cho Dashboard)
+import DashboardPage from "@features/Admin/Dashboard/DashboardPage";
 import Dashboard from "@features/Admin/Dashboard/Dashboard";
+import DashboardDetails from "@features/Admin/Dashboard/dashboarddetails";
+
+// (Import cho các trang Admin khác)
 import ManageCourses from "@admin/Courses/ManageCourses";
 import ManageLessons from "@admin/Courses/ManageLessons";
 import AdminHomePage from "@pages/AdminHomePage";
@@ -30,12 +37,8 @@ import ExamReport from "@features/Admin/ExamManagement/ExamReport";
 import AssignmentManagement from "@features/Admin/ExamManagement/AssignmentManagement";
 import ExamCreate from "@features/Admin/ExamManagement/ExamCreate";
 import QuizCreate from "@features/Admin/ExamManagement/QuizCreate";
-
-// ✅ Thêm mới
 import QuestionBank from "@features/Admin/ExamManagement/QuestionBank";
 import QuestionCreate from "@features/Admin/ExamManagement/QuestionCreate";
-
-// ✅ Trang thi thử (Exam Preview)
 import ExamPreview from "@features/Admin/ExamManagement/ExamPreview";
 
 export default function AppRouter() {
@@ -69,14 +72,29 @@ export default function AppRouter() {
           <Route path="/quiz-exam/:quizId" element={<QuizExamPage />} />
         </Route>
 
-        {/* ===== ADMIN ROUTES ===== */}
+        {/* ===========================================
+        ===== ADMIN ROUTES (ĐÃ SỬA LẠI CẤU TRÚC) =====
+        ===========================================
+        */}
         <Route element={<PrivateRoute role="admin" />}>
           <Route path="/admin" element={<AdminLayout />}>
-            {/* Route mặc định */}
+            {/* Route mặc định: /admin -> /admin/dashboard */}
             <Route index element={<Navigate to="dashboard" replace />} />
 
-            {/* Dashboard và các trang con */}
-            <Route path="dashboard" element={<Dashboard />} />
+            {/* === ĐÂY LÀ CẤU TRÚC LỒNG NHAU ĐÚNG === */}
+            <Route path="dashboard" element={<DashboardPage />}>
+              {/* Khi URL là /admin/dashboard (trùng path cha),
+                render <Dashboard /> vào <Outlet />
+              */}
+              <Route index element={<Dashboard />} />
+              {/* Khi URL là /admin/dashboard/details,
+                render <DashboardDetails /> vào <Outlet />
+              */}
+              <Route path="details" element={<DashboardDetails />} />
+            </Route>
+            {/* ======================================= */}
+
+            {/* Các trang admin khác */}
             <Route path="home" element={<AdminHomePage />} />
             <Route path="quiz" element={<QuizManagement />} />
             <Route path="quiz/create" element={<QuizCreate />} />

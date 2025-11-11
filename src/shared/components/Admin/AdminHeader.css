@@ -1,3 +1,5 @@
+/* File: AdminHeader.css */
+
 .admin-header {
   position: sticky;
   top: 0;
@@ -6,32 +8,61 @@
   width: 100%;
   display: flex;
   justify-content: space-between;
-  align-items: center;
+
+  /* QUAN TRỌNG: Căn lề trên (flex-start)
+    để cột bên trái (title/subtitle) và cột bên phải (tabs)
+    thẳng hàng đẹp
+  */
+  align-items: flex-start;
+
   background-color: #ffffff;
   color: inherit;
   padding: 15px 25px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-  /* ❌ bỏ margin-bottom đi */
+  border-bottom: 1px solid #e5e7eb;
+}
+
+/* CỘT BÊN TRÁI (Title, Subtitle, Breadcrumb) */
+.admin-header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 4px; /* Khoảng cách giữa các dòng */
+}
+
+.admin-breadcrumb {
+  font-size: 0.875rem; /* 14px */
+  color: #4b5563;
 }
 
 .admin-title {
   font-size: 22px;
   font-weight: 600;
   margin: 0;
-  color: #f97316;
+  color: #f97316; /* Giữ lại màu cam */
 }
 
+.admin-subtitle {
+  /* Class mới cho subtitle */
+  font-size: 0.875rem; /* 14px */
+  color: #6b7280;
+  margin: 0;
+}
+
+/* CỘT BÊN PHẢI (Actions hoặc Tabs) */
 .admin-header-right {
   display: flex;
-  align-items: center;
   gap: 15px;
+  margin-left: 1rem; /* Khoảng cách với bên trái */
+  flex-shrink: 0; /* Không bị co lại */
+
+  align-self: flex-end;
 }
 
+/* Style cho các nút actions (nếu có) */
 .admin-welcome {
   font-size: 16px;
   opacity: 0.9;
 }
-
 .admin-logout-btn {
   background-color: #ef4444;
   color: white;
@@ -42,7 +73,6 @@
   font-weight: 500;
   transition: background 0.3s;
 }
-
 .admin-logout-btn:hover {
   background-color: #dc2626;
 }

@@ -1,57 +1,219 @@
-const categories = ["Frontend", "Backend", "Design"];
-const instructors = ["Nguyễn Văn A", "Lê Văn C", "Trần Thị B"];
-const months = ["Jan", "Feb", "Mar", "Apr"];
-
-// 100 courses
-const topCourses = Array.from({ length: 100 }, (_, i) => {
-  const name = `Course ${i + 1}`;
-  const category = categories[i % categories.length];
-  const instructor = instructors[i % instructors.length];
-  const month = months[i % months.length];
-  const students = Math.floor(Math.random() * 15) + 5;
-  const revenue = students * (Math.floor(Math.random() * 150000) + 80000);
-  return { name, category, instructor, month, students, revenue };
-});
-
-// 100 students
-const topStudents = Array.from({ length: 100 }, (_, i) => {
-  const course = topCourses[i % topCourses.length].name;
-  const name = `Student ${i + 1}`;
-  const coursesCompleted = Math.floor(Math.random() * 3) + 1;
-  const completionRate = Math.floor(Math.random() * 31) + 70; // 70-100%
-  const hours = Math.floor(Math.random() * 11) + 5; // 5-15h
-  const month = months[i % months.length];
-  return { name, course, coursesCompleted, completionRate, hours, month };
-});
-
-// topInstructors
-const topInstructors = instructors.map((i, idx) => ({
-  name: i,
-  courses: Math.floor(Math.random() * 10) + 1,
-  students: Math.floor(Math.random() * 200) + 20,
-  rating: +(Math.random() * 2 + 3).toFixed(1), // 3.0-5.0
-}));
-
-// recentActivity 20 bản ghi
-const recentActivity = Array.from({ length: 20 }, (_, i) => {
-  const student = topStudents[i % topStudents.length].name;
-  const course = topCourses[i % topCourses.length].name;
-  return {
-    id: i + 1,
-    type: "student",
-    content: `${student} vừa hoàn thành khóa '${course}'`,
-  };
-});
-
-export const dashboardMock = {
-  topCourses,
-  topStudents,
-  topInstructors,
-  charts: {
-    studentGrowth: [],
-    revenue: [],
-    completionRate: [],
-    courseType: [],
+/**
+ * Hàng 1: 4 thẻ thống kê chính
+ */
+export const overviewStatCardsRow1 = [
+  {
+    title: "Tổng người dùng",
+    value: "2,847",
+    change: "+12% (+342 so với tháng trước)",
   },
-  recentActivity,
-};
+  {
+    title: "Khóa học",
+    value: "42",
+    change: "+3",
+    description: "3 khóa học mới",
+  },
+  {
+    title: "Học viên hoạt động",
+    value: "1,234",
+    change: "+8% (+98 trong 7 ngày)",
+  },
+  {
+    title: "Bài thi hoàn thành",
+    value: "5,678",
+    change: "+23% (+1,045 lượt thi)",
+  },
+];
+
+/**
+ * Hàng 2: 4 thẻ thống kê phụ
+ */
+export const overviewStatCardsRow2 = [
+  {
+    title: "Điểm trung bình",
+    value: "8.5/10",
+    change: "+0.3",
+  },
+  {
+    title: "Tỷ lệ hoàn thành",
+    value: "87%",
+    change: "+5%",
+  },
+  {
+    title: "Doanh thu tháng",
+    value: "đ75.4M",
+    change: "+12%",
+  },
+  {
+    title: "Thời gian học TB",
+    value: "4.2h",
+    change: "-0.3h",
+  },
+];
+
+/**
+ * Tab "Báo cáo chi tiết"
+ */
+export const detailedReports = [
+  {
+    title: "Báo cáo người dùng",
+    description: "Danh sách user, role, thời gian đăng ký",
+  },
+  {
+    title: "Báo cáo khóa học",
+    description: "Số lượng khóa, học viên, % hoàn thành",
+  },
+  {
+    title: "Báo cáo tiến độ học viên",
+    description: "Điểm, tiến độ từng user theo khóa",
+  },
+  {
+    title: "Báo cáo bài thi/quiz",
+    description: "Kết quả chi tiết, điểm TB, tỉ lệ pass/fail",
+  },
+  {
+    title: "Báo cáo doanh thu",
+    description: "Doanh thu, đơn đăng ký, top khóa học",
+  },
+];
+
+// --- Dữ liệu cho các biểu đồ và bảng ---
+
+/**
+ * Biểu đồ Line: Tăng trưởng người dùng
+ */
+export const userGrowthData = [
+  { month: "T1", "Người dùng": 1300 },
+  { month: "T2", "Người dùng": 1500 },
+  { month: "T3", "Người dùng": 1750 },
+  { month: "T4", "Người dùng": 2000 },
+  { month: "T5", "Người dùng": 2250 },
+  { month: "T6", "Người dùng": 2950 },
+];
+
+/**
+ * Biểu đồ Bar: Tiến độ khóa học
+ */
+export const courseProgressData = [
+  { name: "Node.js", "Hoàn thành": 240, "Đang học": 150 },
+  { name: "Backend", "Hoàn thành": 185, "Đang học": 90 },
+  { name: "UI/UX", "Hoàn thành": 160, "Đang học": 130 },
+  { name: "Design", "Hoàn thành": 140, "Đang học": 80 },
+];
+
+/**
+ * Biểu đồ Donut: Phân bổ vai trò
+ */
+export const userRolesData = [
+  { name: "Học viên", value: 2156 },
+  { name: "Giảng viên", value: 89 },
+  { name: "Admin", value: 12 },
+];
+
+/**
+ * Biểu đồ Area: Doanh thu
+ */
+export const revenueData = [
+  { month: "T1", "Doanh thu (triệu)": 42 },
+  { month: "T2", "Doanh thu (triệu)": 50 },
+  { month: "T3", "Doanh thu (triệu)": 45 },
+  { month: "T4", "Doanh thu (triệu)": 60 },
+  { month: "T5", "Doanh thu (triệu)": 70 },
+  { month: "T6", "Doanh thu (triệu)": 78 },
+];
+
+/**
+ * Bảng: Người dùng mới
+ */
+export const newUsersData = [
+  {
+    id: "U001",
+    name: "Nguyễn Văn A",
+    email: "nguyenvana@email.com",
+    role: "Học viên",
+    date: "8/11/2025",
+  },
+  {
+    id: "U002",
+    name: "Trần Thị B",
+    email: "tranthib@email.com",
+    role: "Học viên",
+    date: "8/11/2025",
+  },
+  {
+    id: "U003",
+    name: "Lê Văn C",
+    email: "levanc@email.com",
+    role: "Giảng viên",
+    date: "7/11/2025",
+  },
+  {
+    id: "U004",
+    name: "Phạm Thị D",
+    email: "phamthid@email.com",
+    role: "Học viên",
+    date: "7/11/2025",
+  },
+];
+
+/**
+ * Bảng: Khóa học mới tạo
+ */
+export const newCoursesData = [
+  {
+    id: "C001",
+    title: "React Nâng cao 2025",
+    category: "Lập trình",
+    instructor: "Lê Văn C",
+    status: "Công khai",
+  },
+  {
+    id: "C002",
+    title: "Node.js Microservices",
+    category: "Backend",
+    instructor: "Hoàng Văn E",
+    status: "Công khai",
+  },
+  {
+    id: "C003",
+    title: "AI with TensorFlow",
+    category: "AI/ML",
+    instructor: "Lê Văn C",
+    status: "Nháp",
+  },
+];
+
+/**
+ * Bảng: Bài thi / Quiz gần đây
+ */
+export const recentQuizzesData = [
+  {
+    name: "Thi cuối kỳ React",
+    course: "React Nâng cao",
+    participants: 234,
+    passRate: 87,
+  },
+  {
+    name: "Quiz Node.js cơ bản",
+    course: "Node.js Backend",
+    participants: 189,
+    passRate: 92,
+  },
+  {
+    name: "Đánh giá Python",
+    course: "Python cho AI",
+    participants: 167,
+    passRate: 78,
+  },
+];
+
+/**
+ * Danh sách: Top học viên
+ */
+export const topStudentsData = [
+  { id: 1, name: "Nguyễn Văn A", courses: 12, score: 98.5 },
+  { id: 2, name: "Trần Thị B", courses: 10, score: 96.8 },
+  { id: 3, name: "Lê Văn C", courses: 11, score: 95.2 },
+  { id: 4, name: "Phạm Thị D", courses: 9, score: 94.7 },
+  { id: 5, name: "Hoàng Văn E", courses: 8, score: 93.5 },
+];
