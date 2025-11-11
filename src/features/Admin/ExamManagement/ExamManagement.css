@@ -1,11 +1,12 @@
 /* === Exam Management Page (Mankai UI Premium Style) === */
 .exam-management-container {
-  padding: 24px;
   background-color: #f8fafc;
   font-family: "Inter", sans-serif;
   color: #1e293b;
 }
-
+.exam-content-page {
+  padding: 24px;
+}
 /* --- HEADER --- */
 .exam-header {
   display: flex;

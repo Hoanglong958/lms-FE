@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import "./QuizManagement.css";
 import { useNavigate } from "react-router-dom";
+import AdminHeader from "@components/Admin/AdminHeader";
 
 export default function QuizManagement() {
   const navigate = useNavigate();
@@ -69,118 +70,121 @@ export default function QuizManagement() {
 
   return (
     <div className="quiz-management-container">
-      <div className="quiz-header">
-        <div>
-          <h2>Quản lý Quiz</h2>
-          <p>Danh sách quiz và thống kê kết quả</p>
+      <AdminHeader
+        title="Quản lý Quiz"
+        breadcrumb={<span>Admin / Quizzes</span>}
+        actions={
+          <div className="quiz-header-actions">
+            <button
+              className="quiz-btn bank"
+              onClick={() => navigate("/admin/question-bank")}
+            >
+              📚 Ngân hàng câu hỏi
+            </button>
+
+            <button
+              className="quiz-btn create"
+              onClick={() => navigate("/admin/quiz/create")}
+            >
+              ➕ Thêm Quiz
+            </button>
+          </div>
+        }
+      />
+
+      <div className="quiz-content-page">
+        <div className="quiz-stats">
+          <div className="quiz-card">
+            <p className="quiz-card-title">Tổng Quiz</p>
+            <h3>{quizzes.length}</h3>
+          </div>
         </div>
 
-        {/* 🟩 Hai nút hành động */}
-        <div className="quiz-header-actions">
-          <button
-            className="quiz-btn bank"
-            onClick={() => navigate("/admin/question-bank")}
-          >
-            📚 Ngân hàng câu hỏi
-          </button>
+        <div className="quiz-table-section">
+          <input
+            type="text"
+            placeholder="🔍 Tìm kiếm quiz..."
+            className="quiz-search"
+          />
 
-          <button
-            className="quiz-btn create"
-            onClick={() => navigate("/admin/quiz/create")}
-          >
-            ➕ Thêm Quiz
-          </button>
-        </div>
-      </div>
-
-      <div className="quiz-stats">
-        <div className="quiz-card">
-          <p className="quiz-card-title">Tổng Quiz</p>
-          <h3>{quizzes.length}</h3>
-        </div>
-      </div>
-
-      <div className="quiz-table-section">
-        <input
-          type="text"
-          placeholder="🔍 Tìm kiếm quiz..."
-          className="quiz-search"
-        />
-
-        <table className="quiz-table">
-          <thead>
-            <tr>
-              <th>Tên Quiz</th>
-              <th>Khóa học</th>
-              <th>Mô tả</th>
-              <th>Ngày mở</th>
-              <th>Thời gian</th>
-              <th>Điểm đậu</th>
-              <th>Trạng thái</th>
-              <th>Thao tác</th>
-            </tr>
-          </thead>
-          <tbody>
-            {quizzes.length === 0 ? (
+          <table className="quiz-table">
+            <thead>
               <tr>
-                <td colSpan="8" style={{ textAlign: "center", padding: "16px" }}>
-                  Chưa có quiz nào được tạo.
-                </td>
+                <th>Tên Quiz</th>
+                <th>Khóa học</th>
+                <th>Mô tả</th>
+                <th>Ngày mở</th>
+                <th>Thời gian</th>
+                <th>Điểm đậu</th>
+                <th>Trạng thái</th>
+                <th>Thao tác</th>
               </tr>
-            ) : (
-              quizzes.map((quiz) => (
-                <tr key={quiz.id}>
-                  <td>{quiz.name}</td>
-                  <td>
-                    <span className="quiz-course-tag">{quiz.course}</span>
-                  </td>
-                  <td>{quiz.description || "—"}</td>
-                  <td>{quiz.date || "—"}</td>
-                  <td>{quiz.duration ? `${quiz.duration} phút` : "—"}</td>
-                  <td>{quiz.passScore ? `${quiz.passScore}%` : "—"}</td>
-                  <td>
-                    <span
-                      className={
-                        quiz.status === "Hoạt động" ||
-                        quiz.status === "Đang mở"
-                          ? "status-active"
-                          : "status-paused"
-                      }
-                    >
-                      {quiz.status}
-                    </span>
-                  </td>
-                  <td className="quiz-actions">
-                    <button
-                      className="btn-icon report"
-                      onClick={() => handleReport(quiz)}
-                    >
-                      📄
-                    </button>
-                    <button
-                      className="btn-icon"
-                      onClick={() => handleView(quiz)}
-                    >
-                      👁️
-                    </button>
-                    <button
-                      className="btn-icon"
-                      onClick={() => handleEdit(quiz)}
-                    >
-                      ✏️
-                    </button>
-                    <button
-                      className="btn-icon delete"
-                      onClick={() => handleDelete(quiz)}
-                    >
-                      🗑️
-                    </button>
+            </thead>
+            <tbody>
+              {quizzes.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan="8"
+                    style={{ textAlign: "center", padding: "16px" }}
+                  >
+                    Chưa có quiz nào được tạo.
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : (
+                quizzes.map((quiz) => (
+                  <tr key={quiz.id}>
+                    <td>{quiz.name}</td>
+                    <td>
+                      <span className="quiz-course-tag">{quiz.course}</span>
+                    </td>
+                    <td>{quiz.description || "—"}</td>
+                    <td>{quiz.date || "—"}</td>
+                    <td>{quiz.duration ? `${quiz.duration} phút` : "—"}</td>
+                    <td>{quiz.passScore ? `${quiz.passScore}%` : "—"}</td>
+                    <td>
+                      <span
+                        className={
+                          quiz.status === "Hoạt động" ||
+                          quiz.status === "Đang mở"
+                            ? "status-active"
+                            : "status-paused"
+                        }
+                      >
+                        {quiz.status}
+                      </span>
+                    </td>
+                    <td className="quiz-actions">
+                      <button
+                        className="btn-icon report"
+                        onClick={() => handleReport(quiz)}
+                      >
+                        📄
+                      </button>
+                      <button
+                        className="btn-icon"
+                        onClick={() => handleView(quiz)}
+                      >
+                        👁️
+                      </button>
+                      <button
+                        className="btn-icon"
+                        onClick={() => handleEdit(quiz)}
+                      >
+                        ✏️
+                      </button>
+                      <button
+                        className="btn-icon delete"
+                        onClick={() => handleDelete(quiz)}
+                      >
+                        🗑️
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import "./ExamManagement.css";
 import { useNavigate } from "react-router-dom";
+import AdminHeader from "@components/Admin/AdminHeader";
 
 export default function ExamManagement() {
   const navigate = useNavigate();
@@ -84,14 +85,11 @@ export default function ExamManagement() {
   return (
     <div className="exam-management-container">
       {/* --- HEADER --- */}
-      <div className="exam-header">
-        <div>
-          <h2>Quản lý bài kiểm tra</h2>
-          <p>Danh sách bài kiểm tra và chi tiết học viên</p>
-        </div>
-
-        {/* Nút thao tác */}
-        <div className="exam-header-buttons">
+      <AdminHeader
+        title="Quản lý bài kiểm tra"
+        breadcrumb={<span>Admin / Exam</span>}
+        actions={
+          <div className="exam-header-buttons">
           <button className="exam-btn bank" onClick={handleQuestionBank}>
             📚 Ngân hàng câu hỏi
           </button>
@@ -99,9 +97,12 @@ export default function ExamManagement() {
             + Tạo bài kiểm tra
           </button>
         </div>
-      </div>
+        }
+      />
+      
 
       {/* --- THỐNG KÊ --- */}
+      <div className="exam-content-page">
       <div className="exam-stats">
         <div className="exam-card">
           <p className="exam-card-title">Tổng kỳ thi</p>
@@ -120,6 +121,7 @@ export default function ExamManagement() {
             ).toFixed(1)}
             %
           </h3>
+
         </div>
       </div>
 
@@ -209,6 +211,7 @@ export default function ExamManagement() {
           </tbody>
         </table>
       </div>
+    </div>
     </div>
   );
 }
