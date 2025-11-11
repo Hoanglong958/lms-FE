@@ -54,8 +54,8 @@ const TopRankItem = ({ student, rank }) => {
       </div>
       <h4 className="rank-name">{truncateName(student.name)}</h4>
       <div className="rank-score-wrapper">
-        <span className="rank-score-star">🌟</span>
-        <span className="rank-score-number">{Math.round(student.score)} </span>
+        <span className="rank-score-star">⭐</span>
+        <span className="rank-score-number">{Math.round(student.score)}</span>
       </div>
     </div>
   );
@@ -86,7 +86,7 @@ const OtherRankItem = ({ student, rank, isHighlighted }) => {
       ></div>
       <span className="rank-other-name">{truncateName(student.name)} </span>
       <div className="rank-other-score-wrapper">
-        <span className="rank-other-score-star">🌟</span>
+        <span className="rank-other-score-star">⭐</span>
         <span className="rank-other-score-number">
           {Math.round(student.score)}
         </span>
@@ -101,8 +101,10 @@ const RankingList = ({ students }) => {
     return <div>Không có dữ liệu.</div>;
   }
 
-  const top3 = students.slice(0, 3);
-  const others = students.slice(3);
+  // Giới hạn 10 người
+  const limitedStudents = students.slice(0, 10);
+  const top3 = limitedStudents.slice(0, 3);
+  const others = limitedStudents.slice(3);
 
   const rank1 = top3[0];
   const rank2 = top3[1];
@@ -115,11 +117,11 @@ const RankingList = ({ students }) => {
           <span className="ranking-title-icon">🏆</span> Bảng xếp hạng
         </h3>
       </div>
-      {/* Top 3 */}
+      {/* Top 3 - hiển thị ngang */}
       {top3.length === 3 && (
         <div className="ranking-top3-container">
-          {rank2 && <TopRankItem student={rank2} rank={2} />}
           {rank1 && <TopRankItem student={rank1} rank={1} />}
+          {rank2 && <TopRankItem student={rank2} rank={2} />}
           {rank3 && <TopRankItem student={rank3} rank={3} />}
         </div>
       )}

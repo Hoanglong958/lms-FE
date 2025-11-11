@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useParams, useNavigate, Link, useOutletContext } from "react-router-dom";
 import { courseService, lessonService } from "@utils/courseService.js";
+import AdminHeader from "@components/Admin/AdminHeader";
 import styles from "./ManageLessons.module.css";
 
 /**
@@ -8,14 +9,13 @@ import styles from "./ManageLessons.module.css";
  * Component con quản lý Bài học (Lesson)
  * ============================================
  */
-function LessonManager({ sectionId }) {
+function LessonManager({ sectionId, onSelectLesson, selectedLessonId, onLessonsChange }) {
   const [lessons, setLessons] = useState(() =>
     lessonService.getLessonsBySectionId(sectionId)
   );
 
   const [showModal, setShowModal] = useState(false);
-  const [editingLesson, setEditingLesson] = useState(null); // ✅ NEW
-  const [viewLesson, setViewLesson] = useState(null); // ✅ NEW
+  const [editingLesson, setEditingLesson] = useState(null);
 
   const [formData, setFormData] = useState({
     title: "",
@@ -24,8 +24,16 @@ function LessonManager({ sectionId }) {
     content: {},
   });
 
-  const refreshLessons = () => {
+  useEffect(() => {
     setLessons(lessonService.getLessonsBySectionId(sectionId));
+  }, [sectionId]);
+
+  const refreshLessons = (options = { preserveSelection: false }) => {
+    const updatedLessons = lessonService.getLessonsBySectionId(sectionId);
+    setLessons(updatedLessons);
+    if (onLessonsChange) {
+      onLessonsChange(sectionId, updatedLessons, options);
+    }
   };
 
   const handleAddLesson = () => {
@@ -69,7 +77,7 @@ function LessonManager({ sectionId }) {
       });
     }
 
-    refreshLessons();
+    refreshLessons({ preserveSelection: true });
     setShowModal(false);
   };
 
@@ -80,47 +88,44 @@ function LessonManager({ sectionId }) {
     }
   };
 
-  const handleViewLesson = (lesson) => {
-    setViewLesson(lesson);
-  };
-
   return (
     <>
       <ul className={styles.lessonList}>
         {lessons.map((lesson) => (
-          <li key={lesson.id}>
-            <span
-              onClick={() => handleViewLesson(lesson)}
-              className={styles.lessonTitle}
+          <li
+            key={lesson.id}
+            className={`${styles.lessonListItem} ${
+              selectedLessonId === lesson.id ? styles.lessonListItemActive : ""
+            }`}
+          >
+            <button
+              type="button"
+              onClick={() => onSelectLesson?.(lesson)}
+              className={styles.lessonTitleButton}
             >
-              {lesson.title}{" "}
+              <span className={styles.lessonTitle}>{lesson.title}</span>
               <span
-                className={styles.lessonTypeLabel}
-                style={{
-                  backgroundColor:
-                    lesson.type === "video"
-                      ? "#007bff"
-                      : lesson.type === "document"
-                      ? "#28a745"
-                      : "#ff8800",
-                  color: "white",
-                  padding: "2px 6px",
-                  borderRadius: "4px",
-                  fontSize: "0.75rem",
-                  marginLeft: "8px",
-                }}
+                className={`${styles.lessonTypeBadge} ${
+                  lesson.type === "video"
+                    ? styles.badgeVideo
+                    : lesson.type === "document"
+                    ? styles.badgeDocument
+                    : styles.badgeQuiz
+                }`}
               >
                 {lesson.type.toUpperCase()}
               </span>
-            </span>
+            </button>
             <div className={styles.lessonActions}>
               <button
+                type="button"
                 onClick={() => handleEditLesson(lesson)}
                 className={styles.edit}
               >
                 Sửa
               </button>
               <button
+                type="button"
                 onClick={() => handleDeleteLesson(lesson.id)}
                 className={styles.delete}
               >
@@ -135,85 +140,6 @@ function LessonManager({ sectionId }) {
           </button>
         </li>
       </ul>
-
-      {/* ✅ NEW - MODAL XEM CHI TIẾT */}
-      {viewLesson && (
-        <div className={styles.modalOverlay}>
-          <div className={styles.modalContent}>
-            <h2>{viewLesson.title}</h2>
-            <p>
-              <strong>Mô tả:</strong> {viewLesson.description || "Không có"}
-            </p>
-
-            {viewLesson.type === "video" && viewLesson.content?.videoUrl && (
-              <div className={styles.videoWrapper}>
-                <p>
-                  <strong>Video:</strong>
-                </p>
-                {/* Tự động nhúng YouTube nếu là link youtube, còn không thì hiển thị link */}
-                {viewLesson.content.videoUrl.includes("youtube.com") ||
-                viewLesson.content.videoUrl.includes("youtu.be") ? (
-                  <iframe
-                    width="480"
-                    height="270"
-                    src={viewLesson.content.videoUrl
-                      .replace("watch?v=", "embed/")
-                      .replace("youtu.be/", "www.youtube.com/embed/")}
-                    title="Video bài học"
-                    frameBorder="0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                  ></iframe>
-                ) : (
-                  <a href={viewLesson.content.videoUrl} target="_blank">
-                    {viewLesson.content.videoUrl}
-                  </a>
-                )}
-              </div>
-            )}
-
-            {viewLesson.type === "document" &&
-              viewLesson.content?.sections?.length > 0 && (
-                <div>
-                  <h4>Nội dung tài liệu:</h4>
-                  {viewLesson.content.sections.map((s) => (
-                    <div key={s.id} className={styles.subSection}>
-                      <h5>{s.title}</h5>
-                      <p>{s.content}</p>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-            {viewLesson.type === "quiz" &&
-              viewLesson.content?.questions?.length > 0 && (
-                <div>
-                  <h4>Câu hỏi trắc nghiệm:</h4>
-                  {viewLesson.content.questions.map((q) => (
-                    <div key={q.id} className={styles.quizItem}>
-                      <p>
-                        <strong>Q:</strong> {q.question}
-                      </p>
-                      <p>
-                        <strong>A:</strong> {q.answer}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-            <div className={styles.formActions}>
-              <button
-                onClick={() => setViewLesson(null)}
-                className={styles.btn}
-              >
-                Đóng
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* MODAL THÊM / SỬA BÀI HỌC */}
       {showModal && (
         <div className={styles.modalOverlay}>
@@ -410,27 +336,218 @@ function QuizForm({ formData, setFormData }) {
  * ============================================
  */
 export default function ManageLessons() {
-  const { courseId } = useParams();
+  const { courseSlug } = useParams();
   const navigate = useNavigate();
 
   const [sections, setSections] = useState([]);
   const [course, setCourse] = useState(null);
+  const [selectedLesson, setSelectedLesson] = useState(null);
+  const [expandedSections, setExpandedSections] = useState([]);
 
   const [showModal, setShowModal] = useState(false);
   const [currentSection, setCurrentSection] = useState(null);
   const [formData, setFormData] = useState({ title: "" });
 
-  useEffect(() => {
-    if (courseId) {
-      const foundCourse = courseService.getCourseById(courseId);
-      if (foundCourse) {
-        setCourse(foundCourse);
-        setSections(lessonService.getSectionsByCourseId(courseId));
-      } else {
-        navigate("/admin/courses");
+  const courseId = course?.id;
+
+  const findFirstLesson = (sectionData) => {
+    for (const section of sectionData) {
+      const lessons = lessonService.getLessonsBySectionId(section.id);
+      if (lessons.length) {
+        return { section, lesson: lessons[0] };
       }
     }
-  }, [courseId, navigate]);
+    return null;
+  };
+
+  const computeNextSelection = (sectionData, prevSelected) => {
+    if (!sectionData.length) return null;
+
+    if (prevSelected?.section?.id) {
+      const matchedSection = sectionData.find(
+        (section) => section.id === prevSelected.section.id
+      );
+      if (matchedSection) {
+        const lessons = lessonService.getLessonsBySectionId(matchedSection.id);
+        if (!lessons.length) {
+          return findFirstLesson(sectionData);
+        }
+
+        const matchedLesson = lessons.find(
+          (lesson) => lesson.id === prevSelected.lesson.id
+        );
+        if (matchedLesson) {
+          return { section: matchedSection, lesson: matchedLesson };
+        }
+
+        return { section: matchedSection, lesson: lessons[0] };
+      }
+    }
+
+    return findFirstLesson(sectionData);
+  };
+
+  const syncSections = (prevSelected, targetCourseId) => {
+    const effectiveCourseId = targetCourseId ?? courseId;
+    if (!effectiveCourseId) return;
+
+    const nextSections = lessonService.getSectionsByCourseId(effectiveCourseId);
+    setSections(nextSections);
+
+    const nextSelection = computeNextSelection(nextSections, prevSelected);
+    setSelectedLesson(nextSelection);
+
+    setExpandedSections((prev) => {
+      const valid = prev.filter((id) =>
+        nextSections.some((section) => section.id === id)
+      );
+
+      if (nextSelection?.section?.id && !valid.includes(nextSelection.section.id)) {
+        valid.push(nextSelection.section.id);
+      }
+
+      return valid;
+    });
+  };
+
+  const handleLessonsChange = () => {
+    syncSections(selectedLesson);
+  };
+
+  const handleSelectLesson = (section, lesson) => {
+    setSelectedLesson({ section, lesson });
+    setExpandedSections((prev) =>
+      prev.includes(section.id) ? prev : [...prev, section.id]
+    );
+  };
+
+  const handleToggleSection = (sectionId) => {
+    setExpandedSections((prev) =>
+      prev.includes(sectionId)
+        ? prev.filter((id) => id !== sectionId)
+        : [...prev, sectionId]
+    );
+  };
+
+  const formatTypeLabel = (type) => {
+    switch (type) {
+      case "video":
+        return "Video";
+      case "document":
+        return "Document";
+      case "quiz":
+        return "Quiz";
+      default:
+        return type;
+    }
+  };
+
+  const renderLessonContent = (lesson) => {
+    if (!lesson) return null;
+
+    if (lesson.type === "video") {
+      const videoUrl = lesson.content?.videoUrl;
+
+      if (!videoUrl) {
+        return <p className={styles.detailEmptyContent}>Chưa có video cho bài học này.</p>;
+      }
+
+      const isYoutube =
+        videoUrl.includes("youtube.com") || videoUrl.includes("youtu.be");
+
+      const embedUrl = isYoutube
+        ? videoUrl
+            .replace("watch?v=", "embed/")
+            .replace("youtu.be/", "www.youtube.com/embed/")
+        : videoUrl;
+
+      return (
+        <div className={styles.detailVideo}>
+          {isYoutube ? (
+            <iframe
+              src={embedUrl}
+              title={lesson.title}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          ) : (
+            <a href={videoUrl} target="_blank" rel="noreferrer">
+              Xem video
+            </a>
+          )}
+        </div>
+      );
+    }
+
+    if (lesson.type === "document") {
+      const sections = lesson.content?.sections || [];
+
+      if (!sections.length) {
+        return (
+          <p className={styles.detailEmptyContent}>
+            Chưa có nội dung tài liệu được thêm vào.
+          </p>
+        );
+      }
+
+      return (
+        <div className={styles.detailDocument}>
+          {sections.map((section) => (
+            <div key={section.id} className={styles.detailDocumentItem}>
+              <h4>{section.title}</h4>
+              <p>{section.content}</p>
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    if (lesson.type === "quiz") {
+      const questions = lesson.content?.questions || [];
+
+      if (!questions.length) {
+        return (
+          <p className={styles.detailEmptyContent}>
+            Chưa có câu hỏi nào trong bài quiz này.
+          </p>
+        );
+      }
+
+      return (
+        <div className={styles.detailQuiz}>
+          {questions.map((question) => (
+            <div key={question.id} className={styles.detailQuizItem}>
+              <p>
+                <strong>Câu hỏi:</strong> {question.question}
+              </p>
+              <p>
+                <strong>Đáp án:</strong> {question.answer}
+              </p>
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    return (
+      <p className={styles.detailEmptyContent}>
+        Loại bài học này chưa được hỗ trợ hiển thị chi tiết.
+      </p>
+    );
+  };
+
+  useEffect(() => {
+    if (!courseSlug) return;
+
+    const foundCourse = courseService.getCourseBySlug(courseSlug);
+    if (foundCourse) {
+      setCourse(foundCourse);
+      syncSections(null, foundCourse.id);
+    } else {
+      navigate("/admin/courses");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [courseSlug, navigate]);
 
   const handleDeleteSection = (sectionId) => {
     if (
@@ -439,7 +556,7 @@ export default function ManageLessons() {
       )
     ) {
       lessonService.deleteSection(sectionId);
-      setSections(lessonService.getSectionsByCourseId(courseId));
+      syncSections(selectedLesson);
     }
   };
 
@@ -460,13 +577,14 @@ export default function ManageLessons() {
     if (currentSection) {
       lessonService.updateSection({ ...currentSection, ...formData });
     } else {
-      lessonService.addSection({ courseId: courseId, ...formData });
+      if (!courseId) return;
+      lessonService.addSection({ courseId, ...formData });
     }
-    setSections(lessonService.getSectionsByCourseId(courseId));
+    syncSections(selectedLesson);
     setShowModal(false);
   };
 
-  if (!courseId) {
+  if (!courseSlug) {
     return (
       <div className={styles.page}>
         <h1>Phân học & Bài học</h1>
@@ -486,49 +604,143 @@ export default function ManageLessons() {
     );
   }
 
+  const activeBadgeClass =
+    selectedLesson?.lesson?.type === "video"
+      ? styles.badgeVideo
+      : selectedLesson?.lesson?.type === "document"
+      ? styles.badgeDocument
+      : selectedLesson?.lesson?.type === "quiz"
+      ? styles.badgeQuiz
+      : "";
+
+  const { toggleSidebar } = useOutletContext() || {};
+
   return (
     <div className={styles.page}>
-      <div className={styles.header}>
-        <div>
-          <Link to="/admin/courses" className={styles.backLink}>
-            &larr; Quay lại danh sách khóa học
-          </Link>
-          <h1>Quản lý nội dung cho: {course.title}</h1>
-        </div>
-        <button
-          onClick={handleAddSection}
-          className={`${styles.btn} ${styles.btnPrimary}`}
-        >
-          Thêm Phân học
-        </button>
-      </div>
+      <AdminHeader
+        title={`Quản lý nội dung cho: ${course.title}`}
+        onMenuToggle={toggleSidebar}
+        actions={
+          <button
+            onClick={handleAddSection}
+            className={`${styles.btn} ${styles.btnPrimary}`}
+          >
+            Thêm Phân học
+          </button>
+        }
+      />
 
-      <div className={styles.sectionList}>
-        {sections.map((section) => (
-          <div key={section.id} className={styles.sectionItem}>
-            <div className={styles.sectionHeader}>
-              <h3>{section.title}</h3>
-              <div className={styles.sectionActions}>
-                <button
-                  onClick={() => handleEditSection(section)}
-                  className={`${styles.btn} ${styles.btnEdit}`}
+      <div className={styles.contentLayout}>
+        <aside className={styles.contentSidebar}>
+          <div className={styles.sectionList}>
+            {sections.map((section) => {
+              const isExpanded = expandedSections.includes(section.id);
+              const lessonCount =
+                lessonService.getLessonsBySectionId(section.id).length;
+              return (
+                <div
+                  key={section.id}
+                  className={`${styles.sectionPanel} ${
+                    isExpanded ? styles.sectionPanelExpanded : ""
+                  }`}
                 >
-                  Sửa
-                </button>
-                <button
-                  onClick={() => handleDeleteSection(section.id)}
-                  className={`${styles.btn} ${styles.btnDelete}`}
+                  <div className={styles.sectionPanelHeader}>
+                    <button
+                      type="button"
+                      className={styles.sectionToggle}
+                      onClick={() => handleToggleSection(section.id)}
+                    >
+                      <div className={styles.sectionToggleInfo}>
+                        <span className={styles.sectionName}>
+                          {section.title}
+                        </span>
+                        <span className={styles.sectionMeta}>
+                          {lessonCount} bài học
+                        </span>
+                      </div>
+                      <span className={styles.sectionChevron}>
+                        {isExpanded ? "▾" : "▸"}
+                      </span>
+                    </button>
+                    <div className={styles.sectionActions}>
+                      <button
+                        type="button"
+                        onClick={() => handleEditSection(section)}
+                        className={styles.sectionActionButton}
+                      >
+                        Sửa
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteSection(section.id)}
+                        className={`${styles.sectionActionButton} ${styles.sectionActionDelete}`}
+                      >
+                        Xóa
+                      </button>
+                    </div>
+                  </div>
+
+                  {isExpanded && (
+                    <LessonManager
+                      sectionId={section.id}
+                      onSelectLesson={(lesson) =>
+                        handleSelectLesson(section, lesson)
+                      }
+                      selectedLessonId={selectedLesson?.lesson?.id}
+                      onLessonsChange={handleLessonsChange}
+                    />
+                  )}
+                </div>
+              );
+            })}
+
+            {sections.length === 0 && (
+              <div className={styles.sectionEmpty}>
+                <p>Chưa có phân học nào. Hãy thêm một phân học mới.</p>
+              </div>
+            )}
+          </div>
+        </aside>
+
+        <section className={styles.contentDetail}>
+          {selectedLesson ? (
+            <div className={styles.detailWrapper}>
+              <div className={styles.detailHeader}>
+                <div>
+                  <span className={styles.detailSectionLabel}>
+                    {selectedLesson.section.title}
+                  </span>
+                  <h2 className={styles.detailTitle}>
+                    {selectedLesson.lesson.title}
+                  </h2>
+                </div>
+                <span
+                  className={`${styles.lessonTypeBadge} ${activeBadgeClass}`}
                 >
-                  Xóa
-                </button>
+                  {formatTypeLabel(selectedLesson.lesson.type)}
+                </span>
+              </div>
+
+              {selectedLesson.lesson.description && (
+                <p className={styles.detailDescription}>
+                  {selectedLesson.lesson.description}
+                </p>
+              )}
+
+              <div className={styles.detailBody}>
+                {renderLessonContent(selectedLesson.lesson)}
               </div>
             </div>
-            <LessonManager sectionId={section.id} />
-          </div>
-        ))}
-        {sections.length === 0 && (
-          <p>Chưa có phân học nào. Hãy thêm một phân học mới.</p>
-        )}
+          ) : (
+            <div className={styles.detailPlaceholder}>
+              <h3>Chọn một bài học để xem chi tiết</h3>
+              <p>
+                Hãy chọn một bài học từ danh sách bên trái để xem nội dung, mô
+                tả và tài liệu đính kèm.
+              </p>
+            </div>
+          )}
+        </section>
       </div>
 
       {showModal && (

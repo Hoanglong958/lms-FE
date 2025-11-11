@@ -82,3 +82,46 @@ ol {
   background-color: rgba(0, 0, 0, 0.2);
   border-radius: 4px;
 }
+
+/* === RESPONSIVE === */
+
+/* Sidebar overlay cho mobile */
+.admin-sidebar-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  transition: opacity 0.3s ease;
+}
+
+@media (max-width: 640px) {
+  .admin-sidebar-overlay {
+    display: block;
+  }
+
+  .admin-layout {
+    flex-direction: column;
+  }
+
+  .admin-main {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .admin-content {
+    padding: 1rem;
+    padding-top: 1rem;
+  }
+}
+
+/* Tablet / iPad (641px - 1024px) */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .admin-content {
+    padding: 1.5rem;
+    padding-top: 1.5rem;
+  }
+}

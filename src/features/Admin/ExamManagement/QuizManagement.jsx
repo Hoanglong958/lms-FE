@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import "./QuizManagement.css";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useOutletContext } from "react-router-dom";
 import AdminHeader from "@components/Admin/AdminHeader";
 
 export default function QuizManagement() {
@@ -68,11 +68,13 @@ export default function QuizManagement() {
     navigate(`/admin/quiz/${quiz.id}/report`);
   };
 
+  const { toggleSidebar } = useOutletContext() || {};
+
   return (
     <div className="quiz-management-container">
       <AdminHeader
         title="Quản lý Quiz"
-        breadcrumb={<span>Admin / Quizzes</span>}
+        onMenuToggle={toggleSidebar}
         actions={
           <div className="quiz-header-actions">
             <button

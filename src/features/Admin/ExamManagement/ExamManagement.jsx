@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import "./ExamManagement.css";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useOutletContext } from "react-router-dom";
 import AdminHeader from "@components/Admin/AdminHeader";
 
 export default function ExamManagement() {
@@ -82,12 +82,14 @@ export default function ExamManagement() {
     }
   };
 
+  const { toggleSidebar } = useOutletContext() || {};
+
   return (
     <div className="exam-management-container">
       {/* --- HEADER --- */}
       <AdminHeader
         title="Quản lý bài kiểm tra"
-        breadcrumb={<span>Admin / Exam</span>}
+        onMenuToggle={toggleSidebar}
         actions={
           <div className="exam-header-buttons">
           <button className="exam-btn bank" onClick={handleQuestionBank}>

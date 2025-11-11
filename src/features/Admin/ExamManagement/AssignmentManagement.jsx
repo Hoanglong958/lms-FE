@@ -92,11 +92,14 @@ export default function AssignmentManagement() {
     },
   ];
 
+  const { toggleSidebar } = useOutletContext() || {};
+
   return (
     <div className="assignment-container">
       <AdminHeader
         title="Danh sách bài tập và bài nộp học viên"
         breadcrumb={<span>Admin / Assignment Management</span>}
+        onMenuToggle={toggleSidebar}
       />
 
       {/* Thống kê */}

@@ -2,16 +2,18 @@
 // (SỬA LẠI ĐỂ TRUYỀN TABS VÀO ACTIONS)
 
 import React from "react";
-import { NavLink, Outlet } from "react-router-dom";
+import { NavLink, Outlet, useOutletContext } from "react-router-dom";
 import AdminHeader from "@components/Admin/AdminHeader";
 import "./Dashboard.css"; // Import file CSS chung
 
 const DashboardPage = () => {
+  const { toggleSidebar } = useOutletContext() || {};
+
   return (
     <div className="dashboard-main">
       <AdminHeader
         title="Dashboard"
-        breadcrumb={<span>Admin / Dashboard</span>}
+        onMenuToggle={toggleSidebar}
         actions={
           // Dùng class "dashboard-nav-in-header"
           <nav className="dashboard-nav-in-header">

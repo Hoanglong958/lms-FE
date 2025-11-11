@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useOutletContext } from "react-router-dom";
 import { courseService } from "@utils/courseService.js";
 import styles from "./ManageCourses.module.css";
 import AdminHeader from "@components/Admin/AdminHeader"; // chỉ chỉnh import header
@@ -19,7 +19,7 @@ function CourseRow({ course, onEdit, onDelete }) {
     <tr className={styles.tableRow}>
       <td className={styles.colTitle}>
         <Link
-          to={`/admin/courses/part/${course.id}`}
+          to={`/admin/courses/part/${course.slug}`}
           className={styles.titleLink}
         >
           {course.title}
@@ -131,12 +131,14 @@ export default function ManageCourses() {
     return matchesPaid && matchesSearch;
   });
 
+  const { toggleSidebar } = useOutletContext() || {};
+
   return (
     <div className={styles.page}>
       {/* Header của page */}
       <AdminHeader
         title="Quản lý khóa học"
-        breadcrumb={<span>Admin / Courses</span>}
+        onMenuToggle={toggleSidebar}
         actions={
           <button
             onClick={handleAdd}

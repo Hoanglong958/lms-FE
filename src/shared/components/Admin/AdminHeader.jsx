@@ -2,6 +2,7 @@
 // (PHIÊN BẢN NÂNG CẤP)
 
 import React from "react";
+import Breadcrumb from "@components/common/Breadcrumb";
 // Import file CSS của nó
 import "./AdminHeader.css";
 
@@ -9,15 +10,32 @@ import "./AdminHeader.css";
 export default function AdminHeader({
   title,
   subtitle, // <-- Thêm prop này
-  breadcrumb,
+  breadcrumb, // Có thể là customItems array hoặc null để dùng auto
   actions,
+  onMenuToggle, // Callback để toggle sidebar
 }) {
+  // Luôn render button, CSS sẽ điều khiển việc hiển thị
   return (
     // Dùng class .admin-header
     <header className="admin-header">
       {/* CỘT BÊN TRÁI (chứa title, subtitle, breadcrumb) */}
       <div className="admin-header-left">
-        {breadcrumb && <nav className="admin-breadcrumb">{breadcrumb}</nav>}
+        {/* Hamburger menu button cho mobile - luôn render, CSS sẽ ẩn/hiện */}
+        <button
+          className="admin-menu-toggle"
+          onClick={onMenuToggle || (() => {})}
+          aria-label="Toggle menu"
+          type="button"
+          title="Menu"
+        >
+          <span className="hamburger-icon">
+            <span></span>
+            <span></span>
+            <span></span>
+          </span>
+        </button>
+        {/* Sử dụng Breadcrumb component động */}
+        <Breadcrumb customItems={breadcrumb} />
         {title && <h1 className="admin-title">{title}</h1>}
 
         {/* Thêm 'subtitle' vào đây */}
@@ -34,6 +52,6 @@ export default function AdminHeader({
 AdminHeader.defaultProps = {
   title: "",
   subtitle: null, // <-- Thêm
-  breadcrumb: null,
+  breadcrumb: null, // null = tự động, hoặc array customItems
   actions: null,
 };

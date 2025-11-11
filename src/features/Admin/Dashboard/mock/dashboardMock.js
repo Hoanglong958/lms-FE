@@ -3,7 +3,7 @@
  */
 export const overviewStatCardsRow1 = [
   {
-    title: "Tổng người dùng",
+    title: "Tổng số học viên",
     value: "2,847",
     change: "+12% (+342 so với tháng trước)",
   },
@@ -45,7 +45,7 @@ export const overviewStatCardsRow2 = [
     change: "+12%",
   },
   {
-    title: "Thời gian học TB",
+    title: "Thời gian học trung bình ngày",
     value: "4.2h",
     change: "-0.3h",
   },
@@ -154,7 +154,120 @@ export const newUsersData = [
     role: "Học viên",
     date: "7/11/2025",
   },
+  {
+    id: "U005",
+    name: "Võ Minh E",
+    email: "vominhe@email.com",
+    role: "Học viên",
+    date: "6/11/2025",
+  },
+  {
+    id: "U006",
+    name: "Hoàng Thị F",
+    email: "hoangthif@email.com",
+    role: "Học viên",
+    date: "6/11/2025",
+  },
+  {
+    id: "U007",
+    name: "Đinh Văn G",
+    email: "dinhvang@email.com",
+    role: "Giảng viên",
+    date: "6/11/2025",
+  },
+  {
+    id: "U008",
+    name: "Phan Thị H",
+    email: "phanthih@email.com",
+    role: "Học viên",
+    date: "5/11/2025",
+  },
+  {
+    id: "U009",
+    name: "Ngô Văn I",
+    email: "ngovani@email.com",
+    role: "Học viên",
+    date: "5/11/2025",
+  },
+  {
+    id: "U010",
+    name: "Đặng Thị K",
+    email: "dangthik@email.com",
+    role: "Học viên",
+    date: "5/11/2025",
+  },
+  {
+    id: "U011",
+    name: "Bùi Văn L",
+    email: "buivanl@email.com",
+    role: "Giảng viên",
+    date: "4/11/2025",
+  },
+  {
+    id: "U012",
+    name: "Trịnh Thị M",
+    email: "trinhthim@email.com",
+    role: "Học viên",
+    date: "4/11/2025",
+  },
+  {
+    id: "U013",
+    name: "Đoàn Văn N",
+    email: "doann@email.com",
+    role: "Học viên",
+    date: "3/11/2025",
+  },
+  {
+    id: "U014",
+    name: "Lý Thị O",
+    email: "lythio@email.com",
+    role: "Giảng viên",
+    date: "3/11/2025",
+  },
+  {
+    id: "U015",
+    name: "Nguyễn Văn P",
+    email: "nguyenvanp@email.com",
+    role: "Học viên",
+    date: "3/11/2025",
+  },
+  {
+    id: "U016",
+    name: "Trần Thị Q",
+    email: "tranthiq@email.com",
+    role: "Học viên",
+    date: "2/11/2025",
+  },
+  {
+    id: "U017",
+    name: "Phạm Văn R",
+    email: "phamvanr@email.com",
+    role: "Giảng viên",
+    date: "2/11/2025",
+  },
+  {
+    id: "U018",
+    name: "Vũ Thị S",
+    email: "vuthis@email.com",
+    role: "Học viên",
+    date: "1/11/2025",
+  },
+  {
+    id: "U019",
+    name: "Lâm Văn T",
+    email: "lamvant@email.com",
+    role: "Học viên",
+    date: "1/11/2025",
+  },
+  {
+    id: "U020",
+    name: "Trương Thị U",
+    email: "truongthiu@email.com",
+    role: "Giảng viên",
+    date: "1/11/2025",
+  },
 ];
+
 
 /**
  * Bảng: Khóa học mới tạo

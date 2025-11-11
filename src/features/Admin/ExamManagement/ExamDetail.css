@@ -313,3 +313,158 @@
   }
 }
 
+/* === RESPONSIVE === */
+
+/* Mobile (max-width: 640px) */
+@media (max-width: 640px) {
+  .exam-detail-container {
+    padding: 1rem;
+  }
+
+  .exam-detail-header h2 {
+    font-size: 1.25rem;
+  }
+
+  .exam-detail-header p {
+    font-size: 0.875rem;
+  }
+
+  .exam-export-btn {
+    width: 100%;
+    padding: 0.75rem 1rem;
+  }
+
+  .exam-detail-stats {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .exam-stat-card {
+    padding: 1rem;
+  }
+
+  .exam-stat-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+    margin-right: 0.875rem;
+  }
+
+  .exam-stat-info h4 {
+    font-size: 0.8125rem;
+  }
+
+  .exam-stat-info p {
+    font-size: 1rem;
+  }
+
+  .exam-progress-overview {
+    padding: 1rem;
+  }
+
+  .exam-progress-overview h3 {
+    font-size: 1rem;
+  }
+
+  .exam-search-container {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .exam-search-input {
+    width: 100%;
+  }
+
+  .exam-filter {
+    width: 100%;
+  }
+
+  .exam-table {
+    font-size: 0.8125rem;
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .exam-table th,
+  .exam-table td {
+    padding: 0.75rem 0.875rem;
+    min-width: 120px;
+  }
+
+  .exam-submission-list {
+    padding: 1rem;
+  }
+
+  .exam-submission-list h3 {
+    font-size: 1rem;
+  }
+
+  .exam-detail-view {
+    padding: 1rem;
+    margin-top: 1rem;
+  }
+
+  .exam-detail-view h3 {
+    font-size: 1rem;
+  }
+
+  .exam-question h4 {
+    font-size: 0.9375rem;
+  }
+
+  .exam-option {
+    padding: 0.625rem 0.875rem;
+    font-size: 0.875rem;
+  }
+}
+
+/* Tablet / iPad (641px - 1024px) */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .exam-detail-container {
+    padding: 1.5rem;
+  }
+
+  .exam-detail-stats {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+
+  .exam-stat-card {
+    padding: 1.25rem;
+  }
+
+  .exam-progress-overview {
+    padding: 1.5rem;
+  }
+
+  .exam-search-container {
+    flex-wrap: wrap;
+  }
+
+  .exam-search-input {
+    flex: 1 1 200px;
+  }
+
+  .exam-filter {
+    flex: 0 1 150px;
+  }
+
+  .exam-table {
+    font-size: 0.875rem;
+  }
+
+  .exam-table th,
+  .exam-table td {
+    padding: 0.875rem 1rem;
+  }
+
+  .exam-submission-list {
+    padding: 1.5rem;
+  }
+
+  .exam-detail-view {
+    padding: 1.5rem;
+  }
+}
+
