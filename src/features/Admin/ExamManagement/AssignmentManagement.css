@@ -1,9 +1,10 @@
 .assignment-container {
-  padding: 20px;
   background: #fafafa;
   color: #333;
 }
-
+.assignment-page {
+  padding: 20px;
+}
 .assignment-header h2 {
   font-size: 22px;
   font-weight: 600;

@@ -1,10 +1,11 @@
 /* --- Container chính --- */
 .quiz-management-container {
-  padding: 24px;
   background-color: #f8fafc;
   font-family: "Inter", sans-serif;
 }
-
+.quiz-content-page {
+  padding: 24px;
+}
 /* --- Header --- */
 .quiz-header {
   display: flex;
