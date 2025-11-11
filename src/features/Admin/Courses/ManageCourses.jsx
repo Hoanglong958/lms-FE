@@ -11,71 +11,49 @@ const initialFormData = {
   isPrerequisite: false,
 };
 
-// Component Card Khóa học (dùng nội bộ)
-function CourseCard({ course, onEdit, onDelete }) {
-  const [menuOpen, setMenuOpen] = useState(false);
+// Component dòng khóa học (table row)
+function CourseRow({ course, onEdit, onDelete }) {
   const isPublic = !course.isPrerequisite;
 
   return (
-    <div className={styles.courseCard}>
-      {/* Nút Sửa/Xóa (dấu "...") */}
-      <div className={styles.cardActions}>
-        <button
-          onClick={() => setMenuOpen(!menuOpen)}
-          className={styles.actionMenuBtn}
-        >
-          ...
-        </button>
-        {menuOpen && (
-          <div className={styles.actionMenuDropdown}>
-            <a
-              onClick={() => {
-                onEdit();
-                setMenuOpen(false);
-              }}
-            >
-              Sửa khóa học
-            </a>
-            <a
-              onClick={() => {
-                onDelete();
-                setMenuOpen(false);
-              }}
-              className={styles.deleteAction}
-            >
-              Xóa khóa học
-            </a>
-          </div>
-        )}
-      </div>
-
-      {/* ẢNH BÌA (placeholder) VÀ LINK ĐẾN TRANG PART */}
-      <Link
-        to={`/admin/courses/part/${course.id}`}
-        className={styles.cardImageLink}
-      >
-        <div className={styles.cardImagePlaceholder}>📊</div>
-      </Link>
-
-      {/* NỘI DUNG CARD VÀ LINK ĐẾN TRANG PART */}
-      <div className={styles.cardContent}>
+    <tr className={styles.tableRow}>
+      <td className={styles.colTitle}>
         <Link
           to={`/admin/courses/part/${course.id}`}
-          className={styles.cardTitleLink}
+          className={styles.titleLink}
         >
-          <h3 className={styles.cardTitle}>{course.title}</h3>
+          {course.title}
         </Link>
-        <div className={styles.cardTags}>
-          <span
-            className={`${styles.cardTag} ${
-              isPublic ? styles.tagPublic : styles.tagRequired
-            }`}
+      </td>
+      <td className={styles.colDesc}>{course.description || "—"}</td>
+      <td className={styles.colType}>
+        <span
+          className={`${styles.cardTag} ${
+            isPublic ? styles.tagPublic : styles.tagRequired
+          }`}
+        >
+          {isPublic ? "Miễn phí" : "Trả phí"}
+        </span>
+      </td>
+      <td className={styles.colActions}>
+        <div className={styles.rowActions}>
+          <button
+            type="button"
+            className={`${styles.actionBtn} ${styles.actionBtnSecondary}`}
+            onClick={onEdit}
           >
-            {isPublic ? "Tùy chọn" : "Bắt buộc"}
-          </span>
+            Sửa
+          </button>
+          <button
+            type="button"
+            className={`${styles.actionBtn} ${styles.actionBtnDanger}`}
+            onClick={onDelete}
+          >
+            Xóa
+          </button>
         </div>
-      </div>
-    </div>
+      </td>
+    </tr>
   );
 }
 
@@ -85,6 +63,8 @@ export default function ManageCourses() {
   const [showModal, setShowModal] = useState(false);
   const [currentCourse, setCurrentCourse] = useState(null);
   const [formData, setFormData] = useState(initialFormData);
+  const [filterPaid, setFilterPaid] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
 
   // --- Các hàm xử lý ---
   const handleInputChange = (e) => {
@@ -133,6 +113,24 @@ export default function ManageCourses() {
   const totalStudents = 1690;
   const avgProgress = 67;
 
+  // --- Lọc theo học phí (miễn phí / trả phí) ---
+  const normalizedSearch = searchTerm.trim().toLowerCase();
+  const displayedCourses = courses.filter((course) => {
+    const matchesPaid =
+      filterPaid === ""
+        ? true
+        : filterPaid === "paid"
+        ? !!course.isPrerequisite
+        : !course.isPrerequisite;
+    const matchesSearch =
+      normalizedSearch === ""
+        ? true
+        : [course.title, course.description]
+            .filter(Boolean)
+            .some((field) => field.toLowerCase().includes(normalizedSearch));
+    return matchesPaid && matchesSearch;
+  });
+
   return (
     <div className={styles.page}>
       {/* Header của page */}
@@ -149,119 +147,150 @@ export default function ManageCourses() {
         }
       />
 
-      {/* 4 Thẻ thống kê */}
-      <div className={styles.statsGrid}>
-        <div className={styles.statCard}>
-          <div className={`${styles.statIcon} ${styles.iconBgOrange}`}>📚</div>
-          <div className={styles.statInfo}>
-            <p>Tổng khóa học</p>
-            <span>{totalCourses}</span>
+      <div className={styles.courseContentWrapper}>
+        {/* 4 Thẻ thống kê */}
+        <div className={styles.statsGrid}>
+          <div className={styles.statCard}>
+            <div className={`${styles.statIcon} ${styles.iconBgOrange}`}>
+              📚
+            </div>
+            <div className={styles.statInfo}>
+              <p>Tổng khóa học</p>
+              <span>{totalCourses}</span>
+            </div>
+          </div>
+          <div className={styles.statCard}>
+            <div className={`${styles.statIcon} ${styles.iconBgBlue}`}>👥</div>
+            <div className={styles.statInfo}>
+              <p>Tổng học viên</p>
+              <span>{totalStudents.toLocaleString("vi-VN")}</span>
+            </div>
+          </div>
+          <div className={styles.statCard}>
+            <div className={`${styles.statIcon} ${styles.iconBgGreen}`}>📈</div>
+            <div className={styles.statInfo}>
+              <p>Tiến độ hoàn thành TB</p>
+              <span>{avgProgress}%</span>
+            </div>
+          </div>
+          <div className={styles.statCard}>
+            <div className={`${styles.statIcon} ${styles.iconBgYellow}`}>
+              🌍
+            </div>
+            <div className={styles.statInfo}>
+              <p>Khóa học miễn phí</p>
+              <span>{publicCourses}</span>
+            </div>
           </div>
         </div>
-        <div className={styles.statCard}>
-          <div className={`${styles.statIcon} ${styles.iconBgBlue}`}>👥</div>
-          <div className={styles.statInfo}>
-            <p>Tổng học viên</p>
-            <span>{totalStudents.toLocaleString("vi-VN")}</span>
-          </div>
-        </div>
-        <div className={styles.statCard}>
-          <div className={`${styles.statIcon} ${styles.iconBgGreen}`}>📈</div>
-          <div className={styles.statInfo}>
-            <p>Tiến độ TB</p>
-            <span>{avgProgress}%</span>
-          </div>
-        </div>
-        <div className={styles.statCard}>
-          <div className={`${styles.statIcon} ${styles.iconBgYellow}`}>🌍</div>
-          <div className={styles.statInfo}>
-            <p>Đã công khai</p>
-            <span>{publicCourses}</span>
-          </div>
-        </div>
-      </div>
 
-      {/* Thanh Tìm kiếm và Lọc */}
-      <div className={styles.filterBar}>
-        <div className={styles.searchInput}>
-          <input type="text" placeholder="🔍 Tìm kiếm khóa học..." />
-        </div>
-        <div className={styles.selectDropdown}>
-          <select>
-            <option value="">Tất cả danh mục ▼</option>
-          </select>
-        </div>
-      </div>
-
-      {/* Lưới các khóa học */}
-      <div className={styles.courseGrid}>
-        {courses.map((course) => (
-          <CourseCard
-            key={course.id}
-            course={course}
-            onEdit={() => handleEdit(course)}
-            onDelete={() => handleDelete(course.id)}
-          />
-        ))}
-      </div>
-
-      {/* Modal */}
-      {showModal && (
-        <div className={styles.modalOverlay}>
-          <div className={styles.modalContent}>
-            <h2>{currentCourse ? "Sửa khóa học" : "Thêm khóa học mới"}</h2>
-            <form onSubmit={handleSubmit}>
-              <div className={styles.formGroup}>
-                <label htmlFor="title">Tên khóa học</label>
-                <input
-                  type="text"
-                  id="title"
-                  name="title"
-                  value={formData.title}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-              <div className={styles.formGroup}>
-                <label htmlFor="description">Mô tả</label>
-                <textarea
-                  id="description"
-                  name="description"
-                  value={formData.description}
-                  onChange={handleInputChange}
-                />
-              </div>
-              <div className={`${styles.formGroup} ${styles.formGroupCheck}`}>
-                <input
-                  type="checkbox"
-                  id="isPrerequisite"
-                  name="isPrerequisite"
-                  checked={formData.isPrerequisite}
-                  onChange={handleInputChange}
-                />
-                <label htmlFor="isPrerequisite">
-                  Đây là khóa học bắt buộc (tiên quyết)?
-                </label>
-              </div>
-              <div className={styles.formActions}>
-                <button
-                  type="button"
-                  onClick={() => setShowModal(false)}
-                  className={styles.btn}
-                >
-                  Hủy
-                </button>
-                <button
-                  type="submit"
-                  className={`${styles.btn} ${styles.btnPrimary}`}
-                >
-                  Lưu
-                </button>
-              </div>
-            </form>
+        {/* Thanh Tìm kiếm và Lọc */}
+        <div className={styles.filterBar}>
+          <div className={styles.searchInput}>
+            <span className={styles.searchIcon}></span>
+            <input
+              type="text"
+              placeholder="Tìm kiếm khóa học..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              aria-label="Tìm kiếm khóa học"
+            />
+          </div>
+          <div className={styles.selectDropdown}>
+            <select
+              value={filterPaid}
+              onChange={(e) => setFilterPaid(e.target.value)}
+              aria-label="Lọc theo học phí"
+            >
+              <option value="">Tất cả khóa học ▼</option>
+              <option value="free">Miễn phí</option>
+              <option value="paid">Trả phí</option>
+            </select>
           </div>
         </div>
-      )}
+
+        {/* Danh sách khóa học dạng bảng */}
+        <div className={styles.tableWrapper}>
+          <table className={styles.courseTable}>
+            <thead>
+              <tr className={styles.tableHeader}>
+                <th className={styles.colTitle}>Tên khóa học</th>
+                <th className={styles.colDesc}>Mô tả</th>
+                <th className={styles.colType}>Loại</th>
+                <th className={styles.colActions}>Thao tác</th>
+              </tr>
+            </thead>
+            <tbody>
+              {displayedCourses.map((course) => (
+                <CourseRow
+                  key={course.id}
+                  course={course}
+                  onEdit={() => handleEdit(course)}
+                  onDelete={() => handleDelete(course.id)}
+                />
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Modal */}
+        {showModal && (
+          <div className={styles.modalOverlay}>
+            <div className={styles.modalContent}>
+              <h2>{currentCourse ? "Sửa khóa học" : "Thêm khóa học mới"}</h2>
+              <form onSubmit={handleSubmit}>
+                <div className={styles.formGroup}>
+                  <label htmlFor="title">Tên khóa học</label>
+                  <input
+                    type="text"
+                    id="title"
+                    name="title"
+                    value={formData.title}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+                <div className={styles.formGroup}>
+                  <label htmlFor="description">Mô tả</label>
+                  <textarea
+                    id="description"
+                    name="description"
+                    value={formData.description}
+                    onChange={handleInputChange}
+                  />
+                </div>
+                <div className={`${styles.formGroup} ${styles.formGroupCheck}`}>
+                  <input
+                    type="checkbox"
+                    id="isPrerequisite"
+                    name="isPrerequisite"
+                    checked={formData.isPrerequisite}
+                    onChange={handleInputChange}
+                  />
+                  <label htmlFor="isPrerequisite">
+                    Đây là khóa học trả phí?
+                  </label>
+                </div>
+                <div className={styles.formActions}>
+                  <button
+                    type="button"
+                    onClick={() => setShowModal(false)}
+                    className={styles.btn}
+                  >
+                    Hủy
+                  </button>
+                  <button
+                    type="submit"
+                    className={`${styles.btn} ${styles.btnPrimary}`}
+                  >
+                    Lưu
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
