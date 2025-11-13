@@ -1,5 +1,5 @@
 .admin-sidebar {
-  position: sticky ;
+  position: sticky;
   width: 250px;
   height: 100vh;
   background-color: #ffffff;
@@ -192,6 +192,41 @@
   margin: 0;
 }
 
+.admin-sidebar-logout {
+  margin-top: 12px;
+}
+
+.admin-sidebar-logout .logout-btn {
+  background-color: #ef4444; /* red */
+  color: #ffffff;
+  border: none;
+  box-shadow: 0 2px 6px rgba(239, 68, 68, 0.18);
+  transition: background-color 0.18s ease, transform 0.12s ease,
+    box-shadow 0.18s ease;
+}
+
+/* ensure icon stays visible on red */
+.admin-sidebar-logout .logout-btn i {
+  color: #ffffff;
+  transition: color 0.18s ease, transform 0.12s ease;
+}
+
+.admin-sidebar-logout .logout-btn:hover {
+  background-color: #dc2626; /* darker red on hover */
+  color: #ffffff;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(220, 38, 38, 0.18);
+}
+
+.admin-sidebar-logout .logout-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(220, 38, 38, 0.12);
+}
+
+.admin-sidebar-logout .logout-btn:focus {
+  outline: 2px solid rgba(255, 255, 255, 0.15);
+  outline-offset: 2px;
+}
 /* === RESPONSIVE === */
 
 /* Mobile (max-width: 640px) */

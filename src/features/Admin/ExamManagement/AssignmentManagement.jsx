@@ -1,6 +1,7 @@
 import React from "react";
 import "./AssignmentManagement.css";
 import AdminHeader from "@components/Admin/AdminHeader";
+import { useOutletContext } from "react-router-dom";
 
 export default function AssignmentManagement() {
   const assignments = [
@@ -104,106 +105,110 @@ export default function AssignmentManagement() {
 
       {/* Thống kê */}
       <div className="assignment-page">
-      <div className="assignment-stats">
-        <div className="stat-box orange">
-          <p>Tổng bài tập</p>
-          <h3>5</h3>
+        <div className="assignment-stats">
+          <div className="stat-box orange">
+            <p>Tổng bài tập</p>
+            <h3>5</h3>
+          </div>
+          <div className="stat-box blue">
+            <p>Bài nộp</p>
+            <h3>1195</h3>
+          </div>
+          <div className="stat-box green">
+            <p>Đã chấm</p>
+            <h3>1025</h3>
+          </div>
+          <div className="stat-box red">
+            <p>Chờ chấm</p>
+            <h3>170</h3>
+          </div>
         </div>
-        <div className="stat-box blue">
-          <p>Bài nộp</p>
-          <h3>1195</h3>
-        </div>
-        <div className="stat-box green">
-          <p>Đã chấm</p>
-          <h3>1025</h3>
-        </div>
-        <div className="stat-box red">
-          <p>Chờ chấm</p>
-          <h3>170</h3>
-        </div>
-      </div>
 
-      <div className="assignment-content">
-        {/* Bảng bên trái */}
-        <div className="assignment-table-section">
-          <div className="assignment-search-bar">
-            <input type="text" placeholder="🔍 Tìm kiếm bài tập..." />
-            <select>
-              <option>Tất cả</option>
-              <option>Đang mở</option>
-              <option>Đã đóng</option>
-            </select>
+        <div className="assignment-content">
+          {/* Bảng bên trái */}
+          <div className="assignment-table-section">
+            <div className="assignment-search-bar">
+              <input type="text" placeholder="🔍 Tìm kiếm bài tập..." />
+              <select>
+                <option>Tất cả</option>
+                <option>Đang mở</option>
+                <option>Đã đóng</option>
+              </select>
+            </div>
+
+            <table className="assignment-table">
+              <thead>
+                <tr>
+                  <th>Bài tập</th>
+                  <th>Khóa học</th>
+                  <th>Hạn nộp</th>
+                  <th>Nộp/Chấm</th>
+                  <th>Điểm TB</th>
+                  <th>Trạng thái</th>
+                </tr>
+              </thead>
+              <tbody>
+                {assignments.map((a) => (
+                  <tr key={a.id}>
+                    <td>{a.name}</td>
+                    <td>
+                      <span className={`tag ${a.tagColor}`}>{a.course}</span>
+                    </td>
+                    <td>{a.dueDate}</td>
+                    <td>
+                      {a.submitted} nộp
+                      <br />
+                      {a.graded} chấm / {a.waiting} chờ
+                    </td>
+                    <td
+                      className={a.avgScore >= 80 ? "text-green" : "text-red"}
+                    >
+                      {a.avgScore}%
+                    </td>
+                    <td>
+                      <span
+                        className={
+                          a.status === "Đang mở"
+                            ? "status-open"
+                            : "status-closed"
+                        }
+                      >
+                        {a.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
 
-          <table className="assignment-table">
-            <thead>
-              <tr>
-                <th>Bài tập</th>
-                <th>Khóa học</th>
-                <th>Hạn nộp</th>
-                <th>Nộp/Chấm</th>
-                <th>Điểm TB</th>
-                <th>Trạng thái</th>
-              </tr>
-            </thead>
-            <tbody>
-              {assignments.map((a) => (
-                <tr key={a.id}>
-                  <td>{a.name}</td>
-                  <td>
-                    <span className={`tag ${a.tagColor}`}>{a.course}</span>
-                  </td>
-                  <td>{a.dueDate}</td>
-                  <td>
-                    {a.submitted} nộp
-                    <br />
-                    {a.graded} chấm / {a.waiting} chờ
-                  </td>
-                  <td className={a.avgScore >= 80 ? "text-green" : "text-red"}>
-                    {a.avgScore}%
-                  </td>
-                  <td>
-                    <span
-                      className={
-                        a.status === "Đang mở" ? "status-open" : "status-closed"
-                      }
-                    >
-                      {a.status}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Cột bên phải */}
-        <div className="recent-submissions">
-          <h4>Bài nộp gần đây</h4>
-          {recentSubmissions.map((s) => (
-            <div key={s.id} className="submission-card">
-              <p>
-                <strong>{s.name}</strong>
-              </p>
-              <p>Nộp: {s.date}</p>
-              {s.status === "Đã chấm" ? (
-                <>
-                  <span className="badge success">Đã chấm</span>
-                  <p className="score">
-                    Điểm: <strong>{s.score}/100</strong>
-                  </p>
-                </>
-              ) : (
-                <>
-                  <span className="badge pending">Chờ chấm</span>
-                  <button className="btn-grade">Chấm điểm</button>
-                </>
-              )}
-            </div>
-          ))}
+          {/* Cột bên phải */}
+          <div className="recent-submissions">
+            <h4>Bài nộp gần đây</h4>
+            {recentSubmissions.map((s) => (
+              <div key={s.id} className="submission-card">
+                <p>
+                  <strong>{s.name}</strong>
+                </p>
+                <p>Nộp: {s.date}</p>
+                {s.status === "Đã chấm" ? (
+                  <>
+                    <span className="badge success">Đã chấm</span>
+                    <p className="score">
+                      Điểm: <strong>{s.score}/100</strong>
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <span className="badge pending">Chờ chấm</span>
+                    <button className="btn-grade">Chấm điểm</button>
+                  </>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
-    </div>
     </div>
   );
 }

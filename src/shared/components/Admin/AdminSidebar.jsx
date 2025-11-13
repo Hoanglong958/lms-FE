@@ -19,7 +19,9 @@ export default function AdminSidebar({ isOpen, onClose }) {
         if (onClose) onClose();
       };
 
-      const links = document.querySelectorAll(".admin-sidebar-item, .admin-sidebar-subitem");
+      const links = document.querySelectorAll(
+        ".admin-sidebar-item, .admin-sidebar-subitem"
+      );
       links.forEach((link) => {
         link.addEventListener("click", handleLinkClick);
       });
@@ -186,6 +188,19 @@ export default function AdminSidebar({ isOpen, onClose }) {
             <p className="admin-user-email">admin@lms.com</p>
           </div>
         </div>
+      </div>
+      <div className="admin-sidebar-logout">
+        <button
+          type="button"
+          className="admin-sidebar-item logout-btn"
+          onClick={() => {
+            localStorage.clear();
+            window.location.href = "/login";
+          }}
+        >
+          <i className="fa-solid fa-right-from-bracket"></i>
+          Đăng xuất
+        </button>
       </div>
     </div>
   );

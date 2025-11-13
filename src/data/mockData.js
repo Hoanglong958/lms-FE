@@ -75,7 +75,7 @@ export const mockLessons = [
     description: "Hướng dẫn cài NodeJS, npm và create-react-app.",
     type: "video",
     content: {
-      videoUrl: "https://www.youtube.com/watch?v=dGcsHMXbSOA",
+      videoUrl: "https://www.youtube.com/watch?v=eNXPoaD_Tgc",
     },
   },
 

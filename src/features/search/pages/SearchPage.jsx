@@ -54,16 +54,6 @@ export default function SearchPage() {
           ))}
         </div>
       </div>
-
-      <footer className="search-footer">
-        <div className="container">
-          <div className="footer-card">
-            <p>
-              Mankai Academy — Học viện đào tạo phát triển năng lực thực chiến
-            </p>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }

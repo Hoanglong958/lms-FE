@@ -92,128 +92,124 @@ export default function ExamManagement() {
         onMenuToggle={toggleSidebar}
         actions={
           <div className="exam-header-buttons">
-          <button className="exam-btn bank" onClick={handleQuestionBank}>
-            📚 Ngân hàng câu hỏi
-          </button>
-          <button className="exam-btn add" onClick={handleAddExam}>
-            + Tạo bài kiểm tra
-          </button>
-        </div>
+            <button className="exam-btn bank" onClick={handleQuestionBank}>
+              📚 Ngân hàng câu hỏi
+            </button>
+            <button className="exam-btn add" onClick={handleAddExam}>
+              + Tạo bài kiểm tra
+            </button>
+          </div>
         }
       />
-      
 
       {/* --- THỐNG KÊ --- */}
       <div className="exam-content-page">
-      <div className="exam-stats">
-        <div className="exam-card">
-          <p className="exam-card-title">Tổng kỳ thi</p>
-          <h3>{exams.length}</h3>
+        <div className="exam-stats">
+          <div className="exam-card">
+            <p className="exam-card-title">Tổng kỳ thi</p>
+            <h3>{exams.length}</h3>
+          </div>
+          <div className="exam-card">
+            <p className="exam-card-title">Số thí sinh</p>
+            <h3>{exams.reduce((sum, e) => sum + (e.students || 0), 0)}</h3>
+          </div>
+          <div className="exam-card">
+            <p className="exam-card-title">Điểm trung bình</p>
+            <h3>
+              {(
+                exams.reduce((sum, e) => sum + (e.avgScore || 0), 0) /
+                exams.length
+              ).toFixed(1)}
+              %
+            </h3>
+          </div>
         </div>
-        <div className="exam-card">
-          <p className="exam-card-title">Số thí sinh</p>
-          <h3>{exams.reduce((sum, e) => sum + (e.students || 0), 0)}</h3>
-        </div>
-        <div className="exam-card">
-          <p className="exam-card-title">Điểm trung bình</p>
-          <h3>
-            {(
-              exams.reduce((sum, e) => sum + (e.avgScore || 0), 0) /
-              exams.length
-            ).toFixed(1)}
-            %
-          </h3>
 
-        </div>
-      </div>
+        {/* --- BẢNG DANH SÁCH --- */}
+        <div className="exam-table-section">
+          <input
+            type="text"
+            placeholder="🔍 Tìm kiếm bài kiểm tra..."
+            className="exam-search"
+          />
 
-      {/* --- BẢNG DANH SÁCH --- */}
-      <div className="exam-table-section">
-        <input
-          type="text"
-          placeholder="🔍 Tìm kiếm bài kiểm tra..."
-          className="exam-search"
-        />
-
-        <table className="exam-table">
-          <thead>
-            <tr>
-              <th>Tên kỳ thi</th>
-              <th>Khóa học</th>
-              <th>Thí sinh</th>
-              <th>Điểm TB</th>
-              <th>Tỉ lệ đạt</th>
-              <th>Thời gian</th>
-              <th>Trạng thái</th>
-              <th>Thao tác</th>
-            </tr>
-          </thead>
-          <tbody>
-            {exams.map((exam) => (
-              <tr key={exam.id}>
-                <td>{exam.name}</td>
-                <td>
-                  <span className="exam-course-tag">{exam.course}</span>
-                </td>
-                <td>{exam.students || "-"}</td>
-                <td
-                  className={
-                    exam.avgScore >= 80 ? "text-green" : "text-red"
-                  }
-                >
-                  {exam.avgScore ? `${exam.avgScore}%` : "-"}
-                </td>
-                <td
-                  className={
-                    exam.passRate >= 80 ? "text-green" : "text-orange"
-                  }
-                >
-                  {exam.passRate ? `${exam.passRate}%` : "-"}
-                </td>
-                <td>{exam.duration || "-"}</td>
-                <td>
-                  <span
+          <table className="exam-table">
+            <thead>
+              <tr>
+                <th>Tên kỳ thi</th>
+                <th>Khóa học</th>
+                <th>Thí sinh</th>
+                <th>Điểm TB</th>
+                <th>Tỉ lệ đạt</th>
+                <th>Thời gian</th>
+                <th>Trạng thái</th>
+                <th>Thao tác</th>
+              </tr>
+            </thead>
+            <tbody>
+              {exams.map((exam) => (
+                <tr key={exam.id}>
+                  <td>{exam.name}</td>
+                  <td>
+                    <span className="exam-course-tag">{exam.course}</span>
+                  </td>
+                  <td>{exam.students || "-"}</td>
+                  <td
+                    className={exam.avgScore >= 80 ? "text-green" : "text-red"}
+                  >
+                    {exam.avgScore ? `${exam.avgScore}%` : "-"}
+                  </td>
+                  <td
                     className={
-                      exam.status === "Đang mở"
-                        ? "status-active"
-                        : "status-paused"
+                      exam.passRate >= 80 ? "text-green" : "text-orange"
                     }
                   >
-                    {exam.status}
-                  </span>
-                </td>
-                <td className="exam-actions">
-                  <button
-                    className="btn-icon"
-                    onClick={() => handleReport(exam)}
-                  >
-                    📄
-                  </button>
-                  <button
-                    className="btn-icon"
-                    onClick={() => handleView(exam)}
-                  >
-                    👁️
-                  </button>
-                  <button
-                    className="btn-icon"
-                    onClick={() => handleEdit(exam)}
-                  >
-                    ✏️
-                  </button>
-                  <button
-                    className="btn-icon delete"
-                    onClick={() => handleDelete(exam)}
-                  >
-                    🗑️
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                    {exam.passRate ? `${exam.passRate}%` : "-"}
+                  </td>
+                  <td>{exam.duration || "-"}</td>
+                  <td>
+                    <span
+                      className={
+                        exam.status === "Đang mở"
+                          ? "status-active"
+                          : "status-paused"
+                      }
+                    >
+                      {exam.status}
+                    </span>
+                  </td>
+                  <td className="exam-actions">
+                    <button
+                      className="btn-icon"
+                      onClick={() => handleReport(exam)}
+                    >
+                      📄
+                    </button>
+                    <button
+                      className="btn-icon"
+                      onClick={() => handleView(exam)}
+                    >
+                      👁️
+                    </button>
+                    <button
+                      className="btn-icon"
+                      onClick={() => handleEdit(exam)}
+                    >
+                      ✏️
+                    </button>
+                    <button
+                      className="btn-icon delete"
+                      onClick={() => handleDelete(exam)}
+                    >
+                      🗑️
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
     </div>
   );
 }

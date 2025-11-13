@@ -90,26 +90,6 @@ const Posts = () => {
           <button>Next →</button>
         </div>
       </div>
-
-      <footer className="baiviet-footer">
-        <div className="footer-content container">
-          <h3>
-            MANKAI ACADEMY - HỌC VIỆN ĐÀO TẠO PHÁT TRIỂN TIỀM NĂNG THỰC CHIẾN
-          </h3>
-          <div className="footer-columns">
-            <div>
-              <h4>Thông tin liên hệ</h4>
-              <p>Địa chỉ: Tòa nhà HCM...</p>
-              <p>Hotline: 0325 123 456</p>
-              <p>Email: contact@mankai.edu.vn</p>
-            </div>
-            <div>
-              <h4>Theo dõi chúng tôi</h4>
-              <p>Facebook, YouTube...</p>
-            </div>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 };

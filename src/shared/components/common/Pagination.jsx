@@ -63,7 +63,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
   const pageNumbers = getPageNumbers();
 
   return (
-    <div className="pagination-container">
+    <div className="pagination-container-components">
       <button
         className="pagination-btn"
         onClick={() => onPageChange(currentPage - 1)}
