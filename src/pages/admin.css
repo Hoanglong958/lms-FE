@@ -1,114 +1,127 @@
+/* ==============================
+   🔹 RESET CSS CHO ADMIN LAYOUT
+   ============================== */
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  width: 100%;
+  font-family: "Inter", sans-serif;
+  background-color: #f9fafb;
+  color: #111827;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+  border: none;
+  outline: none;
+  background: none;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+ul,
+ol {
+  list-style: none;
+}
+
+/* ==============================
+   🔹 ADMIN LAYOUT STRUCTURE
+   ============================== */
+
 .admin-layout {
   display: flex;
   min-height: 100vh;
+  width: 100%;
   background-color: #f9fafb;
-  font-family: "Inter", sans-serif;
 }
 
-/* Sidebar */
-/* (Các style cho .admin-sidebar, .sidebar-logo, nav... 
-   nằm trong file AdminSidebar.css riêng) */
-
-/* Main area */
+/* Vùng chính chứa header và content */
 .admin-main {
   flex: 1;
   display: flex;
   flex-direction: column;
+  overflow: hidden; /* Chặn content tràn ra khỏi header */
 }
 
-.admin-header {
-  background-color: #fff;
-  padding: 15px 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.admin-header h1 {
-  font-size: 20px;
-  font-weight: 600;
-}
-
-.logout-btn {
-  background-color: #ef4444;
-  border: none;
-  color: white;
-  padding: 8px 14px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background-color 0.3s;
-}
-
-.logout-btn:hover {
-  background-color: #dc2626;
-}
+/* ==============================
+   🔹 ADMIN CONTENT AREA
+   ============================== */
 
 .admin-content {
   flex: 1;
+  overflow-y: auto; /* Chỉ content được cuộn */
   background-color: #f3f4f6;
-}
-
-/* --- Dashboard Page Styles --- */
-.dashboard-page {
-  display: flex;
-  flex-direction: column;
-  gap: 30px;
-}
-
-.dashboard-title {
-  font-size: 24px;
-  font-weight: 600;
-  color: #111827;
-  margin-bottom: 10px;
-}
-
-.dashboard-stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 20px;
-}
-
-.stat-card {
-  background-color: #fff;
-  border-radius: 12px;
   padding: 20px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-  transition: transform 0.2s ease;
+  padding-top: 20px; /* Tạo khoảng cách với header */
+  box-sizing: border-box;
+  scroll-behavior: smooth;
 }
 
-.stat-card:hover {
-  transform: translateY(-4px);
+/* Thanh cuộn tuỳ chỉnh */
+.admin-content::-webkit-scrollbar {
+  width: 8px;
 }
 
-.stat-card h3 {
-  font-size: 16px;
-  color: #6b7280;
-  margin-bottom: 10px;
+.admin-content::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
 }
 
-.stat-number {
-  font-size: 28px;
-  font-weight: 700;
-  color: #111827;
+/* === RESPONSIVE === */
+
+/* Sidebar overlay cho mobile */
+.admin-sidebar-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  transition: opacity 0.3s ease;
 }
 
-.stat-desc {
-  font-size: 14px;
-  color: #10b981;
+@media (max-width: 640px) {
+  .admin-sidebar-overlay {
+    display: block;
+  }
+
+  .admin-layout {
+    flex-direction: column;
+  }
+
+  .admin-main {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .admin-content {
+    padding: 1rem;
+    padding-top: 1rem;
+  }
 }
 
-.dashboard-chart {
-  background-color: #fff;
-  padding: 20px 25px;
-  border-radius: 12px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-}
-
-.dashboard-chart h3 {
-  margin-bottom: 20px;
-  font-size: 18px;
-  color: #111827;
-  font-weight: 600;
+/* Tablet / iPad (641px - 1024px) */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .admin-content {
+    padding: 1.5rem;
+    padding-top: 1.5rem;
+  }
 }

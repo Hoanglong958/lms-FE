@@ -11,6 +11,10 @@ export default function QuestionBank() {
     { id: 3, question: "Props khác State như thế nào?", level: "Khó", type: "Trắc nghiệm" },
   ];
 
+  const handleView = (q) => {
+    navigate(`/admin/quiz/question/${q.id}`);
+  };
+
   return (
     <div className="question-bank-container">
       <div className="question-bank-header">
@@ -21,7 +25,7 @@ export default function QuestionBank() {
 
         <button
           className="question-btn add"
-          onClick={() => navigate("/admin/question/create")}
+          onClick={() => navigate("/admin/quiz/question/create")}
         >
           + Thêm câu hỏi mới
         </button>
@@ -52,7 +56,7 @@ export default function QuestionBank() {
                 <td>
                   <button
                     className="btn-icon"
-                    onClick={() => alert(`Xem câu hỏi: ${q.question}`)}
+                    onClick={() => handleView(q)}
                   >
                     👁️
                   </button>

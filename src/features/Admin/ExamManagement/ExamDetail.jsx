@@ -1,10 +1,77 @@
 // features/Admin/Dashboard/ExamManagement/ExamDetail.jsx
-import React from "react";
+import React, { useState } from "react";
 import "./ExamDetail.css";
 import { useNavigate } from "react-router-dom";
 
 export default function ExamDetail() {
   const navigate = useNavigate();
+  const [selectedStudent, setSelectedStudent] = useState(null);
+
+  // Giả lập dữ liệu bài làm
+  const submissions = [
+    {
+      id: 1,
+      name: "Nguyễn Văn A",
+      email: "nguyenvana@email.com",
+      submittedAt: "15/11/2024 10:30",
+      duration: "85 phút",
+      status: "Đúng hạn",
+      score: 45,
+      total: 50,
+      answers: [
+        {
+          question: "React là thư viện hay framework?",
+          options: ["Framework", "Library", "Công cụ build", "Module"],
+          correct: "Library",
+          chosen: "Library",
+        },
+        {
+          question: "Hook nào dùng để quản lý state?",
+          options: ["useEffect", "useContext", "useState", "useReducer"],
+          correct: "useState",
+          chosen: "useEffect",
+        },
+      ],
+    },
+    {
+      id: 2,
+      name: "Trần Thị B",
+      email: "tranthib@email.com",
+      submittedAt: "15/11/2024 14:20",
+      duration: "110 phút",
+      status: "Nộp muộn",
+      score: 35,
+      total: 50,
+      
+      answers: [
+        {
+          question: "JSX là gì trong React?",
+          options: [
+            "Công cụ build React",
+            "Cú pháp mở rộng của JavaScript",
+            "Hàm render của React",
+            "API của React DOM",
+          ],
+          correct: "Cú pháp mở rộng của JavaScript",
+          chosen: "Công cụ build React",
+        },
+        {
+          question: "Hook nào chạy sau mỗi lần render?",
+          options: ["useMemo", "useCallback", "useEffect", "useLayoutEffect"],
+          correct: "useEffect",
+          chosen: "useEffect",
+        },
+      ],
+    },
+  ];
+
+  const handleViewExam = (student) => {
+    if (selectedStudent && selectedStudent.id === student.id) {
+      setSelectedStudent(null); // Ẩn nếu bấm lại
+    } else {
+      setSelectedStudent(student);
+    }
+  };
 
   return (
     <div className="exam-detail-container">
@@ -64,21 +131,6 @@ export default function ExamDetail() {
         </div>
       </div>
 
-      {/* Progress overview */}
-      <div className="exam-progress-overview">
-        <h3>Tiến độ bài kiểm tra</h3>
-        <div className="exam-progress-bar">
-          <div className="bar-dunghan"></div>
-          <div className="bar-nopmuon"></div>
-          <div className="bar-chuanop"></div>
-        </div>
-        <div className="exam-progress-labels">
-          <span>Đúng hạn</span>
-          <span>Nộp muộn</span>
-          <span>Chưa nộp</span>
-        </div>
-      </div>
-
       {/* Submissions Table */}
       <div className="exam-submission-list">
         <h3>Danh sách bài nộp</h3>
@@ -109,39 +161,92 @@ export default function ExamDetail() {
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td>Nguyễn Văn A</td>
-              <td>nguyenvana@email.com</td>
-              <td>15/11/2024 10:30</td>
-              <td>85 phút</td>
-              <td>
-                <span className="badge badge-success">Đúng hạn</span>
-              </td>
-              <td>45/50</td>
-              <td>
-                <button className="exam-action-btn">
-                  <i className="fa fa-eye"></i> Xem bài
-                </button>
-              </td>
-            </tr>
-
-            <tr>
-              <td>Trần Thị B</td>
-              <td>tranthib@email.com</td>
-              <td>15/11/2024 14:20</td>
-              <td>110 phút</td>
-              <td>
-                <span className="badge badge-warning">Nộp muộn</span>
-              </td>
-              <td>35/50</td>
-              <td>
-                <button className="exam-action-btn">
-                  <i className="fa fa-eye"></i> Xem bài
-                </button>
-              </td>
-            </tr>
+            {submissions.map((student) => (
+              <tr key={student.id}>
+                <td>{student.name}</td>
+                <td>{student.email}</td>
+                <td>{student.submittedAt}</td>
+                <td>{student.duration}</td>
+                <td>
+                  <span
+                    className={`badge ${
+                      student.status === "Đúng hạn"
+                        ? "badge-success"
+                        : "badge-warning"
+                    }`}
+                  >
+                    {student.status}
+                  </span>
+                </td>
+                <td>
+                  {student.score}/{student.total}
+                </td>
+                <td>
+                  <button
+                    className="exam-action-btn"
+                    onClick={() => handleViewExam(student)}
+                  >
+                    <i className="fa fa-eye"></i>{" "}
+                    {selectedStudent?.id === student.id
+                      ? "Ẩn bài làm"
+                      : "Xem bài"}
+                  </button>
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
+
+        {/* Chi tiết bài làm */}
+        {selectedStudent && (
+          <div className="exam-detail-view">
+            <h3>
+              Bài làm của: <span>{selectedStudent.name}</span>
+            </h3>
+            <p>
+              Điểm:{" "}
+              <strong>
+                {selectedStudent.score}/{selectedStudent.total}
+              </strong>
+            </p>
+
+            {selectedStudent.answers.map((q, idx) => (
+              <div key={idx} className="exam-question">
+                <h4>
+                  Câu {idx + 1}: {q.question}
+                </h4>
+                <ul>
+                  {q.options.map((opt, i) => {
+                    const isCorrect = opt === q.correct;
+                    const isChosen = opt === q.chosen;
+                    return (
+                      <li
+                        key={i}
+                        className={`exam-option ${
+                          isChosen
+                            ? isCorrect
+                              ? "correct"
+                              : "wrong"
+                            : isCorrect
+                            ? "highlight"
+                            : ""
+                        }`}
+                      >
+                        {opt}
+                        {isChosen &&
+                          (isCorrect ? (
+                            <span className="icon">✅</span>
+                          ) : (
+                            <span className="icon">❌</span>
+                          ))}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

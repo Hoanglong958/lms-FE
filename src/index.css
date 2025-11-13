@@ -62,7 +62,8 @@ body {
 #root,
 body > div,
 main {
-  max-width: 1440px;
+  max-width: 2560px;
+  max-height: 1600px;
   margin: 0 auto;
   width: 100%;
 }

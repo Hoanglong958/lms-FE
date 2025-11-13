@@ -1,35 +1,57 @@
+// Đường dẫn: @components/Admin/AdminHeader.jsx
+// (PHIÊN BẢN NÂNG CẤP)
+
 import React from "react";
-import { useNavigate } from "react-router-dom";
-import "./AdminHeader.css"; // nếu bạn muốn style riêng
+import Breadcrumb from "@components/common/Breadcrumb";
+// Import file CSS của nó
+import "./AdminHeader.css";
 
-export default function AdminHeader() {
-  const navigate = useNavigate();
-
-  const handleLogout = () => {
-    // ✅ Xóa toàn bộ thông tin đăng nhập
-    localStorage.removeItem("loggedInUser");
-
-    // ✅ Chuyển về trang login
-    navigate("/login", { replace: true });
-
-    // ✅ Reload nhẹ để reset PrivateRoute
-    window.location.reload();
-  };
-
+// Thêm 'subtitle' vào props
+export default function AdminHeader({
+  title,
+  subtitle, // <-- Thêm prop này
+  breadcrumb, // Có thể là customItems array hoặc null để dùng auto
+  actions,
+  onMenuToggle, // Callback để toggle sidebar
+}) {
+  // Luôn render button, CSS sẽ điều khiển việc hiển thị
   return (
+    // Dùng class .admin-header
     <header className="admin-header">
+      {/* CỘT BÊN TRÁI (chứa title, subtitle, breadcrumb) */}
       <div className="admin-header-left">
-        <h1 className="admin-title">Bảng điều khiển quản trị</h1>
+        {/* Hamburger menu button cho mobile - luôn render, CSS sẽ ẩn/hiện */}
+        <button
+          className="admin-menu-toggle"
+          onClick={onMenuToggle || (() => {})}
+          aria-label="Toggle menu"
+          type="button"
+          title="Menu"
+        >
+          <span className="hamburger-icon">
+            <span></span>
+            <span></span>
+            <span></span>
+          </span>
+        </button>
+        {/* Sử dụng Breadcrumb component động */}
+        <Breadcrumb customItems={breadcrumb} />
+        {title && <h1 className="admin-title">{title}</h1>}
+
+        {/* Thêm 'subtitle' vào đây */}
+        {subtitle && <p className="admin-subtitle">{subtitle}</p>}
       </div>
 
-      <div className="admin-header-right">
-        <span className="admin-welcome">
-          Xin chào, <strong>Admin</strong>
-        </span>
-        <button className="admin-logout-btn" onClick={handleLogout}>
-          Đăng xuất
-        </button>
-      </div>
+      {/* CỘT BÊN PHẢI (chứa actions/tabs) */}
+      <div className="admin-header-right">{actions}</div>
     </header>
   );
 }
+
+// Cập nhật Default props
+AdminHeader.defaultProps = {
+  title: "",
+  subtitle: null, // <-- Thêm
+  breadcrumb: null, // null = tự động, hoặc array customItems
+  actions: null,
+};

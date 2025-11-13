@@ -1,5 +1,6 @@
 import React from "react";
 import "./AssignmentManagement.css";
+import AdminHeader from "@components/Admin/AdminHeader";
 
 export default function AssignmentManagement() {
   const assignments = [
@@ -66,20 +67,43 @@ export default function AssignmentManagement() {
   ];
 
   const recentSubmissions = [
-    { id: 1, name: "Nguyễn Văn A", date: "5/11/2024", score: 90, status: "Đã chấm" },
-    { id: 2, name: "Trần Thị B", date: "6/11/2024", score: 85, status: "Đã chấm" },
+    {
+      id: 1,
+      name: "Nguyễn Văn A",
+      date: "5/11/2024",
+      score: 90,
+      status: "Đã chấm",
+    },
+    {
+      id: 2,
+      name: "Trần Thị B",
+      date: "6/11/2024",
+      score: 85,
+      status: "Đã chấm",
+    },
     { id: 3, name: "Lê Văn C", date: "7/11/2024", status: "Chờ chấm" },
     { id: 4, name: "Phạm Thị D", date: "8/11/2024", status: "Chờ chấm" },
-    { id: 5, name: "Hoàng Văn E", date: "4/11/2024", score: 95, status: "Đã chấm" },
+    {
+      id: 5,
+      name: "Hoàng Văn E",
+      date: "4/11/2024",
+      score: 95,
+      status: "Đã chấm",
+    },
   ];
+
+  const { toggleSidebar } = useOutletContext() || {};
 
   return (
     <div className="assignment-container">
-      <div className="assignment-header">
-        <h2>Danh sách bài tập và bài nộp học viên</h2>
-      </div>
+      <AdminHeader
+        title="Danh sách bài tập và bài nộp học viên"
+        breadcrumb={<span>Admin / Assignment Management</span>}
+        onMenuToggle={toggleSidebar}
+      />
 
       {/* Thống kê */}
+      <div className="assignment-page">
       <div className="assignment-stats">
         <div className="stat-box orange">
           <p>Tổng bài tập</p>
@@ -126,14 +150,24 @@ export default function AssignmentManagement() {
               {assignments.map((a) => (
                 <tr key={a.id}>
                   <td>{a.name}</td>
-                  <td><span className={`tag ${a.tagColor}`}>{a.course}</span></td>
+                  <td>
+                    <span className={`tag ${a.tagColor}`}>{a.course}</span>
+                  </td>
                   <td>{a.dueDate}</td>
-                  <td>{a.submitted} nộp<br />{a.graded} chấm / {a.waiting} chờ</td>
+                  <td>
+                    {a.submitted} nộp
+                    <br />
+                    {a.graded} chấm / {a.waiting} chờ
+                  </td>
                   <td className={a.avgScore >= 80 ? "text-green" : "text-red"}>
                     {a.avgScore}%
                   </td>
                   <td>
-                    <span className={a.status === "Đang mở" ? "status-open" : "status-closed"}>
+                    <span
+                      className={
+                        a.status === "Đang mở" ? "status-open" : "status-closed"
+                      }
+                    >
                       {a.status}
                     </span>
                   </td>
@@ -148,12 +182,16 @@ export default function AssignmentManagement() {
           <h4>Bài nộp gần đây</h4>
           {recentSubmissions.map((s) => (
             <div key={s.id} className="submission-card">
-              <p><strong>{s.name}</strong></p>
+              <p>
+                <strong>{s.name}</strong>
+              </p>
               <p>Nộp: {s.date}</p>
               {s.status === "Đã chấm" ? (
                 <>
                   <span className="badge success">Đã chấm</span>
-                  <p className="score">Điểm: <strong>{s.score}/100</strong></p>
+                  <p className="score">
+                    Điểm: <strong>{s.score}/100</strong>
+                  </p>
                 </>
               ) : (
                 <>
@@ -165,6 +203,7 @@ export default function AssignmentManagement() {
           ))}
         </div>
       </div>
+    </div>
     </div>
   );
 }

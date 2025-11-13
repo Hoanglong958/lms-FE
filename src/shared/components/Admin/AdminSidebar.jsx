@@ -1,8 +1,8 @@
 import { NavLink } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "./AdminSidebar.css";
 
-export default function AdminSidebar() {
+export default function AdminSidebar({ isOpen, onClose }) {
   const [openSection, setOpenSection] = useState({
     evaluate: true,
     community: false,
@@ -12,8 +12,28 @@ export default function AdminSidebar() {
     setOpenSection((prev) => ({ ...prev, [section]: !prev[section] }));
   };
 
+  // Đóng sidebar khi click vào link trên mobile
+  useEffect(() => {
+    if (isOpen && window.innerWidth <= 640) {
+      const handleLinkClick = () => {
+        if (onClose) onClose();
+      };
+
+      const links = document.querySelectorAll(".admin-sidebar-item, .admin-sidebar-subitem");
+      links.forEach((link) => {
+        link.addEventListener("click", handleLinkClick);
+      });
+
+      return () => {
+        links.forEach((link) => {
+          link.removeEventListener("click", handleLinkClick);
+        });
+      };
+    }
+  }, [isOpen, onClose]);
+
   return (
-    <div className="admin-sidebar">
+    <div className={`admin-sidebar ${isOpen ? "open" : ""}`}>
       <div>
         {/* Header */}
         <div className="admin-sidebar-header">
@@ -30,16 +50,6 @@ export default function AdminSidebar() {
           >
             <i className="fa-solid fa-chart-line"></i>
             Dashboard
-          </NavLink>
-
-          <NavLink
-            to="/admin/statistics"
-            className={({ isActive }) =>
-              isActive ? "admin-sidebar-item active" : "admin-sidebar-item"
-            }
-          >
-            <i className="fa-solid fa-chart-pie"></i>
-            Thống kê
           </NavLink>
 
           {/* Quản lý người dùng - không dropdown */}

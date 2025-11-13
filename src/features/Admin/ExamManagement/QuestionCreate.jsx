@@ -10,59 +10,51 @@ export default function QuestionCreate() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!question.trim()) {
-      alert("⚠️ Vui lòng nhập nội dung câu hỏi!");
-      return;
-    }
-
     alert("✅ Tạo câu hỏi thành công!");
-    navigate("/admin/question");
+    navigate("/admin/quiz/question-bank");
   };
 
   return (
     <div className="question-create-container">
-      <div className="question-create-header">
-        <h2>➕ Tạo câu hỏi mới</h2>
-        <p>Nhập nội dung và cấu hình cho câu hỏi</p>
-      </div>
+      <h2>📝 Tạo câu hỏi mới</h2>
 
-      <form onSubmit={handleSubmit} className="question-form">
-        <div className="form-group">
-          <label>Nội dung câu hỏi *</label>
+      <form className="question-form" onSubmit={handleSubmit}>
+        <label>
+          Nội dung câu hỏi:
           <textarea
-            rows="3"
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
-            placeholder="Nhập nội dung câu hỏi..."
+            required
           />
-        </div>
+        </label>
 
-        <div className="form-group">
-          <label>Mức độ</label>
+        <label>
+          Mức độ:
           <select value={level} onChange={(e) => setLevel(e.target.value)}>
             <option value="Dễ">Dễ</option>
             <option value="Trung bình">Trung bình</option>
             <option value="Khó">Khó</option>
           </select>
-        </div>
+        </label>
 
-        <div className="form-group">
-          <label>Loại câu hỏi</label>
+        <label>
+          Loại câu hỏi:
           <select value={type} onChange={(e) => setType(e.target.value)}>
             <option value="Trắc nghiệm">Trắc nghiệm</option>
             <option value="Tự luận">Tự luận</option>
           </select>
-        </div>
+        </label>
 
-        <div className="form-actions">
+        <div className="form-buttons">
           <button
             type="button"
-            className="btn-cancel"
-            onClick={() => navigate("/admin/question")}
+            className="btn-secondary"
+            onClick={() => navigate("/admin/quiz/question-bank")}
           >
-            ← Quay lại
+            ⬅ Quay lại
           </button>
-          <button type="submit" className="btn-save">
+
+          <button type="submit" className="btn-primary">
             💾 Lưu câu hỏi
           </button>
         </div>

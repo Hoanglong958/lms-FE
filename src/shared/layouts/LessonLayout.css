@@ -1,12 +1,46 @@
+.lesson-layout {
+  min-height: 100vh;
+  background-color: #f7f8fb;
+}
+
 .lesson-body {
   display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: flex-start;
-  width: 1440px;
+  align-items: stretch;
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0 2.5rem 2.5rem;
   box-sizing: border-box;
+  gap: 2rem;
+}
+
+.lesson-sidebar-container {
+  flex: 0 0 340px;
+  min-width: 280px;
 }
 
 .lesson-content {
-  flex: 1;
+  flex: 1 1 auto;
+  background: #fff;
+  border-radius: 24px;
+  box-shadow: 0 16px 40px -24px rgba(15, 23, 42, 0.45);
+  padding: 2rem 2.5rem;
+  box-sizing: border-box;
+  min-height: calc(100vh - 240px);
+}
+
+@media (max-width: 1024px) {
+  .lesson-body {
+    flex-direction: column;
+    padding: 0 1.5rem 1.5rem;
+  }
+
+  .lesson-sidebar-container {
+    width: 100%;
+  }
+
+  .lesson-content {
+    width: 100%;
+    padding: 1.5rem;
+  }
 }

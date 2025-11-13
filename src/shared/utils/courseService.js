@@ -19,6 +19,37 @@ const getStorage = (key) => JSON.parse(localStorage.getItem(key)) || [];
 const setStorage = (key, data) =>
   localStorage.setItem(key, JSON.stringify(data));
 
+const slugify = (text) => {
+  if (!text) return "khoa-hoc";
+  return text
+    .toString()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "") || "khoa-hoc";
+};
+
+const ensureUniqueSlug = (baseSlug, courses, excludeId) => {
+  const base = baseSlug || "khoa-hoc";
+  let slug = base;
+  let counter = 1;
+  while (courses.some((c) => c.slug === slug && c.id !== excludeId)) {
+    slug = `${base}-${counter++}`;
+  }
+  return slug;
+};
+
+const assignSlug = (course, courses) => {
+  const baseSlug = slugify(course.title || "khoa-hoc");
+  const uniqueSlug = ensureUniqueSlug(baseSlug, courses, course.id);
+  if (course.slug !== uniqueSlug) {
+    course.slug = uniqueSlug;
+  }
+  return course;
+};
+
 // --- API cho Bài học (Lessons) ---
 // (Phải định nghĩa trước để courseService có thể gọi)
 export const lessonService = {
@@ -83,11 +114,27 @@ export const lessonService = {
 // --- API cho Khóa học (Courses) ---
 export const courseService = {
   getCourses: () => {
-    return getStorage("courses");
+    const courses = getStorage("courses");
+    let updated = false;
+    courses.forEach((course) => {
+      if (!course.slug) {
+        assignSlug(course, courses);
+        updated = true;
+      }
+    });
+    if (updated) {
+      setStorage("courses", courses);
+    }
+    return courses;
   },
 
   getCourseById: (id) => {
-    return getStorage("courses").find((c) => c.id === id);
+    return courseService.getCourses().find((c) => c.id === id);
+  },
+
+  getCourseBySlug: (slug) => {
+    if (!slug) return undefined;
+    return courseService.getCourses().find((c) => c.slug === slug);
   },
 
   /**
@@ -98,21 +145,30 @@ export const courseService = {
     const courses = getStorage("courses");
     const newCourse = {
       id: `c${Date.now()}`,
-      progress: 0, // Giá trị mặc định cho tiến độ
-      ...courseData, // Bao gồm title, description, isPrerequisite từ form
+      progress: 0,
+      ...courseData,
     };
-    const newCourses = [newCourse, ...courses];
-    setStorage("courses", newCourses);
+    courses.unshift(newCourse);
+    assignSlug(newCourse, courses);
+    setStorage("courses", courses);
     return newCourse;
   },
 
   updateCourse: (updatedCourse) => {
-    let courses = getStorage("courses");
-    courses = courses.map((c) =>
-      c.id === updatedCourse.id ? updatedCourse : c
-    );
-    setStorage("courses", courses);
-    return updatedCourse;
+    const courses = getStorage("courses");
+    let mergedCourse = null;
+    const updatedCourses = courses.map((course) => {
+      if (course.id === updatedCourse.id) {
+        mergedCourse = { ...course, ...updatedCourse };
+        return mergedCourse;
+      }
+      return course;
+    });
+    if (mergedCourse) {
+      assignSlug(mergedCourse, updatedCourses);
+      setStorage("courses", updatedCourses);
+    }
+    return mergedCourse;
   },
 
   deleteCourse: (courseId) => {
