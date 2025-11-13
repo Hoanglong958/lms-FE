@@ -10,6 +10,7 @@ import AdminLayout from "@layouts/AdminLayout";
 
 // ===== Pages (User) =====
 import HomePage from "@pages/HomePage";
+import DashboardUser from "@pages/DashboardUser";
 import BlogList from "@features/baiviet/pages/BlogList";
 import BlogDetail from "@features/baiviet/pages/BlogDetail";
 import Posts from "@features/baiviet/pages/Posts";
@@ -58,6 +59,7 @@ export default function AppRouter() {
         <Route element={<PrivateRoute role="user" />}>
           <Route element={<MainLayout />}>
             <Route path="/home" element={<HomePage />} />
+            <Route path="/dashboard" element={<DashboardUser />} />
             <Route path="/bai-viet" element={<BlogList />} />
             <Route path="/bai-viet/:id" element={<BlogDetail />} />
             <Route path="/baiviet" element={<Posts />} />

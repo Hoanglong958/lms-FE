@@ -27,7 +27,7 @@ export default function LayoutFooter() {
 
         {/* Title */}
         <h2 className="footer-title">
-          MANKAI ACADEMY - HỌC VIỆN ĐÀO TẠO PHÁT TRIỂN TIẾNG NHẬT THỰC CHIẾN
+          RIKKEI ACADEMY - HỌC VIỆN ĐÀO TẠO PHÁT TRIỂN TIẾNG NHẬT THỰC CHIẾN
         </h2>
 
         {/* Divider */}
@@ -59,7 +59,7 @@ export default function LayoutFooter() {
       </div>
 
       <div className="footer-quote-2">
-        <p className="quote-text-2">Giang Suke Sensei - CEO Mankai Academy</p>
+        <p className="quote-text-2">Anh Nguyễn Viết Lâm – CEO Rikkei Academy</p>
       </div>
 
       {/* Footer Contact Info */}
