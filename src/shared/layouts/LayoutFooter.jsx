@@ -7,7 +7,7 @@ import copyrightIcon from "@assets/icons/copyright-icon.svg";
 import buildingIcon from "@assets/icons/building-icon.svg";
 import phoneIcon from "@assets/icons/phone-icon.svg";
 import mailIcon from "@assets/icons/mail-icon.svg";
-import abstractBanner from "@assets/images/abstract_gradient_circle_banner.png";
+import abstractBanner from "@assets/images/anh1.png";
 
 export default function LayoutFooter() {
   return (

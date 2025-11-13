@@ -64,6 +64,17 @@ export default function AdminSidebar() {
             Quản lý khóa học
           </NavLink>
 
+          {/* Quản lý lớp học - không dropdown */}
+          <NavLink
+            to="/admin/classes"
+            className={({ isActive }) =>
+              isActive ? "admin-sidebar-item active" : "admin-sidebar-item"
+            }
+          >
+            <i className="fa-solid fa-chalkboard"></i>
+            Quản lý lớp học
+          </NavLink>
+
           {/* Đánh giá */}
           <div className="admin-sidebar-group">
             <div

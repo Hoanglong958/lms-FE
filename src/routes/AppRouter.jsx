@@ -19,7 +19,6 @@ import QuizExamPage from "@features/lesson/components/QuizExamPage";
 import Login from "@features/login/pages/login";
 
 // ===== Pages (Admin) =====
-import Dashboard from "@features/Admin/Dashboard/Dashboard";
 import ManageCourses from "@admin/Courses/ManageCourses";
 import ManageLessons from "@admin/Courses/ManageLessons";
 import AdminHomePage from "@pages/AdminHomePage";
@@ -32,6 +31,15 @@ import ExamCreate from "@features/Admin/ExamManagement/ExamCreate";
 import StatisticManagement from "@features/Admin/StatisticManagement/StatisticManagement.jsx";
 import QuestionBank from "@features/Admin/ExamManagement/QuestionBank";
 import QuestionCreate from "@features/Admin/ExamManagement/QuestionCreate";
+import UserManagement from "@features/Admin/UserManagement/user";
+import ClassManagement from "@features/Admin/ClassManagement/class";
+import Dashboard from "../features/Admin/Dashboard/Dashboard";
+function App() {
+  return <UserManagement />;
+}
+
+;
+
 
 export default function AppRouter() {
   return (
@@ -72,11 +80,11 @@ export default function AppRouter() {
             <Route index element={<Navigate to="dashboard" replace />} />
 
             {/* Dashboard và các trang con */}
-            <Route path="dashboard" element={<Dashboard />} />
+           <Route path="users" element={<UserManagement />} />
+            <Route path="classes" element={<ClassManagement />} />
             <Route path="home" element={<AdminHomePage />} />
             <Route path="quiz" element={<QuizManagement />} />
             <Route path="exam" element={<ExamManagement />} />
-
             {/* ✅ Thêm route TẠO bài kiểm tra */}
             <Route path="exam/create" element={<ExamCreate />} />
 

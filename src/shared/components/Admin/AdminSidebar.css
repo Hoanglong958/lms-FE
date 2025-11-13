@@ -56,19 +56,27 @@
   padding: 12px 14px;
   border-radius: 8px;
   display: flex;
-  align-items: center;
+  align-items: flex-start; /* allow wrapped labels */
   gap: 12px;
   font-weight: 600;
   font-size: 15px;
-  line-height: 1.4;
+  line-height: 1.2;
   transition: all 0.2s ease;
   text-rendering: optimizeLegibility;
+  white-space: normal; /* allow break */
 }
 
 .admin-sidebar-item i {
   font-size: 18px;
   color: #444;
   transition: color 0.2s, transform 0.2s;
+  margin-top: 4px; /* keep icon vertically aligned with wrapped text */
+}
+
+.admin-item-label {
+  display: inline-block;
+  font-size: 14px;
+  line-height: 1.15;
 }
 
 .admin-sidebar-item:hover {
