@@ -1,0 +1,266 @@
+@import url('https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@400;600;700;800&display=swap');
+
+.dashboard-user {
+  width: 100%;
+  min-height: 100vh;
+  background: #FFF;
+  padding-bottom: 40px;
+}
+
+/* Banner Section */
+.dashboard-banner {
+  width: 100%;
+  max-width: 1200px;
+  height: 216px;
+  margin: 100px auto 60px;
+  padding: 0 20px;
+  background: #FFF7F4;
+  border-radius: 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+.banner-content {
+  position: absolute;
+  left: 60px;
+  top: 60px;
+  max-width: 706px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.banner-title {
+  color: #000;
+  font-family: 'SF Pro Display', -apple-system, Roboto, Helvetica, sans-serif;
+  font-size: 48px;
+  font-weight: 600;
+  line-height: 60px;
+  letter-spacing: -0.96px;
+  margin: 0;
+}
+
+.banner-subtitle {
+  color: #505050;
+  font-family: 'SF Pro Display', -apple-system, Roboto, Helvetica, sans-serif;
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 28px;
+  margin: 0;
+}
+
+.banner-image {
+  position: absolute;
+  right: 65px;
+  top: -79px;
+}
+
+.banner-image img {
+  width: 280px;
+  height: 295px;
+  object-fit: contain;
+}
+
+/* Learning System Section */
+.learning-system-section {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.section-title {
+  color: #000;
+  font-family: 'SF Pro Display', -apple-system, Roboto, Helvetica, sans-serif;
+  font-size: 36px;
+  font-weight: 600;
+  line-height: 44px;
+  letter-spacing: 0.36px;
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.learning-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 32px;
+  width: 100%;
+}
+
+.learning-card {
+  display: flex;
+  flex-direction: column;
+  padding: 32px;
+  gap: 32px;
+  border-radius: 16px;
+  background: #FAFAFA;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.learning-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(221, 103, 60, 0.15);
+}
+
+.card-icon {
+  display: flex;
+  width: 48px;
+  height: 48px;
+  justify-content: center;
+  align-items: center;
+}
+
+.card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.card-title {
+  color: #000;
+  font-family: 'SF Pro Display', -apple-system, Roboto, Helvetica, sans-serif;
+  font-size: 32px;
+  font-weight: 600;
+  line-height: 40px;
+  margin: 0;
+}
+
+.card-description {
+  color: #505050;
+  font-family: 'SF Pro Display', -apple-system, Roboto, Helvetica, sans-serif;
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 28px;
+  margin: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .dashboard-banner {
+    height: auto;
+    padding: 40px 20px;
+  }
+
+  .banner-content {
+    position: relative;
+    left: 0;
+    top: 0;
+    max-width: 100%;
+  }
+
+  .banner-title {
+    font-size: 36px;
+    line-height: 48px;
+  }
+
+  .banner-subtitle {
+    font-size: 16px;
+    line-height: 24px;
+  }
+
+  .banner-image {
+    position: relative;
+    right: 0;
+    top: 0;
+    text-align: center;
+    margin-top: 30px;
+  }
+
+  .banner-image img {
+    width: 220px;
+    height: auto;
+  }
+
+  .learning-cards-grid {
+    gap: 24px;
+  }
+
+  .card-title {
+    font-size: 28px;
+    line-height: 36px;
+  }
+
+  .card-description {
+    font-size: 16px;
+    line-height: 24px;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-banner {
+    margin: 80px auto 40px;
+  }
+
+  .learning-cards-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .learning-card {
+    padding: 24px;
+    gap: 24px;
+  }
+
+  .section-title {
+    font-size: 28px;
+    line-height: 36px;
+    margin-bottom: 30px;
+  }
+
+  .card-title {
+    font-size: 24px;
+    line-height: 32px;
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-banner {
+    margin: 60px auto 30px;
+    padding: 30px 15px;
+  }
+
+  .banner-title {
+    font-size: 28px;
+    line-height: 36px;
+  }
+
+  .banner-subtitle {
+    font-size: 14px;
+    line-height: 20px;
+  }
+
+  .banner-image img {
+    width: 180px;
+  }
+
+  .section-title {
+    font-size: 24px;
+    line-height: 32px;
+    margin-bottom: 24px;
+  }
+
+  .learning-card {
+    padding: 20px;
+    gap: 20px;
+  }
+
+  .card-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .card-icon svg {
+    width: 40px;
+    height: 40px;
+  }
+
+  .card-title {
+    font-size: 20px;
+    line-height: 28px;
+  }
+
+  .card-description {
+    font-size: 14px;
+    line-height: 20px;
+  }
+}

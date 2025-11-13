@@ -12,6 +12,7 @@ import AdminLayout from "@layouts/AdminLayout";
 
 // ===== Pages (User) =====
 import HomePage from "@pages/HomePage";
+import DashboardUser from "@pages/DashboardUser";
 import BlogList from "@features/baiviet/pages/BlogList";
 import BlogDetail from "@features/baiviet/pages/BlogDetail";
 import Posts from "@features/baiviet/pages/Posts";
@@ -39,6 +40,14 @@ import ExamCreate from "@features/Admin/ExamManagement/ExamCreate";
 import QuizCreate from "@features/Admin/ExamManagement/QuizCreate";
 import QuestionBank from "@features/Admin/ExamManagement/QuestionBank";
 import QuestionCreate from "@features/Admin/ExamManagement/QuestionCreate";
+import UserManagement from "@features/Admin/UserManagement/user";
+import ClassManagement from "@features/Admin/ClassManagement/class";
+function App() {
+  return <UserManagement />;
+}
+
+;
+
 import ExamPreview from "@features/Admin/ExamManagement/ExamPreview";
 
 export default function AppRouter() {
@@ -58,6 +67,7 @@ export default function AppRouter() {
         <Route element={<PrivateRoute role="user" />}>
           <Route element={<MainLayout />}>
             <Route path="/home" element={<HomePage />} />
+            <Route path="/dashboard" element={<DashboardUser />} />
             <Route path="/bai-viet" element={<BlogList />} />
             <Route path="/bai-viet/:id" element={<BlogDetail />} />
             <Route path="/baiviet" element={<Posts />} />
@@ -95,6 +105,9 @@ export default function AppRouter() {
             {/* ======================================= */}
 
             {/* Các trang admin khác */}
+            {/* Dashboard và các trang con */}
+           <Route path="users" element={<UserManagement />} />
+            <Route path="classes" element={<ClassManagement />} />
             <Route path="home" element={<AdminHomePage />} />
             <Route path="quiz" element={<QuizManagement />} />
             <Route path="quiz/create" element={<QuizCreate />} />

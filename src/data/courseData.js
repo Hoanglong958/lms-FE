@@ -3,7 +3,7 @@ import documentIconSvg from "@assets/icons/lesson-type-icons/document-icon.svg";
 import quizIconSvg from "@assets/icons/lesson-type-icons/quiz-icon.svg";
 import videoIconSvg from "@assets/icons/lesson-type-icons/video-icon.svg";
 import terminalIconSvg from "@assets/icons/lesson-type-icons/terminal-icon.svg";
-import anh1 from "../../public/anh1.png";
+import anh1 from "../assets/images/anh1.png";
 import { Descriptions } from "antd";
 
 export const courses = {
