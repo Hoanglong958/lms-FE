@@ -1,14 +1,15 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useOutletContext } from "react-router-dom";
 import { courseService } from "@utils/courseService.js";
 import styles from "./ManageCourses.module.css";
-import AdminHeader from "@components/Admin/AdminHeader"; // chỉ chỉnh import header
+import AdminHeader from "@components/Admin/AdminHeader";
 
-// Giá trị khởi tạo cho form
+// Giá trị khởi tạo form
 const initialFormData = {
   title: "",
   description: "",
-  isPrerequisite: false,
+  instructorName: "",
+  level: "", // có thể là "Beginner", "Intermediate", "Advanced"
 };
 
 // Component dòng khóa học (table row)
@@ -26,15 +27,7 @@ function CourseRow({ course, onEdit, onDelete }) {
         </Link>
       </td>
       <td className={styles.colDesc}>{course.description || "—"}</td>
-      <td className={styles.colType}>
-        <span
-          className={`${styles.cardTag} ${
-            isPublic ? styles.tagPublic : styles.tagRequired
-          }`}
-        >
-          {isPublic ? "Miễn phí" : "Trả phí"}
-        </span>
-      </td>
+
       <td className={styles.colActions}>
         <div className={styles.rowActions}>
           <button
@@ -59,12 +52,26 @@ function CourseRow({ course, onEdit, onDelete }) {
 
 // Component Trang Chính
 export default function ManageCourses() {
-  const [courses, setCourses] = useState(() => courseService.getCourses());
+  const [courses, setCourses] = useState([]); // bỏ init local
   const [showModal, setShowModal] = useState(false);
   const [currentCourse, setCurrentCourse] = useState(null);
   const [formData, setFormData] = useState(initialFormData);
   const [filterPaid, setFilterPaid] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+
+  // --- Load danh sách từ API ---
+  const loadCourses = async () => {
+    try {
+      const res = await courseService.getCourses();
+      setCourses(res.data); // API trả về danh sách
+    } catch (err) {
+      console.error("Lỗi load courses:", err);
+    }
+  };
+
+  useEffect(() => {
+    loadCourses();
+  }, []);
 
   // --- Các hàm xử lý ---
   const handleInputChange = (e) => {
@@ -89,22 +96,31 @@ export default function ManageCourses() {
     setShowModal(true);
   };
 
-  const handleDelete = (courseId) => {
-    if (window.confirm("Bạn có chắc muốn xóa khóa học này?")) {
-      courseService.deleteCourse(courseId);
-      setCourses(courseService.getCourses());
+  const handleDelete = async (courseId) => {
+    if (!window.confirm("Bạn có chắc muốn xóa khóa học này?")) return;
+
+    try {
+      await courseService.deleteCourse(courseId);
+      loadCourses(); // refresh list
+    } catch (err) {
+      console.error("Lỗi xóa:", err);
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (currentCourse) {
-      courseService.updateCourse({ ...currentCourse, ...formData });
-    } else {
-      courseService.addCourse(formData);
+    try {
+      if (currentCourse) {
+        await courseService.updateCourse(currentCourse.id, formData);
+      } else {
+        await courseService.addCourse(formData);
+      }
+
+      loadCourses(); // refresh list
+      setShowModal(false);
+    } catch (err) {
+      console.error("Lỗi lưu:", err);
     }
-    setCourses(courseService.getCourses());
-    setShowModal(false);
   };
 
   // --- Dữ liệu cho thẻ Stats ---
@@ -122,12 +138,14 @@ export default function ManageCourses() {
         : filterPaid === "paid"
         ? !!course.isPrerequisite
         : !course.isPrerequisite;
+
     const matchesSearch =
       normalizedSearch === ""
         ? true
         : [course.title, course.description]
             .filter(Boolean)
             .some((field) => field.toLowerCase().includes(normalizedSearch));
+
     return matchesPaid && matchesSearch;
   });
 
@@ -175,15 +193,6 @@ export default function ManageCourses() {
               <span>{avgProgress}%</span>
             </div>
           </div>
-          <div className={styles.statCard}>
-            <div className={`${styles.statIcon} ${styles.iconBgYellow}`}>
-              🌍
-            </div>
-            <div className={styles.statInfo}>
-              <p>Khóa học miễn phí</p>
-              <span>{publicCourses}</span>
-            </div>
-          </div>
         </div>
 
         {/* Thanh Tìm kiếm và Lọc */}
@@ -218,7 +227,6 @@ export default function ManageCourses() {
               <tr className={styles.tableHeader}>
                 <th className={styles.colTitle}>Tên khóa học</th>
                 <th className={styles.colDesc}>Mô tả</th>
-                <th className={styles.colType}>Loại</th>
                 <th className={styles.colActions}>Thao tác</th>
               </tr>
             </thead>
@@ -252,6 +260,7 @@ export default function ManageCourses() {
                     required
                   />
                 </div>
+
                 <div className={styles.formGroup}>
                   <label htmlFor="description">Mô tả</label>
                   <textarea
@@ -261,18 +270,35 @@ export default function ManageCourses() {
                     onChange={handleInputChange}
                   />
                 </div>
-                <div className={`${styles.formGroup} ${styles.formGroupCheck}`}>
+
+                <div className={styles.formGroup}>
+                  <label htmlFor="instructorName">Tên giảng viên</label>
                   <input
-                    type="checkbox"
-                    id="isPrerequisite"
-                    name="isPrerequisite"
-                    checked={formData.isPrerequisite}
+                    type="text"
+                    id="instructorName"
+                    name="instructorName"
+                    value={formData.instructorName}
                     onChange={handleInputChange}
+                    required
                   />
-                  <label htmlFor="isPrerequisite">
-                    Đây là khóa học trả phí?
-                  </label>
                 </div>
+
+                <div className={styles.formGroup}>
+                  <label htmlFor="level">Cấp độ</label>
+                  <select
+                    id="level"
+                    name="level"
+                    value={formData.level}
+                    onChange={handleInputChange}
+                    required
+                  >
+                    <option value="">Chọn cấp độ</option>
+                    <option value="BEGINNER">Beginner</option>
+                    <option value="INTERMEDIATE">Intermediate</option>
+                    <option value="ADVANCED">Advanced</option>
+                  </select>
+                </div>
+
                 <div className={styles.formActions}>
                   <button
                     type="button"
