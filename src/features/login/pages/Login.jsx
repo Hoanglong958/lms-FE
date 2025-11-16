@@ -13,9 +13,14 @@ export default function Login() {
   useEffect(() => {
     const storedUser = JSON.parse(localStorage.getItem("loggedInUser"));
     if (storedUser) {
-      if (storedUser.role === "ROLE_ADMIN")
-        navigate("/admin", { replace: true });
-      else navigate("/home", { replace: true });
+      if (storedUser.role === "ROLE_ADMIN") {
+        navigate("/admin");
+      } else if (storedUser.role === "ROLE_USER") {
+        navigate("/home");
+      } else {
+        // fallback nếu role khác
+        navigate("/login");
+      }
     }
   }, [navigate]);
 
@@ -27,7 +32,7 @@ export default function Login() {
       const response = await axios.post(
         "http://localhost:3900/api/v1/auth/login",
         {
-          username: email, // backend dùng field "username" nhưng giá trị là email
+          username: email,
           password: password,
         },
         {

@@ -64,7 +64,7 @@ export default function AppRouter() {
         </Route>
 
         {/* ===== USER ROUTES ===== */}
-        <Route element={<PrivateRoute role="user" />}>
+        <Route element={<PrivateRoute role="ROLE_USER" />}>
           <Route element={<MainLayout />}>
             <Route path="/home" element={<HomePage />} />
             <Route path="/dashboard" element={<DashboardUser />} />
@@ -82,30 +82,16 @@ export default function AppRouter() {
           <Route path="/quiz-exam/:quizId" element={<QuizExamPage />} />
         </Route>
 
-        {/* ===========================================
-        ===== ADMIN ROUTES (ĐÃ SỬA LẠI CẤU TRÚC) =====
-        ===========================================
-        */}
-        <Route element={<PrivateRoute role="admin" />}>
+        {/* ===== ADMIN ROUTES ===== */}
+        <Route element={<PrivateRoute role="ROLE_ADMIN" />}>
           <Route path="/admin" element={<AdminLayout />}>
             {/* Route mặc định: /admin -> /admin/dashboard */}
             <Route index element={<Navigate to="dashboard" replace />} />
-
-            {/* === ĐÂY LÀ CẤU TRÚC LỒNG NHAU ĐÚNG === */}
             <Route path="dashboard" element={<DashboardPage />}>
-              {/* Khi URL là /admin/dashboard (trùng path cha),
-                render <Dashboard /> vào <Outlet />
-              */}
               <Route index element={<Dashboard />} />
-              {/* Khi URL là /admin/dashboard/details,
-                render <DashboardDetails /> vào <Outlet />
-              */}
               <Route path="details" element={<DashboardDetails />} />
             </Route>
-            {/* ======================================= */}
 
-            {/* Các trang admin khác */}
-            {/* Dashboard và các trang con */}
             <Route path="users" element={<UserManagement />} />
             <Route path="classes" element={<ClassManagement />} />
             <Route path="home" element={<AdminHomePage />} />

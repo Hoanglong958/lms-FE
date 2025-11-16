@@ -8,9 +8,10 @@ export default function PrivateRoute({ role }) {
 
   // ❌ Sai role → chặn vào
   if (role && storedUser.role !== role) {
-    return storedUser.role === "admin"
-      ? <Navigate to="/admin" replace />
-      : <Navigate to="/home" replace />;
+    if (storedUser.role === "ROLE_ADMIN")
+      return <Navigate to="/admin" replace />;
+    if (storedUser.role === "ROLE_USER") return <Navigate to="/home" replace />;
+    return <Navigate to="/login" replace />;
   }
 
   // ✅ Hợp lệ → cho qua
