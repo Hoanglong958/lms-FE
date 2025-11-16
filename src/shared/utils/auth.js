@@ -1,6 +1,6 @@
 // src/utils/auth.js
 export const users = [
-  { username: "user", password: "123", role: "user" },
+  { username: "user", password: "123", role: "ROLE_USER" },
   { username: "admin", password: "123", role: "admin" },
 ];
 

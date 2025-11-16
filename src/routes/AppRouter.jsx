@@ -20,6 +20,7 @@ import SearchPage from "@features/search/pages/SearchPage";
 import LessonPage from "@features/lesson/pages/LessonPage";
 import QuizExamPage from "@features/lesson/components/QuizExamPage";
 import Login from "@features/login/pages/login";
+import Register from "@features/login/pages/Register";
 
 // ===== Pages (Admin) =====
 // (Import cho Dashboard)
@@ -46,8 +47,6 @@ function App() {
   return <UserManagement />;
 }
 
-;
-
 import ExamPreview from "@features/Admin/ExamManagement/ExamPreview";
 
 export default function AppRouter() {
@@ -61,6 +60,7 @@ export default function AppRouter() {
         {/* ===== AUTH ROUTES ===== */}
         <Route element={<AuthLayout />}>
           <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
         </Route>
 
         {/* ===== USER ROUTES ===== */}
@@ -106,7 +106,7 @@ export default function AppRouter() {
 
             {/* Các trang admin khác */}
             {/* Dashboard và các trang con */}
-           <Route path="users" element={<UserManagement />} />
+            <Route path="users" element={<UserManagement />} />
             <Route path="classes" element={<ClassManagement />} />
             <Route path="home" element={<AdminHomePage />} />
             <Route path="quiz" element={<QuizManagement />} />
@@ -135,7 +135,10 @@ export default function AppRouter() {
           </Route>
 
           {/* ✅ Trang quản lý bài học chi tiết (ẩn sidebar mặc định) */}
-          <Route path="/admin/courses/part/:courseSlug" element={<ManageLessons />} />
+          <Route
+            path="/admin/courses/part/:courseSlug"
+            element={<ManageLessons />}
+          />
         </Route>
 
         {/* ===== Fallback ===== */}

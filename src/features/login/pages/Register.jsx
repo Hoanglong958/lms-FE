@@ -1,54 +1,55 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import "./login.css";
 
-export default function Login() {
+export default function Register() {
+  const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-
-  // Nếu đã login → redirect
-  useEffect(() => {
-    const storedUser = JSON.parse(localStorage.getItem("loggedInUser"));
-    if (storedUser) {
-      if (storedUser.role === "ROLE_ADMIN")
-        navigate("/admin", { replace: true });
-      else navigate("/home", { replace: true });
-    }
-  }, [navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
+    const payload = {
+      fullName,
+      email,
+      password,
+      phone,
+      role: "USER", // mặc định là USER
+    };
+
+    console.log("Payload register:", payload);
+
     try {
-      const response = await axios.post(
-        "http://localhost:3900/api/v1/auth/login",
-        {
-          username: email, // backend dùng field "username" nhưng giá trị là email
-          password: password,
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
+      // Gọi API register
+      const res = await axios.post(
+        "http://localhost:3900/api/v1/auth/register",
+        payload,
+        { headers: { "Content-Type": "application/json" } }
       );
+      console.log("Register response:", res.data);
 
-      const { accessToken, user } = response.data.data;
+      alert("Đăng ký thành công! Hãy đăng nhập.");
 
-      // Lưu token + user info vào localStorage
-      localStorage.setItem("accessToken", accessToken);
-      localStorage.setItem("loggedInUser", JSON.stringify(user));
-
-      // Redirect theo role
-      if (user.role === "ROLE_ADMIN") navigate("/admin");
-      else navigate("/home");
+      // Điều hướng về trang login
+      navigate("/login");
     } catch (err) {
-      console.error("Đăng nhập lỗi:", err);
-      alert("Email hoặc mật khẩu không đúng!");
+      console.error("Đăng ký lỗi:", err);
+      if (err.response) {
+        console.log("Response data:", err.response.data);
+        alert(
+          `Đăng ký lỗi! Code: ${err.response.status}, Message: ${JSON.stringify(
+            err.response.data
+          )}`
+        );
+      } else {
+        alert("Có lỗi xảy ra, vui lòng thử lại!");
+      }
     } finally {
       setLoading(false);
     }
@@ -63,13 +64,23 @@ export default function Login() {
             alt="Mankai Academy Logo"
             className="Login-logo"
           />
-          <h1>Đăng nhập</h1>
+          <h1>Đăng ký</h1>
           <p className="description">
-            Khám phá kho tàng kiến thức bất tận cùng bộ tài liệu độc quyền với
-            Mankai Academy
+            Tạo tài khoản để truy cập kho học liệu và các khóa học miễn phí!
           </p>
 
           <form onSubmit={handleSubmit}>
+            <div className="form-group">
+              <label>Họ và tên</label>
+              <input
+                type="text"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                placeholder="Nguyen Van A"
+                required
+              />
+            </div>
+
             <div className="form-group">
               <label>Email</label>
               <input
@@ -92,16 +103,22 @@ export default function Login() {
               />
             </div>
 
+            <div className="form-group">
+              <label>Số điện thoại</label>
+              <input
+                type="text"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="0123456789"
+              />
+            </div>
+
             <button type="submit" disabled={loading}>
-              {loading ? "Đang đăng nhập..." : "Đăng nhập"}
+              {loading ? "Đang đăng ký..." : "Đăng ký"}
             </button>
 
             <p className="forgot-password">
-              <Link to="/forgot-password">Quên mật khẩu?</Link>
-            </p>
-
-            <p className="register-link">
-              Chưa có tài khoản? <Link to="/register">Đăng ký</Link>
+              Đã có tài khoản? <Link to="/login">Đăng nhập</Link>
             </p>
           </form>
         </div>
