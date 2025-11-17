@@ -20,8 +20,6 @@ import StatCard from "./components/StatCard";
 // Biểu đồ
 import UserGrowthChart from "./components/UserGrowthChart";
 import CourseProgressChart from "./components/CourseProgressChart";
-import UserRolesChart from "./components/UserRolesChart";
-import RevenueChart from "./components/RevenueChart";
 // Bảng và Danh sách
 import NewUsersTable from "./components/NewUsersTable";
 import NewCoursesTable from "./components/NewCoursesTable";
@@ -70,19 +68,7 @@ const DashboardOverview = () => {
             <CourseProgressChart />
           </div>
         </section>
-        {/* === HÀNG 4: BIỂU ĐỒ  === */}
-        <section className="dashboard-card col-span-12 lg-col-span-5">
-          <h3 className="dashboard-card-title">Phân bổ vai trò người dùng</h3>
-          <div className="chart-container">
-            <UserRolesChart />
-          </div>
-        </section>
-        <section className="dashboard-card col-span-12 lg-col-span-7">
-          <h3 className="dashboard-card-title">Doanh thu / Lượt đăng ký</h3>
-          <div className="chart-container">
-            <RevenueChart />
-          </div>
-        </section>
+
         {/* === HÀNG 5: BẢNG  === */}
         <section className="dashboard-card col-span-12 lg-col-span-7">
           <h3 className="dashboard-card-title">Người dùng mới</h3>
