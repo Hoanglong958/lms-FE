@@ -3,7 +3,7 @@ import { Link, useOutletContext } from "react-router-dom";
 import { courseService } from "@utils/courseService.js";
 import styles from "./ManageCourses.module.css";
 import AdminHeader from "@components/Admin/AdminHeader";
-
+import { slugify } from "@utils/slugify";
 // Giá trị khởi tạo form
 const initialFormData = {
   title: "",
@@ -14,13 +14,15 @@ const initialFormData = {
 
 // Component dòng khóa học (table row)
 function CourseRow({ course, onEdit, onDelete }) {
+  console.log(course.id, course.title);
+
   const isPublic = !course.isPrerequisite;
 
   return (
     <tr className={styles.tableRow}>
       <td className={styles.colTitle}>
         <Link
-          to={`/admin/courses/part/${course.id}`}
+          to={`/admin/courses/${course.slug || slugify(course.title)}`}
           className={styles.titleLink}
         >
           {course.title}
@@ -30,6 +32,12 @@ function CourseRow({ course, onEdit, onDelete }) {
 
       <td className={styles.colActions}>
         <div className={styles.rowActions}>
+          <Link
+            to={`/admin/courses/${course.slug || slugify(course.title)}`}
+            className={`${styles.actionBtn} ${styles.actionBtnPrimary}`}
+          >
+            Xem
+          </Link>
           <button
             type="button"
             className={`${styles.actionBtn} ${styles.actionBtnSecondary}`}
@@ -95,12 +103,12 @@ export default function ManageCourses() {
     setShowModal(true);
   };
 
-  const handleDelete = async (courseId) => {
+  const handleDelete = async (course) => {
     if (!window.confirm("Bạn có chắc muốn xóa khóa học này?")) return;
 
     try {
-      await courseService.deleteCourse(courseId);
-      loadCourses(); // refresh list
+      await courseService.deleteCourse(course.id);
+      loadCourses();
     } catch (err) {
       console.error("Lỗi xóa:", err);
     }
@@ -109,10 +117,15 @@ export default function ManageCourses() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      const payload = {
+        ...formData,
+        slug: slugify(formData.title), // tạo slug
+      };
+
       if (currentCourse) {
-        await courseService.updateCourse(currentCourse.id, formData);
+        await courseService.updateCourse(currentCourse.id, payload);
       } else {
-        await courseService.addCourse(formData);
+        await courseService.addCourse(payload);
       }
 
       loadCourses(); // refresh list
@@ -216,7 +229,7 @@ export default function ManageCourses() {
                   key={course.id}
                   course={course}
                   onEdit={() => handleEdit(course)}
-                  onDelete={() => handleDelete(course.id)}
+                  onDelete={() => handleDelete(course)}
                 />
               ))}
             </tbody>

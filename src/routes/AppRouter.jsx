@@ -122,7 +122,7 @@ export default function AppRouter() {
 
           {/* ✅ Trang quản lý bài học chi tiết (ẩn sidebar mặc định) */}
           <Route
-            path="/admin/courses/part/:courseId"
+            path="/admin/courses/:courseSlug"
             element={<ManageLessons />}
           />
         </Route>
