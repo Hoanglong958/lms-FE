@@ -20,7 +20,7 @@ function CourseRow({ course, onEdit, onDelete }) {
     <tr className={styles.tableRow}>
       <td className={styles.colTitle}>
         <Link
-          to={`/admin/courses/part/${course.slug}`}
+          to={`/admin/courses/part/${course.id}`}
           className={styles.titleLink}
         >
           {course.title}
@@ -56,7 +56,6 @@ export default function ManageCourses() {
   const [showModal, setShowModal] = useState(false);
   const [currentCourse, setCurrentCourse] = useState(null);
   const [formData, setFormData] = useState(initialFormData);
-  const [filterPaid, setFilterPaid] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
 
   // --- Load danh sách từ API ---
@@ -129,27 +128,19 @@ export default function ManageCourses() {
   const totalStudents = 1690;
   const avgProgress = 67;
 
-  // --- Lọc theo học phí (miễn phí / trả phí) ---
   const normalizedSearch = searchTerm.trim().toLowerCase();
   const displayedCourses = courses.filter((course) => {
-    const matchesPaid =
-      filterPaid === ""
-        ? true
-        : filterPaid === "paid"
-        ? !!course.isPrerequisite
-        : !course.isPrerequisite;
-
-    const matchesSearch =
-      normalizedSearch === ""
-        ? true
-        : [course.title, course.description]
-            .filter(Boolean)
-            .some((field) => field.toLowerCase().includes(normalizedSearch));
-
-    return matchesPaid && matchesSearch;
+    if (!normalizedSearch) return true;
+    return [course.title, course.description]
+      .filter(Boolean)
+      .some((field) => field.toLowerCase().includes(normalizedSearch));
   });
 
-  const { toggleSidebar } = useOutletContext() || {};
+  // const { toggleSidebar } = useOutletContext() || {};
+  let toggleSidebar = () => {};
+  try {
+    toggleSidebar = useOutletContext()?.toggleSidebar || (() => {});
+  } catch {}
 
   return (
     <div className={styles.page}>
@@ -206,17 +197,6 @@ export default function ManageCourses() {
               onChange={(e) => setSearchTerm(e.target.value)}
               aria-label="Tìm kiếm khóa học"
             />
-          </div>
-          <div className={styles.selectDropdown}>
-            <select
-              value={filterPaid}
-              onChange={(e) => setFilterPaid(e.target.value)}
-              aria-label="Lọc theo học phí"
-            >
-              <option value="">Tất cả khóa học ▼</option>
-              <option value="free">Miễn phí</option>
-              <option value="paid">Trả phí</option>
-            </select>
           </div>
         </div>
 

@@ -1,26 +1,126 @@
 import React, { useState, useEffect } from "react";
-import {
-  useParams,
-  useNavigate,
-  Link,
-  useOutletContext,
-} from "react-router-dom";
-
+import { useParams, useNavigate, useOutletContext } from "react-router-dom";
 import { courseService } from "@utils/courseService.js";
+import { sessionService } from "@utils/sessionService.js";
 import { lessonService } from "@utils/lessonService.js";
-
+import { lessonQuizService as quizService } from "@utils/lessonQuizService.js";
+import { lessonVideoService as videoService } from "@utils/lessonVideoService.js";
 import AdminHeader from "@components/Admin/AdminHeader";
 import styles from "./ManageLessons.module.css";
 
-/* Component con quản lý Bài học */
-function LessonManager({
-  sessionId,
-  onSelectLesson,
-  selectedLessonId,
-  onLessonsChange,
-}) {
-  const [lessons, setLessons] = useState([]);
+// ================= Lesson Forms =================
+function VideoForm({ formData, setFormData }) {
+  return (
+    <div className={styles.formGroup}>
+      <label>Video URL</label>
+      <input
+        type="text"
+        value={formData.content.url || ""}
+        onChange={(e) =>
+          setFormData({
+            ...formData,
+            content: { ...formData.content, url: e.target.value },
+          })
+        }
+        placeholder="https://..."
+        required
+      />
+    </div>
+  );
+}
 
+function DocumentForm({ formData, setFormData }) {
+  return (
+    <div className={styles.formGroup}>
+      <label>Document URL</label>
+      <input
+        type="text"
+        value={formData.content.url || ""}
+        onChange={(e) =>
+          setFormData({
+            ...formData,
+            content: { ...formData.content, url: e.target.value },
+          })
+        }
+        placeholder="https://..."
+        required
+      />
+    </div>
+  );
+}
+
+function QuizForm({ formData, setFormData }) {
+  const handleQuestionChange = (idx, field, value) => {
+    const questions = [...(formData.content.questions || [])];
+    questions[idx] = { ...questions[idx], [field]: value };
+    setFormData({ ...formData, content: { questions } });
+  };
+  const addQuestion = () => {
+    const questions = [...(formData.content.questions || [])];
+    questions.push({ question: "", answers: ["", "", ""], correct: 0 });
+    setFormData({ ...formData, content: { questions } });
+  };
+  const removeQuestion = (idx) => {
+    const questions = [...(formData.content.questions || [])];
+    questions.splice(idx, 1);
+    setFormData({ ...formData, content: { questions } });
+  };
+
+  return (
+    <div className={styles.formGroup}>
+      <label>Quiz Questions</label>
+      {(formData.content.questions || []).map((q, idx) => (
+        <div key={idx} className={styles.quizQuestion}>
+          <input
+            type="text"
+            value={q.question}
+            onChange={(e) =>
+              handleQuestionChange(idx, "question", e.target.value)
+            }
+            placeholder="Question..."
+            required
+          />
+          {q.answers.map((a, i) => (
+            <input
+              key={i}
+              type="text"
+              value={a}
+              onChange={(e) => {
+                const newAnswers = [...q.answers];
+                newAnswers[i] = e.target.value;
+                handleQuestionChange(idx, "answers", newAnswers);
+              }}
+              placeholder={`Answer ${i + 1}`}
+              required
+            />
+          ))}
+          <select
+            value={q.correct}
+            onChange={(e) =>
+              handleQuestionChange(idx, "correct", Number(e.target.value))
+            }
+          >
+            {q.answers.map((_, i) => (
+              <option key={i} value={i}>
+                Correct: {i + 1}
+              </option>
+            ))}
+          </select>
+          <button type="button" onClick={() => removeQuestion(idx)}>
+            Xóa câu hỏi
+          </button>
+        </div>
+      ))}
+      <button type="button" onClick={addQuestion}>
+        + Thêm câu hỏi
+      </button>
+    </div>
+  );
+}
+
+// ================= Lesson Manager =================
+function LessonManager({ sessionId, onSelectLesson, selectedLessonId }) {
+  const [lessons, setLessons] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [editingLesson, setEditingLesson] = useState(null);
   const [formData, setFormData] = useState({
@@ -33,8 +133,19 @@ function LessonManager({
   const loadLessons = async () => {
     try {
       const res = await lessonService.getLessonsBySession(sessionId);
-      setLessons(res.data || []);
-      if (onLessonsChange) onLessonsChange(sessionId, res.data || []);
+      const data = await Promise.all(
+        (res.data || []).map(async (l) => {
+          if (l.type === "video") {
+            const r = await videoService.getVideosByLesson(l.id);
+            return { ...l, content: r.data[0] || {} };
+          } else if (l.type === "quiz") {
+            const r = await quizService.getQuizzesByLesson(l.id);
+            return { ...l, content: { questions: r.data || [] } };
+          }
+          return l;
+        })
+      );
+      setLessons(data);
     } catch (err) {
       console.error("Load lessons error", err);
     }
@@ -63,9 +174,8 @@ function LessonManager({
 
   const handleSubmitLesson = async (e) => {
     e.preventDefault();
-    let title = formData.title;
-    if (formData.type === "quiz") title = `[Quizz] ${title}`;
-
+    const title =
+      formData.type === "quiz" ? `[Quizz] ${formData.title}` : formData.title;
     try {
       if (editingLesson) {
         await lessonService.updateLesson(editingLesson.id, {
@@ -78,18 +188,17 @@ function LessonManager({
       await loadLessons();
       setShowModal(false);
     } catch (err) {
-      console.error("Submit lesson error", err);
+      console.error(err);
     }
   };
 
   const handleDeleteLesson = async (lessonId) => {
-    if (window.confirm("Xóa bài học này?")) {
-      try {
-        await lessonService.deleteLesson(lessonId);
-        await loadLessons();
-      } catch (err) {
-        console.error("Delete lesson error", err);
-      }
+    if (!window.confirm("Xóa bài học này?")) return;
+    try {
+      await lessonService.deleteLesson(lessonId);
+      await loadLessons();
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -161,7 +270,6 @@ function LessonManager({
                   required
                 />
               </div>
-
               <div className={styles.formGroup}>
                 <label>Mô tả</label>
                 <textarea
@@ -169,10 +277,8 @@ function LessonManager({
                   onChange={(e) =>
                     setFormData({ ...formData, description: e.target.value })
                   }
-                  placeholder="Nhập mô tả ngắn gọn về bài học..."
                 />
               </div>
-
               <div className={styles.formGroup}>
                 <label>Dạng bài học</label>
                 <select
@@ -185,14 +291,13 @@ function LessonManager({
                     })
                   }
                   required
-                  disabled={!!editingLesson} // giữ nguyên type khi sửa
+                  disabled={!!editingLesson}
                 >
                   <option value="video">Video</option>
                   <option value="document">Document</option>
-                  <option value="quiz">Quizz</option>
+                  <option value="quiz">Quiz</option>
                 </select>
               </div>
-
               {formData.type === "video" && (
                 <VideoForm formData={formData} setFormData={setFormData} />
               )}
@@ -202,7 +307,6 @@ function LessonManager({
               {formData.type === "quiz" && (
                 <QuizForm formData={formData} setFormData={setFormData} />
               )}
-
               <div className={styles.formActions}>
                 <button
                   type="button"
@@ -226,66 +330,78 @@ function LessonManager({
   );
 }
 
-/* VideoForm, DocumentForm, QuizForm giữ nguyên như trước */
-
-/* Component chính ManageLessons.jsx */
+// ================= Main ManageLessons =================
 export default function ManageLessons() {
-  const { courseSlug } = useParams();
+  const { courseId } = useParams();
   const navigate = useNavigate();
   const [course, setCourse] = useState(null);
-  const [sections, setSections] = useState([]);
+  const [sessions, setSessions] = useState([]);
   const [selectedLesson, setSelectedLesson] = useState(null);
-  const [expandedSections, setExpandedSections] = useState([]);
+  const [expandedSessions, setExpandedSessions] = useState([]);
   const [showModal, setShowModal] = useState(false);
-  const [currentSection, setCurrentSection] = useState(null);
+  const [currentSession, setCurrentSession] = useState(null);
   const [formData, setFormData] = useState({ title: "" });
 
   const { toggleSidebar } = useOutletContext() || {};
 
-  /* Load course */
+  // load course
   useEffect(() => {
-    const foundCourse = courseService.getCourseBySlug(courseSlug);
-    if (foundCourse) {
-      setCourse(foundCourse);
-      setSections(foundCourse.sections || []);
-    } else {
-      navigate("/admin/courses");
-    }
-  }, [courseSlug, navigate]);
+    const loadCourse = async () => {
+      try {
+        const res = await courseService.getCourse(courseId);
+        setCourse(res.data);
+      } catch (err) {
+        console.error(err);
+        navigate("/admin/courses");
+      }
+    };
+    if (courseId) loadCourse();
+  }, [courseId, navigate]);
 
-  /* Section handlers */
-  const handleAddSection = () => {
-    setCurrentSection(null);
+  // load sessions
+  useEffect(() => {
+    const loadSessions = async () => {
+      try {
+        const res = await sessionService.getSessionsByCourse(courseId);
+        setSessions(res.data || []);
+      } catch (err) {
+        console.error("Load sessions error", err);
+      }
+    };
+    if (courseId) loadSessions();
+  }, [courseId]);
+
+  // session handlers
+  const handleAddSession = () => {
+    setCurrentSession(null);
     setFormData({ title: "" });
     setShowModal(true);
   };
-
-  const handleEditSection = (section) => {
-    setCurrentSection(section);
-    setFormData({ title: section.title });
+  const handleEditSession = (s) => {
+    setCurrentSession(s);
+    setFormData({ title: s.title });
     setShowModal(true);
   };
-
-  const handleSubmitSection = (e) => {
+  const handleSubmitSession = async (e) => {
     e.preventDefault();
-    if (currentSection) {
-      // giả lập update section
-      const updated = sections.map((s) =>
-        s.id === currentSection.id ? { ...s, ...formData } : s
+    if (currentSession) {
+      await sessionService.updateSession(currentSession.id, formData);
+      setSessions(
+        sessions.map((s) =>
+          s.id === currentSession.id ? { ...s, ...formData } : s
+        )
       );
-      setSections(updated);
     } else {
-      const newSec = { id: Date.now(), title: formData.title };
-      setSections([...sections, newSec]);
+      const res = await sessionService.addSession({ courseId, ...formData });
+      setSessions([...sessions, res.data]);
     }
     setShowModal(false);
   };
-
-  const handleDeleteSection = (sectionId) => {
-    if (window.confirm("Xóa phân học này?")) {
-      setSections(sections.filter((s) => s.id !== sectionId));
-      if (selectedLesson?.sessionId === sectionId) setSelectedLesson(null);
-    }
+  const handleDeleteSession = async (id) => {
+    if (!window.confirm("Xóa chương học này?")) return;
+    await sessionService.deleteSession(id);
+    setSessions(sessions.filter((s) => s.id !== id));
+    if (selectedLesson?.sessionId === id) setSelectedLesson(null);
   };
 
   return (
@@ -295,21 +411,20 @@ export default function ManageLessons() {
         onMenuToggle={toggleSidebar}
         actions={
           <button
-            onClick={handleAddSection}
+            onClick={handleAddSession}
             className={`${styles.btn} ${styles.btnPrimary}`}
           >
-            Thêm Phân học
+            Thêm Chương học
           </button>
         }
       />
-
       <div className={styles.contentLayout}>
         <aside className={styles.contentSidebar}>
-          {sections.map((section) => {
-            const isExpanded = expandedSections.includes(section.id);
+          {sessions.map((s) => {
+            const isExpanded = expandedSessions.includes(s.id);
             return (
               <div
-                key={section.id}
+                key={s.id}
                 className={`${styles.sectionPanel} ${
                   isExpanded ? styles.sectionPanelExpanded : ""
                 }`}
@@ -319,18 +434,14 @@ export default function ManageLessons() {
                     type="button"
                     className={styles.sectionToggle}
                     onClick={() =>
-                      setExpandedSections((prev) =>
-                        prev.includes(section.id)
-                          ? prev.filter((id) => id !== section.id)
-                          : [...prev, section.id]
+                      setExpandedSessions((prev) =>
+                        prev.includes(s.id)
+                          ? prev.filter((id) => id !== s.id)
+                          : [...prev, s.id]
                       )
                     }
                   >
-                    <div className={styles.sectionToggleInfo}>
-                      <span className={styles.sectionName}>
-                        {section.title}
-                      </span>
-                    </div>
+                    <span className={styles.sectionName}>{s.title}</span>
                     <span className={styles.sectionChevron}>
                       {isExpanded ? "▾" : "▸"}
                     </span>
@@ -338,35 +449,33 @@ export default function ManageLessons() {
                   <div className={styles.sectionActions}>
                     <button
                       type="button"
-                      onClick={() => handleEditSection(section)}
+                      onClick={() => handleEditSession(s)}
                       className={styles.sectionActionButton}
                     >
                       Sửa
                     </button>
                     <button
                       type="button"
-                      onClick={() => handleDeleteSection(section.id)}
+                      onClick={() => handleDeleteSession(s.id)}
                       className={`${styles.sectionActionButton} ${styles.sectionActionDelete}`}
                     >
                       Xóa
                     </button>
                   </div>
                 </div>
-
                 {isExpanded && (
                   <LessonManager
-                    sessionId={section.id}
-                    onSelectLesson={(lesson) =>
-                      setSelectedLesson({ sessionId: section.id, ...lesson })
-                    }
+                    sessionId={s.id}
                     selectedLessonId={selectedLesson?.id}
+                    onSelectLesson={(l) =>
+                      setSelectedLesson({ sessionId: s.id, ...l })
+                    }
                   />
                 )}
               </div>
             );
           })}
         </aside>
-
         <section className={styles.contentDetail}>
           {selectedLesson ? (
             <div className={styles.detailWrapper}>
@@ -384,13 +493,13 @@ export default function ManageLessons() {
       {showModal && (
         <div className={styles.modalOverlay}>
           <div className={styles.modalContent}>
-            <h2>{currentSection ? "Sửa Phân học" : "Thêm Phân học mới"}</h2>
-            <form onSubmit={handleSubmitSection}>
+            <h2>{currentSession ? "Sửa Chương học" : "Thêm Chương học mới"}</h2>
+            <form onSubmit={handleSubmitSession}>
               <div className={styles.formGroup}>
-                <label htmlFor="title">Tên Phân học</label>
+                <label htmlFor="title">Tên Chương học</label>
                 <input
-                  type="text"
                   id="title"
+                  type="text"
                   value={formData.title}
                   onChange={(e) => setFormData({ title: e.target.value })}
                   required
@@ -417,4 +526,5 @@ export default function ManageLessons() {
       )}
     </div>
   );
+  console.log("TOKEN FE ĐANG GỬI:", localStorage.getItem("accessToken"));
 }
