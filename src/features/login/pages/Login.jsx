@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import axios from "axios";
+import { authService } from "@utils/authService"; // import service
 import "./login.css";
 
 export default function Login() {
@@ -13,14 +13,9 @@ export default function Login() {
   useEffect(() => {
     const storedUser = JSON.parse(localStorage.getItem("loggedInUser"));
     if (storedUser) {
-      if (storedUser.role === "ROLE_ADMIN") {
-        navigate("/admin");
-      } else if (storedUser.role === "ROLE_USER") {
-        navigate("/home");
-      } else {
-        // fallback nếu role khác
-        navigate("/login");
-      }
+      if (storedUser.role === "ROLE_ADMIN") navigate("/admin");
+      else if (storedUser.role === "ROLE_USER") navigate("/home");
+      else navigate("/login");
     }
   }, [navigate]);
 
@@ -29,26 +24,12 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const response = await axios.post(
-        "http://localhost:3900/api/v1/auth/login",
-        {
-          gmail: gmail,
-          password: password,
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
+      const response = await authService.login({ gmail, password }); // dùng service
       const { accessToken, user } = response.data.data;
 
-      // Lưu token + user info vào localStorage
       localStorage.setItem("accessToken", accessToken);
       localStorage.setItem("loggedInUser", JSON.stringify(user));
 
-      // Redirect theo role
       if (user.role === "ROLE_ADMIN") navigate("/admin");
       else navigate("/home");
     } catch (err) {

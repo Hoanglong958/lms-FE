@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import axios from "axios";
+import { authService } from "@utils/authService"; // import service
 import "./login.css";
 
 export default function Register() {
@@ -15,33 +15,17 @@ export default function Register() {
     e.preventDefault();
     setLoading(true);
 
-    const payload = {
-      fullName,
-      email,
-      password,
-      phone,
-      role: "USER", // mặc định là USER
-    };
-
-    console.log("Payload register:", payload);
+    const payload = { fullName, email, password, phone, role: "USER" };
 
     try {
-      // Gọi API register
-      const res = await axios.post(
-        "http://localhost:3900/api/v1/auth/register",
-        payload,
-        { headers: { "Content-Type": "application/json" } }
-      );
+      const res = await authService.register(payload); // dùng service
       console.log("Register response:", res.data);
 
       alert("Đăng ký thành công! Hãy đăng nhập.");
-
-      // Điều hướng về trang login
       navigate("/login");
     } catch (err) {
       console.error("Đăng ký lỗi:", err);
       if (err.response) {
-        console.log("Response data:", err.response.data);
         alert(
           `Đăng ký lỗi! Code: ${err.response.status}, Message: ${JSON.stringify(
             err.response.data
