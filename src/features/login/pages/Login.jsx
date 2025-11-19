@@ -4,7 +4,7 @@ import axios from "axios";
 import "./login.css";
 
 export default function Login() {
-  const [email, setEmail] = useState("");
+  const [gmail, setGmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -32,7 +32,7 @@ export default function Login() {
       const response = await axios.post(
         "http://localhost:3900/api/v1/auth/login",
         {
-          username: email,
+          gmail: gmail,
           password: password,
         },
         {
@@ -79,8 +79,8 @@ export default function Login() {
               <label>Email</label>
               <input
                 type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={gmail}
+                onChange={(e) => setGmail(e.target.value)}
                 placeholder="you@company.com"
                 required
               />

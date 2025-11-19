@@ -14,11 +14,6 @@ export const overviewStatCardsRow1 = [
     description: "3 khóa học mới",
   },
   {
-    title: "Học viên hoạt động",
-    value: "1,234",
-    change: "+8% (+98 trong 7 ngày)",
-  },
-  {
     title: "Bài thi hoàn thành",
     value: "5,678",
     change: "+23% (+1,045 lượt thi)",
@@ -35,19 +30,15 @@ export const overviewStatCardsRow2 = [
     change: "+0.3",
   },
   {
-    title: "Tỷ lệ hoàn thành",
+    title: "Tỷ lệ hoàn thành khóa học",
     value: "87%",
     change: "+5%",
   },
+
   {
-    title: "Doanh thu tháng",
-    value: "đ75.4M",
-    change: "+12%",
-  },
-  {
-    title: "Thời gian học trung bình ngày",
-    value: "4.2h",
-    change: "-0.3h",
+    title: "Tổng số lớp học",
+    value: "21",
+    change: "+2",
   },
 ];
 
@@ -267,7 +258,6 @@ export const newUsersData = [
     date: "1/11/2025",
   },
 ];
-
 
 /**
  * Bảng: Khóa học mới tạo

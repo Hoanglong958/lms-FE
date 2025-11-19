@@ -200,7 +200,8 @@
   width: 100%;
 }
 .ranking-list-title {
-  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    sans-serif;
   font-weight: 700;
   font-size: 1.5rem;
   line-height: 1.75rem;
@@ -275,8 +276,7 @@
   background-size: cover;
   background-position: center;
   border: 4px solid;
-  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1),
-    0 4px 6px -4px rgb(0 0 0 / 0.1);
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
   position: relative;
   display: block;
 }
@@ -443,7 +443,6 @@
   background-color: #f3f4f6; /* Nền xám nhẹ */
   border-radius: 8px; /* Bo góc */
   padding: 5px; /* Padding bao ngoài */
-  ;
 }
 .dashboard-nav-link {
   padding: 0.5rem 1rem; /* 8px 16px */
@@ -471,29 +470,29 @@
   .admin-main-content {
     padding: 1rem;
   }
-  
+
   .dashboard-overview-grid {
     gap: 1rem;
   }
-  
+
   .stat-card-grid {
     grid-template-columns: 1fr;
     gap: 1rem;
   }
-  
+
   .dashboard-card {
     padding: 0.875rem;
   }
-  
+
   .dashboard-card-title {
     font-size: 1rem;
     margin-bottom: 0.75rem;
   }
-  
+
   .chart-container {
     height: 12rem;
   }
-  
+
   /* Ranking responsive */
   .ranking-top3-container {
     flex-direction: column;
@@ -501,81 +500,81 @@
     gap: 1.5rem;
     margin-bottom: 1.5rem;
   }
-  
+
   .rank-order-2 {
     margin-top: 0;
   }
-  
+
   .rank-item-top3 {
     width: 100%;
     max-width: 200px;
   }
-  
+
   .rank-crown {
     top: -2rem;
     font-size: 2rem;
   }
-  
+
   .rank-size-lg {
     width: 5.5rem;
     height: 5.5rem;
   }
-  
+
   .rank-size-sm {
     width: 4.5rem;
     height: 4.5rem;
   }
-  
+
   .rank-name {
     font-size: 0.875rem;
     max-width: 100px;
   }
-  
+
   .rank-score-wrapper {
     font-size: 1rem;
   }
-  
+
   .rank-item-other {
     padding: 0.75rem;
     font-size: 0.875rem;
   }
-  
+
   .rank-other-avatar {
     width: 2.5rem;
     height: 2.5rem;
   }
-  
+
   .rank-other-name {
     font-size: 0.875rem;
     margin-left: 0.5rem;
   }
-  
+
   .rank-other-number {
     width: 2rem;
     font-size: 0.875rem;
   }
-  
+
   /* Table responsive */
   .table-container {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
   }
-  
+
   .data-table {
     font-size: 0.75rem;
   }
-  
+
   .th-cell,
   .td-cell {
     padding: 0.5rem 0.75rem;
   }
-  
+
   /* Navigation tabs */
   .dashboard-nav-in-header {
     flex-direction: column;
     gap: 0.25rem;
   }
-  
+
   .dashboard-nav-link {
     padding: 0.5rem;
     font-size: 0.8125rem;
@@ -587,65 +586,65 @@
   .admin-main-content {
     padding: 1.25rem;
   }
-  
+
   .dashboard-overview-grid {
     gap: 1.25rem;
   }
-  
+
   .stat-card-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 1rem;
   }
-  
+
   .dashboard-card {
     padding: 1rem;
   }
-  
+
   .chart-container {
     height: 14rem;
   }
-  
+
   /* Ranking responsive */
   .ranking-top3-container {
     gap: 0.75rem;
   }
-  
+
   .rank-crown {
     top: -2.25rem;
     font-size: 2.25rem;
   }
-  
+
   .rank-size-lg {
     width: 6rem;
     height: 6rem;
   }
-  
+
   .rank-size-sm {
     width: 4.75rem;
     height: 4.75rem;
   }
-  
+
   .rank-name {
     font-size: 0.9375rem;
     max-width: 110px;
   }
-  
+
   /* Grid columns for tablet */
   .col-span-12 {
     grid-column: span 12 / span 12;
   }
-  
+
   .lg-col-span-5,
   .lg-col-span-6,
   .lg-col-span-7 {
     grid-column: span 12 / span 12;
   }
-  
+
   /* Table responsive */
   .data-table {
     font-size: 0.8125rem;
   }
-  
+
   .th-cell,
   .td-cell {
     padding: 0.625rem 0.875rem;
@@ -673,7 +672,7 @@
 /* Màn hình lớn (lg) */
 @media (min-width: 1024px) {
   .stat-card-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   /* Các class định cột cho grid chính */
@@ -689,12 +688,12 @@
   .lg-col-span-7 {
     grid-column: span 7 / span 7;
   }
-  
+
   /* Ranking desktop improvements */
   .ranking-top3-container {
     gap: 1rem;
   }
-  
+
   .rank-crown {
     top: -2.5rem;
     font-size: 2.5rem;

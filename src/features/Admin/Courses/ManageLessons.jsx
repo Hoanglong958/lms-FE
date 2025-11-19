@@ -1,291 +1,96 @@
 import React, { useState, useEffect } from "react";
-import {
-  useParams,
-  useNavigate,
-  Link,
-  useOutletContext,
-} from "react-router-dom";
-
+import { useParams, useNavigate, useOutletContext } from "react-router-dom";
 import { courseService } from "@utils/courseService.js";
-import { lessonService } from "@utils/lessonService.js";
-
+import { sessionService } from "@utils/sessionService.js";
 import AdminHeader from "@components/Admin/AdminHeader";
 import styles from "./ManageLessons.module.css";
+import { slugify } from "@utils/slugify";
+import LessonManager from "./LessonManager.jsx";
 
-/* Component con quản lý Bài học */
-function LessonManager({
-  sessionId,
-  onSelectLesson,
-  selectedLessonId,
-  onLessonsChange,
-}) {
-  const [lessons, setLessons] = useState([]);
-
-  const [showModal, setShowModal] = useState(false);
-  const [editingLesson, setEditingLesson] = useState(null);
-  const [formData, setFormData] = useState({
-    title: "",
-    description: "",
-    type: "video",
-    content: {},
-  });
-
-  const loadLessons = async () => {
-    try {
-      const res = await lessonService.getLessonsBySession(sessionId);
-      setLessons(res.data || []);
-      if (onLessonsChange) onLessonsChange(sessionId, res.data || []);
-    } catch (err) {
-      console.error("Load lessons error", err);
-    }
-  };
-
-  useEffect(() => {
-    if (sessionId) loadLessons();
-  }, [sessionId]);
-
-  const handleAddLesson = () => {
-    setEditingLesson(null);
-    setFormData({ title: "", description: "", type: "video", content: {} });
-    setShowModal(true);
-  };
-
-  const handleEditLesson = (lesson) => {
-    setEditingLesson(lesson);
-    setFormData({
-      title: lesson.title.replace(/^\[Quizz\]\s*/, ""),
-      description: lesson.description || "",
-      type: lesson.type || "video",
-      content: lesson.content || {},
-    });
-    setShowModal(true);
-  };
-
-  const handleSubmitLesson = async (e) => {
-    e.preventDefault();
-    let title = formData.title;
-    if (formData.type === "quiz") title = `[Quizz] ${title}`;
-
-    try {
-      if (editingLesson) {
-        await lessonService.updateLesson(editingLesson.id, {
-          ...formData,
-          title,
-        });
-      } else {
-        await lessonService.addLesson({ sessionId, ...formData, title });
-      }
-      await loadLessons();
-      setShowModal(false);
-    } catch (err) {
-      console.error("Submit lesson error", err);
-    }
-  };
-
-  const handleDeleteLesson = async (lessonId) => {
-    if (window.confirm("Xóa bài học này?")) {
-      try {
-        await lessonService.deleteLesson(lessonId);
-        await loadLessons();
-      } catch (err) {
-        console.error("Delete lesson error", err);
-      }
-    }
-  };
-
-  return (
-    <>
-      <ul className={styles.lessonList}>
-        {lessons.map((lesson) => (
-          <li
-            key={lesson.id}
-            className={`${styles.lessonListItem} ${
-              selectedLessonId === lesson.id ? styles.lessonListItemActive : ""
-            }`}
-          >
-            <button
-              type="button"
-              onClick={() => onSelectLesson?.(lesson)}
-              className={styles.lessonTitleButton}
-            >
-              <span className={styles.lessonTitle}>{lesson.title}</span>
-              <span
-                className={`${styles.lessonTypeBadge} ${
-                  lesson.type === "video"
-                    ? styles.badgeVideo
-                    : lesson.type === "document"
-                    ? styles.badgeDocument
-                    : styles.badgeQuiz
-                }`}
-              >
-                {lesson.type.toUpperCase()}
-              </span>
-            </button>
-            <div className={styles.lessonActions}>
-              <button
-                type="button"
-                onClick={() => handleEditLesson(lesson)}
-                className={styles.edit}
-              >
-                Sửa
-              </button>
-              <button
-                type="button"
-                onClick={() => handleDeleteLesson(lesson.id)}
-                className={styles.delete}
-              >
-                Xóa
-              </button>
-            </div>
-          </li>
-        ))}
-        <li>
-          <button onClick={handleAddLesson} className={styles.btnAddLesson}>
-            + Thêm bài học
-          </button>
-        </li>
-      </ul>
-
-      {showModal && (
-        <div className={styles.modalOverlay}>
-          <div className={styles.modalContent}>
-            <h2>{editingLesson ? "Sửa Bài học" : "Thêm Bài học mới"}</h2>
-            <form onSubmit={handleSubmitLesson}>
-              <div className={styles.formGroup}>
-                <label>Tiêu đề</label>
-                <input
-                  value={formData.title}
-                  onChange={(e) =>
-                    setFormData({ ...formData, title: e.target.value })
-                  }
-                  required
-                />
-              </div>
-
-              <div className={styles.formGroup}>
-                <label>Mô tả</label>
-                <textarea
-                  value={formData.description}
-                  onChange={(e) =>
-                    setFormData({ ...formData, description: e.target.value })
-                  }
-                  placeholder="Nhập mô tả ngắn gọn về bài học..."
-                />
-              </div>
-
-              <div className={styles.formGroup}>
-                <label>Dạng bài học</label>
-                <select
-                  value={formData.type}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      type: e.target.value,
-                      content: {},
-                    })
-                  }
-                  required
-                  disabled={!!editingLesson} // giữ nguyên type khi sửa
-                >
-                  <option value="video">Video</option>
-                  <option value="document">Document</option>
-                  <option value="quiz">Quizz</option>
-                </select>
-              </div>
-
-              {formData.type === "video" && (
-                <VideoForm formData={formData} setFormData={setFormData} />
-              )}
-              {formData.type === "document" && (
-                <DocumentForm formData={formData} setFormData={setFormData} />
-              )}
-              {formData.type === "quiz" && (
-                <QuizForm formData={formData} setFormData={setFormData} />
-              )}
-
-              <div className={styles.formActions}>
-                <button
-                  type="button"
-                  onClick={() => setShowModal(false)}
-                  className={styles.btn}
-                >
-                  Hủy
-                </button>
-                <button
-                  type="submit"
-                  className={`${styles.btn} ${styles.btnPrimary}`}
-                >
-                  Lưu
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-    </>
-  );
-}
-
-/* VideoForm, DocumentForm, QuizForm giữ nguyên như trước */
-
-/* Component chính ManageLessons.jsx */
 export default function ManageLessons() {
   const { courseSlug } = useParams();
   const navigate = useNavigate();
   const [course, setCourse] = useState(null);
-  const [sections, setSections] = useState([]);
+  const [sessions, setSessions] = useState([]);
   const [selectedLesson, setSelectedLesson] = useState(null);
-  const [expandedSections, setExpandedSections] = useState([]);
+  const [expandedSessions, setExpandedSessions] = useState([]);
   const [showModal, setShowModal] = useState(false);
-  const [currentSection, setCurrentSection] = useState(null);
+  const [currentSession, setCurrentSession] = useState(null);
   const [formData, setFormData] = useState({ title: "" });
 
   const { toggleSidebar } = useOutletContext() || {};
 
-  /* Load course */
   useEffect(() => {
-    const foundCourse = courseService.getCourseBySlug(courseSlug);
-    if (foundCourse) {
-      setCourse(foundCourse);
-      setSections(foundCourse.sections || []);
-    } else {
-      navigate("/admin/courses");
-    }
+    const loadCourse = async () => {
+      try {
+        const res = await courseService.getCourses();
+        const course = res.data.find((c) => slugify(c.title) === courseSlug);
+        setCourse(course);
+      } catch (err) {
+        console.error(err);
+        navigate("/admin/courses");
+      }
+    };
+    if (courseSlug) loadCourse();
   }, [courseSlug, navigate]);
 
-  /* Section handlers */
-  const handleAddSection = () => {
-    setCurrentSection(null);
+  useEffect(() => {
+    if (!course?.id) return;
+    const loadSessions = async () => {
+      try {
+        const res = await sessionService.getSessionsByCourse(course.id);
+        setSessions(res.data || []);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    loadSessions();
+  }, [course]);
+
+  const handleAddSession = () => {
+    setCurrentSession(null);
     setFormData({ title: "" });
     setShowModal(true);
   };
-
-  const handleEditSection = (section) => {
-    setCurrentSection(section);
-    setFormData({ title: section.title });
+  const handleEditSession = (s) => {
+    setCurrentSession(s);
+    setFormData({ title: s.title });
     setShowModal(true);
   };
-
-  const handleSubmitSection = (e) => {
+  const handleSubmitSession = async (e) => {
     e.preventDefault();
-    if (currentSection) {
-      // giả lập update section
-      const updated = sections.map((s) =>
-        s.id === currentSection.id ? { ...s, ...formData } : s
-      );
-      setSections(updated);
-    } else {
-      const newSec = { id: Date.now(), title: formData.title };
-      setSections([...sections, newSec]);
+    if (!course) return;
+
+    const payload = {
+      title: formData.title,
+      duration: formData.duration || 0,
+      courseId: course.id,
+      orderIndex: formData.orderIndex || sessions.length + 1,
+    };
+
+    try {
+      if (currentSession) {
+        await sessionService.updateSession(currentSession.id, payload);
+        setSessions(
+          sessions.map((s) =>
+            s.id === currentSession.id ? { ...s, ...payload } : s
+          )
+        );
+      } else {
+        const res = await sessionService.addSession(payload);
+        setSessions([...sessions, res.data]);
+      }
+      setShowModal(false);
+    } catch (err) {
+      console.error(err);
     }
-    setShowModal(false);
   };
 
-  const handleDeleteSection = (sectionId) => {
-    if (window.confirm("Xóa phân học này?")) {
-      setSections(sections.filter((s) => s.id !== sectionId));
-      if (selectedLesson?.sessionId === sectionId) setSelectedLesson(null);
-    }
+  const handleDeleteSession = async (id) => {
+    if (!window.confirm("Xóa chương học này?")) return;
+    await sessionService.deleteSession(id);
+    setSessions(sessions.filter((s) => s.id !== id));
+    if (selectedLesson?.sessionId === id) setSelectedLesson(null);
   };
 
   return (
@@ -293,23 +98,24 @@ export default function ManageLessons() {
       <AdminHeader
         title={`Quản lý nội dung cho: ${course?.title || ""}`}
         onMenuToggle={toggleSidebar}
+        onBack={() => window.history.back()} // <-- Nút quay về
         actions={
           <button
-            onClick={handleAddSection}
+            onClick={handleAddSession}
             className={`${styles.btn} ${styles.btnPrimary}`}
           >
-            Thêm Phân học
+            Thêm Chương học
           </button>
         }
       />
 
       <div className={styles.contentLayout}>
         <aside className={styles.contentSidebar}>
-          {sections.map((section) => {
-            const isExpanded = expandedSections.includes(section.id);
+          {sessions.map((s) => {
+            const isExpanded = expandedSessions.includes(s.id);
             return (
               <div
-                key={section.id}
+                key={s.id}
                 className={`${styles.sectionPanel} ${
                   isExpanded ? styles.sectionPanelExpanded : ""
                 }`}
@@ -319,18 +125,14 @@ export default function ManageLessons() {
                     type="button"
                     className={styles.sectionToggle}
                     onClick={() =>
-                      setExpandedSections((prev) =>
-                        prev.includes(section.id)
-                          ? prev.filter((id) => id !== section.id)
-                          : [...prev, section.id]
+                      setExpandedSessions((prev) =>
+                        prev.includes(s.id)
+                          ? prev.filter((id) => id !== s.id)
+                          : [...prev, s.id]
                       )
                     }
                   >
-                    <div className={styles.sectionToggleInfo}>
-                      <span className={styles.sectionName}>
-                        {section.title}
-                      </span>
-                    </div>
+                    <span className={styles.sectionName}>{s.title}</span>
                     <span className={styles.sectionChevron}>
                       {isExpanded ? "▾" : "▸"}
                     </span>
@@ -338,35 +140,33 @@ export default function ManageLessons() {
                   <div className={styles.sectionActions}>
                     <button
                       type="button"
-                      onClick={() => handleEditSection(section)}
+                      onClick={() => handleEditSession(s)}
                       className={styles.sectionActionButton}
                     >
                       Sửa
                     </button>
                     <button
                       type="button"
-                      onClick={() => handleDeleteSection(section.id)}
+                      onClick={() => handleDeleteSession(s.id)}
                       className={`${styles.sectionActionButton} ${styles.sectionActionDelete}`}
                     >
                       Xóa
                     </button>
                   </div>
                 </div>
-
                 {isExpanded && (
                   <LessonManager
-                    sessionId={section.id}
-                    onSelectLesson={(lesson) =>
-                      setSelectedLesson({ sessionId: section.id, ...lesson })
-                    }
+                    sessionId={s.id}
                     selectedLessonId={selectedLesson?.id}
+                    onSelectLesson={(l) =>
+                      setSelectedLesson({ sessionId: s.id, ...l })
+                    }
                   />
                 )}
               </div>
             );
           })}
         </aside>
-
         <section className={styles.contentDetail}>
           {selectedLesson ? (
             <div className={styles.detailWrapper}>
@@ -384,16 +184,43 @@ export default function ManageLessons() {
       {showModal && (
         <div className={styles.modalOverlay}>
           <div className={styles.modalContent}>
-            <h2>{currentSection ? "Sửa Phân học" : "Thêm Phân học mới"}</h2>
-            <form onSubmit={handleSubmitSection}>
+            <h2>{currentSession ? "Sửa Chương học" : "Thêm Chương học mới"}</h2>
+            <form onSubmit={handleSubmitSession}>
               <div className={styles.formGroup}>
-                <label htmlFor="title">Tên Phân học</label>
+                <label htmlFor="title">Tên Chương học</label>
                 <input
-                  type="text"
                   id="title"
+                  type="text"
                   value={formData.title}
                   onChange={(e) => setFormData({ title: e.target.value })}
                   required
+                />
+                <label>Thời lượng (phút)</label>
+                <input
+                  type="number"
+                  value={formData.duration || ""}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      duration: Number(e.target.value),
+                    })
+                  }
+                  min={0}
+                />
+              </div>
+
+              <div className={styles.formGroup}>
+                <label>Thứ tự</label>
+                <input
+                  type="number"
+                  value={formData.orderIndex || ""}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      orderIndex: Number(e.target.value),
+                    })
+                  }
+                  min={1}
                 />
               </div>
               <div className={styles.formActions}>

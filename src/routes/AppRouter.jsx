@@ -127,6 +127,12 @@ export default function AppRouter() {
             <Route path="courses" element={<ManageCourses />} />
             <Route path="courses/part/:courseSlug" element={<ManageLessons />} />
           </Route>
+
+          {/* ✅ Trang quản lý bài học chi tiết (ẩn sidebar mặc định) */}
+          <Route
+            path="/admin/courses/:courseSlug"
+            element={<ManageLessons />}
+          />
         </Route>
 
         {/* ===== Fallback ===== */}
