@@ -1,0 +1,63 @@
+.quiz-update-container {
+  width: 100%;                 /* Chiếm toàn bộ vùng có thể */
+  max-width: 900px;            /* Tăng độ rộng tối đa */
+  margin: 40px auto;
+  padding: 40px;               /* Tăng padding cho thoáng hơn */
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+  font-family: Arial, sans-serif;
+}
+
+.quiz-update-container h2 {
+  margin-bottom: 25px;
+  font-size: 26px;
+}
+
+.quiz-id {
+  margin-bottom: 20px;
+  color: #555;
+}
+
+.quiz-update-container label {
+  display: block;
+  margin-top: 18px;
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.quiz-update-container input {
+  display: block;
+  width: 100%;
+  padding: 10px 14px;
+  margin-top: 6px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 15px;
+  box-sizing: border-box;
+}
+
+.quiz-update-actions {
+  margin-top: 30px;
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.btn-save {
+  padding: 10px 20px;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.btn-cancel {
+  padding: 10px 20px;
+  background-color: #f44336;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
