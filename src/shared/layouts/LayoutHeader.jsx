@@ -26,14 +26,11 @@ export default function Header() {
 
   // ✅ Hàm xử lý đăng xuất (an toàn)
   const handleLogout = () => {
-  localStorage.removeItem("loggedInUser");
-  setOpenDropdown(false);
-  setIsMobileMenuOpen(false);
-  navigate("/login", { replace: true });
-};
-
-
-
+    localStorage.removeItem("loggedInUser");
+    setOpenDropdown(false);
+    setIsMobileMenuOpen(false);
+    navigate("/login", { replace: true });
+  };
 
   return (
     <>
@@ -68,8 +65,6 @@ export default function Header() {
           <button className="icon-btn">
             <img src={notiIcon} alt="Notification" />
           </button>
-
-          {/* Dropdown avatar */}
           <div className="avatar-dropdown">
             <button
               className="avatar-btn"
@@ -89,10 +84,18 @@ export default function Header() {
                   </div>
                 </div>
                 <div className="divider"></div>
-                <div className="dropdown-item">Hồ sơ của tôi</div>
+                <div className="dropdown-item">
+                  <button
+                    onClick={() => {
+                      setOpenDropdown(false);
+                      navigate("/@features/userProfile/  ");
+                    }}
+                  >
+                    Hồ sơ của tôi
+                  </button>
+                </div>
                 <div className="dropdown-item">Khóa học của tôi</div>
                 <div className="divider"></div>
-
                 {/* 🔒 Đăng xuất */}
                 <div className="dropdown-item logout" onClick={handleLogout}>
                   <img src={logoutIcon} alt="Logout" className="logout-icon" />
@@ -115,7 +118,11 @@ export default function Header() {
       {/* OVERLAY MENU MOBILE */}
       <div className={`mobile-menu-overlay ${isMobileMenuOpen ? "open" : ""}`}>
         <div className="mobile-menu-header">
-          <img src={mankaiLogo} alt="Mankai Logo" className="mobile-menu-logo" />
+          <img
+            src={mankaiLogo}
+            alt="Mankai Logo"
+            className="mobile-menu-logo"
+          />
           <div className="close-btn" onClick={() => setIsMobileMenuOpen(false)}>
             &times;
           </div>
