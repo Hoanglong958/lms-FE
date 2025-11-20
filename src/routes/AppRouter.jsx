@@ -31,14 +31,11 @@ import ManageCourses from "@admin/Courses/ManageCourses";
 import ManageLessons from "@admin/Courses/ManageLessons";
 import AdminHomePage from "@pages/AdminHomePage";
 
-// Quản lý Quiz/Exam
-import QuizManagement from "@features/Admin/ExamManagement/QuizManagement";
-import QuizCreate from "@features/Admin/ExamManagement/QuizCreate";
-import QuizUpdate from "@features/Admin/ExamManagement/QuizUpdate";
+// Quản lý Exam
+
 import ExamManagement from "@features/Admin/ExamManagement/ExamManagement";
 import ExamCreate from "@features/Admin/ExamManagement/ExamCreate";
 import ExamDetail from "@features/Admin/ExamManagement/ExamDetail";
-import ExamReport from "@features/Admin/ExamManagement/ExamReport";
 import ExamPreview from "@features/Admin/ExamManagement/ExamPreview";
 import AssignmentManagement from "@features/Admin/ExamManagement/AssignmentManagement";
 
@@ -103,12 +100,6 @@ export default function AppRouter() {
             {/* Admin Home */}
             <Route path="home" element={<AdminHomePage />} />
 
-            {/* Quản lý Quiz */}
-            <Route path="quiz" element={<QuizManagement />} />
-            <Route path="quiz/create" element={<QuizCreate />} />
-            <Route path="quiz/:quizId/update" element={<QuizUpdate />} />
-            <Route path="quiz/:quizId/report" element={<ExamReport />} />
-
             {/* Quản lý Exam */}
             <Route path="exam" element={<ExamManagement />} />
             <Route path="exam/create" element={<ExamCreate />} />
@@ -125,7 +116,10 @@ export default function AppRouter() {
 
             {/* Quản lý khóa học */}
             <Route path="courses" element={<ManageCourses />} />
-            <Route path="courses/part/:courseSlug" element={<ManageLessons />} />
+            <Route
+              path="courses/part/:courseSlug"
+              element={<ManageLessons />}
+            />
           </Route>
 
           {/* ✅ Trang quản lý bài học chi tiết (ẩn sidebar mặc định) */}

@@ -3,7 +3,7 @@ import api from "@services/api";
 export const sessionService = {
   // Lấy chi tiết session
   getSession(id) {
-    return api.get(`/api/v1/sessions/${id}`);
+    return api.get(`/api/v1/sessions/detail`, { params: { id } });
   },
 
   // Cập nhật session
@@ -21,8 +21,8 @@ export const sessionService = {
     return api.post(`/api/v1/sessions`, data);
   },
 
-  // Lấy danh sách session theo khóa học
+  // Lấy danh sách session (có thể filter theo khóa học bằng query param)
   getSessionsByCourse(courseId) {
-    return api.get(`/api/v1/sessions/course/${courseId}`);
+    return api.get(`/api/v1/sessions`, { params: { courseId } });
   },
 };
