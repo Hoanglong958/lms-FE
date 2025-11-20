@@ -1,42 +1,49 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./QuizCreate.css";
+import { quizService } from "@utils/quizService.js";
 
 export default function QuizCreate() {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
-    name: "",
-    description: "",
-    course: "",
-    date: "",
-    duration: "",
-    passScore: "",
+    lessonId: "",
+    title: "",
+    questionCount: "",
+    maxScore: "",
+    passingScore: "",
   });
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({
+      ...prev,
+      [name]: ["lessonId", "questionCount", "maxScore", "passingScore"].includes(name)
+        ? Number(value)
+        : value,
+    }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.name || !formData.course) {
+    if (!formData.lessonId || !formData.title) {
       alert("⚠️ Vui lòng điền đầy đủ thông tin bắt buộc!");
       return;
     }
-
-    // ✅ Lưu vào localStorage (giả lập backend)
-    const quizzes = JSON.parse(localStorage.getItem("quizzes") || "[]");
-    quizzes.push({
-      id: quizzes.length + 1,
-      ...formData,
-      status: "Đang mở",
-    });
-    localStorage.setItem("quizzes", JSON.stringify(quizzes));
-
-    alert("✅ Tạo bài quiz thành công!");
-    navigate("/admin/quiz");
+    try {
+      console.log("Create quiz payload:", formData);
+      await quizService.addQuiz(formData);
+      alert("✅ Tạo bài quiz thành công!");
+      // Navigate về QuizManagement và truyền lessonId để tự load quiz mới
+      navigate(`/admin/quiz?lessonId=${formData.lessonId}`);
+    } catch (err) {
+      const status = err?.response?.status;
+      const data = err?.response?.data;
+      console.error("❌ Create quiz error:", err);
+      alert(`❌ Tạo quiz thất bại! Status: ${status ?? "N/A"} Message: ${
+        typeof data === "string" ? data : JSON.stringify(data)
+      }`);
+    }
   };
 
   return (
@@ -48,35 +55,24 @@ export default function QuizCreate() {
 
       <form onSubmit={handleSubmit} className="exam-create-form">
         <div className="form-group">
-          <label>Tên bài quiz *</label>
+          <label>Lesson ID *</label>
           <input
-            type="text"
-            name="name"
-            placeholder="VD: Quiz React cơ bản"
-            value={formData.name}
+            type="number"
+            name="lessonId"
+            placeholder="VD: 123"
+            value={formData.lessonId}
             onChange={handleChange}
             required
           />
         </div>
 
         <div className="form-group">
-          <label>Mô tả</label>
-          <textarea
-            name="description"
-            placeholder="Nhập mô tả ngắn cho bài quiz..."
-            value={formData.description}
-            onChange={handleChange}
-            rows={3}
-          />
-        </div>
-
-        <div className="form-group">
-          <label>Khóa học *</label>
+          <label>Tiêu đề *</label>
           <input
             type="text"
-            name="course"
-            placeholder="VD: React Advanced"
-            value={formData.course}
+            name="title"
+            placeholder="VD: Quiz React cơ bản"
+            value={formData.title}
             onChange={handleChange}
             required
           />
@@ -84,34 +80,34 @@ export default function QuizCreate() {
 
         <div className="form-row">
           <div className="form-group">
-            <label>Ngày mở *</label>
-            <input
-              type="date"
-              name="date"
-              value={formData.date}
-              onChange={handleChange}
-              required
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Thời gian (phút)</label>
+            <label>Số câu hỏi</label>
             <input
               type="number"
-              name="duration"
+              name="questionCount"
               placeholder="VD: 30"
-              value={formData.duration}
+              value={formData.questionCount}
               onChange={handleChange}
             />
           </div>
 
           <div className="form-group">
-            <label>Điểm đậu (%)</label>
+            <label>Điểm tối đa</label>
             <input
               type="number"
-              name="passScore"
+              name="maxScore"
+              placeholder="VD: 100"
+              value={formData.maxScore}
+              onChange={handleChange}
+            />
+          </div>
+
+          <div className="form-group">
+            <label>Điểm đạt</label>
+            <input
+              type="number"
+              name="passingScore"
               placeholder="VD: 50"
-              value={formData.passScore}
+              value={formData.passingScore}
               onChange={handleChange}
             />
           </div>

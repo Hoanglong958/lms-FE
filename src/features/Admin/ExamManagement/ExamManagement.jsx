@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import "./ExamManagement.css";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import AdminHeader from "@components/Admin/AdminHeader";
+import { examService } from "@utils/examService.js";
 
 export default function ExamManagement() {
   const navigate = useNavigate();
@@ -9,45 +10,27 @@ export default function ExamManagement() {
   // ✅ Thêm state để chứa danh sách bài kiểm tra
   const [exams, setExams] = useState([]);
 
-  // ✅ Lấy dữ liệu từ localStorage (và thêm 3 bài mặc định bạn có sẵn)
   useEffect(() => {
-    const storedExams = JSON.parse(localStorage.getItem("exams")) || [];
-    const defaultExams = [
-      {
-        id: 1,
-        name: "Thi giữa kỳ môn React",
-        course: "React Advanced",
-        students: 80,
-        avgScore: 78,
-        passRate: 85,
-        duration: "60 phút",
-        status: "Đang mở",
-      },
-      {
-        id: 2,
-        name: "Thi cuối kỳ JavaScript",
-        course: "JavaScript Mastery",
-        students: 120,
-        avgScore: 70,
-        passRate: 68,
-        duration: "90 phút",
-        status: "Đã kết thúc",
-      },
-      {
-        id: 3,
-        name: "Thi tổng hợp HTML/CSS",
-        course: "Frontend Cơ bản",
-        students: 95,
-        avgScore: 82,
-        passRate: 90,
-        duration: "45 phút",
-        status: "Đang mở",
-      },
-    ];
-
-    // ✅ Nếu localStorage trống thì dùng mặc định, còn không thì gộp lại
-    const allExams = [...defaultExams, ...storedExams];
-    setExams(allExams);
+    const load = async () => {
+      try {
+        const res = await examService.getExams();
+        const apiData = res.data?.data || res.data || [];
+        const mapped = (Array.isArray(apiData) ? apiData : []).map((e) => ({
+          id: e.id,
+          name: e.title,
+          course: String(e.courseId ?? ""),
+          students: undefined,
+          avgScore: undefined,
+          passRate: undefined,
+          duration: e.durationMinutes ? `${e.durationMinutes} phút` : "-",
+          status: e.status || "Đang mở",
+        }));
+        setExams(mapped);
+      } catch (err) {
+        setExams([]);
+      }
+    };
+    load();
   }, []);
 
   // ✅ Khi bấm nút "Tạo bài kiểm tra"
