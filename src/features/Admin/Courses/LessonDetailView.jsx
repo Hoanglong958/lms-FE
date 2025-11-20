@@ -1,36 +1,42 @@
-import React, { useState, useEffect } from "react";
-import { lessonVideoService as videoService } from "@utils/lessonVideoService.js";
-import { lessonQuizService as quizService } from "@utils/lessonQuizService.js";
+import React, { useEffect, useState } from "react";
+import { lessonVideoService } from "@utils/lessonVideoService.js";
 import LessonVideoEditor from "./LessonVideoEditor.jsx";
-// import LessonQuizEditor from "./LessonQuizEditor.jsx"; // nếu có quiz
 
 export default function LessonDetailView({ lesson }) {
-  const [videoUrl, setVideoUrl] = useState("");
-  const [quizQuestions, setQuizQuestions] = useState([]);
+  const [videos, setVideos] = useState([]);
+  const [selectedVideo, setSelectedVideo] = useState(null);
 
   useEffect(() => {
-    if (!lesson) return;
+    if (!lesson || lesson.type !== "VIDEO") return;
 
-    async function loadContent() {
-      if (lesson.type === "VIDEO") {
-        const res = await videoService.getVideoByLesson(lesson.id);
-        setVideoUrl(res.data[0]?.videoUrl || "");
-      } else if (lesson.type === "QUIZ") {
-        const res = await quizService.getQuizzesByLesson(lesson.id);
-        setQuizQuestions(res.data || []);
-      }
+    async function load() {
+      const res = await lessonVideoService.getVideoByLesson(lesson.id);
+      setVideos(res.data || []);
+      setSelectedVideo(res.data?.[0] || null);
     }
 
-    loadContent();
+    load();
   }, [lesson]);
 
-  if (!lesson) return <div>Chọn một bài học để xem nội dung</div>;
+  if (!lesson) return <div>Chọn bài học để xem nội dung</div>;
 
   return (
     <div>
       <h2>{lesson.title}</h2>
-      {lesson.type === "VIDEO" && <LessonVideoEditor lesson={lesson} />}
-      {lesson.type === "QUIZ" && <LessonQuizEditor lesson={lesson} />}
+
+      {selectedVideo && (
+        <LessonVideoEditor
+          video={selectedVideo}
+          onUpdated={(updated) => {
+            // update lại list + selected video
+            const newList = videos.map((v) =>
+              v.videoId === updated.videoId ? updated : v
+            );
+            setVideos(newList);
+            setSelectedVideo(updated);
+          }}
+        />
+      )}
     </div>
   );
 }
