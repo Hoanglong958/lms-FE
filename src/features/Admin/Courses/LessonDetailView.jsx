@@ -9,6 +9,8 @@ import LessonQuizCreate from "./LessonQuizCreate.jsx";
 
 import { questionService } from "@utils/questionService.js";
 
+import "../Courses/CoursesCSS/LessonDetailView.css"
+
 export default function LessonDetailView({ lesson }) {
   const [videos, setVideos] = useState([]);
   const [selectedVideo, setSelectedVideo] = useState(null);
@@ -62,11 +64,15 @@ export default function LessonDetailView({ lesson }) {
     }
   }, [lesson]);
 
-  if (!lesson) return <div>Chọn một bài học để xem nội dung</div>;
+  if (!lesson) return <div className="guide-action">
+  <span className="guide-icon">📘</span>
+  Chọn một bài học để xem nội dung
+</div>
+;
 
   return (
     <div>
-      <h2>{lesson.title}</h2>
+      <h2 className="lesson-title">{lesson.title}</h2>
 
       {/* VIDEO */}
       {lesson.type === "VIDEO" && (
