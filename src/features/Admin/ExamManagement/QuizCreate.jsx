@@ -34,7 +34,8 @@ export default function QuizCreate() {
       console.log("Create quiz payload:", formData);
       await quizService.addQuiz(formData);
       alert("✅ Tạo bài quiz thành công!");
-      navigate("/admin/quiz");
+      // Navigate về QuizManagement và truyền lessonId để tự load quiz mới
+      navigate(`/admin/quiz?lessonId=${formData.lessonId}`);
     } catch (err) {
       const status = err?.response?.status;
       const data = err?.response?.data;

@@ -4,49 +4,66 @@ import { useNavigate, useOutletContext } from "react-router-dom";
 import AdminHeader from "@components/Admin/AdminHeader";
 import { quizService } from "@utils/quizService.js";
 
+// Giả sử có danh sách lesson (có thể fetch từ backend nếu có API)
+const lessonsData = [
+  { id: 101, title: "Lesson React cơ bản" },
+  { id: 102, title: "Lesson Redux nâng cao" },
+  { id: 103, title: "Lesson JS nâng cao" },
+];
+
 export default function QuizManagement() {
   const navigate = useNavigate();
   const [quizzes, setQuizzes] = useState([]);
   const [lessonId, setLessonId] = useState("");
 
+  // 🟩 Load từ localStorage khi mount
+  useEffect(() => {
+    const savedLessonId = localStorage.getItem("quizLessonId") || "";
+    const savedQuizzes = JSON.parse(localStorage.getItem("quizList") || "[]");
+    if (savedLessonId) setLessonId(savedLessonId);
+    if (savedQuizzes.length) setQuizzes(savedQuizzes);
+  }, []);
+
+  // 🟩 Load quizzes khi lessonId thay đổi
   useEffect(() => {
     if (!lessonId) {
       setQuizzes([]);
+      localStorage.removeItem("quizList");
       return;
     }
+
     const load = async () => {
       try {
-        const res = await quizService.getQuizzesByLesson(lessonId);
-        const data = res.data?.data || res.data || [];
-        setQuizzes(Array.isArray(data) ? data : []);
+        // Gọi API GET /lesson-quizzes/lesson/{lessonId}
+        const res = await quizService.getQuizzesByLessonId(lessonId);
+        const quizzesArray = Array.isArray(res.data) ? res.data : [];
+        setQuizzes(quizzesArray);
+        localStorage.setItem("quizLessonId", lessonId);
+        localStorage.setItem("quizList", JSON.stringify(quizzesArray));
       } catch (e) {
+        console.error("Load quizzes error", e);
         setQuizzes([]);
+        localStorage.removeItem("quizList");
       }
     };
+
     load();
   }, [lessonId]);
 
   // 🟩 Hành động
-  const handleView = (quiz) => {
-    navigate(`/admin/quiz/${quiz.id}/preview`);
-  };
-
-  const handleEdit = (quiz) => {
-    navigate(`/admin/quiz/${quiz.id}/update`);
-  };
+  const handleView = (quiz) => navigate(`/admin/quiz/${quiz.quizId}/preview`);
+  const handleEdit = (quiz) => navigate(`/admin/quiz/${quiz.quizId}/update`);
+  const handleReport = (quiz) => navigate(`/admin/quiz/${quiz.quizId}/report`);
 
   const handleDelete = async (quiz) => {
-    if (window.confirm(`Bạn có chắc muốn xóa "${quiz.name}" không?`)) {
-      await quizService.deleteQuiz(quiz.id);
-      const res = await quizService.getQuizzesByLesson(lessonId);
-      const data = res.data?.data || res.data || [];
-      setQuizzes(Array.isArray(data) ? data : []);
-      alert(`Đã xóa quiz: ${quiz.name}`);
+    if (window.confirm(`Bạn có chắc muốn xóa "${quiz.title}" không?`)) {
+      await quizService.deleteQuiz(quiz.quizId);
+      const res = await quizService.getQuizzesByLessonId(lessonId);
+      const quizzesArray = Array.isArray(res.data) ? res.data : [];
+      setQuizzes(quizzesArray);
+      localStorage.setItem("quizList", JSON.stringify(quizzesArray));
+      alert(`Đã xóa quiz: ${quiz.title}`);
     }
-  };
-
-  const handleReport = (quiz) => {
-    navigate(`/admin/quiz/${quiz.id}/report`);
   };
 
   const { toggleSidebar } = useOutletContext() || {};
@@ -58,17 +75,10 @@ export default function QuizManagement() {
         onMenuToggle={toggleSidebar}
         actions={
           <div className="quiz-header-actions">
-            <button
-              className="quiz-btn bank"
-              onClick={() => navigate("/admin/question-bank")}
-            >
+            <button className="quiz-btn bank" onClick={() => navigate("/admin/question-bank")}>
               📚 Ngân hàng câu hỏi
             </button>
-
-            <button
-              className="quiz-btn create"
-              onClick={() => navigate("/admin/quiz/create")}
-            >
+            <button className="quiz-btn create" onClick={() => navigate("/admin/quiz/create")}>
               ➕ Thêm Quiz
             </button>
           </div>
@@ -76,6 +86,19 @@ export default function QuizManagement() {
       />
 
       <div className="quiz-content-page">
+        {/* Dropdown chọn lesson */}
+        <div className="lesson-select">
+          <label>Chọn Lesson: </label>
+          <select value={lessonId} onChange={(e) => setLessonId(e.target.value)}>
+            <option value="">-- Chọn lesson --</option>
+            {lessonsData.map((lesson) => (
+              <option key={lesson.id} value={lesson.id}>
+                {lesson.title}
+              </option>
+            ))}
+          </select>
+        </div>
+
         <div className="quiz-stats">
           <div className="quiz-card">
             <p className="quiz-card-title">Tổng Quiz</p>
@@ -84,14 +107,6 @@ export default function QuizManagement() {
         </div>
 
         <div className="quiz-table-section">
-          <input
-            type="text"
-            placeholder="Nhập lessonId để tải danh sách..."
-            className="quiz-search"
-            value={lessonId}
-            onChange={(e) => setLessonId(e.target.value)}
-          />
-
           <table className="quiz-table">
             <thead>
               <tr>
@@ -111,24 +126,16 @@ export default function QuizManagement() {
                 </tr>
               ) : (
                 quizzes.map((quiz) => (
-                  <tr key={quiz.id}>
+                  <tr key={quiz.quizId}>
                     <td>{quiz.title}</td>
                     <td>{quiz.questionCount}</td>
                     <td>{quiz.maxScore}</td>
                     <td>{quiz.passingScore}</td>
                     <td className="quiz-actions">
-                      <button className="btn-icon report" onClick={() => handleReport(quiz)}>
-                        📄
-                      </button>
-                      <button className="btn-icon" onClick={() => handleView(quiz)}>
-                        👁️
-                      </button>
-                      <button className="btn-icon" onClick={() => handleEdit(quiz)}>
-                        ✏️
-                      </button>
-                      <button className="btn-icon delete" onClick={() => handleDelete(quiz)}>
-                        🗑️
-                      </button>
+                      <button className="btn-icon report" onClick={() => handleReport(quiz)}>📄</button>
+                      <button className="btn-icon" onClick={() => handleView(quiz)}>👁️</button>
+                      <button className="btn-icon" onClick={() => handleEdit(quiz)}>✏️</button>
+                      <button className="btn-icon delete" onClick={() => handleDelete(quiz)}>🗑️</button>
                     </td>
                   </tr>
                 ))
@@ -140,4 +147,3 @@ export default function QuizManagement() {
     </div>
   );
 }
-  
