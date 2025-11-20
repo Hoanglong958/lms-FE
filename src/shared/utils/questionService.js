@@ -1,28 +1,19 @@
-import api from "@services/api";
+import api from "@services/api.js";
 
 export const questionService = {
-  // Danh sách câu hỏi
-  getQuestions() {
-    return api.get(`/api/v1/questions`);
+  getAll() {
+    return api.get("/api/v1/questions");
   },
-
-  // Chi tiết câu hỏi
-  getQuestion(id) {
-    return api.get(`/api/v1/questions/detail`, { params: { id } });
+  getById(id) {
+    return api.get(`/api/v1/questions/detail?id=${id}`);
   },
-
-  // Tạo mới câu hỏi
-  addQuestion(data) {
-    return api.post(`/api/v1/questions`, data);
+  create(data) {
+    return api.post("/api/v1/questions", data);
   },
-
-  // Cập nhật câu hỏi
-  updateQuestion(id, data) {
+  update(id, data) {
     return api.put(`/api/v1/questions/${id}`, data);
   },
-
-  // Xóa câu hỏi
-  deleteQuestion(id) {
+  delete(id) {
     return api.delete(`/api/v1/questions/${id}`);
   },
 };

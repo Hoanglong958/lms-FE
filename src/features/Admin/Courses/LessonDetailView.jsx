@@ -7,7 +7,12 @@ import { lessonQuizService } from "@utils/lessonQuizService.js";
 import LessonQuizEditor from "./LessonQuizEditor.jsx";
 import LessonQuizCreate from "./LessonQuizCreate.jsx";
 
+import { quizQuestionService } from "@utils/quizQuestionService.js";
 import { questionService } from "@utils/questionService.js";
+
+import { lessonDocumentService } from "@utils/lessonDocumentService.js";
+import LessonDocumentEditor from "./LessonDocumentEditor.jsx";
+import LessonDocumentCreate from "./LessonDocumentCreate.jsx";
 
 export default function LessonDetailView({ lesson }) {
   const [videos, setVideos] = useState([]);
@@ -23,42 +28,52 @@ export default function LessonDetailView({ lesson }) {
   const [documents, setDocuments] = useState([]);
   const [selectedDocument, setSelectedDocument] = useState(null);
 
+  // Load tất cả câu hỏi
   async function loadAllQuestions() {
-    const res = await questionService.getQuestions();
-    setAllQuestions(res.data || []);
+    try {
+      const res = await questionService.getAll();
+      const processed = (res.data || []).map((q) => ({
+        questionId: q.questionId ?? q.id,
+        question_text: q.question_text ?? q.title ?? "Không có tên câu hỏi",
+        type: q.type ?? "N/A",
+      }));
+      setAllQuestions(processed);
+    } catch (err) {
+      console.error(err);
+    }
   }
 
   useEffect(() => {
     if (!lesson) return;
 
+    // VIDEO
     if (lesson.type === "VIDEO") {
-      async function loadVideos() {
+      (async () => {
         const res = await lessonVideoService.getVideosByLesson(lesson.id);
         const list = res.data || [];
         setVideos(list);
         setSelectedVideo(list[0] || null);
-      }
-      loadVideos();
+      })();
     }
 
+    // QUIZ
     if (lesson.type === "QUIZ") {
-      async function loadQuizzes() {
+      (async () => {
         const res = await lessonQuizService.getQuizzesByLesson(lesson.id);
         const list = res.data || [];
         setQuizzes(list);
         setSelectedQuiz(list[0] || null);
-      }
-      loadQuizzes();
+      })();
     }
 
+    // DOCUMENT
     if (lesson.type === "DOCUMENT") {
-      async function loadDocuments() {
+      (async () => {
         const res = await lessonDocumentService.getDocumentsByLesson(lesson.id);
         const list = res.data || [];
         setDocuments(list);
         setSelectedDocument(list[0] || null);
-      }
-      loadDocuments();
+      })();
     }
   }, [lesson]);
 
@@ -70,7 +85,7 @@ export default function LessonDetailView({ lesson }) {
 
       {/* VIDEO */}
       {lesson.type === "VIDEO" && (
-        <>
+        <div key={`lesson-video-${lesson.id}`}>
           {!selectedVideo && (
             <LessonVideoCreate
               lesson={lesson}
@@ -84,21 +99,20 @@ export default function LessonDetailView({ lesson }) {
             <LessonVideoEditor
               video={selectedVideo}
               onUpdated={(updated) => {
-                const newList = videos.map((v) =>
+                const newVideos = videos.map((v) =>
                   v.videoId === updated.videoId ? updated : v
                 );
-                setVideos(newList);
+                setVideos(newVideos);
                 setSelectedVideo(updated);
               }}
             />
           )}
-        </>
+        </div>
       )}
 
       {/* QUIZ */}
-
       {lesson.type === "QUIZ" && (
-        <>
+        <div key={`lesson-quiz-${lesson.id}`}>
           {!selectedQuiz && (
             <LessonQuizCreate
               lesson={lesson}
@@ -112,102 +126,78 @@ export default function LessonDetailView({ lesson }) {
             <LessonQuizEditor
               quiz={selectedQuiz}
               onUpdated={(updated) => {
-                const newList = quizzes.map((q) =>
+                const newQuizzes = quizzes.map((q) =>
                   q.quizId === updated.quizId ? updated : q
                 );
-                setQuizzes(newList);
+                setQuizzes(newQuizzes);
                 setSelectedQuiz(updated);
               }}
             />
           )}
-          {/* NÚT CHỌN CÂU HỎI */}
-          {lesson.type === "QUIZ" && selectedQuiz && (
-            <div style={{ marginTop: "20px" }}>
-              {!selectingQuestions && (
+
+          {selectingQuestions && (
+            <div
+              style={{ marginTop: 10, border: "1px solid #ccc", padding: 10 }}
+            >
+              <h4>Chọn câu hỏi (cần chọn {selectedQuiz.questionCount})</h4>
+              {allQuestions.map((q) => (
+                <div key={`all-question-${q.questionId}`}>
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={selectedQuestions.includes(q.questionId)}
+                      onChange={() =>
+                        setSelectedQuestions((prev) =>
+                          prev.includes(q.questionId)
+                            ? prev.filter((id) => id !== q.questionId)
+                            : [...prev, q.questionId]
+                        )
+                      }
+                    />{" "}
+                    {q.question_text} - <i>{q.type}</i>
+                  </label>
+                </div>
+              ))}
+              <div style={{ marginTop: 12 }}>
                 <button
                   onClick={async () => {
-                    await loadAllQuestions();
-                    setSelectingQuestions(true);
+                    if (
+                      selectedQuestions.length !== selectedQuiz.questionCount
+                    ) {
+                      alert(
+                        `Cần chọn đúng ${selectedQuiz.questionCount} câu hỏi. Hiện tại: ${selectedQuestions.length}`
+                      );
+                      return;
+                    }
+                    const payload = selectedQuestions.map(
+                      (questionId, index) => ({
+                        quizId: selectedQuiz.quizId,
+                        questionId,
+                        orderIndex: index + 1,
+                      })
+                    );
+                    await quizQuestionService.addBatch(payload);
+                    alert("Đã gắn câu hỏi vào quiz");
+                    setSelectingQuestions(false);
                   }}
                 >
-                  Chọn câu hỏi
+                  Lưu danh sách câu hỏi
                 </button>
-              )}
-
-              {/* MÀN CHỌN CÂU HỎI */}
-              {selectingQuestions && (
-                <div
-                  style={{
-                    marginTop: "10px",
-                    border: "1px solid #ccc",
-                    padding: "10px",
-                  }}
+                <button
+                  style={{ marginLeft: 10 }}
+                  onClick={() => setSelectingQuestions(false)}
                 >
-                  <h3>Chọn câu hỏi (cần chọn {selectedQuiz.questionCount})</h3>
-
-                  {allQuestions.map((q) => (
-                    <div key={q.id}>
-                      <label>
-                        <input
-                          type="checkbox"
-                          checked={selectedQuestions.includes(q.id)}
-                          onChange={() => {
-                            if (selectedQuestions.includes(q.id)) {
-                              setSelectedQuestions(
-                                selectedQuestions.filter((id) => id !== q.id)
-                              );
-                            } else {
-                              setSelectedQuestions([
-                                ...selectedQuestions,
-                                q.id,
-                              ]);
-                            }
-                          }}
-                        />{" "}
-                        {q.questionText}
-                      </label>
-                    </div>
-                  ))}
-
-                  <div style={{ marginTop: "12px" }}>
-                    <button
-                      onClick={() => {
-                        if (
-                          selectedQuestions.length !==
-                          selectedQuiz.questionCount
-                        ) {
-                          alert(
-                            `Cần chọn đúng ${selectedQuiz.questionCount} câu hỏi. Hiện tại: ${selectedQuestions.length}`
-                          );
-                          return;
-                        }
-
-                        // TODO: GỌI API GẮN CÂU HỎI VÀO QUIZ – bạn đưa swagger tôi viết luôn
-                        console.log("Danh sách câu hỏi:", selectedQuestions);
-
-                        setSelectingQuestions(false);
-                      }}
-                    >
-                      Lưu danh sách câu hỏi
-                    </button>
-
-                    <button
-                      style={{ marginLeft: "10px" }}
-                      onClick={() => setSelectingQuestions(false)}
-                    >
-                      Hủy
-                    </button>
-                  </div>
-                </div>
-              )}
+                  Hủy
+                </button>
+              </div>
             </div>
           )}
-        </>
+        </div>
       )}
 
       {/* DOCUMENT */}
       {lesson.type === "DOCUMENT" && (
-        <>
+        <div key={`lesson-document-${lesson.id}`}>
           {!selectedDocument && (
             <LessonDocumentCreate
               lesson={lesson}
@@ -221,15 +211,15 @@ export default function LessonDetailView({ lesson }) {
             <LessonDocumentEditor
               document={selectedDocument}
               onUpdated={(updated) => {
-                const newList = documents.map((d) =>
-                  d.id === updated.id ? updated : d
+                const newDocs = documents.map((d) =>
+                  d.documentId === updated.documentId ? updated : d
                 );
-                setDocuments(newList);
+                setDocuments(newDocs);
                 setSelectedDocument(updated);
               }}
             />
           )}
-        </>
+        </div>
       )}
     </div>
   );

@@ -4,8 +4,10 @@ import { lessonDocumentService } from "@utils/lessonDocumentService.js";
 export default function LessonDocumentCreate({ lesson, onCreated }) {
   const [form, setForm] = useState({
     title: "",
-    description: "",
-    fileUrl: "", // hoặc file upload tuỳ backend
+    content: "",
+    imageUrl: "",
+    videoUrl: "",
+    sortOrder: 0,
   });
 
   const handleCreate = async () => {
@@ -16,9 +18,8 @@ export default function LessonDocumentCreate({ lesson, onCreated }) {
 
     const payload = {
       lessonId: lesson.id,
-      title: form.title,
-      description: form.description,
-      fileUrl: form.fileUrl,
+      ...form,
+      sortOrder: Number(form.sortOrder),
     };
 
     const res = await lessonDocumentService.addDocument(payload);
@@ -27,8 +28,7 @@ export default function LessonDocumentCreate({ lesson, onCreated }) {
 
   return (
     <div>
-      <h3>Thêm Tài liệu Mới</h3>
-
+      <h3>Thêm Tài liệu</h3>
       <div>
         <label>Tiêu đề:</label>
         <input
@@ -36,23 +36,35 @@ export default function LessonDocumentCreate({ lesson, onCreated }) {
           onChange={(e) => setForm({ ...form, title: e.target.value })}
         />
       </div>
-
       <div>
-        <label>Mô tả:</label>
+        <label>Nội dung:</label>
         <textarea
-          value={form.description}
-          onChange={(e) => setForm({ ...form, description: e.target.value })}
+          value={form.content}
+          onChange={(e) => setForm({ ...form, content: e.target.value })}
         />
       </div>
-
       <div>
-        <label>File URL:</label>
+        <label>Image URL:</label>
         <input
-          value={form.fileUrl}
-          onChange={(e) => setForm({ ...form, fileUrl: e.target.value })}
+          value={form.imageUrl}
+          onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
         />
       </div>
-
+      <div>
+        <label>Video URL:</label>
+        <input
+          value={form.videoUrl}
+          onChange={(e) => setForm({ ...form, videoUrl: e.target.value })}
+        />
+      </div>
+      <div>
+        <label>Thứ tự:</label>
+        <input
+          type="number"
+          value={form.sortOrder}
+          onChange={(e) => setForm({ ...form, sortOrder: e.target.value })}
+        />
+      </div>
       <button onClick={handleCreate}>Tạo tài liệu</button>
     </div>
   );

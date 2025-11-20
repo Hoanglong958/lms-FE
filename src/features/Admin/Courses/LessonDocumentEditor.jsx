@@ -3,19 +3,22 @@ import { lessonDocumentService } from "@utils/lessonDocumentService.js";
 
 export default function LessonDocumentEditor({ document, onUpdated }) {
   const [editing, setEditing] = useState(false);
-
   const [form, setForm] = useState({
     title: "",
-    description: "",
-    fileUrl: "",
+    content: "",
+    imageUrl: "",
+    videoUrl: "",
+    sortOrder: 0,
   });
 
   useEffect(() => {
     if (!document) return;
     setForm({
       title: document.title || "",
-      description: document.description || "",
-      fileUrl: document.fileUrl || "",
+      content: document.content || "",
+      imageUrl: document.imageUrl || "",
+      videoUrl: document.videoUrl || "",
+      sortOrder: document.sortOrder || 0,
     });
     setEditing(false);
   }, [document]);
@@ -26,15 +29,9 @@ export default function LessonDocumentEditor({ document, onUpdated }) {
       return;
     }
 
-    const payload = {
-      lessonId: document.lessonId,
-      title: form.title,
-      description: form.description,
-      fileUrl: form.fileUrl,
-    };
-
+    const payload = { ...form, sortOrder: Number(form.sortOrder) };
     const res = await lessonDocumentService.updateDocument(
-      document.id,
+      document.documentId,
       payload
     );
     onUpdated(res.data);
@@ -45,9 +42,17 @@ export default function LessonDocumentEditor({ document, onUpdated }) {
     return (
       <div>
         <h3>{document.title}</h3>
-        <p>{document.description || "—"}</p>
+        <p>{document.content}</p>
+        {document.imageUrl && (
+          <img
+            src={document.imageUrl}
+            alt={document.title}
+            style={{ maxWidth: "200px" }}
+          />
+        )}
+        {document.videoUrl && <a href={document.videoUrl}>Video Link</a>}
         <p>
-          <b>File:</b> {document.fileUrl || "—"}
+          <b>Thứ tự:</b> {document.sortOrder}
         </p>
         <button onClick={() => setEditing(true)}>Sửa</button>
       </div>
@@ -57,7 +62,6 @@ export default function LessonDocumentEditor({ document, onUpdated }) {
   return (
     <div>
       <h3>Sửa Tài liệu</h3>
-
       <div>
         <label>Tiêu đề:</label>
         <input
@@ -65,23 +69,35 @@ export default function LessonDocumentEditor({ document, onUpdated }) {
           onChange={(e) => setForm({ ...form, title: e.target.value })}
         />
       </div>
-
       <div>
-        <label>Mô tả:</label>
+        <label>Nội dung:</label>
         <textarea
-          value={form.description}
-          onChange={(e) => setForm({ ...form, description: e.target.value })}
+          value={form.content}
+          onChange={(e) => setForm({ ...form, content: e.target.value })}
         />
       </div>
-
       <div>
-        <label>File URL:</label>
+        <label>Image URL:</label>
         <input
-          value={form.fileUrl}
-          onChange={(e) => setForm({ ...form, fileUrl: e.target.value })}
+          value={form.imageUrl}
+          onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
         />
       </div>
-
+      <div>
+        <label>Video URL:</label>
+        <input
+          value={form.videoUrl}
+          onChange={(e) => setForm({ ...form, videoUrl: e.target.value })}
+        />
+      </div>
+      <div>
+        <label>Thứ tự:</label>
+        <input
+          type="number"
+          value={form.sortOrder}
+          onChange={(e) => setForm({ ...form, sortOrder: e.target.value })}
+        />
+      </div>
       <button onClick={handleSave}>Lưu</button>
       <button onClick={() => setEditing(false)}>Hủy</button>
     </div>
