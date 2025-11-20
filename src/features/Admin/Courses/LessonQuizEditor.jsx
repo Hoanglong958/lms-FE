@@ -70,6 +70,7 @@ export default function LessonQuizEditor({ quiz, onUpdated }) {
         const mapped = quizQs.map((q) => {
           const full = allQuestions.find((a) => a.questionId === q.questionId);
           return {
+            recordId: q.id,
             questionId: q.questionId, // vẫn là number
             question_text: full?.question_text ?? "Không có tên câu hỏi",
             category: full?.category ?? "N/A",
@@ -104,6 +105,18 @@ export default function LessonQuizEditor({ quiz, onUpdated }) {
   };
 
   const handleSaveSelectedQuestions = async () => {
+    // Lọc ra question mới chưa có trong quiz
+    const existingIds = questions.map((q) => q.questionId);
+    const newQuestionIds = selectedQuestions.filter(
+      (id) => !existingIds.includes(id)
+    );
+
+    if (newQuestionIds.length === 0) {
+      alert("Không có câu hỏi mới để thêm");
+      setSelectingQuestions(false);
+      return;
+    }
+
     if (selectedQuestions.length !== Number(form.questionCount)) {
       return alert(
         `Cần chọn đúng ${form.questionCount} câu hỏi. Hiện tại: ${selectedQuestions.length}`
@@ -111,17 +124,19 @@ export default function LessonQuizEditor({ quiz, onUpdated }) {
     }
 
     try {
-      const payload = selectedQuestions.map((questionId, index) => ({
+      const payload = newQuestionIds.map((questionId, index) => ({
         quizId: quiz.quizId,
         questionId,
-        orderIndex: index + 1,
+        orderIndex: questions.length + index + 1, // orderIndex tiếp theo
       }));
+
       await quizQuestionService.addBatch(payload);
 
-      const updated = allQuestions.filter((q) =>
-        selectedQuestions.includes(q.questionId)
+      // Cập nhật state
+      const newQuestions = allQuestions.filter((q) =>
+        newQuestionIds.includes(q.questionId)
       );
-      setQuestions(updated);
+      setQuestions((prev) => [...prev, ...newQuestions]);
       setSelectingQuestions(false);
     } catch (err) {
       console.error(err);
@@ -154,7 +169,7 @@ export default function LessonQuizEditor({ quiz, onUpdated }) {
                   onClick={async () => {
                     try {
                       // Xóa question
-                      await quizQuestionService.delete(q.questionId);
+                      await quizQuestionService.delete(q.recordId);
                       // Cập nhật lại state
                       setQuestions((prev) =>
                         prev.filter((item) => item.questionId !== q.questionId)
@@ -199,7 +214,7 @@ export default function LessonQuizEditor({ quiz, onUpdated }) {
                     <input
                       type="checkbox"
                       checked={selectedQuestions.includes(q.questionId)}
-                      disabled={alreadyInQuiz} // disable nếu đã có trong quiz
+                      disabled={alreadyInQuiz}
                       onChange={() =>
                         setSelectedQuestions((prev) =>
                           prev.includes(q.questionId)
@@ -207,7 +222,7 @@ export default function LessonQuizEditor({ quiz, onUpdated }) {
                             : [...prev, q.questionId]
                         )
                       }
-                    />{" "}
+                    />
                     {q.question_text} - <i>{q.category}</i>
                     {alreadyInQuiz && " (Đã có trong quiz)"}
                   </label>
