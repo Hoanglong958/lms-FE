@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { lessonVideoService } from "@utils/lessonVideoService.js";
 import LessonVideoEditor from "./LessonVideoEditor.jsx";
+import LessonVideoCreate from "./LessonVideoCreate.jsx";
 
 export default function LessonDetailView({ lesson }) {
   const [videos, setVideos] = useState([]);
@@ -11,24 +12,36 @@ export default function LessonDetailView({ lesson }) {
 
     async function load() {
       const res = await lessonVideoService.getVideoByLesson(lesson.id);
-      setVideos(res.data || []);
-      setSelectedVideo(res.data?.[0] || null);
+      const list = res.data || [];
+      setVideos(list);
+      setSelectedVideo(list[0] || null);
     }
 
     load();
   }, [lesson]);
 
-  if (!lesson) return <div>Chọn bài học để xem nội dung</div>;
+  if (!lesson) return <div>Chọn một bài học để xem nội dung</div>;
 
   return (
     <div>
       <h2>{lesson.title}</h2>
 
+      {/* Nếu chưa có video → hiện form tạo mới */}
+      {!selectedVideo && (
+        <LessonVideoCreate
+          lesson={lesson}
+          onCreated={(createdVideo) => {
+            setVideos([createdVideo]);
+            setSelectedVideo(createdVideo);
+          }}
+        />
+      )}
+
+      {/* Nếu đã có video → hiện editor */}
       {selectedVideo && (
         <LessonVideoEditor
           video={selectedVideo}
           onUpdated={(updated) => {
-            // update lại list + selected video
             const newList = videos.map((v) =>
               v.videoId === updated.videoId ? updated : v
             );

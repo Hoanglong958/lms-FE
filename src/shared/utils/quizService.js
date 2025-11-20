@@ -2,13 +2,16 @@
 import api from "@services/api";
 
 const getAuthHeaders = () => {
-  const token = localStorage.getItem("accessToken") || localStorage.getItem("access_token");
+  const token =
+    localStorage.getItem("accessToken") || localStorage.getItem("access_token");
   return token ? { Authorization: `Bearer ${token}` } : {};
 };
 
 export const quizService = {
   getQuiz(id) {
-    return api.get(`/api/v1/lesson-quizzes/${id}`, { headers: getAuthHeaders() });
+    return api.get(`/api/v1/lesson-quizzes/${id}`, {
+      headers: getAuthHeaders(),
+    });
   },
   updateQuiz(id, data) {
     return api.put(`/api/v1/lesson-quizzes/${id}`, data, {
@@ -16,14 +19,18 @@ export const quizService = {
     });
   },
   deleteQuiz(id) {
-    return api.delete(`/api/v1/lesson-quizzes/${id}`, { headers: getAuthHeaders() });
+    return api.delete(`/api/v1/lesson-quizzes/${id}`, {
+      headers: getAuthHeaders(),
+    });
   },
   addQuiz(data) {
     return api.post(`/api/v1/lesson-quizzes`, data, {
       headers: { ...getAuthHeaders(), "Content-Type": "application/json" },
     });
   },
-  getQuizzesByLesson(lessonId) {
-    return api.get(`/api/v1/lesson-quizzes/lesson/${lessonId}`, { headers: getAuthHeaders() });
+  getQuizzesByLessonId(lessonId) {
+    return api.get(`/api/v1/lesson-quizzes/lesson/${lessonId}`, {
+      headers: getAuthHeaders(),
+    });
   },
 };
