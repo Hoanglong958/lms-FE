@@ -81,22 +81,29 @@ export default function LessonVideoEditor({ video, onUpdated }) {
     const embedUrl = match ? `https://www.youtube.com/embed/${match[1]}` : url;
 
     return (
-<div style={{ position: "relative", paddingBottom: "56.25%", height: 0, overflow: "hidden", marginBottom: "20px" }}>
-  <iframe
-    src={embedUrl}
-    allowFullScreen
-    style={{
-      position: "absolute",
-      top: 0,
-      left: 0,
-      width: "100%",
-      height: "100%",
-      border: "none",
-      boxShadow: "0 8px 24px rgba(0,0,0,0.2)",
-    }}
-  ></iframe>
-</div>
-
+      <div
+        style={{
+          position: "relative",
+          paddingBottom: "56.25%",
+          height: 0,
+          overflow: "hidden",
+          marginBottom: "20px",
+        }}
+      >
+        <iframe
+          src={embedUrl}
+          allowFullScreen
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            border: "none",
+            boxShadow: "0 8px 24px rgba(0,0,0,0.2)",
+          }}
+        ></iframe>
+      </div>
     );
   };
 
@@ -106,19 +113,26 @@ export default function LessonVideoEditor({ video, onUpdated }) {
   if (!editing) {
     return (
       <div>
-        {renderVideo()}
-        <p><b>Thông tin chung</b></p>
-        <p>
-          <b className="title-label">Tiêu đề:</b> {video.title}
-        </p>
-        <p>
-          <b className="title-label">Thời lượng:</b> {video.durationSeconds} giây
-        </p>
-        <p>
-          <b className="title-label">Mô tả:</b> {video.description || "—"}
-        </p>
+        <div className="lessonvideoheader">
+          <p>
+            <b>Thông tin chung</b>
+          </p>
+          <p>
+            <b className="title-label">Tiêu đề:</b> {video.title}
+          </p>
+          <p>
+            <b className="title-label">Thời lượng:</b> {video.durationSeconds}{" "}
+            giây
+          </p>
+          <p>
+            <b className="title-label">Mô tả:</b> {video.description || "—"}
+          </p>
 
-        <button className="edit-button" onClick={() => setEditing(true)}>Sửa</button>
+          <button className="edit-button" onClick={() => setEditing(true)}>
+            Sửa
+          </button>
+        </div>
+        <div className="videoholderlesson">{renderVideo()}</div>
       </div>
     );
   }
@@ -132,18 +146,28 @@ export default function LessonVideoEditor({ video, onUpdated }) {
 
       <div className="title-container">
         <label className="title-label">Tiêu đề: </label>
-        <input className="title-input-text" name="title" value={form.title} onChange={handleChange} />
+        <input
+          className="title-input-text"
+          name="title"
+          value={form.title}
+          onChange={handleChange}
+        />
       </div>
 
       <div className="title-container">
         <label className="title-label">Video URL: </label>
-        <input className="title-input-text" name="videoUrl" value={form.videoUrl} onChange={handleChange} />
+        <input
+          className="title-input-text"
+          name="videoUrl"
+          value={form.videoUrl}
+          onChange={handleChange}
+        />
       </div>
 
       <div className="title-container">
         <label className="title-label">Thời lượng (giây): </label>
         <input
-        className="title-input-number"
+          className="title-input-number"
           name="durationSeconds"
           type="number"
           value={form.durationSeconds}
@@ -160,9 +184,12 @@ export default function LessonVideoEditor({ video, onUpdated }) {
         />
       </div>
 
-
-      <button className="button" onClick={handleSave}>Lưu</button>
-      <button className="button" onClick={() => setEditing(false)}>Hủy</button>
+      <button className="button" onClick={handleSave}>
+        Lưu
+      </button>
+      <button className="button" onClick={() => setEditing(false)}>
+        Hủy
+      </button>
     </div>
   );
 }

@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 import { lessonQuizService } from "@utils/lessonQuizService.js";
 
+// IMPORT CSS RIÊNG CHO TRANG NÀY
+import "./CoursesCSS/LessonQuizCreate.css";
+
 export default function LessonQuizCreate({ lesson, onCreated }) {
   const [form, setForm] = useState({
     title: "",
@@ -23,50 +26,41 @@ export default function LessonQuizCreate({ lesson, onCreated }) {
       passingScore: Number(form.passingScore),
     };
 
-    const res = await lessonQuizService.addQuiz(payload);
-    onCreated(res.data);
+    try {
+      const res = await lessonQuizService.addQuiz(payload);
+      onCreated(res.data);
+    } catch (err) {
+      console.error(err);
+      alert("Không thể tạo quiz");
+    }
   };
 
+  const fields = [
+    { key: "title", label: "Tiêu đề", type: "text" },
+    { key: "questionCount", label: "Số câu hỏi", type: "number" },
+    { key: "maxScore", label: "Điểm tối đa", type: "number" },
+    { key: "passingScore", label: "Điểm đạt", type: "number" },
+  ];
+
   return (
-    <div>
-      <h3>Thêm Quiz Mới</h3>
+    <div className="lqc-wrapper">
+      <h3 className="lqc-title">Thêm Quiz Mới</h3>
 
-      <div>
-        <label>Tiêu đề:</label>
-        <input
-          value={form.title}
-          onChange={(e) => setForm({ ...form, title: e.target.value })}
-        />
-      </div>
+      {fields.map((f) => (
+        <div key={f.key} className="lqc-form-row">
+          <label className="lqc-label">{f.label}:</label>
+          <input
+            type={f.type}
+            className="lqc-input"
+            value={form[f.key]}
+            onChange={(e) => setForm({ ...form, [f.key]: e.target.value })}
+          />
+        </div>
+      ))}
 
-      <div>
-        <label>Số câu hỏi:</label>
-        <input
-          type="number"
-          value={form.questionCount}
-          onChange={(e) => setForm({ ...form, questionCount: e.target.value })}
-        />
-      </div>
-
-      <div>
-        <label>Điểm tối đa:</label>
-        <input
-          type="number"
-          value={form.maxScore}
-          onChange={(e) => setForm({ ...form, maxScore: e.target.value })}
-        />
-      </div>
-
-      <div>
-        <label>Điểm đạt:</label>
-        <input
-          type="number"
-          value={form.passingScore}
-          onChange={(e) => setForm({ ...form, passingScore: e.target.value })}
-        />
-      </div>
-
-      <button onClick={handleCreate}>Tạo Quiz</button>
+      <button className="lqc-btn" onClick={handleCreate}>
+        Tạo Quiz
+      </button>
     </div>
   );
 }

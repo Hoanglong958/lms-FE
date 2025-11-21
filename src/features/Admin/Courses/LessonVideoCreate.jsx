@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { lessonVideoService } from "@utils/lessonVideoService.js";
+import "./CoursesCSS/LessonVideoCreate.css";
 
 function isValidUrl(url) {
   try {
@@ -49,22 +50,33 @@ export default function LessonVideoCreate({ lesson, onCreated }) {
   }
 
   return (
-    <div>
-      <h3>Thêm Video Mới</h3>
+    <div className="lvc-wrapper">
+      <h3 className="lvc-title">Thêm Video Mới</h3>
 
-      <div>
-        <label>Tiêu đề:</label>
-        <input name="title" value={form.title} onChange={handleChange} />
-      </div>
-
-      <div>
-        <label>Video URL:</label>
-        <input name="videoUrl" value={form.videoUrl} onChange={handleChange} />
-      </div>
-
-      <div>
-        <label>Thời lượng (giây):</label>
+      <div className="lvc-form-row">
+        <label className="lvc-label">Tiêu đề:</label>
         <input
+          className="lvc-input"
+          name="title"
+          value={form.title}
+          onChange={handleChange}
+        />
+      </div>
+
+      <div className="lvc-form-row">
+        <label className="lvc-label">Video URL:</label>
+        <input
+          className="lvc-input"
+          name="videoUrl"
+          value={form.videoUrl}
+          onChange={handleChange}
+        />
+      </div>
+
+      <div className="lvc-form-row">
+        <label className="lvc-label">Thời lượng (giây):</label>
+        <input
+          className="lvc-input"
           type="number"
           name="durationSeconds"
           value={form.durationSeconds}
@@ -72,16 +84,19 @@ export default function LessonVideoCreate({ lesson, onCreated }) {
         />
       </div>
 
-      <div>
-        <label>Mô tả:</label>
+      <div className="lvc-form-row">
+        <label className="lvc-label">Mô tả:</label>
         <textarea
+          className="lvc-textarea"
           name="description"
           value={form.description}
           onChange={handleChange}
         />
       </div>
 
-      <button onClick={handleCreate}>Tạo Video</button>
+      <button className="lvc-btn" onClick={handleCreate}>
+        Tạo Video
+      </button>
     </div>
   );
 }

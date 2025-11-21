@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { lessonDocumentService } from "@utils/lessonDocumentService.js";
+import "./CoursesCSS/LessonDocumentCreate.css";
 
 export default function LessonDocumentCreate({ lesson, onCreated }) {
   const [form, setForm] = useState({
@@ -27,45 +28,58 @@ export default function LessonDocumentCreate({ lesson, onCreated }) {
   };
 
   return (
-    <div>
-      <h3>Thêm Tài liệu</h3>
-      <div>
-        <label>Tiêu đề:</label>
+    <div className="ldc-wrapper">
+      <h3 className="ldc-title">Thêm Tài liệu Mới</h3>
+
+      <div className="ldc-form-row">
+        <label className="ldc-label">Tiêu đề:</label>
         <input
+          className="ldc-input"
           value={form.title}
           onChange={(e) => setForm({ ...form, title: e.target.value })}
         />
       </div>
-      <div>
-        <label>Nội dung:</label>
+
+      <div className="ldc-form-row">
+        <label className="ldc-label">Nội dung:</label>
         <textarea
+          className="ldc-textarea"
           value={form.content}
           onChange={(e) => setForm({ ...form, content: e.target.value })}
         />
       </div>
-      <div>
-        <label>Image URL:</label>
+
+      <div className="ldc-form-row">
+        <label className="ldc-label">Image URL:</label>
         <input
+          className="ldc-input"
           value={form.imageUrl}
           onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
         />
       </div>
-      <div>
-        <label>Video URL:</label>
+
+      <div className="ldc-form-row">
+        <label className="ldc-label">Video URL:</label>
         <input
+          className="ldc-input"
           value={form.videoUrl}
           onChange={(e) => setForm({ ...form, videoUrl: e.target.value })}
         />
       </div>
-      <div>
-        <label>Thứ tự:</label>
+
+      <div className="ldc-form-row">
+        <label className="ldc-label">Thứ tự:</label>
         <input
+          className="ldc-input"
           type="number"
           value={form.sortOrder}
           onChange={(e) => setForm({ ...form, sortOrder: e.target.value })}
         />
       </div>
-      <button onClick={handleCreate}>Tạo tài liệu</button>
+
+      <button className="ldc-btn" onClick={handleCreate}>
+        Tạo Tài liệu
+      </button>
     </div>
   );
 }
