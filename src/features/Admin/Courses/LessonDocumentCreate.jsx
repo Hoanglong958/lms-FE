@@ -1,6 +1,24 @@
 import React, { useState } from "react";
+import { CKEditor } from "@ckeditor/ckeditor5-react";
+import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 import { lessonDocumentService } from "@utils/lessonDocumentService.js";
 import "./CoursesCSS/LessonDocumentCreate.css";
+
+// Dùng cùng toolbar
+const CKEDITOR_TOOLBAR = [
+  "heading",
+  "|",
+  "bold",
+  "italic",
+  "underline",
+  "|",
+  "bulletedList",
+  "numberedList",
+  "blockQuote",
+  "|",
+  "undo",
+  "redo",
+];
 
 export default function LessonDocumentCreate({ lesson, onCreated }) {
   const [form, setForm] = useState({
@@ -23,8 +41,13 @@ export default function LessonDocumentCreate({ lesson, onCreated }) {
       sortOrder: Number(form.sortOrder),
     };
 
-    const res = await lessonDocumentService.addDocument(payload);
-    onCreated(res.data);
+    try {
+      const res = await lessonDocumentService.addDocument(payload);
+      onCreated(res.data);
+    } catch (err) {
+      console.error(err);
+      alert("Tạo tài liệu thất bại.");
+    }
   };
 
   return (
@@ -42,10 +65,13 @@ export default function LessonDocumentCreate({ lesson, onCreated }) {
 
       <div className="ldc-form-row">
         <label className="ldc-label">Nội dung:</label>
-        <textarea
-          className="ldc-textarea"
-          value={form.content}
-          onChange={(e) => setForm({ ...form, content: e.target.value })}
+        <CKEditor
+          editor={ClassicEditor}
+          data={form.content}
+          config={{ toolbar: CKEDITOR_TOOLBAR }}
+          onChange={(event, editor) =>
+            setForm((prev) => ({ ...prev, content: editor.getData() }))
+          }
         />
       </div>
 
@@ -70,10 +96,12 @@ export default function LessonDocumentCreate({ lesson, onCreated }) {
       <div className="ldc-form-row">
         <label className="ldc-label">Thứ tự:</label>
         <input
-          className="ldc-input"
           type="number"
+          className="ldc-input"
           value={form.sortOrder}
-          onChange={(e) => setForm({ ...form, sortOrder: e.target.value })}
+          onChange={(e) =>
+            setForm({ ...form, sortOrder: Number(e.target.value) })
+          }
         />
       </div>
 

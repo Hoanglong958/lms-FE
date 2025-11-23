@@ -1,6 +1,24 @@
 import React, { useState, useEffect } from "react";
+import { CKEditor } from "@ckeditor/ckeditor5-react";
+import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 import { lessonDocumentService } from "@utils/lessonDocumentService.js";
 import "./CoursesCSS/LessonDocumentEditor.css";
+
+// Toolbar dùng chung
+const CKEDITOR_TOOLBAR = [
+  "heading",
+  "|",
+  "bold",
+  "italic",
+  "underline",
+  "|",
+  "bulletedList",
+  "numberedList",
+  "blockQuote",
+  "|",
+  "undo",
+  "redo",
+];
 
 export default function LessonDocumentEditor({ document, onUpdated }) {
   const [editing, setEditing] = useState(false);
@@ -31,19 +49,29 @@ export default function LessonDocumentEditor({ document, onUpdated }) {
     }
 
     const payload = { ...form, sortOrder: Number(form.sortOrder) };
-    const res = await lessonDocumentService.updateDocument(
-      document.documentId,
-      payload
-    );
-    onUpdated(res.data);
-    setEditing(false);
+    try {
+      const res = await lessonDocumentService.updateDocument(
+        document.documentId,
+        payload
+      );
+      onUpdated(res.data);
+      setEditing(false);
+    } catch (err) {
+      console.error(err);
+      alert("Lưu tài liệu thất bại.");
+    }
   };
+
+  if (!document) return <p>Đang tải tài liệu...</p>;
 
   if (!editing) {
     return (
       <div className="lde-wrapper">
         <h3 className="lde-title">{document.title}</h3>
-        <p className="lde-content">{document.content}</p>
+        <div
+          className="lde-content html-content"
+          dangerouslySetInnerHTML={{ __html: document.content }}
+        />
         {document.imageUrl && (
           <img
             src={document.imageUrl}
@@ -52,7 +80,7 @@ export default function LessonDocumentEditor({ document, onUpdated }) {
           />
         )}
         {document.videoUrl && (
-          <a href={document.videoUrl} className="lde-link">
+          <a href={document.videoUrl} className="lde-link" target="_blank">
             Video Link
           </a>
         )}
@@ -81,10 +109,13 @@ export default function LessonDocumentEditor({ document, onUpdated }) {
 
       <div className="lde-form-row">
         <label className="lde-label">Nội dung:</label>
-        <textarea
-          className="lde-textarea"
-          value={form.content}
-          onChange={(e) => setForm({ ...form, content: e.target.value })}
+        <CKEditor
+          editor={ClassicEditor}
+          data={form.content}
+          config={{ toolbar: CKEDITOR_TOOLBAR }}
+          onChange={(event, editor) =>
+            setForm((prev) => ({ ...prev, content: editor.getData() }))
+          }
         />
       </div>
 
@@ -109,10 +140,12 @@ export default function LessonDocumentEditor({ document, onUpdated }) {
       <div className="lde-form-row">
         <label className="lde-label">Thứ tự:</label>
         <input
-          className="lde-input"
           type="number"
+          className="lde-input"
           value={form.sortOrder}
-          onChange={(e) => setForm({ ...form, sortOrder: e.target.value })}
+          onChange={(e) =>
+            setForm({ ...form, sortOrder: Number(e.target.value) })
+          }
         />
       </div>
 
