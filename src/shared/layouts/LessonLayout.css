@@ -11,12 +11,6 @@
   margin: 0 auto;
   padding: 0 2.5rem 2.5rem;
   box-sizing: border-box;
-  gap: 2rem;
-}
-
-.lesson-sidebar-container {
-  flex: 0 0 340px;
-  min-width: 280px;
 }
 
 .lesson-content {
