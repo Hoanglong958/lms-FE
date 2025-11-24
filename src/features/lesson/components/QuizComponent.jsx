@@ -1,16 +1,50 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { lessonQuizService } from "@utils/lessonQuizService";
 import quizIllustration from "@assets/images/quiz-cat-illustration.svg";
 import QuizExamPage from "./QuizExamPage";
 
 const QuizComponent = ({ item }) => {
   const navigate = useNavigate();
   const [showQuiz, setShowQuiz] = useState(false);
+  const [quiz, setQuiz] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!item?.id) {
+      setLoading(false);
+      return;
+    }
+
+    const fetchQuiz = async () => {
+      try {
+        // Fetch quiz theo lessonId giống như Admin
+        const res = await lessonQuizService.getQuizzesByLesson(item.id);
+        const quizzes = res.data || [];
+        if (quizzes.length > 0) {
+          setQuiz(quizzes[0]);
+        }
+      } catch (err) {
+        console.error("Lỗi tải quiz:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchQuiz();
+  }, [item.id]);
 
   const handleStartQuiz = () => {
-    // Thay vì chuyển trang, chỉ thay đổi state để render lại phần quiz-wrapper
     setShowQuiz(true);
   };
+
+  if (loading) {
+    return <div className="quiz-wrapper">Đang tải quiz...</div>;
+  }
+
+  if (!quiz) {
+    return <div className="quiz-wrapper">Chưa có quiz</div>;
+  }
 
   return (
     <div className="quiz-wrapper">
@@ -23,11 +57,11 @@ const QuizComponent = ({ item }) => {
           />
           <div className="quiz-content">
             <div className="quiz-content-title-group">
-              <h2 className="quiz-title">{item.title}</h2>
+              <h2 className="quiz-title">{quiz.title || item.title}</h2>
               <p className="quiz-meta">
-                Bài kiểm tra • {item.questions} câu hỏi
+                Bài kiểm tra • {quiz.questionCount || item.questions || 0} câu hỏi
               </p>
-              <p>{item.content || "Nội dung đang được cập nhật..."}</p>
+              <p>{quiz.description || item.content || "Nội dung đang được cập nhật..."}</p>
             </div>
             <p className="quiz-summary">{item.summary}</p>
             <button className="start-quiz-button" onClick={handleStartQuiz}>
@@ -52,7 +86,7 @@ const QuizComponent = ({ item }) => {
           </div>
         </>
       ) : (
-        <QuizExamPage quizId={item.id + 1} />
+        <QuizExamPage quizId={quiz.quizId || item.id} />
       )}
     </div>
   );

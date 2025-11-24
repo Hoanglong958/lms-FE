@@ -1,18 +1,16 @@
 .lesson-sidebar {
-  width: 100%;
-  height: 100%;
+  width: 310px;
   transition: width 180ms ease;
-  overflow-y: auto;
-  border-radius: 24px;
-  border: 1px solid rgba(226, 232, 240, 0.7);
+  overflow: hidden;
+  border-left: 1px solid #eee;
   box-sizing: border-box;
-  padding: 20px 18px;
+  padding: 16px;
   background: #fff;
-  box-shadow: 0 16px 40px -24px rgba(15, 23, 42, 0.35);
+  min-height: calc(100vh);
 }
 
 .lesson-sidebar.minimized {
-  width: 100%;
+  width: 56px;
 }
 
 .sidebar-header {
@@ -129,13 +127,6 @@ details[open] .dropdown-icon {
   padding: 4px 0;
 }
 
-.lesson-item:hover {
-  background-color: #f9f9f9;
-}
-.lesson-item.active {
-  background-color: #fef1ec;
-}
-
 .lesson-sidebar.minimized .lesson-title,
 .lesson-sidebar.minimized .lesson-items {
   display: none;
@@ -216,72 +207,4 @@ details[open] .dropdown-icon {
   height: 4px;
   object-fit: contain;
   margin: 8px;
-}
-
-/* ============================================= */
-/* ========== RESPONSIVE (TABLET & MOBILE) ========== */
-/* ============================================= */
-
-/* Áp dụng cho màn hình có chiều rộng tối đa là 820px */
-@media (max-width: 820px) {
-  /* --- 1. Style lại container chính của sidebar --- */
-  .lesson-sidebar,
-  .lesson-sidebar.minimized {
-    width: 772px; /* Chiếm toàn bộ chiều rộng */
-    border-left: none; /* Bỏ border dọc của desktop */
-    border: 1px solid #eee; /* Thêm border bao quanh */
-    border-radius: 8px; /* Bo góc cho đẹp */
-    padding: 0; /* Reset padding để nút bấm chiếm toàn bộ */
-  }
-
-  /* --- 2. Ẩn header của desktop --- */
-  .lesson-sidebar .sidebar-header {
-    display: none;
-  }
-
-  /* --- 3. Style cho nút bấm "Danh sách bài học" --- */
-  /* (Giả sử bạn đã thêm nút này vào file React) */
-  .sidebar-mobile-toggle {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 772px;
-    padding: 12px 16px;
-    background-color: #fff;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-family: "SF Pro Display", sans-serif;
-    font-weight: 600;
-    font-size: 16px;
-    color: #dd673c;
-    box-sizing: border-box;
-  }
-
-  .sidebar-mobile-toggle .dropdown-icon {
-    width: 20px;
-    height: 20px;
-    transition: transform 0.3s ease;
-    /* Mũi tên mặc định chỉ xuống */
-    transform: rotate(0deg);
-  }
-
-  /* --- 4. Logic ẩn/hiện danh sách bài học --- */
-
-  /* Mặc định ẩn danh sách */
-  .lesson-sidebar .topic-list {
-    display: none;
-    padding: 0 16px 16px; /* Thêm padding cho nội dung bên trong */
-    margin: 0; /* Reset margin */
-  }
-
-  /* KHI NÚT ĐƯỢC BẤM (có class .list-visible), hiện danh sách ra */
-  .lesson-sidebar.list-visible .topic-list {
-    display: block;
-  }
-
-  /* Xoay mũi tên khi danh sách được mở */
-  .lesson-sidebar.list-visible .sidebar-mobile-toggle .dropdown-icon {
-    transform: rotate(180deg);
-  }
 }

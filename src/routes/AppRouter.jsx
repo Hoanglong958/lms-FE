@@ -73,7 +73,7 @@ export default function AppRouter() {
             <Route path="/search" element={<SearchPage />} />
           </Route>
 
-          <Route path="/lessons/:courseId" element={<LessonLayout />}>
+          <Route path="/courses/:courseSlug" element={<LessonLayout />}>
             <Route index element={<LessonPage />} />
             <Route path=":lessonId" element={<LessonPage />} />
           </Route>

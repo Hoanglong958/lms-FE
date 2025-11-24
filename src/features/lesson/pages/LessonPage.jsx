@@ -1,129 +1,107 @@
-import React, { useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { courses } from "@data/courseData";
+import { courseService } from "@utils/courseService";
+import { sessionService } from "@utils/sessionService";
+import { lessonService } from "@utils/lessonService";
+import { slugify } from "@utils/slugify";
+import { useEffect, useState, useMemo } from "react";
 import LessonContentDisplay from "@features/lesson/components/LessonContentDisplay";
-import "./lesson.css";
 
-const Breadcrumbs = ({ courseTitle }) => (
-  <nav className="breadcrumbs" aria-label="breadcrumb">
-    <a href="/">Trang chủ</a>
-
-    <span className="breadcrumb-divider">/</span>
-
-    <span className="breadcrumb-active">{courseTitle}</span>
-  </nav>
-);
-
-const LessonPage = () => {
-  const { courseId, lessonId } = useParams();
+export default function LessonPage() {
+  const { courseSlug, lessonId } = useParams();
   const navigate = useNavigate();
+  const [course, setCourse] = useState(null);
+  const [sessions, setSessions] = useState([]);
+  const [lesson, setLesson] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const currentCourse = courses[courseId];
-
-  const allItems = useMemo(() => {
-    if (!currentCourse) return [];
-    return currentCourse.sessions.flatMap((session) =>
-      session.lessons.flatMap((lesson) => lesson.items)
-    );
-  }, [currentCourse]);
-
+  // 1️⃣ Lấy course theo slug
   useEffect(() => {
-    if (!lessonId && currentCourse && allItems.length > 0) {
-      const firstItemId = allItems[0].id;
-      navigate(`/lessons/${courseId}/${firstItemId}`, { replace: true });
+    courseService.getCourses().then((res) => {
+      const c = res.data.find(
+        (c) => slugify(c.title) === courseSlug || c.slug === courseSlug
+      );
+      if (!c) return navigate("/courses"); // fallback an toàn
+      setCourse(c);
+    });
+  }, [courseSlug]);
+
+  // 2️⃣ Lấy session và lessons theo courseId
+  useEffect(() => {
+    if (!course?.id) return;
+    const loadSessionsAndLessons = async () => {
+      try {
+        const sessionRes = await sessionService.getSessionsByCourse(course.id);
+        const sessionsData = Array.isArray(sessionRes.data) ? sessionRes.data : [];
+        
+        // Fetch lessons cho từng session
+        const sessionsWithLessons = await Promise.all(
+          sessionsData.map(async (session) => {
+            const lessonRes = await lessonService.getLessonsBySession(session.id);
+            return {
+              ...session,
+              lessons: lessonRes.data || [],
+            };
+          })
+        );
+        
+        setSessions(sessionsWithLessons);
+      } catch (err) {
+        console.error("Lỗi tải sessions và lessons:", err);
+      }
+    };
+    loadSessionsAndLessons();
+  }, [course]);
+
+  // 3️⃣ Flatten lessons từ sessions
+  const allLessons = useMemo(() => {
+    return sessions.flatMap((s) => s.lessons || []);
+  }, [sessions]);
+
+  // 4️⃣ Redirect nếu chưa có lessonId
+  useEffect(() => {
+    if (!lessonId && allLessons.length > 0) {
+      navigate(`/courses/${courseSlug}/${allLessons[0].id}`, { replace: true });
     }
-  }, [courseId, lessonId, navigate, currentCourse, allItems]);
+  }, [lessonId, allLessons, courseSlug, navigate]);
 
-  const currentItemIndex = allItems.findIndex((item) => item.id === lessonId);
-  const currentItem = allItems[currentItemIndex];
+  // 5️⃣ Lấy lesson chi tiết
+  useEffect(() => {
+    if (!lessonId) return;
+    setLoading(true);
+    lessonService
+      .getLesson(lessonId)
+      .then((res) => setLesson(res.data))
+      .finally(() => setLoading(false));
+  }, [lessonId]);
 
-  const handleNavigation = (direction) => {
-    const newIndex = currentItemIndex + direction;
-    if (newIndex >= 0 && newIndex < allItems.length) {
-      const nextItemId = allItems[newIndex].id;
-      navigate(`/lessons/${courseId}/${nextItemId}`);
+  const currentLessonIndex = allLessons.findIndex((l) => l.id === lessonId);
+  const handleNavigation = (dir) => {
+    const newIndex = currentLessonIndex + dir;
+    if (newIndex >= 0 && newIndex < allLessons.length) {
+      navigate(`/courses/${courseSlug}/${allLessons[newIndex].id}`);
     }
   };
 
-  if (!currentItem) {
-    return <div>Đang tải bài học...</div>;
-  }
+  if (loading || !lesson) return <div>Đang tải bài học...</div>;
 
   return (
-    <div className="lesson-detail-container">
-      <div className="lesson-page-header">
-        <Breadcrumbs courseTitle={currentCourse.courseTitle} />
-
-        <div className="lesson-navigation">
-          <button
-            className="nav-button prev"
-            onClick={() => handleNavigation(-1)}
-            disabled={currentItemIndex === 0}
-          >
-            <svg
-              className="nav-icon"
-              width="20"
-              height="20"
-              viewBox="0 0 20 20"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M15.8332 10H4.1665M4.1665 10L9.99984 15.8333M4.1665 10L9.99984 4.16666"
-                stroke="currentColor"
-                strokeWidth="1.67"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-            <span>Bài trước</span>
-          </button>
-
-          <button
-            className="nav-button next"
-            onClick={() => handleNavigation(1)}
-            disabled={currentItemIndex === allItems.length - 1}
-          >
-            <span>Bài tiếp theo</span>
-            <svg
-              className="nav-icon"
-              width="20"
-              height="20"
-              viewBox="0 0 20 20"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M4.1665 10H15.8332M15.8332 10L9.99984 4.16666M15.8332 10L9.99984 15.8333"
-                stroke="currentColor"
-                strokeWidth="1.67"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
-        </div>
-      </div>
-
-      <LessonContentDisplay item={currentItem} />
-
-      <div className="lesson-header">
-        <div className="lesson-title-group">
-          <h2>{currentItem.title}</h2>
-          <span>24 tháng 6 năm 2023</span>
-        </div>
-        <div className="lesson-progress">
-          {currentItemIndex + 1}/{allItems.length} Bài học
-        </div>
-      </div>
-
-      <div className="lesson-description">
-        <h3>Mô tả</h3>
-        <p>{currentItem.Descriptions || "Nội dung đang được cập nhật..."}</p>
-        <a href="#">Xem thêm</a>
+    <div>
+      <h2>{lesson.title}</h2>
+      <LessonContentDisplay item={lesson} />
+      <div>
+        <button
+          disabled={currentLessonIndex <= 0}
+          onClick={() => handleNavigation(-1)}
+        >
+          Bài trước
+        </button>
+        <button
+          disabled={currentLessonIndex >= allLessons.length - 1}
+          onClick={() => handleNavigation(1)}
+        >
+          Bài tiếp theo
+        </button>
       </div>
     </div>
   );
-};
-
-export default LessonPage;
+}
