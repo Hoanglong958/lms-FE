@@ -6,9 +6,15 @@ export const courseService = {
     return api.get("/api/v1/courses");
   },
 
-  // GET /api/v1/courses/{id}
-  getCourse(id) {
-    return api.get(`/api/v1/courses/${id}`);
+  // GET /api/v1/courses/paging
+  getCoursesPaging(params) {
+    // params có thể là { page: 1, size: 10, sort: 'name,asc' } tùy swagger
+    return api.get("/api/v1/courses/paging", { params });
+  },
+
+  // GET /api/v1/courses/detail
+  getCourseDetail(id) {
+    return api.get(`/api/v1/courses/detail`, { params: { id } });
   },
 
   // POST /api/v1/courses

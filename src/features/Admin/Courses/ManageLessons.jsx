@@ -8,7 +8,6 @@ import LessonDetailView from "./LessonDetailView.jsx";
 import styles from "./ManageLessons.module.css";
 import { slugify } from "@utils/slugify";
 
-
 export default function ManageLessons() {
   const { courseSlug } = useParams();
   const navigate = useNavigate();

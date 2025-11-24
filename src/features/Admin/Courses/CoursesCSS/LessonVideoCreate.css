@@ -1,0 +1,96 @@
+:root {
+  --lvc-accent: #ff7f50;
+  --lvc-accent-hover: #ff9b72;
+  --lvc-bg: #ffffff;
+  --lvc-bg-input: #f3f4f6;
+  --lvc-border: #e7eefc;
+  --lvc-radius: 12px;
+  --lvc-text: #111827;
+  --lvc-muted: #64748b;
+  --lvc-shadow: 0 6px 18px rgba(29, 41, 73, 0.06);
+}
+
+.lvc-wrapper {
+  width: 100%;
+  margin: 20px auto;
+  padding: 20px;
+  background: var(--lvc-bg);
+  border-radius: var(--lvc-radius);
+  box-shadow: var(--lvc-shadow);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial;
+}
+
+.lvc-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--lvc-text);
+  margin-bottom: 20px;
+}
+
+.lvc-form-row {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 16px;
+}
+
+.lvc-label {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: var(--lvc-text);
+}
+
+.lvc-input,
+.lvc-textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: var(--lvc-radius);
+  border: 1px solid var(--lvc-border);
+  background: var(--lvc-bg-input);
+  font-size: 14px;
+  color: var(--lvc-text);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.lvc-input:focus,
+.lvc-textarea:focus {
+  border-color: var(--lvc-accent);
+  box-shadow: 0 6px 18px rgba(79, 142, 247, 0.08);
+  outline: none;
+}
+
+.lvc-textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+.lvc-btn {
+  padding: 10px 16px;
+  border: none;
+  border-radius: var(--lvc-radius);
+  background: linear-gradient(
+    180deg,
+    var(--lvc-accent),
+    var(--lvc-accent-hover)
+  );
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.lvc-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(29, 41, 73, 0.1);
+}
+
+/* Responsive */
+@media (max-width: 720px) {
+  .lvc-wrapper {
+    padding: 16px;
+  }
+  .lvc-btn {
+    width: 100%;
+  }
+}

@@ -129,6 +129,7 @@ export default function LessonManager({
                 >
                   <option value="VIDEO">VIDEO</option>
                   <option value="QUIZ">QUIZ</option>
+                  <option value="DOCUMENT">DOCUMENT</option>
                 </select>
               </div>
               <div className={styles.formActions}>

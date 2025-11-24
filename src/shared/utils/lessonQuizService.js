@@ -1,9 +1,9 @@
 import api from "@services/api";
 
 export const lessonQuizService = {
-  // Lấy chi tiết quiz
+  // Chi tiết quiz
   getQuiz(id) {
-    return api.get(`/api/v1/lesson-quizzes/${id}`);
+    return api.get(`/api/v1/lesson-quizzes/detail`, { params: { id } });
   },
 
   // Cập nhật quiz
@@ -21,8 +21,8 @@ export const lessonQuizService = {
     return api.post(`/api/v1/lesson-quizzes`, data);
   },
 
-  // Lấy danh sách quiz theo bài học
+  // Danh sách quiz theo bài học
   getQuizzesByLesson(lessonId) {
-    return api.get(`/api/v1/lesson-quizzes/lesson/${lessonId}`);
+    return api.get(`/api/v1/lesson-quizzes`, { params: { lessonId } });
   },
 };

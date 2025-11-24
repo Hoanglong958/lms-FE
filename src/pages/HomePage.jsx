@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-
+import { slugify } from "@utils/slugify";
 import useWindowSize from "@hooks/useWindowSize";
 import "./HomePage.css";
 
@@ -19,63 +19,53 @@ import Level from "@assets/images/Level.svg";
 import arrowUpRight from "@assets/icons/arrow-up-right-icon.svg";
 import pattern from "@assets/pattern/clip-path-group.svg";
 
+import { courseService } from "@utils/courseService";
+
 export default function HomePage() {
   const navigate = useNavigate();
-  const handleNavigate = (path) => {
-    navigate(path);
-  };
+  const handleNavigate = (path) => navigate(path);
   const { width } = useWindowSize();
 
-  const originalCourses = [
-    {
-      id: "n1-chill-class",
-      img: N1ChillClass,
-      title: "N1 Chill Class",
-    },
-    {
-      id: "n2-chill-class",
-      img: N2ChillClass,
-      title: "N2 Chill Class",
-    },
-    {
-      id: "phat-am-j-voice",
-      img: PhatAmJVoice,
-      title: "Phát Âm J-Voice",
-    },
-    {
-      id: "it-talk",
-      img: ITTalk,
-      title: "IT Talk",
-    },
-  ];
-
-  let repetitions;
-  if (width >= 820) {
-    repetitions = 3;
-  } else if (width >= 375) {
-    repetitions = 2;
-  } else {
-    repetitions = 1;
-  }
-  const repetitionArray = Array.from({ length: repetitions });
-
+  const [courses, setCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const courses = [
-    { id: 1, title: "N1 Chill Class", image: N1ChillClass },
-    { id: 2, title: "N2 Chill Class", image: N2ChillClass },
-    { id: 3, title: "Phát Âm J-Voice", image: PhatAmJVoice },
-    { id: 4, title: "IT Talk", image: ITTalk },
-    {
-      id: 5,
-      title: "Authentication & Authorization trong ReactJS",
-      image: N1ChillClass,
-    },
-  ];
+  // Fetch data từ API thay cho mock
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        setLoading(true);
+        const res = await courseService.getCourses(); // lấy tất cả course
+        setCourses(res.data || []); // axios trả về { data: [...] }
+      } catch (err) {
+        console.error("Lấy khóa học thất bại:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCourses();
+  }, []);
+
+  let repetitions;
+  if (width >= 820) repetitions = 3;
+  else if (width >= 375) repetitions = 2;
+  else repetitions = 1;
+  const repetitionArray = Array.from({ length: repetitions });
 
   const filteredCourses = courses.filter((c) =>
     c.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
+  const handleCourseClick = (course) => {
+    const slug = course.slug || slugify(course.title);
+    navigate(`/courses/${course.slug || slugify(course.title)}`);
+  };
+
+  if (loading)
+    return (
+      <p style={{ textAlign: "center", marginTop: 20 }}>Đang tải khóa học...</p>
+    );
+  if (loading) return <p>Đang tải khóa học...</p>;
 
   return (
     <div className="home-page">
@@ -86,7 +76,6 @@ export default function HomePage() {
         </div>
         <img src={quotes1} alt="Quote Start" className="quote quote1" />
         <img src={quotes2} alt="Quote End" className="quote quote2" />
-
         <div className="hero-text">
           <p>
             Hạnh phúc là điểm khởi đầu của giáo dục và cũng là đích đến cuối
@@ -108,19 +97,17 @@ export default function HomePage() {
       <section className="courses">
         <h2 className="courses-title">TẤT CẢ KHÓA HỌC</h2>
         <div className="course-grid">
-          {/* Cấu trúc này sẽ nhóm các bài học giống nhau vào cùng 1 hàng */}
-          {originalCourses.map((course, index) => (
+          {filteredCourses.map((course, index) => (
             <div className="course-row" key={index}>
-              {/* Lặp 3 lần để tạo 3 bản sao trên cùng 1 hàng */}
               {repetitionArray.map((_, subIndex) => (
                 <div
                   className="course-card"
                   key={subIndex}
-                  onClick={() => navigate(`/lessons/${course.id}`)}
+                  onClick={() => handleCourseClick(course)}
                 >
                   <div className="course-image-wrapper">
                     <img
-                      src={course.img}
+                      src={course.imageUrl || Level}
                       alt={course.title}
                       className="course-image"
                     />
@@ -135,7 +122,7 @@ export default function HomePage() {
                             alt="clock"
                             className="meta-icon"
                           />
-                          <span>360 phút</span>
+                          <span>{course.durationMinutes || 360} phút</span>
                         </div>
                         <div className="divider"></div>
                         <div className="meta-item">
@@ -144,7 +131,7 @@ export default function HomePage() {
                             alt="book"
                             className="meta-icon"
                           />
-                          <span>32 Chương</span>
+                          <span>{course.totalSessions || 32} Chương</span>
                         </div>
                         <div className="divider"></div>
                         <div className="meta-item">
@@ -153,7 +140,7 @@ export default function HomePage() {
                             alt="teacher"
                             className="meta-icon"
                           />
-                          <span>Giang Sensei</span>
+                          <span>{course.teacherName || "Giang Sensei"}</span>
                         </div>
                       </div>
                       <h3 className="course-title-card">{course.title}</h3>
@@ -162,7 +149,7 @@ export default function HomePage() {
                       className="btn-learn"
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleNavigate(`/lessons/${course.id}`);
+                        handleCourseClick(course);
                       }}
                     >
                       <span>HỌC NGAY</span>

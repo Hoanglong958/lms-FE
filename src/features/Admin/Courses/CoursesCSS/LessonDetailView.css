@@ -1,0 +1,30 @@
+.lesson-title {
+  justify-content: center;
+  align-items: center;
+  font-size: 20px;
+  font-weight: bold;
+  padding: 0;
+}
+.guide-action {
+  display: inline-flex; /* icon + text in one line */
+  align-items: center;
+  gap: 8px; /* space between icon and text */
+  background-color: #f0f4ff; /* soft background */
+  color: #1a3d7c; /* dark text */
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 500;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  cursor: default;
+}
+
+.guide-action:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+.guide-icon {
+  font-size: 20px; /* slightly bigger than text */
+}
