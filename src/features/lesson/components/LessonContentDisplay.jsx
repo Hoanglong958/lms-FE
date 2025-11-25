@@ -3,7 +3,7 @@ import React from "react";
 import VideoPlayer from "./VideoPlayer";
 import QuizComponent from "./QuizComponent";
 import TaskComponent from "./TaskComponent";
-import DocumentComponents from "./DocumentComponents";
+import DocumentViewer from "./DocumentViewer";
 
 const LessonContentDisplay = ({ item }) => {
   switch (item.type) {
@@ -18,7 +18,7 @@ const LessonContentDisplay = ({ item }) => {
       return <TaskComponent item={item} />;
     case "document":
     case "DOCUMENT":
-      return <DocumentComponents item={item} />;
+      return <DocumentViewer item={item} />;
     default:
       return <div>Loại nội dung này chưa được hỗ trợ.</div>;
   }

@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { lessonDocumentService } from "@utils/lessonDocumentService";
-import "./DocumentComponents.css";
+import "./DocumentViewer.css";
 
-const DocumentComponents = ({ item }) => {
+const DocumentViewer = ({ item }) => {
   const [document, setDocument] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -31,7 +31,9 @@ const DocumentComponents = ({ item }) => {
   }, [item.id]);
 
   if (loading) {
-    return <div className="document-components-wrapper">Đang tải tài liệu...</div>;
+    return (
+      <div className="document-components-wrapper">Đang tải tài liệu...</div>
+    );
   }
 
   if (!document) {
@@ -46,7 +48,7 @@ const DocumentComponents = ({ item }) => {
     <div className="document-components-wrapper">
       <h1 className="document-title">{document.title || item.title}</h1>
       <span className="document-date">
-        {document.createdAt 
+        {document.createdAt
           ? new Date(document.createdAt).toLocaleDateString("vi-VN", {
               year: "numeric",
               month: "long",
@@ -76,4 +78,4 @@ const DocumentComponents = ({ item }) => {
   );
 };
 
-export default DocumentComponents;
+export default DocumentViewer;

@@ -1,0 +1,101 @@
+/* src/features/lesson/pages/LessonPage.css */
+
+.lesson-layout {
+  background-color: white;
+  width: 100%;
+}
+
+/* Header top: Breadcrumb + Nav */
+.lesson-header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 24px; /* Thêm khoảng cách với nội dung dưới */
+}
+
+/* Breadcrumb */
+.breadcrumbs {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.breadcrumbs a {
+  font-family: "SF Pro Display", sans-serif;
+  font-weight: 400;
+  font-size: 18px;
+  line-height: 28px;
+  color: #b5b5b5;
+  text-decoration: none;
+}
+
+.breadcrumb-divider {
+  font-family: "SF Pro Display", sans-serif;
+  font-weight: 400;
+  font-size: 18px;
+  line-height: 28px;
+  color: #b5b5b5;
+}
+
+.breadcrumb-active {
+  font-family: "SF Pro Display", sans-serif;
+  font-weight: 600;
+  font-size: 18px;
+  line-height: 28px;
+  color: #3d3d3d;
+}
+
+/* Navigation buttons */
+.lesson-navigation {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 24px; /* Tăng khoảng cách giữa 2 nút cho thoáng */
+}
+
+.nav-button {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0; /* Tăng vùng bấm */
+  background: none;
+  border: none;
+  cursor: pointer;
+
+  /* QUAN TRỌNG: Đặt màu cam ở đây để cả Text và SVG đều nhận màu này */
+  color: #dd673c;
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+.nav-button .nav-text {
+  font-family: "Inter", sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 20px;
+  /* color: inherit; (mặc định sẽ thừa kế từ cha) */
+}
+
+/* Hover effect */
+.nav-button:hover:not(:disabled) {
+  opacity: 0.8;
+  transform: translateY(-1px);
+}
+
+/* Disabled state */
+.nav-button:disabled {
+  cursor: not-allowed;
+  /* Màu xám cho cả chữ và mũi tên khi disable */
+  color: #b5b5b5;
+  opacity: 1;
+}
+
+/* Đảm bảo SVG hiển thị đúng */
+.nav-button svg {
+  display: block;
+  /* stroke: currentColor; (đã có trong JSX, nhưng để chắc chắn thì có thể thêm) */
+}
