@@ -15,7 +15,7 @@ export default function Register() {
     e.preventDefault();
     setLoading(true);
 
-    const payload = { fullName, email, password, phone, role: "USER" };
+    const payload = { fullName, gmail: email, password, phone, role: "ROLE_USER" };
 
     try {
       const res = await authService.register(payload); // dùng service

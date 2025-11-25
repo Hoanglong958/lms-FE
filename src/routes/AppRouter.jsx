@@ -34,7 +34,6 @@ import AdminHomePage from "@pages/AdminHomePage";
 // Quản lý Exam
 
 import ExamManagement from "@features/Admin/ExamManagement/ExamManagement";
-import ExamCreate from "@features/Admin/ExamManagement/ExamCreate";
 import ExamDetail from "@features/Admin/ExamManagement/ExamDetail";
 import ExamPreview from "@features/Admin/ExamManagement/ExamPreview";
 import AssignmentManagement from "@features/Admin/ExamManagement/AssignmentManagement";
@@ -102,7 +101,6 @@ export default function AppRouter() {
 
             {/* Quản lý Exam */}
             <Route path="exam" element={<ExamManagement />} />
-            <Route path="exam/create" element={<ExamCreate />} />
             <Route path="exam/:examId/detail" element={<ExamDetail />} />
             <Route path="exam/:examId/preview" element={<ExamPreview />} />
 

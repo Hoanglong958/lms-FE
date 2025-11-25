@@ -1,15 +1,18 @@
 import axios from "axios";
 
+const baseURL = import.meta.env.VITE_API_URL || ""; // dùng proxy Vite khi dev
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL,
   timeout: 10000,
 });
 
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("accessToken");
-    console.log("Sending request to:", config.url, "with token:", token);
-    if (token) {
+    const isAuthPath = /\/auth\/(login|register)/.test(config.url || "");
+    console.log("API baseURL:", baseURL, "URL:", config.url, "attachToken:", !!token && !isAuthPath);
+    if (token && !isAuthPath) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;

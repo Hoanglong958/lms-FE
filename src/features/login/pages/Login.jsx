@@ -4,7 +4,7 @@ import { authService } from "@utils/authService"; // import service
 import "./login.css";
 
 export default function Login() {
-  const [gmail, setGmail] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -24,7 +24,9 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const response = await authService.login({ gmail, password }); // dùng service
+      const payload = { gmail: email.trim().toLowerCase(), password };
+      console.log("Login payload:", payload);
+      const response = await authService.login(payload); // backend dùng 'gmail'
       const { accessToken, user } = response.data.data;
 
       localStorage.setItem("accessToken", accessToken);
@@ -34,7 +36,10 @@ export default function Login() {
       else navigate("/home");
     } catch (err) {
       console.error("Đăng nhập lỗi:", err);
-      alert("Email hoặc mật khẩu không đúng!");
+      const status = err?.response?.status;
+      const data = err?.response?.data;
+      const message = data?.message || data?.error || err.message || "Lỗi không xác định";
+      alert(`Đăng nhập lỗi! Status: ${status || "n/a"}. Message: ${message}`);
     } finally {
       setLoading(false);
     }
@@ -60,8 +65,8 @@ export default function Login() {
               <label>Email</label>
               <input
                 type="email"
-                value={gmail}
-                onChange={(e) => setGmail(e.target.value)}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@company.com"
                 required
               />

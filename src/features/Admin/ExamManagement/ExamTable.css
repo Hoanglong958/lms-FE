@@ -1,0 +1,16 @@
+.examtbl-card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,.04);overflow:hidden}
+.examtbl{width:100%;border-collapse:separate;border-spacing:0}
+.examtbl thead th{background:#fafafa;color:#374151;font-weight:700;text-align:left;padding:12px;border-bottom:1px solid #eee}
+.examtbl tbody td{padding:12px;border-bottom:1px solid #f3f4f6;vertical-align:top}
+.examtbl tbody tr:hover{background:#fffdf9}
+.examtbl-empty{text-align:center;color:#6b7280;padding:24px}
+.examtbl-title .title-text{font-weight:600;color:#111827}
+.examtbl-title .title-desc{font-size:12px;color:#6b7280;max-width:420px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.examtbl-actions{display:flex;gap:8px}
+.btn-icon{border:1px solid #e5e7eb;background:#fff;border-radius:8px;padding:6px 8px;cursor:pointer}
+.btn-icon:hover{background:#fff7ed;border-color:#f97316}
+.btn-icon.delete:hover{background:#fef2f2;border-color:#fca5a5}
+.badge{display:inline-flex;align-items:center;gap:6px;border-radius:999px;background:#f97316;color:#fff;padding:2px 10px;font-size:12px}
+.badge.secondary{background:#e5e7eb;color:#111827}
+.badge.outline{background:#fff;color:#374151;border:1px solid #e5e7eb}
+.badge.danger{background:#ef4444;color:#fff}
