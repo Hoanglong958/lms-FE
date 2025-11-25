@@ -38,7 +38,8 @@ export default function Login() {
       console.error("Đăng nhập lỗi:", err);
       const status = err?.response?.status;
       const data = err?.response?.data;
-      const message = data?.message || data?.error || err.message || "Lỗi không xác định";
+      const message =
+        data?.message || data?.error || err.message || "Lỗi không xác định";
       alert(`Đăng nhập lỗi! Status: ${status || "n/a"}. Message: ${message}`);
     } finally {
       setLoading(false);

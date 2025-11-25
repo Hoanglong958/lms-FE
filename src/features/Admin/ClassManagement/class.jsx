@@ -1,4 +1,5 @@
 import React, { useMemo, useState, useEffect, useRef } from "react";
+import classService from "../../../shared/utils/classService";
 
 /**
  * Class Management Page (Vietnamese UI)
@@ -15,85 +16,51 @@ export default function ClassManagement() {
 	const [editingClass, setEditingClass] = useState(null);
 	const [confirmDelete, setConfirmDelete] = useState(null);
 	const [viewingClass, setViewingClass] = useState(null);
+	const [classes, setClasses] = useState([]);
+	// --- Load classes từ API khi component mount ---
+	useEffect(() => {
+		fetchClasses();
+	}, []);
 
-	const initialClasses = useMemo(
-		() => [
-			{
-				id: 1,
-				name: "Lớp React Advanced - Sáng",
-				subtitle: "React Advanced",
-				code: "REACT-ADV-01",
-				teacher: "Nguyễn Văn A",
-				students: 45,
-				active: 42,
-				progress: 68,
-				startDate: "1/9/2024",
-				endDate: "31/12/2024",
-				status: "active",
-				schedule: "Thứ 2,4,6"
-			},
-			{
-				id: 2,
-				name: "Lớp Python AI - Chiều",
-				subtitle: "Python for AI",
-				code: "PY-AI-02",
-				teacher: "Trần Thị B",
-				students: 38,
-				active: 35,
-				progress: 52,
-				startDate: "1/10/2024",
-				endDate: "31/1/2025",
-				status: "active",
-				schedule: "Thứ 3,5,7"
-			},
-			{
-				id: 3,
-				name: "Lớp Flutter Mobile - Tối",
-				subtitle: "Flutter Mobile Dev",
-				code: "FLUTTER-03",
-				teacher: "Lê Văn C",
-				students: 32,
-				active: 30,
-				progress: 45,
-				startDate: "1/11/2024",
-				endDate: "28/2/2025",
-				status: "active",
-				schedule: "Thứ 2,4,6"
-			},
-			{
-				id: 4,
-				name: "Lớp JavaScript - Cơ bản",
-				subtitle: "JavaScript Basics",
-				code: "JS-BASIC-01",
-				teacher: "Phạm Thị D",
-				students: 28,
-				active: 25,
-				progress: 85,
-				startDate: "1/8/2024",
-				endDate: "30/10/2024",
-				status: "ended",
-				schedule: "Thứ 3,5,7"
-			},
-			{
-				id: 5,
-				name: "Lớp Vue.js - Nâng cao",
-				subtitle: "Vue.js Advanced",
-				code: "VUE-ADV-02",
-				teacher: "Đinh Thị E",
-				students: 22,
-				active: 20,
-				progress: 35,
-				startDate: "15/11/2024",
-				endDate: "15/3/2025",
-				status: "upcoming",
-				schedule: "Thứ 2,4"
+	const fetchClasses = async () => {
+		try {
+			console.log("🔍 Fetching classes from API...");
+			const res = await classService.getAllClasses({
+				page: 0,
+				size: 1000,
+				keyword: searchQuery,
+				status: statusFilter === "all" ? null : statusFilter
+			});
+
+			console.log("📡 API Response:", res);
+			console.log("📦 Response data:", res.data);
+
+			// Xử lý nhiều cấu trúc response khác nhau
+			let apiData = [];
+			if (res.data.data && res.data.data.content) {
+				apiData = res.data.data.content;
+			} else if (res.data.content) {
+				apiData = res.data.content;
+			} else if (res.data.data && Array.isArray(res.data.data)) {
+				apiData = res.data.data;
+			} else if (Array.isArray(res.data)) {
+				apiData = res.data;
 			}
-		],
-		[]
-	);
 
-	const [classes, setClasses] = useState(initialClasses);
+			console.log("🎓 Classes found:", apiData.length);
+			if (apiData.length > 0) {
+				console.log("📝 Sample class object:", apiData[0]);
+				console.log("🔑 Object keys:", Object.keys(apiData[0]));
+			}
 
+			setClasses(Array.isArray(apiData) ? apiData : []);
+		} catch (err) {
+			console.error("❌ Lỗi khi tải danh sách lớp học:", err);
+			alert("Không thể tải danh sách lớp học!");
+		}
+	};
+
+	// --- Thêm lớp mới ---
 	function handleAddClass(payload) {
 		const nextId = Math.max(0, ...classes.map((c) => c.id)) + 1;
 		const newClass = {
@@ -114,30 +81,32 @@ export default function ClassManagement() {
 		setIsAddOpen(false);
 	}
 
+	// --- Chỉnh sửa lớp ---
 	function handleEditClass(id, payload) {
 		setClasses((prev) =>
 			prev.map((c) =>
 				c.id === id
 					? {
-							...c,
-							name: payload.name.trim(),
-							subtitle: payload.subtitle.trim(),
-							code: payload.code.trim(),
-							teacher: payload.teacher.trim(),
-							students: parseInt(payload.students) || 0,
-							active: parseInt(payload.active) || 0,
-							progress: parseInt(payload.progress) || 0,
-							startDate: payload.startDate,
-							endDate: payload.endDate,
-							status: payload.status || "upcoming",
-							schedule: payload.schedule.trim()
-					  }
+						...c,
+						name: payload.name.trim(),
+						subtitle: payload.subtitle.trim(),
+						code: payload.code.trim(),
+						teacher: payload.teacher.trim(),
+						students: parseInt(payload.students) || 0,
+						active: parseInt(payload.active) || 0,
+						progress: parseInt(payload.progress) || 0,
+						startDate: payload.startDate,
+						endDate: payload.endDate,
+						status: payload.status || "upcoming",
+						schedule: payload.schedule.trim()
+					}
 					: c
 			)
 		);
 		setEditingClass(null);
 	}
 
+	// --- Xóa lớp ---
 	function handleRequestDelete(cls) {
 		setConfirmDelete(cls);
 	}
@@ -148,16 +117,15 @@ export default function ClassManagement() {
 		setConfirmDelete(null);
 	}
 
+	// --- Thống kê ---
 	const stats = useMemo(() => {
 		const totalClasses = classes.length;
 		const activeClasses = classes.filter((c) => c.status === "active").length;
-		const totalStudents = classes.reduce((s, c) => s + c.students, 0);
+		const totalStudents = classes.reduce((s, c) => s + (parseInt(c.students) || 0), 0);
 		const avgProgress =
 			classes.length === 0
 				? 0
-				: Math.round(
-						classes.reduce((s, c) => s + c.progress, 0) / classes.length
-				  );
+				: Math.round(classes.reduce((s, c) => s + (parseInt(c.progress) || 0), 0) / classes.length);
 		return {
 			totalClasses,
 			totalActiveClasses: activeClasses,
@@ -166,6 +134,7 @@ export default function ClassManagement() {
 		};
 	}, [classes]);
 
+	// --- Lọc và tìm kiếm ---
 	const filtered = useMemo(() => {
 		const q = searchQuery.trim().toLowerCase();
 		let result = classes;
@@ -192,7 +161,11 @@ export default function ClassManagement() {
 					<h1 style={styles.title}>Quản lý lớp học</h1>
 					<p style={styles.subtitle}>Danh sách lớp học và theo dõi tiến độ học viên</p>
 				</div>
-				<button type="button" style={styles.primaryButton} onClick={() => setIsAddOpen(true)}>
+				<button
+					type="button"
+					style={styles.primaryButton}
+					onClick={() => setIsAddOpen(true)}
+				>
 					<span style={styles.plusIcon}>+</span> Tạo lớp học
 				</button>
 			</header>
@@ -408,16 +381,16 @@ function ActionCell({ onView, onEdit, onDelete }) {
 		};
 	}, [open]);
 
-		return (
-			<div ref={containerRef} style={styles.actionWrap}>
-				<button
-					type="button"
-					aria-label="Xem lớp"
-					onClick={() => onView && onView()}
-					style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#6b7280', marginRight: 8, padding: 6 }}
-				>
-					<IconEye />
-				</button>
+	return (
+		<div ref={containerRef} style={styles.actionWrap}>
+			<button
+				type="button"
+				aria-label="Xem lớp"
+				onClick={() => onView && onView()}
+				style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#6b7280', marginRight: 8, padding: 6 }}
+			>
+				<IconEye />
+			</button>
 			<button
 				type="button"
 				aria-label="Thao tác"
