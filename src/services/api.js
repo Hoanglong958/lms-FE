@@ -11,7 +11,6 @@ api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("accessToken");
     const isAuthPath = /\/auth\/(login|register)/.test(config.url || "");
-    console.log("API baseURL:", baseURL, "URL:", config.url, "attachToken:", !!token && !isAuthPath);
     if (token && !isAuthPath) {
       config.headers.Authorization = `Bearer ${token}`;
     }
