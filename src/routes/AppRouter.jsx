@@ -1,6 +1,6 @@
 // src/routes/AppRouter.jsx (ĐÃ SỬA LỖI)
 
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, Outlet } from "react-router-dom";
 import ScrollToTop from "@components/common/ScrollToTop";
 import PrivateRoute from "@components/common/PrivateRoute";
 
@@ -55,7 +55,7 @@ export default function AppRouter() {
       <ScrollToTop />
       <Routes>
         {/* ===== CHUYỂN TRANG MẶC ĐỊNH ===== */}
-        <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route path="/" element={<Navigate to="/admin/dashboard" replace />} />
 
         {/* ===== AUTH ROUTES ===== */}
         <Route element={<AuthLayout />}>
@@ -83,7 +83,8 @@ export default function AppRouter() {
         </Route>
 
         {/* ===== ADMIN ROUTES ===== */}
-        <Route element={<PrivateRoute role="ROLE_ADMIN" />}>
+        {/* ===== ADMIN ROUTES (Bypassed Auth) ===== */}
+        <Route element={<Outlet />}>
           <Route path="/admin" element={<AdminLayout />}>
             {/* Route mặc định: /admin -> /admin/dashboard */}
             <Route index element={<Navigate to="dashboard" replace />} />

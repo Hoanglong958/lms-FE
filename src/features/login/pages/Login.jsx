@@ -30,7 +30,7 @@ export default function Login() {
 
     try {
       const response = await axios.post(
-        "http://localhost:3900/api/v1/auth/login",
+        "http://localhost:3999/api/v1/auth/login",
         {
           gmail: gmail,
           password: password,

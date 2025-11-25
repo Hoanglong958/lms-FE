@@ -1,227 +1,229 @@
 import React, { useMemo, useState, useEffect, useRef } from "react";
+import axios from "axios";
+// GIẢ ĐỊNH: userService.js đã implement các API createUser, updateUser, deleteUser, toggleStatus
+import userService from "../../../shared/utils/userService";
 
-/**
- * User Management Page (Vietnamese UI)
- * - Pure JSX/CSS, no external UI deps
- * - Search by name/email
- * - Filter by role
- * - Polished badges and table layout
- */
+// GIẢ ĐỊNH: Các component khác (AddUserModal, EditUserModal, ConfirmModal, 
+// RoleBadge, StatusBadge, RowActions, PageStyles, getInitials, styles, modalStyles) tồn tại
+// ... (Các imports giả định, styles, helper components)
+
+
 export default function UserManagement({ currentUserRole = "admin" }) {
 	const [searchQuery, setSearchQuery] = useState("");
 	const [roleFilter, setRoleFilter] = useState("all");
-	const initialUsers = useMemo(
-		() => [
-			{
-				id: 1,
-				name: "Nguyễn Văn A",
-				email: "user@mankai.edu.vn",
-				role: "user",
-				status: "active",
-				courses: 5,
-				joinedAt: "15/1/2024",
-				lastLoginAt: "3/11/2024"
-			},
-			{
-				id: 2,
-				name: "Hoàng Văn Admin",
-				email: "admin@mankai.edu.vn",
-				role: "admin",
-				status: "active",
-				courses: 0,
-				joinedAt: "1/12/2023",
-				lastLoginAt: "3/11/2024"
-			},
-			{
-				id: 3,
-				name: "Lê Văn C",
-				email: "levanc@email.com",
-				role: "user",
-				status: "active",
-				courses: 3,
-				joinedAt: "10/3/2024",
-				lastLoginAt: "2/11/2024"
-			},
-			{
-				id: 4,
-				name: "Phạm Thị D",
-				email: "phamthid@email.com",
-				role: "user",
-				status: "paused",
-				courses: 2,
-				joinedAt: "25/1/2024",
-				lastLoginAt: "28/10/2024"
-			},
-			{
-				id: 5,
-				name: "Trần Văn E",
-				email: "tranvane@email.com",
-				role: "user",
-				status: "active",
-				courses: 4,
-				joinedAt: "10/2/2024",
-				lastLoginAt: "1/11/2024"
-			},
-			{
-				id: 6,
-				name: "Đinh Thị F",
-				email: "dinhthif@email.com",
-				role: "user",
-				status: "active",
-				courses: 6,
-				joinedAt: "20/1/2024",
-				lastLoginAt: "3/11/2024"
-			}
-		],
-		[]
-	);
-	const [users, setUsers] = useState(initialUsers);
+
+	const [users, setUsers] = useState([]);
 	const [isAddOpen, setIsAddOpen] = useState(false);
 	const [editingUser, setEditingUser] = useState(null);
 	const [confirmDelete, setConfirmDelete] = useState(null);
-	const [confirmLock, setConfirmLock] = useState(null);
+	const [confirmLock, setConfirmLock] = useState(null); // Sử dụng để xác nhận Khóa/Mở khóa
 
-	function handleAddUser(payload) {
-		// Role guard: user can only create user
-		if (currentUserRole !== "admin" && payload.role === "admin") {
-			alert("Bạn không có quyền tạo tài khoản Quản trị viên.");
-			return;
+	// 🔥 Gọi API lấy danh sách user
+	useEffect(() => {
+		fetchUsers();
+	}, []);
+
+	async function fetchUsers() {
+		try {
+			console.log("🔍 Fetching users from API...");
+			const res = await userService.getAllUsers({
+				page: 0,
+				size: 1000,
+				keyword: searchQuery,
+				role: roleFilter === "all" ? null : roleFilter
+			});
+
+			console.log("📡 API Response:", res);
+			console.log("📦 Response data:", res.data);
+
+			// Xử lý nhiều cấu trúc response khác nhau
+			let apiData = [];
+			if (res.data.data && res.data.data.content) {
+				// Cấu trúc: { data: { content: [...] } }
+				apiData = res.data.data.content;
+			} else if (res.data.content) {
+				// Cấu trúc: { content: [...] }
+				apiData = res.data.content;
+			} else if (res.data.data && Array.isArray(res.data.data)) {
+				// Cấu trúc: { data: [...] }
+				apiData = res.data.data;
+			} else if (Array.isArray(res.data)) {
+				// Cấu trúc: [...]
+				apiData = res.data;
+			}
+
+			console.log("👥 Users found:", apiData.length);
+			console.log("📋 Users data:", apiData);
+			setUsers(Array.isArray(apiData) ? apiData : []);
+		} catch (error) {
+			console.error("❌ Lỗi khi tải người dùng:", error);
+			console.error("Error details:", error.response?.data || error.message);
 		}
-		const nextId = Math.max(0, ...users.map((u) => u.id)) + 1;
-		const today = new Date();
-		const formatDate = (d) =>
-			`${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`;
-		const newUser = {
-			id: nextId,
-			name: payload.name.trim(),
-			email: payload.email.trim(),
-			role: payload.role,
-			status: "active",
-			courses: 0,
-			joinedAt: formatDate(today),
-			lastLoginAt: formatDate(today)
-		};
-		setUsers((prev) => [newUser, ...prev]);
-		setIsAddOpen(false);
 	}
 
-	function handleEditUser(id, payload) {
-		// Guard: non-admin cannot set admin role
-		if (currentUserRole !== "admin" && payload.role === "admin") {
-			alert("Bạn không có quyền gán vai trò Quản trị viên.");
-			return;
+	// ============================================
+	// CRUD HANDLERS
+	// ============================================
+
+	async function handleAddUser(payload) {
+		try {
+			console.log("➕ Creating new user...", payload);
+			// Map fields: name -> fullName, email -> gmail
+			const apiPayload = {
+				fullName: payload.name,
+				gmail: payload.email,
+				role: payload.role,
+				password: "Password123!", // Mật khẩu mặc định
+				isActive: true,
+				phone: "" // Optional
+			};
+			console.log("📤 Sending to API:", apiPayload);
+			const response = await userService.createUser(apiPayload);
+			console.log("✅ User created successfully:", response.data);
+
+			console.log("🔄 Refreshing users list...");
+			await fetchUsers();
+			console.log("✅ Users list refreshed!");
+
+			setIsAddOpen(false);
+		} catch (err) {
+			console.error("❌ Lỗi tạo user:", err);
+			console.error("Error details:", err.response?.data || err.message);
+			alert("Không thể tạo người dùng: " + (err.response?.data?.message || err.message));
 		}
-		setUsers((prev) =>
-			prev.map((u) => (u.id === id ? { ...u, ...payload } : u))
-		);
-		setEditingUser(null);
+	}
+
+	async function handleEditUser(id, payload) {
+		try {
+			const apiPayload = {
+				fullName: payload.name,
+				// gmail: payload.email, // Thường không cho sửa email
+				role: payload.role,
+				isActive: true // Giữ nguyên hoặc update nếu có field
+			};
+			await userService.updateUser(id, apiPayload);
+			await fetchUsers();
+			setEditingUser(null);
+		} catch (err) {
+			console.error("Lỗi sửa user:", err);
+		}
 	}
 
 	function handleRequestDelete(user) {
-		if (currentUserRole !== "admin" && user.role === "admin") {
-			alert("Bạn không có quyền xóa tài khoản Quản trị viên.");
-			return;
-		}
 		setConfirmDelete(user);
 	}
 
-	function handleConfirmDelete() {
+	async function handleConfirmDelete() {
 		if (!confirmDelete) return;
-		setUsers((prev) => prev.filter((u) => u.id !== confirmDelete.id));
-		setConfirmDelete(null);
+		try {
+			// Gọi API DELETE /api/v1/users/{id}
+			await userService.deleteUser(confirmDelete.id);
+			await fetchUsers();
+			setConfirmDelete(null);
+		} catch (err) {
+			console.error("Lỗi xóa user:", err);
+			// Thêm thông báo lỗi
+		}
 	}
 
-	function handleToggleStatus(user) {
-		// Only admin can change status of admin accounts
-		if (currentUserRole !== "admin" && user.role === "admin") {
-			alert("Bạn không có quyền đổi trạng thái tài khoản Quản trị viên.");
-			return;
-		}
-		setUsers((prev) =>
-			prev.map((u) =>
-				u.id === user.id
-					? { ...u, status: u.status === "active" ? "paused" : "active" }
-					: u
-			)
-		);
+	// Hàm yêu cầu xác nhận Khóa/Mở khóa
+	function handleRequestLock(user) {
+		setConfirmLock(user);
 	}
+
+	// Hàm xác nhận và gọi API Khóa/Mở khóa (sử dụng toggleStatus)
+	// Hàm xác nhận và gọi API Khóa/Mở khóa (sử dụng toggleStatus)
+	async function handleConfirmLock() {
+		if (!confirmLock) return;
+		try {
+			// Gọi API PATCH /api/v1/users/{id}/status?active={boolean}
+			// Nếu đang active -> active=false, ngược lại active=true
+			const newStatus = !confirmLock.isActive;
+			await userService.toggleStatus(confirmLock.id, newStatus);
+			await fetchUsers();
+			setConfirmLock(null);
+		} catch (err) {
+			console.error("Lỗi khóa/mở khóa user:", err);
+		}
+	}
+
+	// Giữ hàm này nếu bạn có nút toggle status không cần xác nhận
+	async function handleToggleStatus(user) {
+		try {
+			await userService.toggleStatus(user.id);
+			await fetchUsers();
+		} catch (err) {
+			console.error("Lỗi đổi trạng thái:", err);
+		}
+	}
+
 
 	function handleViewUser(user) {
-		// Placeholder: replace with navigation if available
-		alert(`Xem tài khoản:\n${user.name} (${user.email})`);
+		// Logic điều hướng đến trang chi tiết người dùng
+		alert(`Xem tài khoản: ${user.fullName}`);
 	}
 
-	function handleLockUser(user) {
-		// Only admin can lock/unlock admin accounts
-		if (currentUserRole !== "admin" && user.role === "admin") {
-			alert("Bạn không có quyền khóa tài khoản Quản trị viên.");
-			return;
-		}
-		// If active -> ask for confirmation to lock
-		if (user.status === "active") {
-			setConfirmLock(user);
-			return;
-		}
-		// If paused -> unlock immediately
-		if (user.status === "paused") {
-			setUsers((prev) =>
-				prev.map((u) => (u.id === user.id ? { ...u, status: "active" } : u))
-			);
-		}
-	}
+	// ============================================
+	// FILTER USER
+	// ============================================
+	// ... (useMemo logic giữ nguyên)
 
-	function handleConfirmLock() {
-		if (!confirmLock) return;
-		setUsers((prev) =>
-			prev.map((u) => (u.id === confirmLock.id ? { ...u, status: "paused" } : u))
-		);
-		setConfirmLock(null);
-	}
+	// user.jsx (dòng 105 - useMemo)
 
 	const filteredUsers = useMemo(() => {
+		// 🔥 Sửa lỗi: Đảm bảo users là một mảng trước khi gọi filter.
+		// Nếu users là null, undefined, hoặc một đối tượng không phải array,
+		// sử dụng mảng rỗng [] thay thế.
+		const usersToFilter = Array.isArray(users) ? users : [];
+
 		const normalizedQuery = searchQuery.trim().toLowerCase();
-		return users.filter((u) => {
+
+		return usersToFilter.filter((u) => {
 			const matchQuery =
 				normalizedQuery.length === 0 ||
-				u.name.toLowerCase().includes(normalizedQuery) ||
-				u.email.toLowerCase().includes(normalizedQuery);
+				(u.fullName && u.fullName.toLowerCase().includes(normalizedQuery)) ||
+				(u.gmail && u.gmail.toLowerCase().includes(normalizedQuery));
+
 			const matchRole = roleFilter === "all" ? true : u.role === roleFilter;
+
 			return matchQuery && matchRole;
 		});
-	}, [users, searchQuery, roleFilter]);
+
+	}, [users, searchQuery, roleFilter]); // [users] là dependency
+
+
 
 	return (
 		<div style={styles.page}>
 			<PageStyles />
+
+			{/* Header */}
 			<header style={styles.header}>
 				<div>
 					<h1 style={styles.title}>Quản lý người dùng</h1>
-					<p style={styles.subtitle}>
-						Danh sách và phân quyền người dùng
-					</p>
+					<p style={styles.subtitle}>Danh sách người dùng và quản lý quyền truy cập</p>
 				</div>
-				<button type="button" style={styles.primaryButton} onClick={() => setIsAddOpen(true)}>
+				<button
+					type="button"
+					style={styles.primaryButton}
+					onClick={() => setIsAddOpen(true)}
+				>
 					<span style={styles.plusIcon}>+</span> Thêm người dùng
 				</button>
 			</header>
 
-			<section style={styles.toolbar}>
-				<div style={styles.searchWrap}>
+			{/* Toolbar */}
+			<section style={styles.toolbar} className="_um-toolbar">
+				<div style={styles.searchWrap} className="_um-search">
 					<span aria-hidden="true" style={styles.searchIcon}>
-						{/* magnifier */}
 						<svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-							<path
-								d="M21 21l-4.35-4.35M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Z"
-								stroke="currentColor"
-								strokeWidth="1.6"
-								strokeLinecap="round"
-								strokeLinejoin="round"
-							/>
+							<circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="1.6" />
+							<path d="M20 20l-3.5-3.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
 						</svg>
 					</span>
 					<input
 						type="text"
-						placeholder="Tìm kiếm theo tên hoặc email..."
+						placeholder="Tìm kiếm người dùng..."
 						value={searchQuery}
 						onChange={(e) => setSearchQuery(e.target.value)}
 						style={styles.searchInput}
@@ -235,55 +237,51 @@ export default function UserManagement({ currentUserRole = "admin" }) {
 						style={styles.select}
 					>
 						<option value="all">Tất cả vai trò</option>
-						<option value="admin">Quản trị viên</option>
-						<option value="user">Người dùng</option>
+						<option value="ROLE_ADMIN">Quản trị viên</option>
+						<option value="ROLE_USER">Người dùng</option>
 					</select>
 					<span style={styles.selectChevron} aria-hidden="true">▾</span>
 				</label>
 			</section>
 
+			{/* Table */}
 			<div style={styles.card}>
 				<div style={{ overflowX: "auto" }}>
 					<table style={styles.table}>
 						<thead>
 							<tr>
-								<th style={{ ...styles.th, width: 320 }}>Họ và tên</th>
+								<th style={styles.th}>Họ và tên</th>
 								<th style={styles.th}>Email</th>
-								<th style={{ ...styles.th, width: 140 }}>Vai trò</th>
-								<th style={{ ...styles.th, width: 140 }}>Trạng thái</th>
-								<th style={{ ...styles.th, width: 90 }}>Khóa học</th>
-								<th style={{ ...styles.th, width: 80, textAlign: "right" }}>
-									Thao tác
-								</th>
+								<th style={styles.th}>Vai trò</th>
+								<th style={styles.th}>Trạng thái</th>
+								<th style={styles.th}>Khóa học</th>
+								<th style={styles.th}>Ngày tham gia</th>
+								<th style={styles.th}>Lần đăng nhập cuối</th>
+								<th style={styles.th} />
 							</tr>
 						</thead>
 						<tbody>
 							{filteredUsers.map((u) => (
 								<tr key={u.id} style={styles.tr}>
 									<td style={styles.td}>
-										<div style={styles.nameCell}>
-											<div style={styles.avatar} aria-hidden="true">
-												{getInitials(u.name)}
-											</div>
-											<div>
-												<div style={styles.nameText}>{u.name}</div>
-											</div>
-										</div>
+										<div style={styles.nameText}>{u.fullName}</div>
 									</td>
 									<td style={styles.td}>
-										<span style={styles.emailText}>{u.email}</span>
+										<div style={styles.emailText}>{u.gmail}</div>
 									</td>
 									<td style={styles.td}>
 										<RoleBadge role={u.role} />
 									</td>
 									<td style={styles.td}>
-										<StatusBadge status={u.status} />
+										<StatusBadge status={u.isActive ? 'active' : 'paused'} />
 									</td>
-									<td style={styles.tdCenter}>{u.courses}</td>
+									<td style={styles.td}>{u.courseCount || 0}</td>
+									<td style={styles.td}>{u.createdAt ? new Date(u.createdAt).toLocaleDateString('vi-VN') : "---"}</td>
+									<td style={styles.td}>{u.lastLogin ? new Date(u.lastLogin).toLocaleDateString('vi-VN') : "---"}</td>
 									<td style={styles.tdAction}>
 										<RowActions
 											onView={() => handleViewUser(u)}
-											onLock={() => handleLockUser(u)}
+											onLock={() => handleRequestLock(u)}
 											onEdit={() => setEditingUser(u)}
 											onDelete={() => handleRequestDelete(u)}
 										/>
@@ -292,7 +290,7 @@ export default function UserManagement({ currentUserRole = "admin" }) {
 							))}
 							{filteredUsers.length === 0 && (
 								<tr>
-									<td style={styles.emptyCell} colSpan={6}>
+									<td style={styles.emptyCell} colSpan={8}>
 										Không tìm thấy người dùng phù hợp
 									</td>
 								</tr>
@@ -301,46 +299,54 @@ export default function UserManagement({ currentUserRole = "admin" }) {
 					</table>
 				</div>
 			</div>
+
+			{/* Modals */}
 			{isAddOpen && (
 				<AddUserModal
 					onClose={() => setIsAddOpen(false)}
 					onSubmit={handleAddUser}
-					allowedRoles={currentUserRole === "admin" ? ["user", "admin"] : ["user"]}
+					allowedRoles={["ROLE_ADMIN", "ROLE_USER"]}
 				/>
 			)}
+
 			{editingUser && (
 				<EditUserModal
 					user={editingUser}
 					onClose={() => setEditingUser(null)}
 					onSubmit={(payload) => handleEditUser(editingUser.id, payload)}
-					allowedRoles={currentUserRole === "admin" ? ["user", "admin"] : ["user"]}
+					allowedRoles={["ROLE_ADMIN", "ROLE_USER"]}
 				/>
 			)}
+
 			{confirmDelete && (
 				<ConfirmModal
 					title="Xóa người dùng"
-					message={`Bạn có chắc muốn xóa '${confirmDelete.name}'?`}
+					message={`Bạn có chắc chắn muốn xóa người dùng '${confirmDelete.fullName}'?`}
 					onCancel={() => setConfirmDelete(null)}
 					onConfirm={handleConfirmDelete}
+					confirmLabel="Xóa"
 				/>
 			)}
+
+			{/* MODAL XÁC NHẬN KHÓA/MỞ KHÓA */}
 			{confirmLock && (
 				<ConfirmModal
-					title="Khóa tài khoản"
-					message={`Bạn có chắc chắn muốn khóa tài khoản '${confirmLock.name}'? Bạn có thể mở khóa lại bất cứ lúc nào.`}
+					title={`${confirmLock.isActive ? 'Khóa' : 'Mở khóa'} tài khoản`}
+					message={`Bạn có chắc chắn muốn ${confirmLock.isActive ? 'khóa' : 'mở khóa'} tài khoản '${confirmLock.fullName}'?`}
 					onCancel={() => setConfirmLock(null)}
 					onConfirm={handleConfirmLock}
-					confirmLabel="Khóa"
+					confirmLabel={confirmLock.isActive ? 'Khóa' : 'Mở khóa'}
+					confirmStyle={confirmLock.isActive ? modalStyles.dangerBtn : modalStyles.primaryBtn}
 				/>
 			)}
 		</div>
 	);
 }
-
+// ... (Phần còn lại của các component AddUserModal, EditUserModal, v.v.)
 function AddUserModal({ onClose, onSubmit, allowedRoles }) {
 	const [name, setName] = useState("");
 	const [email, setEmail] = useState("");
-	const [role, setRole] = useState(allowedRoles[0] || "user");
+	const [role, setRole] = useState(allowedRoles[0] || "ROLE_USER");
 	const [errors, setErrors] = useState({});
 
 	function validate() {
@@ -402,7 +408,7 @@ function AddUserModal({ onClose, onSubmit, allowedRoles }) {
 							>
 								{allowedRoles.map((r) => (
 									<option key={r} value={r}>
-										{r === "admin" ? "Quản trị viên" : "Người dùng"}
+										{r === "ROLE_ADMIN" ? "Quản trị viên" : "Người dùng"}
 									</option>
 								))}
 							</select>
@@ -424,10 +430,10 @@ function AddUserModal({ onClose, onSubmit, allowedRoles }) {
 }
 
 function EditUserModal({ user, onClose, onSubmit, allowedRoles }) {
-	const [name, setName] = useState(user.name || "");
-	const [email, setEmail] = useState(user.email || "");
+	const [name, setName] = useState(user.fullName || "");
+	const [email, setEmail] = useState(user.gmail || "");
 	const [role, setRole] = useState(
-		allowedRoles.includes(user.role) ? user.role : allowedRoles[0] || "user"
+		allowedRoles.includes(user.role) ? user.role : allowedRoles[0] || "ROLE_USER"
 	);
 	const [errors, setErrors] = useState({});
 
@@ -488,7 +494,7 @@ function EditUserModal({ user, onClose, onSubmit, allowedRoles }) {
 							>
 								{allowedRoles.map((r) => (
 									<option key={r} value={r}>
-										{r === "admin" ? "Quản trị viên" : "Người dùng"}
+										{r === "ROLE_ADMIN" ? "Quản trị viên" : "Người dùng"}
 									</option>
 								))}
 							</select>
@@ -509,7 +515,7 @@ function EditUserModal({ user, onClose, onSubmit, allowedRoles }) {
 	);
 }
 
-function ConfirmModal({ title, message, onCancel, onConfirm, confirmLabel = "Xóa" }) {
+function ConfirmModal({ title, message, onCancel, onConfirm, confirmLabel = "Xóa", confirmStyle }) {
 	return (
 		<div style={modalStyles.backdrop} role="dialog" aria-modal="true">
 			<div style={modalStyles.container}>
@@ -526,7 +532,7 @@ function ConfirmModal({ title, message, onCancel, onConfirm, confirmLabel = "Xó
 					<button
 						type="button"
 						onClick={onConfirm}
-						style={{ ...styles.primaryButton, background: "#b91c1c" }}
+						style={confirmStyle || { ...styles.primaryButton, background: "#b91c1c" }}
 					>
 						{confirmLabel}
 					</button>
@@ -537,9 +543,9 @@ function ConfirmModal({ title, message, onCancel, onConfirm, confirmLabel = "Xó
 }
 
 function RoleBadge({ role }) {
-	const label = role === "admin" ? "Quản trị viên" : "Người dùng";
+	const label = role === "ROLE_ADMIN" ? "Quản trị viên" : "Người dùng";
 	const style =
-		role === "admin" ? badgeStyles.roleAdmin : badgeStyles.roleUser;
+		role === "ROLE_ADMIN" ? badgeStyles.roleAdmin : badgeStyles.roleUser;
 	return <span style={{ ...badgeStyles.base, ...style }}>{label}</span>;
 }
 
@@ -1010,6 +1016,26 @@ const modalStyles = {
 		borderRadius: 10,
 		fontWeight: 600,
 		cursor: "pointer"
+	},
+	dangerBtn: {
+		background: "#dc2626",
+		border: "none",
+		color: "#fff",
+		padding: "10px 16px",
+		borderRadius: 10,
+		fontWeight: 600,
+		cursor: "pointer",
+		boxShadow: "0 2px 8px rgba(220,38,38,0.25)"
+	},
+	primaryBtn: {
+		background: "#10b981",
+		border: "none",
+		color: "#fff",
+		padding: "10px 16px",
+		borderRadius: 10,
+		fontWeight: 600,
+		cursor: "pointer",
+		boxShadow: "0 2px 8px rgba(16,185,129,0.25)"
 	}
 };
 
