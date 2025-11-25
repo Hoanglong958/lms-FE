@@ -1,10 +1,8 @@
 import axios from "axios";
 
-const baseURL = import.meta.env.VITE_API_URL || ""; // dùng proxy Vite khi dev
-
 const api = axios.create({
-  baseURL,
-  timeout: 10000,
+  baseURL: import.meta.env.VITE_API_URL || "",
+  timeout: 100000,
 });
 
 api.interceptors.request.use(

@@ -38,7 +38,6 @@ export default function HomePage() {
         const res = await courseService.getCourses(); // lấy tất cả course
         setCourses(res.data || []); // axios trả về { data: [...] }
       } catch (err) {
-        console.error("Lấy khóa học thất bại:", err);
       } finally {
         setLoading(false);
       }

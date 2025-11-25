@@ -1,39 +1,34 @@
-// shared/utils/userService.js
-import axiosInstance from "./../../config";
+import api from "@services/api";
 
-// API endpoint cho users
-const API_ENDPOINT = "/users";
+const USER_BASE_PATH = "/api/v1/users";
 
-const userService = {
-    // 1. GET /users (Danh sách người dùng)
-    getAllUsers: (params) => {
-        // params: { page, size, keyword, role, isActive }
-        return axiosInstance.get(API_ENDPOINT, { params });
-    },
+export const userService = {
+  // GET /api/v1/users
+  getAllUsers(params = {}) {
+    return api.get(USER_BASE_PATH, { params });
+  },
 
-    // 2. POST /users (Tạo người dùng)
-    createUser: (payload) => {
-        // payload: { fullName, gmail, password, role, isActive, phone }
-        return axiosInstance.post(API_ENDPOINT, payload);
-    },
+  // POST /api/v1/users
+  createUser(payload) {
+    return api.post(USER_BASE_PATH, payload);
+  },
 
-    // 3. PUT /users/{id} (Cập nhật người dùng)
-    updateUser: (id, payload) => {
-        // payload: { fullName, role, isActive }
-        return axiosInstance.put(`${API_ENDPOINT}/${id}`, payload);
-    },
+  // PUT /api/v1/users/{id}
+  updateUser(id, payload) {
+    return api.put(`${USER_BASE_PATH}/${id}`, payload);
+  },
 
-    // 4. DELETE /users/{id} (Xóa người dùng - Soft delete)
-    deleteUser: (id) => {
-        return axiosInstance.delete(`${API_ENDPOINT}/${id}`);
-    },
+  // DELETE /api/v1/users/{id}
+  deleteUser(id) {
+    return api.delete(`${USER_BASE_PATH}/${id}`);
+  },
 
-    // 5. PATCH /users/{id}/status (Thay đổi trạng thái)
-    toggleStatus: (id, active) => {
-        return axiosInstance.patch(`${API_ENDPOINT}/${id}/status`, null, {
-            params: { active }
-        });
-    }
+  // PATCH /api/v1/users/{id}/status?active=true
+  toggleStatus(id, active) {
+    return api.patch(`${USER_BASE_PATH}/${id}/status`, null, {
+      params: { active },
+    });
+  },
 };
 
 export default userService;

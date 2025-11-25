@@ -27,7 +27,6 @@ export default function ManageLessons() {
         const c = res.data.find((c) => slugify(c.title) === courseSlug);
         setCourse(c);
       } catch (err) {
-        console.error(err);
         navigate("/admin/courses");
       }
     };
@@ -40,9 +39,7 @@ export default function ManageLessons() {
       try {
         const res = await sessionService.getSessionsByCourse(course.id);
         setSessions(res.data || []);
-      } catch (err) {
-        console.error(err);
-      }
+      } catch (err) {}
     };
     loadSessions();
   }, [course]);
@@ -88,9 +85,7 @@ export default function ManageLessons() {
         setSessions([...sessions, res.data]);
       }
       setShowModal(false);
-    } catch (err) {
-      console.error(err);
-    }
+    } catch (err) {}
   };
 
   return (

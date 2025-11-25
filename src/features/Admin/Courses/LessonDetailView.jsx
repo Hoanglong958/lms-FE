@@ -40,9 +40,7 @@ export default function LessonDetailView({ lesson }) {
         type: q.type ?? "N/A",
       }));
       setAllQuestions(processed);
-    } catch (err) {
-      console.error(err);
-    }
+    } catch (err) {}
   }
 
   useEffect(() => {

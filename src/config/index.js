@@ -1,14 +1,14 @@
 import axios from "axios";
 
 // Cấu hình Axios instance
-const API_BASE_URL = "http://localhost:3999/api/v1";
+const API_BASE_URL = "http://localhost:3900/api/v1";
 
 const axiosInstance = axios.create({
   baseURL: API_BASE_URL,
   timeout: 10000,
   headers: {
-    "Content-Type": "application/json"
-  }
+    "Content-Type": "application/json",
+  },
 });
 
 // Interceptor để xử lý request (thêm token)
@@ -27,10 +27,6 @@ axiosInstance.interceptors.request.use(
 axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      // Xử lý lỗi unauthorized (tuỳ chọn: logout user)
-      console.error("Unauthorized - redirecting to login");
-    }
     return Promise.reject(error);
   }
 );

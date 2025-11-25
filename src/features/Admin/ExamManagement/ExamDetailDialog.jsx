@@ -27,7 +27,6 @@ export default function ExamDetailDialog({ open, onOpenChange, exam, examId }) {
         (raw && (raw.data || raw.item || raw.content)) ?? raw ?? null;
       setExamState(data || null);
     } catch (error) {
-      console.error("Error loading exam detail:", error?.response || error);
       // Fallback: thử lấy từ localStorage nếu có cache
       try {
         const local = JSON.parse(localStorage.getItem("exams") || "[]");

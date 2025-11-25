@@ -113,7 +113,6 @@ export default function ExamEditDialog({ open, onOpenChange, exam, onSuccess }) 
       if (onSuccess) onSuccess(updated);
       if (onOpenChange) onOpenChange(false);
     } catch (err) {
-      console.error("Error updating exam:", err);
       alert("Có lỗi xảy ra khi cập nhật bài kiểm tra");
     } finally {
       setSubmitting(false);

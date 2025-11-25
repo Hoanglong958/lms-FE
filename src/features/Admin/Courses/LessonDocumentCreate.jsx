@@ -45,7 +45,6 @@ export default function LessonDocumentCreate({ lesson, onCreated }) {
       const res = await lessonDocumentService.addDocument(payload);
       onCreated(res.data);
     } catch (err) {
-      console.error(err);
       alert("Tạo tài liệu thất bại.");
     }
   };

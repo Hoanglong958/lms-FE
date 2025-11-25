@@ -30,7 +30,6 @@ export default function LessonQuizCreate({ lesson, onCreated }) {
       const res = await lessonQuizService.addQuiz(payload);
       onCreated(res.data);
     } catch (err) {
-      console.error(err);
       alert("Không thể tạo quiz");
     }
   };

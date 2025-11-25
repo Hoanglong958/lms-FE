@@ -17,9 +17,7 @@ export default function LessonManager({
     try {
       const res = await lessonService.getLessonsBySession(sessionId);
       setLessons(res.data || []);
-    } catch (err) {
-      console.error(err);
-    }
+    } catch (err) {}
   };
 
   useEffect(() => {
@@ -43,9 +41,7 @@ export default function LessonManager({
     try {
       await lessonService.deleteLesson(lessonId);
       setLessons(lessons.filter((l) => l.id !== lessonId));
-    } catch (err) {
-      console.error(err);
-    }
+    } catch (err) {}
   };
 
   const handleSubmitLesson = async (e) => {
@@ -66,9 +62,7 @@ export default function LessonManager({
       }
       await loadLessons();
       setShowModal(false);
-    } catch (err) {
-      console.error(err);
-    }
+    } catch (err) {}
   };
 
   return (

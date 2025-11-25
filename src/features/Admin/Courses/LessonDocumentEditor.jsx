@@ -57,7 +57,6 @@ export default function LessonDocumentEditor({ document, onUpdated }) {
       onUpdated(res.data);
       setEditing(false);
     } catch (err) {
-      console.error(err);
       alert("Lưu tài liệu thất bại.");
     }
   };

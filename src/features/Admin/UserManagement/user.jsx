@@ -1,7 +1,6 @@
 import React, { useMemo, useState, useEffect, useRef } from "react";
-import axios from "axios";
 // GIẢ ĐỊNH: userService.js đã implement các API createUser, updateUser, deleteUser, toggleStatus
-import userService from "../../../shared/utils/userService";
+import { userService } from "@utils/userService";
 
 // GIẢ ĐỊNH: Các component khác (AddUserModal, EditUserModal, ConfirmModal, 
 // RoleBadge, StatusBadge, RowActions, PageStyles, getInitials, styles, modalStyles) tồn tại
@@ -25,16 +24,12 @@ export default function UserManagement({ currentUserRole = "admin" }) {
 
 	async function fetchUsers() {
 		try {
-			console.log("🔍 Fetching users from API...");
 			const res = await userService.getAllUsers({
 				page: 0,
 				size: 1000,
 				keyword: searchQuery,
 				role: roleFilter === "all" ? null : roleFilter
 			});
-
-			console.log("📡 API Response:", res);
-			console.log("📦 Response data:", res.data);
 
 			// Xử lý nhiều cấu trúc response khác nhau
 			let apiData = [];
@@ -52,12 +47,8 @@ export default function UserManagement({ currentUserRole = "admin" }) {
 				apiData = res.data;
 			}
 
-			console.log("👥 Users found:", apiData.length);
-			console.log("📋 Users data:", apiData);
 			setUsers(Array.isArray(apiData) ? apiData : []);
 		} catch (error) {
-			console.error("❌ Lỗi khi tải người dùng:", error);
-			console.error("Error details:", error.response?.data || error.message);
 		}
 	}
 
@@ -67,7 +58,6 @@ export default function UserManagement({ currentUserRole = "admin" }) {
 
 	async function handleAddUser(payload) {
 		try {
-			console.log("➕ Creating new user...", payload);
 			// Map fields: name -> fullName, email -> gmail
 			const apiPayload = {
 				fullName: payload.name,
@@ -77,18 +67,11 @@ export default function UserManagement({ currentUserRole = "admin" }) {
 				isActive: true,
 				phone: "" // Optional
 			};
-			console.log("📤 Sending to API:", apiPayload);
-			const response = await userService.createUser(apiPayload);
-			console.log("✅ User created successfully:", response.data);
-
-			console.log("🔄 Refreshing users list...");
+			await userService.createUser(apiPayload);
 			await fetchUsers();
-			console.log("✅ Users list refreshed!");
 
 			setIsAddOpen(false);
 		} catch (err) {
-			console.error("❌ Lỗi tạo user:", err);
-			console.error("Error details:", err.response?.data || err.message);
 			alert("Không thể tạo người dùng: " + (err.response?.data?.message || err.message));
 		}
 	}
@@ -105,7 +88,6 @@ export default function UserManagement({ currentUserRole = "admin" }) {
 			await fetchUsers();
 			setEditingUser(null);
 		} catch (err) {
-			console.error("Lỗi sửa user:", err);
 		}
 	}
 
@@ -121,7 +103,6 @@ export default function UserManagement({ currentUserRole = "admin" }) {
 			await fetchUsers();
 			setConfirmDelete(null);
 		} catch (err) {
-			console.error("Lỗi xóa user:", err);
 			// Thêm thông báo lỗi
 		}
 	}
@@ -143,7 +124,6 @@ export default function UserManagement({ currentUserRole = "admin" }) {
 			await fetchUsers();
 			setConfirmLock(null);
 		} catch (err) {
-			console.error("Lỗi khóa/mở khóa user:", err);
 		}
 	}
 
@@ -153,7 +133,6 @@ export default function UserManagement({ currentUserRole = "admin" }) {
 			await userService.toggleStatus(user.id);
 			await fetchUsers();
 		} catch (err) {
-			console.error("Lỗi đổi trạng thái:", err);
 		}
 	}
 

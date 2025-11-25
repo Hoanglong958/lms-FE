@@ -22,7 +22,7 @@ const VideoPlayer = ({ item }) => {
           setVideo(videos[0]);
         }
       } catch (err) {
-        console.error("Lỗi tải video:", err);
+        // ignore
       } finally {
         setLoading(false);
       }

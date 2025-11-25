@@ -45,9 +45,7 @@ export default function LessonQuizEditor({ quiz, onUpdated }) {
           category: q.category ?? "N/A",
         }));
         setAllQuestions(processed);
-      } catch (err) {
-        console.error(err);
-      }
+      } catch (err) {}
     })();
   }, []);
 
@@ -79,9 +77,7 @@ export default function LessonQuizEditor({ quiz, onUpdated }) {
         });
         setQuestions(mapped);
         setSelectedQuestions(mapped.map((q) => q.questionId));
-      } catch (err) {
-        console.error(err);
-      }
+      } catch (err) {}
     })();
   }, [quiz, allQuestions]);
 
@@ -101,7 +97,6 @@ export default function LessonQuizEditor({ quiz, onUpdated }) {
       onUpdated(res.data);
       setEditing(false);
     } catch (err) {
-      console.error(err);
       alert("Không thể lưu quiz");
     }
   };
@@ -140,7 +135,6 @@ export default function LessonQuizEditor({ quiz, onUpdated }) {
       setQuestions((prev) => [...prev, ...newQuestions]);
       setSelectingQuestions(false);
     } catch (err) {
-      console.error(err);
       alert("Không thể lưu danh sách câu hỏi");
     }
   };
@@ -155,7 +149,6 @@ export default function LessonQuizEditor({ quiz, onUpdated }) {
       setSelectedQuestions((prev) => prev.filter((id) => id !== q.questionId));
       alert("Đã xóa câu hỏi khỏi quiz");
     } catch (err) {
-      console.error(err);
       alert("Không thể xóa câu hỏi");
     }
   };

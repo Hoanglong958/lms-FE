@@ -14,15 +14,14 @@ const initialFormData = {
 
 // Component dòng khóa học (table row)
 function CourseRow({ course, onEdit, onDelete }) {
-  console.log(course.id, course.title);
-
   const isPublic = !course.isPrerequisite;
 
   return (
     <tr className={styles.tableRow}>
       <td className={styles.colTitle}>
         <Link
-          to={`/admin/courses/${course.slug || slugify(course.title)}`}
+          to={`/admin/courses/${slugify(course.title)}`}
+          state={{ course }}
           className={styles.titleLink}
         >
           {course.title}
@@ -71,9 +70,7 @@ export default function ManageCourses() {
     try {
       const res = await courseService.getCourses();
       setCourses(res.data); // API trả về danh sách
-    } catch (err) {
-      console.error("Lỗi load courses:", err);
-    }
+    } catch {}
   };
 
   useEffect(() => {
@@ -109,9 +106,7 @@ export default function ManageCourses() {
     try {
       await courseService.deleteCourse(course.id);
       loadCourses();
-    } catch (err) {
-      console.error("Lỗi xóa:", err);
-    }
+    } catch {}
   };
 
   const handleSubmit = async (e) => {
@@ -130,9 +125,7 @@ export default function ManageCourses() {
 
       loadCourses(); // refresh list
       setShowModal(false);
-    } catch (err) {
-      console.error("Lỗi lưu:", err);
-    }
+    } catch (err) {}
   };
 
   // --- Dữ liệu cho thẻ Stats ---

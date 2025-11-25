@@ -1,31 +1,26 @@
-import axiosInstance from "./../../config";
+import api from "@services/api";
 
-// API endpoint cho classes
-const API_ENDPOINT = "/classes";
+const CLASS_BASE_PATH = "/api/v1/classes";
 
-const classService = {
-  // 1. GET /classes (Danh sách lớp học với pagination)
-  getAllClasses: (params) => {
-    // params: { page, size, keyword, status }
-    return axiosInstance.get(API_ENDPOINT, { params });
-  },
+const getClasses = (params = {}) => api.get(CLASS_BASE_PATH, { params });
+const getClassesPaging = (params = {}) =>
+  api.get(`${CLASS_BASE_PATH}/paging`, { params });
+const getClassDetail = (id) =>
+  api.get(`${CLASS_BASE_PATH}/detail`, { params: { id } });
+const addClass = (data) => api.post(CLASS_BASE_PATH, data);
+const updateClass = (id, data) => api.put(`${CLASS_BASE_PATH}/${id}`, data);
+const deleteClass = (id) => api.delete(`${CLASS_BASE_PATH}/${id}`);
 
-  // 2. POST /classes (Tạo lớp học)
-  createClass: (payload) => {
-    // payload: { name, description, teacherId, startDate, endDate, ... }
-    return axiosInstance.post(API_ENDPOINT, payload);
-  },
-
-  // 3. PUT /classes/{id} (Cập nhật lớp học)
-  updateClass: (id, payload) => {
-    // payload: { name, description, teacherId, startDate, endDate, ... }
-    return axiosInstance.put(`${API_ENDPOINT}/${id}`, payload);
-  },
-
-  // 4. DELETE /classes/{id} (Xóa lớp học - Soft delete)
-  deleteClass: (id) => {
-    return axiosInstance.delete(`${API_ENDPOINT}/${id}`);
-  }
+export const classService = {
+  getClasses,
+  getClassesPaging,
+  getClassDetail,
+  addClass,
+  updateClass,
+  deleteClass,
+  // Backward compatibility helpers (legacy names still used in some files)
+  getAllClasses: (params) => getClasses(params),
+  createClass: (data) => addClass(data),
 };
 
 export default classService;

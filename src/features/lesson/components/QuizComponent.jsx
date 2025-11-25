@@ -25,7 +25,7 @@ const QuizComponent = ({ item }) => {
           setQuiz(quizzes[0]);
         }
       } catch (err) {
-        console.error("Lỗi tải quiz:", err);
+        // ignore
       } finally {
         setLoading(false);
       }

@@ -47,18 +47,14 @@ export default function QuizExamPage({ quizId }) {
               timeLimit: detail.data.timeLimit || "00:01:00",
               options,
             });
-          } catch (err) {
-            console.error("Error loading question detail:", q.questionId, err);
-          }
+          } catch (err) {}
         }
         setQuizQuestions(detailedQuestions);
         if (detailedQuestions[0])
           setTimeRemaining(
             convertTimeToSeconds(detailedQuestions[0].timeLimit)
           );
-      } catch (err) {
-        console.error("Error loading quiz:", err);
-      }
+      } catch (err) {}
     })();
   }, [quizIdFromParams]);
 

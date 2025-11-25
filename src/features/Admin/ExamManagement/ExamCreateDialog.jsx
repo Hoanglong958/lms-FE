@@ -81,7 +81,6 @@ export default function ExamCreateDialog({ open, onOpenChange, onSuccess }) {
       if (onSuccess) onSuccess(created);
       if (onOpenChange) onOpenChange(false);
     } catch (err) {
-      console.error("Error creating exam:", err);
       const status = err?.response?.status;
       const data = err?.response?.data;
       const message = data?.message || data?.error || err.message || "Lỗi không xác định";

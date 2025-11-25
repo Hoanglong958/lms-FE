@@ -18,13 +18,10 @@ export default function Register() {
     const payload = { fullName, gmail: email, password, phone, role: "ROLE_USER" };
 
     try {
-      const res = await authService.register(payload); // dùng service
-      console.log("Register response:", res.data);
-
+      await authService.register(payload); // dùng service
       alert("Đăng ký thành công! Hãy đăng nhập.");
       navigate("/login");
     } catch (err) {
-      console.error("Đăng ký lỗi:", err);
       if (err.response) {
         alert(
           `Đăng ký lỗi! Code: ${err.response.status}, Message: ${JSON.stringify(

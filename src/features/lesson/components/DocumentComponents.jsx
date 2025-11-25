@@ -21,7 +21,7 @@ const DocumentComponents = ({ item }) => {
           setDocument(documents[0]);
         }
       } catch (err) {
-        console.error("Lỗi tải document:", err);
+        // ignore
       } finally {
         setLoading(false);
       }

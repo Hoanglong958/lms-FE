@@ -29,25 +29,20 @@ export default function LessonPage() {
   useEffect(() => {
     if (!course?.id) return;
     const loadSessionsAndLessons = async () => {
-      try {
-        const sessionRes = await sessionService.getSessionsByCourse(course.id);
-        const sessionsData = Array.isArray(sessionRes.data) ? sessionRes.data : [];
-        
-        // Fetch lessons cho từng session
-        const sessionsWithLessons = await Promise.all(
-          sessionsData.map(async (session) => {
-            const lessonRes = await lessonService.getLessonsBySession(session.id);
-            return {
-              ...session,
-              lessons: lessonRes.data || [],
-            };
-          })
-        );
-        
-        setSessions(sessionsWithLessons);
-      } catch (err) {
-        console.error("Lỗi tải sessions và lessons:", err);
-      }
+      const sessionRes = await sessionService.getSessionsByCourse(course.id);
+      const sessionsData = Array.isArray(sessionRes.data) ? sessionRes.data : [];
+
+      const sessionsWithLessons = await Promise.all(
+        sessionsData.map(async (session) => {
+          const lessonRes = await lessonService.getLessonsBySession(session.id);
+          return {
+            ...session,
+            lessons: lessonRes.data || [],
+          };
+        })
+      );
+
+      setSessions(sessionsWithLessons);
     };
     loadSessionsAndLessons();
   }, [course]);
