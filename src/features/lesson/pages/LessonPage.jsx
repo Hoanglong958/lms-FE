@@ -1,129 +1,189 @@
-import React, { useEffect, useMemo } from "react";
+// src/features/lesson/pages/LessonPage.jsx
 import { useParams, useNavigate } from "react-router-dom";
-import { courses } from "@data/courseData";
+import { courseService } from "@utils/courseService";
+import { sessionService } from "@utils/sessionService";
+import { lessonService } from "@utils/lessonService";
+import { slugify } from "@utils/slugify";
+import { useEffect, useState } from "react"; // Bỏ useMemo cho đơn giản
+
 import LessonContentDisplay from "@features/lesson/components/LessonContentDisplay";
-import "./lesson.css";
+import VideoPlayer from "@features/lesson/components/VideoPlayer";
+import DocumentViewer from "@features/lesson/components/DocumentViewer";
+import QuizComponent from "@features/lesson/components/QuizComponent";
 
-const Breadcrumbs = ({ courseTitle }) => (
-  <nav className="breadcrumbs" aria-label="breadcrumb">
-    <a href="/">Trang chủ</a>
+import "./LessonPage.css";
 
-    <span className="breadcrumb-divider">/</span>
-
-    <span className="breadcrumb-active">{courseTitle}</span>
-  </nav>
-);
-
-const LessonPage = () => {
-  const { courseId, lessonId } = useParams();
+export default function LessonPage() {
+  const { courseSlug, lessonId } = useParams();
   const navigate = useNavigate();
 
-  const currentCourse = courses[courseId];
+  const [course, setCourse] = useState(null);
+  const [sessions, setSessions] = useState([]);
+  const [lesson, setLesson] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const allItems = useMemo(() => {
-    if (!currentCourse) return [];
-    return currentCourse.sessions.flatMap((session) =>
-      session.lessons.flatMap((lesson) => lesson.items)
-    );
-  }, [currentCourse]);
-
+  // 1. Lấy thông tin Course
   useEffect(() => {
-    if (!lessonId && currentCourse && allItems.length > 0) {
-      const firstItemId = allItems[0].id;
-      navigate(`/lessons/${courseId}/${firstItemId}`, { replace: true });
+    courseService.getCourses().then((res) => {
+      const c = res.data.find(
+        (c) => slugify(c.title) === courseSlug || c.slug === courseSlug
+      );
+      if (!c) return navigate("/courses");
+      setCourse(c);
+    });
+  }, [courseSlug, navigate]);
+
+  // 2. Lấy Sessions và Lessons
+  useEffect(() => {
+    if (!course?.id) return;
+    const loadSessionsAndLessons = async () => {
+      try {
+        const sessionRes = await sessionService.getSessionsByCourse(course.id);
+        const sessionsData = Array.isArray(sessionRes.data)
+          ? sessionRes.data
+          : [];
+
+        const sessionsWithLessons = await Promise.all(
+          sessionsData.map(async (session) => {
+            const lessonRes = await lessonService.getLessonsBySession(
+              session.id
+            );
+            return {
+              ...session,
+              lessons: lessonRes.data || [],
+            };
+          })
+        );
+        setSessions(sessionsWithLessons);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    loadSessionsAndLessons();
+  }, [course]);
+
+  // 3. Tính toán danh sách bài học trực tiếp (Không dùng useMemo để đảm bảo luôn tươi mới)
+  const allLessons = sessions.flatMap((s) => s.lessons || []);
+
+  // 4. Redirect nếu vào trang mà chưa có lessonId
+  useEffect(() => {
+    if (!lessonId && allLessons.length > 0) {
+      navigate(`/courses/${courseSlug}/${allLessons[0].id}`, { replace: true });
     }
-  }, [courseId, lessonId, navigate, currentCourse, allItems]);
+  }, [lessonId, allLessons, courseSlug, navigate]);
 
-  const currentItemIndex = allItems.findIndex((item) => item.id === lessonId);
-  const currentItem = allItems[currentItemIndex];
+  // 5. Lấy chi tiết bài học hiện tại
+  useEffect(() => {
+    if (!lessonId) return;
+    setLoading(true);
+    lessonService
+      .getLesson(lessonId)
+      .then((res) => {
+        const data = Array.isArray(res.data) ? res.data[0] : res.data;
+        setLesson(data);
+      })
+      .finally(() => setLoading(false));
+  }, [lessonId]);
 
-  const handleNavigation = (direction) => {
-    const newIndex = currentItemIndex + direction;
-    if (newIndex >= 0 && newIndex < allItems.length) {
-      const nextItemId = allItems[newIndex].id;
-      navigate(`/lessons/${courseId}/${nextItemId}`);
+  // 6. TÍNH TOÁN TIẾN ĐỘ (QUAN TRỌNG)
+  // -----------------------------------------------------------------
+  // Tìm vị trí bài học hiện tại
+  const currentLessonIndex = allLessons.findIndex(
+    (l) => String(l.id) === String(lessonId)
+  );
+
+  // Logic hiển thị text:
+  // - Mặc định là "..."
+  // - Nếu tìm thấy index -> hiện "X/Y Bài học"
+  let progressText = "...";
+
+  if (allLessons.length > 0 && currentLessonIndex !== -1) {
+    progressText = `${currentLessonIndex + 1}/${allLessons.length} Bài học`;
+  }
+  // -----------------------------------------------------------------
+
+  const handleNavigation = (dir) => {
+    const newIndex = currentLessonIndex + dir;
+    if (newIndex >= 0 && newIndex < allLessons.length) {
+      const nextLesson = allLessons[newIndex];
+      navigate(`/courses/${courseSlug}/${nextLesson.id}`);
     }
   };
 
-  if (!currentItem) {
-    return <div>Đang tải bài học...</div>;
-  }
+  if (loading || !lesson)
+    return <div className="lesson-layout">Đang tải bài học...</div>;
 
   return (
-    <div className="lesson-detail-container">
-      <div className="lesson-page-header">
-        <Breadcrumbs courseTitle={currentCourse.courseTitle} />
+    <div className="lesson-layout">
+      {/* Header */}
+      <div className="lesson-header-top">
+        <div className="breadcrumbs">
+          <a href="/courses">Trang chủ</a>
+          <span className="breadcrumb-divider">/</span>
+          <span className="breadcrumb-active">{course?.title}</span>
+        </div>
 
         <div className="lesson-navigation">
           <button
             className="nav-button prev"
+            disabled={currentLessonIndex <= 0}
             onClick={() => handleNavigation(-1)}
-            disabled={currentItemIndex === 0}
           >
             <svg
-              className="nav-icon"
               width="20"
               height="20"
-              viewBox="0 0 20 20"
+              viewBox="0 0 24 24"
               fill="none"
-              xmlns="http://www.w3.org/2000/svg"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
             >
-              <path
-                d="M15.8332 10H4.1665M4.1665 10L9.99984 15.8333M4.1665 10L9.99984 4.16666"
-                stroke="currentColor"
-                strokeWidth="1.67"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
+              <path d="M19 12H5" />
+              <path d="M12 19l-7-7 7-7" />
             </svg>
-            <span>Bài trước</span>
+            <span className="nav-text">Bài trước</span>
           </button>
 
           <button
             className="nav-button next"
+            disabled={currentLessonIndex >= allLessons.length - 1}
             onClick={() => handleNavigation(1)}
-            disabled={currentItemIndex === allItems.length - 1}
           >
-            <span>Bài tiếp theo</span>
+            <span className="nav-text">Bài tiếp theo</span>
             <svg
-              className="nav-icon"
               width="20"
               height="20"
-              viewBox="0 0 20 20"
+              viewBox="0 0 24 24"
               fill="none"
-              xmlns="http://www.w3.org/2000/svg"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
             >
-              <path
-                d="M4.1665 10H15.8332M15.8332 10L9.99984 4.16666M15.8332 10L9.99984 15.8333"
-                stroke="currentColor"
-                strokeWidth="1.67"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
+              <path d="M5 12h14" />
+              <path d="M12 5l7 7-7 7" />
             </svg>
           </button>
         </div>
       </div>
 
-      <LessonContentDisplay item={currentItem} />
+      <LessonContentDisplay item={lesson} />
 
-      <div className="lesson-header">
-        <div className="lesson-title-group">
-          <h2>{currentItem.title}</h2>
-          <span>24 tháng 6 năm 2023</span>
-        </div>
-        <div className="lesson-progress">
-          {currentItemIndex + 1}/{allItems.length} Bài học
-        </div>
-      </div>
+      {/* Truyền progressText xuống component con */}
+      {/* Lưu ý: progressText bây giờ mặc định là "..." chứ không phải rỗng */}
 
-      <div className="lesson-description">
-        <h3>Mô tả</h3>
-        <p>{currentItem.Descriptions || "Nội dung đang được cập nhật..."}</p>
-        <a href="#">Xem thêm</a>
-      </div>
+      {lesson.type === "video" && (
+        <VideoPlayer item={lesson} progress={progressText} />
+      )}
+
+      {lesson.type === "document" && (
+        <DocumentViewer item={lesson} progress={progressText} />
+      )}
+
+      {lesson.type === "quiz" && (
+        <QuizComponent item={lesson} progress={progressText} />
+      )}
     </div>
   );
-};
-
-export default LessonPage;
+}

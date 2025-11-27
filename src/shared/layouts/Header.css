@@ -2,13 +2,14 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  width: 1440px;
+  width: 100%;
   max-width: 1440px;
   height: 96px;
   padding: 26px 120px;
   background: #ffffff;
   border-bottom: 1px solid #dddddd;
   box-sizing: border-box;
+  margin: 0 auto;
 }
 .header-left {
   display: flex;

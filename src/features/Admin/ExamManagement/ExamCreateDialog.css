@@ -1,0 +1,31 @@
+.examdlg-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:2000}
+.examdlg-container{background:#fff;border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.2);width:min(920px,92vw);max-height:90vh;overflow:auto}
+.examdlg-header{padding:18px 22px 10px;border-bottom:1px solid #eee}
+.examdlg-title{font-size:20px;font-weight:700;color:#ea580c}
+.examdlg-desc{font-size:13px;color:#6b7280;margin-top:4px}
+.examdlg-form{padding:16px 22px 22px}
+.examdlg-section{margin:14px 0}
+.examdlg-section-title{font-size:13px;color:#374151;background:#f9fafb;border-radius:10px;padding:8px 10px;margin-bottom:10px}
+.examdlg-field{display:flex;flex-direction:column;gap:8px;margin-bottom:10px}
+.examdlg-field input,.examdlg-field textarea{border:1px solid #e5e7eb;border-radius:10px;padding:10px 12px;font-size:14px;outline:none}
+.examdlg-field input:focus,.examdlg-field textarea:focus{border-color:#f97316;box-shadow:0 0 0 3px rgba(249,115,22,.15)}
+.examdlg-grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.req{color:#ef4444}
+.examdlg-switch{display:flex;align-items:center;justify-content:space-between;background:#f9fafb;border-radius:10px;padding:12px}
+.examdlg-questionpicker{display:flex;flex-direction:column;gap:10px}
+.examdlg-info{background:#eff6ff;color:#1d4ed8;border-radius:10px;padding:10px;font-size:13px}
+.examdlg-footer{display:flex;gap:10px;justify-content:flex-end;margin-top:10px}
+.btn-outline{border:1px solid #e5e7eb;background:#fff;border-radius:10px;padding:8px 14px;font-weight:600}
+.btn-outline:hover{background:#fff7ed;border-color:#f97316;color:#ea580c}
+.btn-primary{background:#f97316;color:#fff;border:none;border-radius:10px;padding:9px 16px;font-weight:700}
+.btn-primary:hover{background:#ea580c}
+.btn-icon{border:none;background:transparent;font-size:18px}
+.examdlg-submodal{position:fixed;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;z-index:2100}
+.examdlg-submodal-card{background:#fff;border-radius:12px;width:min(720px,90vw);max-height:80vh;overflow:auto;box-shadow:0 10px 30px rgba(0,0,0,.2)}
+.examdlg-submodal-head{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #eee}
+.examdlg-submodal-body{padding:12px 16px}
+.examdlg-ids{display:flex;flex-wrap:wrap;gap:8px}
+.tag{border:1px solid #e5e7eb;border-radius:999px;padding:6px 10px;background:#fff}
+.tag.active{background:#fff7ed;border-color:#f97316;color:#ea580c}
+.examdlg-submodal-foot{display:flex;justify-content:flex-end;gap:10px;padding:12px 16px;border-top:1px solid #eee}
+@media (max-width:640px){.examdlg-grid2{grid-template-columns:1fr}}

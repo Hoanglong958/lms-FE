@@ -1,0 +1,28 @@
+.qs-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;justify-content:center;z-index:2100}
+.qs-drawer{background:#fff;border-top-left-radius:16px;border-top-right-radius:16px;box-shadow:0 -10px 30px rgba(0,0,0,.18);width:100%;max-width:960px;max-height:90vh;overflow:auto}
+.qs-header{padding:16px 20px;border-bottom:1px solid #eee}
+.qs-title{margin:0;font-size:18px;font-weight:700;color:#ea580c}
+.qs-desc{margin:4px 0 0;color:#6b7280;font-size:13px}
+.qs-body{padding:14px 20px;display:flex;flex-direction:column;gap:12px}
+.qs-search{position:relative}
+.qs-input{width:100%;border:1px solid #e5e7eb;border-radius:10px;padding:10px 12px;font-size:14px;outline:none}
+.qs-input:focus{border-color:#f97316;box-shadow:0 0 0 3px rgba(249,115,22,.15)}
+.qs-list{border:1px solid #e5e7eb;border-radius:12px;overflow:hidden}
+.qs-item{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border-bottom:1px solid #f3f4f6}
+.qs-item:last-child{border-bottom:none}
+.qs-item-main{flex:1}
+.qs-row{display:flex;gap:8px;align-items:center}
+.qs-row.gap{gap:10px;margin-top:6px}
+.qs-id{font-size:12px;color:#6b7280}
+.qs-title-text{font-size:14px;color:#111827;font-weight:600}
+.qs-badge{display:inline-flex;align-items:center;border-radius:999px;padding:2px 8px;font-size:12px;background:#f3f4f6;color:#374151;border:1px solid #e5e7eb}
+.qs-badge.blue{background:#eff6ff;color:#1d4ed8;border-color:#dbeafe}
+.qs-badge.green{background:#ecfdf5;color:#065f46;border-color:#a7f3d0}
+.qs-badge.yellow{background:#fffbeb;color:#92400e;border-color:#fde68a}
+.qs-badge.red{background:#fef2f2;color:#991b1b;border-color:#fecaca}
+.qs-summary{color:#6b7280;font-size:13px}
+.qs-footer{display:flex;gap:10px;justify-content:flex-end;padding:12px 20px;border-top:1px solid #eee}
+.qs-btn{border:1px solid #e5e7eb;background:#fff;border-radius:10px;padding:8px 14px;font-weight:600}
+.qs-btn.primary{background:#f97316;color:#fff;border-color:#f97316}
+.qs-btn.primary:hover{background:#ea580c}
+@media (max-width:640px){.qs-drawer{max-width:100%}}

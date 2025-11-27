@@ -2,9 +2,9 @@ import api from "@services/api";
 
 export const lessonService = {
   // Lấy chi tiết bài học
-  // GET /api/v1/lessons/{id}
+  // GET /api/v1/lessons/detail?id={id}
   getLesson(id) {
-    return api.get(`/api/v1/lessons/${id}`);
+    return api.get(`/api/v1/lessons/detail`, { params: { id } });
   },
 
   // Cập nhật bài học
@@ -25,9 +25,9 @@ export const lessonService = {
     return api.post(`/api/v1/lessons`, data);
   },
 
-  // Lấy danh sách bài học theo session
-  // GET /api/v1/lessons/session/{sessionId}
+  // Lấy danh sách bài học (có thể filter theo session)
+  // GET /api/v1/lessons?sessionId={sessionId}
   getLessonsBySession(sessionId) {
-    return api.get(`/api/v1/lessons/session/${sessionId}`);
+    return api.get(`/api/v1/lessons`, { params: { sessionId } });
   },
 };

@@ -1,0 +1,100 @@
+:root {
+  --lqc-accent: #ff7f50;
+  --lqc-accent-hover: #ff9b72;
+  --lqc-bg: #ffffff;
+  --lqc-border: #e7eefc;
+  --lqc-radius: 24px;
+  --lqc-shadow-sm: 0 6px 18px rgba(29, 41, 73, 0.06);
+  --lqc-text: #0f1724;
+  --lqc-muted: #64748b;
+  --lqc-transition: 200ms cubic-bezier(0.2, 0.9, 0.2, 1);
+  --lqc-gap: 12px;
+}
+
+/* WRAPPER */
+.lqc-wrapper {
+  background: var(--lqc-bg);
+  padding: 20px;
+  border-radius: var(--lqc-radius);
+  border: 1px solid var(--lqc-border);
+  box-shadow: var(--lqc-shadow-sm);
+  margin-top: 20px;
+  color: var(--lqc-text);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial;
+
+  width: 100%; /* chiếm toàn bộ chiều ngang */
+  max-width: none; /* bỏ giới hạn */
+  box-sizing: border-box; /* để padding không làm tràn */
+}
+
+/* TITLE */
+.lqc-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 16px;
+  color: var(--lqc-text);
+}
+
+/* FORM ROW */
+.lqc-form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.lqc-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--lqc-text);
+}
+
+.lqc-input {
+  padding: 10px 12px;
+  border: 1px solid var(--lqc-border);
+  border-radius: 12px;
+  font-size: 14px;
+  background: #f3f4f6; /* màu nền sáng xám thay cho trắng */
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.lqc-input:focus {
+  border-color: var(--lqc-accent);
+  box-shadow: 0 6px 18px rgba(79, 142, 247, 0.08);
+}
+
+/* BUTTON */
+.lqc-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all var(--lqc-transition);
+  border: 1px solid transparent;
+  background: linear-gradient(
+    180deg,
+    var(--lqc-accent),
+    var(--lqc-accent-hover)
+  );
+  color: #fff;
+}
+
+.lqc-btn:hover {
+  transform: translateY(-2px);
+}
+
+/* RESPONSIVE */
+@media (max-width: 500px) {
+  .lqc-wrapper {
+    padding: 16px;
+  }
+  .lqc-btn {
+    width: 100%;
+  }
+}
