@@ -57,7 +57,6 @@ export default function LessonDocumentEditor({ document, onUpdated }) {
       onUpdated(res.data);
       setEditing(false);
     } catch (err) {
-      console.error(err);
       alert("Lưu tài liệu thất bại.");
     }
   };
@@ -104,6 +103,7 @@ export default function LessonDocumentEditor({ document, onUpdated }) {
           className="lde-input"
           value={form.title}
           onChange={(e) => setForm({ ...form, title: e.target.value })}
+          autoFocus
         />
       </div>
 

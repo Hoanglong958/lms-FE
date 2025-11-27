@@ -1,0 +1,174 @@
+/* Container chung */
+.qc-container {
+  width: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: #333;
+  display: flex;
+  flex-direction: column;
+  gap: 32px; /* Khoảng cách giữa Card trên và Info dưới */
+}
+
+.qc-loading {
+  padding: 40px;
+  text-align: center;
+  font-style: italic;
+  color: #999;
+}
+
+/* --- 1. INTRO CARD SECTION --- */
+.qc-intro-card {
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 40px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* căn giữa theo ngang */
+  justify-content: center; /* căn giữa theo dọc */
+  text-align: center;
+  min-height: 400px;
+  gap: 24px; /* khoảng cách giữa image, title, description và nút */
+}
+
+.qc-start-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center; /* căn giữa nội dung nút */
+  gap: 8px;
+  background-color: #f05123;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 12px 24px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  margin: 0 auto; /* đảm bảo nút nằm chính giữa card */
+  transition: background 0.2s;
+}
+
+.qc-start-btn:hover {
+  background-color: #d6421b;
+}
+
+.qc-intro-image img {
+  max-width: 280px; /* Điều chỉnh kích thước ảnh mèo */
+  height: auto;
+  margin-bottom: 24px;
+}
+
+.qc-card-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #000;
+  margin: 0 0 8px 0;
+}
+
+.qc-card-meta {
+  font-size: 14px;
+  color: #666;
+  margin: 0 0 16px 0;
+}
+
+.qc-card-desc {
+  font-size: 14px;
+  color: #555;
+  max-width: 500px; /* Giới hạn chiều rộng chữ cho dễ đọc */
+  line-height: 1.5;
+  margin: 0 auto 32px auto;
+}
+
+.qc-start-btn {
+  align-items: center;
+  background-color: #f05123; /* Màu cam Mankai */
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 12px 24px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.2s;
+}
+
+.qc-start-btn:hover {
+  background-color: #d6421b;
+}
+
+/* --- 2. INFO SECTION --- */
+.qc-info-section {
+  padding: 0 4px;
+}
+
+.qc-info-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+}
+
+.qc-main-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0;
+  line-height: 1.3;
+  flex: 1;
+}
+
+.qc-progress {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  white-space: nowrap;
+  margin-top: 6px;
+}
+
+.qc-meta-date {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #757575;
+  margin-bottom: 24px;
+}
+
+/* --- DESCRIPTION BOX --- */
+.qc-desc-box {
+  background-color: #fafafa; /* Nền xám nhạt */
+  padding: 24px;
+  border-radius: 12px;
+}
+
+.qc-desc-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #000;
+  margin: 0 0 12px 0;
+}
+
+.qc-desc-content {
+  font-size: 15px;
+  line-height: 1.6;
+  color: #555;
+  margin-bottom: 12px;
+}
+
+.qc-btn-more {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #f05123;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.qc-btn-more:hover {
+  text-decoration: underline;
+}

@@ -55,7 +55,9 @@ export default function AdminHeader({
           </div>
 
           {/* Breadcrumb vẫn dưới title */}
-          <Breadcrumb customItems={breadcrumb} />
+          {breadcrumb && breadcrumb.length > 0 && (
+            <Breadcrumb customItems={breadcrumb} />
+          )}
 
           {subtitle && <p className="admin-subtitle">{subtitle}</p>}
         </div>

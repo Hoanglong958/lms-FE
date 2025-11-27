@@ -87,55 +87,16 @@ export default function AdminSidebar({ isOpen, onClose }) {
             Quản lý lớp học
           </NavLink>
 
-          {/* Đánh giá */}
-          <div className="admin-sidebar-group">
-            <div
-              className="admin-sidebar-item"
-              onClick={() => toggleSection("evaluate")}
-            >
-              <i className="fa-solid fa-clipboard-check"></i>
-              <span>Đánh giá</span>
-              <i
-                className={`fa-solid fa-chevron-${
-                  openSection.evaluate ? "up" : "down"
-                } sidebar-arrow`}
-              ></i>
-            </div>
-            {openSection.evaluate && (
-              <div className="admin-sidebar-submenu">
-                <NavLink
-                  to="/admin/quiz"
-                  className={({ isActive }) =>
-                    isActive
-                      ? "admin-sidebar-subitem active"
-                      : "admin-sidebar-subitem"
-                  }
-                >
-                  Quiz
-                </NavLink>
-                <NavLink
-                  to="/admin/exam"
-                  className={({ isActive }) =>
-                    isActive
-                      ? "admin-sidebar-subitem active"
-                      : "admin-sidebar-subitem"
-                  }
-                >
-                  Bài kiểm tra
-                </NavLink>
-                <NavLink
-                  to="/admin/exercises"
-                  className={({ isActive }) =>
-                    isActive
-                      ? "admin-sidebar-subitem active"
-                      : "admin-sidebar-subitem"
-                  }
-                >
-                  Bài tập
-                </NavLink>
-              </div>
-            )}
-          </div>
+          {/* Bài kiểm tra - mục cấp 1 */}
+          <NavLink
+            to="/admin/exam"
+            className={({ isActive }) =>
+              isActive ? "admin-sidebar-item active" : "admin-sidebar-item"
+            }
+          >
+            <i className="fa-solid fa-clipboard-check"></i>
+            Bài kiểm tra
+          </NavLink>
 
           {/* Cộng đồng */}
           <div className="admin-sidebar-group">

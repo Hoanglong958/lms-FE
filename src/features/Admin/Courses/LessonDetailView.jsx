@@ -14,7 +14,7 @@ import { lessonDocumentService } from "@utils/lessonDocumentService.js";
 import LessonDocumentEditor from "./LessonDocumentEditor.jsx";
 import LessonDocumentCreate from "./LessonDocumentCreate.jsx";
 
-import "../Courses/CoursesCSS/LessonDetailView.css"
+import "../Courses/CoursesCSS/LessonDetailView.css";
 
 export default function LessonDetailView({ lesson }) {
   const [videos, setVideos] = useState([]);
@@ -40,9 +40,7 @@ export default function LessonDetailView({ lesson }) {
         type: q.type ?? "N/A",
       }));
       setAllQuestions(processed);
-    } catch (err) {
-      console.error(err);
-    }
+    } catch (err) {}
   }
 
   useEffect(() => {
@@ -79,16 +77,16 @@ export default function LessonDetailView({ lesson }) {
     }
   }, [lesson]);
 
-  if (!lesson) return <div className="guide-action">
-  <span className="guide-icon">📘</span>
-  Chọn một bài học để xem nội dung
-</div>
-;
+  if (!lesson)
+    return (
+      <div className="guide-action">
+        <span className="guide-icon">📘</span>
+        Chọn một bài học để xem nội dung
+      </div>
+    );
 
   return (
     <div>
-      <h2 className="lesson-title">{lesson.title}</h2>
-
       {/* VIDEO */}
       {lesson.type === "VIDEO" && (
         <div key={`lesson-video-${lesson.id}`}>

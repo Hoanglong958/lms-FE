@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link, useOutletContext } from "react-router-dom";
+import { Link, useOutletContext, useNavigate } from "react-router-dom";
 import { courseService } from "@utils/courseService.js";
 import styles from "./ManageCourses.module.css";
 import AdminHeader from "@components/Admin/AdminHeader";
@@ -14,30 +14,27 @@ const initialFormData = {
 
 // Component dòng khóa học (table row)
 function CourseRow({ course, onEdit, onDelete }) {
-  console.log(course.id, course.title);
-
+  const navigate = useNavigate();
   const isPublic = !course.isPrerequisite;
 
-  return (
-    <tr className={styles.tableRow}>
-      <td className={styles.colTitle}>
-        <Link
-          to={`/admin/courses/${course.slug || slugify(course.title)}`}
-          className={styles.titleLink}
-        >
-          {course.title}
-        </Link>
-      </td>
-      <td className={styles.colDesc}>{course.description || "—"}</td>
+  const handleRowClick = (e) => {
+    // Tránh click vào các button không navigate
+    if (e.target.closest("button")) return;
+    navigate(`/admin/courses/${course.slug || slugify(course.title)}`, {
+      state: { course },
+    });
+  };
 
+  return (
+    <tr
+      className={styles.tableRow}
+      onClick={handleRowClick}
+      style={{ cursor: "pointer" }}
+    >
+      <td className={styles.colTitle}>{course.title}</td>
+      <td className={styles.colDesc}>{course.description || "—"}</td>
       <td className={styles.colActions}>
         <div className={styles.rowActions}>
-          <Link
-            to={`/admin/courses/${course.slug || slugify(course.title)}`}
-            className={`${styles.actionBtn} ${styles.actionBtnPrimary}`}
-          >
-            Xem
-          </Link>
           <button
             type="button"
             className={`${styles.actionBtn} ${styles.actionBtnSecondary}`}
@@ -71,9 +68,7 @@ export default function ManageCourses() {
     try {
       const res = await courseService.getCourses();
       setCourses(res.data); // API trả về danh sách
-    } catch (err) {
-      console.error("Lỗi load courses:", err);
-    }
+    } catch {}
   };
 
   useEffect(() => {
@@ -109,9 +104,7 @@ export default function ManageCourses() {
     try {
       await courseService.deleteCourse(course.id);
       loadCourses();
-    } catch (err) {
-      console.error("Lỗi xóa:", err);
-    }
+    } catch {}
   };
 
   const handleSubmit = async (e) => {
@@ -130,14 +123,11 @@ export default function ManageCourses() {
 
       loadCourses(); // refresh list
       setShowModal(false);
-    } catch (err) {
-      console.error("Lỗi lưu:", err);
-    }
+    } catch (err) {}
   };
 
   // --- Dữ liệu cho thẻ Stats ---
   const totalCourses = courses.length;
-  const publicCourses = courses.filter((c) => !c.isPrerequisite).length;
   const totalStudents = 1690;
   const avgProgress = 67;
 
@@ -160,6 +150,10 @@ export default function ManageCourses() {
       {/* Header của page */}
       <AdminHeader
         title="Quản lý khóa học"
+        breadcrumb={[
+          { label: "Dashboard", to: "/admin/dashboard" },
+          { label: "Khóa học", to: "/admin/courses" },
+        ]}
         onMenuToggle={toggleSidebar}
         actions={
           <button
@@ -251,6 +245,7 @@ export default function ManageCourses() {
                     value={formData.title}
                     onChange={handleInputChange}
                     required
+                    autoFocus
                   />
                 </div>
 

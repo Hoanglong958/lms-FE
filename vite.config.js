@@ -28,4 +28,12 @@ export default defineConfig({
       "@admin": path.resolve(__dirname, "./src/features/Admin"), // alias @admin → src/features/Admin
     },
   },
+  server: {
+    proxy: {
+      "/api": {
+        target: "http://localhost:3900",
+        changeOrigin: true,
+      },
+    },
+  },
 });

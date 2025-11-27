@@ -1,14 +1,77 @@
+/* src/features/lesson/components/VideoPlayer.css */
 .video-player-wrapper {
-  max-width: 1066px;
   width: 100%;
   margin: 0 auto;
   aspect-ratio: 16 / 9;
   background-color: #000;
   border-radius: 12px;
   overflow: hidden;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 18px;
+  text-align: center;
 }
+
 .video-player-wrapper iframe {
+  max-width: 1066px;
   width: 100%;
   height: 100%;
   border: none;
+}
+
+.video-player-wrapper.loading,
+.video-player-wrapper.empty {
+  background-color: #111;
+  font-weight: 500;
+}
+
+/* N1 Chill Class */
+.video-main-title {
+  width: 197px;
+  height: 40px;
+  left: 48px;
+  top: 813px;
+
+  /* Display sm/Bold */
+  font-family: "SF Pro Display";
+  font-style: normal;
+  font-weight: 600;
+  font-size: 32px;
+  line-height: 40px;
+  /* identical to box height, or 125% */
+  display: flex;
+  align-items: center;
+
+  /* Black */
+  color: #000000;
+}
+
+.meta-date {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  color: #676767;
+  left: 48px;
+  top: 861px;
+  height: 20px;
+}
+
+.meta-date-icon {
+  width: 20px;
+  height: 20px;
+  flex: none;
+}
+
+.meta-date-text {
+  font-family: "SF Pro Display";
+  font-style: normal;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 20px;
+  color: #676767;
+  flex: none;
 }

@@ -45,7 +45,6 @@ export default function LessonDocumentCreate({ lesson, onCreated }) {
       const res = await lessonDocumentService.addDocument(payload);
       onCreated(res.data);
     } catch (err) {
-      console.error(err);
       alert("Tạo tài liệu thất bại.");
     }
   };
@@ -60,6 +59,8 @@ export default function LessonDocumentCreate({ lesson, onCreated }) {
           className="ldc-input"
           value={form.title}
           onChange={(e) => setForm({ ...form, title: e.target.value })}
+          required
+          autoFocus
         />
       </div>
 

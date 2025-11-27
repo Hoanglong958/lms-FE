@@ -68,9 +68,7 @@ export default function LessonSidebar({ initialMinimized = false }) {
         // Sắp xếp theo thứ tự
         fullData.sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0));
         setSidebarData(fullData);
-      } catch (err) {
-        console.error("Lỗi tải nội dung bài học:", err);
-      }
+      } catch (err) {}
     };
 
     fetchSidebarData();

@@ -60,6 +60,8 @@ export default function LessonVideoCreate({ lesson, onCreated }) {
           name="title"
           value={form.title}
           onChange={handleChange}
+          required
+          autoFocus
         />
       </div>
 

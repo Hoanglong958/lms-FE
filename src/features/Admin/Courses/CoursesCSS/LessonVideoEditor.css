@@ -1,3 +1,89 @@
+/* Phần Header chứa thông tin */
+.lessonVideoHeader {
+  border-bottom: 1px solid #eee; /* Đường kẻ ngăn cách nhẹ với video */
+  background-color: #fff;
+}
+
+/* Hàng trên cùng: Flexbox để dàn ngang */
+.headerTopRow {
+  display: flex;
+  justify-content: space-between; /* Đẩy tiêu đề sang trái, nút sửa sang phải */
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+/* Nhóm Tiêu đề + Thời lượng */
+.titleGroup {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.videoTitle {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #1a1a1a;
+  line-height: 1.2;
+}
+
+/* Badge thời lượng nhỏ gọn */
+.durationBadge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background-color: #f0f0f0;
+  color: #666;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+/* Phần mô tả bên dưới */
+.headerDescription p {
+  margin: 0;
+  font-size: 14px;
+  color: #555;
+  line-height: 1.5;
+  /* Giới hạn số dòng nếu mô tả quá dài để giữ chiều cao thấp */
+  display: -webkit-box;
+  -webkit-line-clamp: 2; /* Chỉ hiện tối đa 2 dòng */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Nút Sửa đẹp hơn */
+.editButton {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background-color: transparent;
+  border: 1px solid #dd673c; /* Màu cam Mankai */
+  color: #dd673c;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.editButton:hover {
+  background-color: #dd673c;
+  color: #fff;
+}
+
+/* Phần chứa video bên dưới */
+.videoholderlesson {
+  width: 100%;
+  background-color: #000;
+  /* Aspect ratio được xử lý bên trong component video hoặc thêm padding-bottom ở đây */
+}
+
 .videoholderlesson {
   margin-top: 20px;
 }
@@ -54,8 +140,17 @@
   margin-bottom: 16px;
 }
 
+.information {
+  font-size: 18px;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: #333;
+}
+
 .title-label {
-  min-width: 60px; /* Make label width consistent */
+  border: 1px solid #ccc;
+  min-width: 60px;
   font-weight: 600;
   font-size: 14px;
   margin-right: 4px;

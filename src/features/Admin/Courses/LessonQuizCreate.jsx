@@ -13,8 +13,13 @@ export default function LessonQuizCreate({ lesson, onCreated }) {
   });
 
   const handleCreate = async () => {
-    if (!form.title) {
-      alert("Tiêu đề quiz không được để trống");
+    if (
+      !form.title ||
+      !form.questionCount ||
+      !form.maxScore ||
+      !form.passingScore
+    ) {
+      alert("Không được để trống trường nào!");
       return;
     }
 
@@ -30,7 +35,6 @@ export default function LessonQuizCreate({ lesson, onCreated }) {
       const res = await lessonQuizService.addQuiz(payload);
       onCreated(res.data);
     } catch (err) {
-      console.error(err);
       alert("Không thể tạo quiz");
     }
   };
@@ -54,6 +58,8 @@ export default function LessonQuizCreate({ lesson, onCreated }) {
             className="lqc-input"
             value={form[f.key]}
             onChange={(e) => setForm({ ...form, [f.key]: e.target.value })}
+            required
+            autoFocus={f.key === "title"}
           />
         </div>
       ))}

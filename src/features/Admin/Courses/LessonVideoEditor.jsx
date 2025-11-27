@@ -112,26 +112,58 @@ export default function LessonVideoEditor({ video, onUpdated }) {
   // ============================
   if (!editing) {
     return (
-      <div>
-        <div className="lessonvideoheader">
-          <p>
-            <b>Thông tin chung</b>
-          </p>
-          <p>
-            <b className="title-label">Tiêu đề:</b> {video.title}
-          </p>
-          <p>
-            <b className="title-label">Thời lượng:</b> {video.durationSeconds}{" "}
-            giây
-          </p>
-          <p>
-            <b className="title-label">Mô tả:</b> {video.description || "—"}
-          </p>
+      <div className="lessonVideoWrapper">
+        {/* Phần Header chứa thông tin + Nút sửa */}
+        <div className="lessonVideoHeader">
+          <div className="headerContent">
+            {/* Hàng 1: Tiêu đề - Thời lượng - Nút Sửa */}
+            <div className="headerTopRow">
+              <div className="titleGroup">
+                <h2 className="videoTitle">{video.title}</h2>
+                <span className="durationBadge">
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
+                  </svg>
+                  {video.durationSeconds} giây
+                </span>
+              </div>
 
-          <button className="edit-button" onClick={() => setEditing(true)}>
-            Sửa
-          </button>
+              <button className="editButton" onClick={() => setEditing(true)}>
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
+                Sửa thông tin
+              </button>
+            </div>
+
+            {/* Hàng 2: Mô tả */}
+            <div className="headerDescription">
+              <p>{video.description || "Chưa có mô tả"}</p>
+            </div>
+          </div>
         </div>
+
+        {/* Phần Video Player */}
         <div className="videoholderlesson">{renderVideo()}</div>
       </div>
     );

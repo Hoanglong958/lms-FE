@@ -45,9 +45,7 @@ export default function LessonQuizEditor({ quiz, onUpdated }) {
           category: q.category ?? "N/A",
         }));
         setAllQuestions(processed);
-      } catch (err) {
-        console.error(err);
-      }
+      } catch (err) {}
     })();
   }, []);
 
@@ -79,9 +77,7 @@ export default function LessonQuizEditor({ quiz, onUpdated }) {
         });
         setQuestions(mapped);
         setSelectedQuestions(mapped.map((q) => q.questionId));
-      } catch (err) {
-        console.error(err);
-      }
+      } catch (err) {}
     })();
   }, [quiz, allQuestions]);
 
@@ -101,7 +97,6 @@ export default function LessonQuizEditor({ quiz, onUpdated }) {
       onUpdated(res.data);
       setEditing(false);
     } catch (err) {
-      console.error(err);
       alert("Không thể lưu quiz");
     }
   };
@@ -140,7 +135,6 @@ export default function LessonQuizEditor({ quiz, onUpdated }) {
       setQuestions((prev) => [...prev, ...newQuestions]);
       setSelectingQuestions(false);
     } catch (err) {
-      console.error(err);
       alert("Không thể lưu danh sách câu hỏi");
     }
   };
@@ -155,7 +149,6 @@ export default function LessonQuizEditor({ quiz, onUpdated }) {
       setSelectedQuestions((prev) => prev.filter((id) => id !== q.questionId));
       alert("Đã xóa câu hỏi khỏi quiz");
     } catch (err) {
-      console.error(err);
       alert("Không thể xóa câu hỏi");
     }
   };
@@ -258,33 +251,81 @@ export default function LessonQuizEditor({ quiz, onUpdated }) {
     return (
       <div className="lqz-wrapper">
         <div className="lqz-header">
-          <div className="lqz-actions">
-            <button
-              className="lqz-btn edit-btn"
-              onClick={() => setEditing(true)}
-            >
-              Sửa quiz
-            </button>
-            <button
-              className="lqz-btn-secondary select-btn"
-              onClick={() => setSelectingQuestions(true)}
-            >
-              Chọn câu hỏi
-            </button>
-          </div>
+          <div className="lqz-content">
+            {/* Hàng 1: Tiêu đề và Actions */}
+            <div className="lqz-top-row">
+              <h2 className="lqz-title">{form.title}</h2>
 
-          <p>
-            <b className="lqz-title">Tiêu đề:</b> {form.title}
-          </p>
-          <p className="lqz-info">
-            <b>Số câu hỏi:</b> {form.questionCount}
-          </p>
-          <p className="lqz-info">
-            <b>Điểm tối đa:</b> {form.maxScore}
-          </p>
-          <p className="lqz-info">
-            <b>Điểm đạt:</b> {form.passingScore}
-          </p>
+              <div className="lqz-actions">
+                {/* Nút Chọn câu hỏi */}
+                <button
+                  className="lqz-btn lqz-btn-secondary"
+                  onClick={() => setSelectingQuestions(true)}
+                >
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <line x1="8" y1="6" x2="21" y2="6"></line>
+                    <line x1="8" y1="12" x2="21" y2="12"></line>
+                    <line x1="8" y1="18" x2="21" y2="18"></line>
+                    <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                    <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                    <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                  </svg>
+                  Chọn câu hỏi
+                </button>
+
+                {/* Nút Sửa Quiz */}
+                <button
+                  className="lqz-btn lqz-btn-primary"
+                  onClick={() => setEditing(true)}
+                >
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                  </svg>
+                  Sửa quiz
+                </button>
+              </div>
+            </div>
+
+            {/* Hàng 2: Các chỉ số (Metadata) */}
+            <div className="lqz-meta-row">
+              {/* Số câu hỏi */}
+              <div className="lqz-info">
+                <span className="lqz-label">Số câu hỏi:</span>
+                <span className="lqz-value">{form.questionCount}</span>
+              </div>
+
+              {/* Điểm tối đa */}
+              <div className="lqz-info">
+                <span className="lqz-label">Điểm tối đa:</span>
+                <span className="lqz-value">{form.maxScore}</span>
+              </div>
+
+              {/* Điểm đạt */}
+              <div className="lqz-info">
+                <span className="lqz-label">Điểm đạt:</span>
+                <span className="lqz-value highlight">{form.passingScore}</span>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div className="lqz-questions">
@@ -320,6 +361,8 @@ export default function LessonQuizEditor({ quiz, onUpdated }) {
             type={field === "title" ? "text" : "number"}
             value={form[field]}
             onChange={(e) => setForm({ ...form, [field]: e.target.value })}
+            required
+            autoFocus={field === "title"}
           />
         </div>
       ))}
