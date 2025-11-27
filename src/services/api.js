@@ -17,4 +17,22 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+// Response interceptor to handle 401 errors
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Token expired or invalid
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("loggedInUser");
+
+      // Only redirect if not already on login page
+      if (!window.location.pathname.includes("/login")) {
+        window.location.href = "/login";
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 export default api;

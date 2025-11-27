@@ -1,0 +1,456 @@
+/* Class Management Page Styles */
+
+.cm-page {
+    padding: 28px 24px;
+    background: #f7f8fa;
+    min-height: 100%;
+}
+
+/* Header */
+.cm-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+}
+
+.cm-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #111827;
+    margin: 0;
+}
+
+.cm-subtitle {
+    margin: 6px 0 0;
+    color: #6b7280;
+    font-size: 14px;
+}
+
+/* Buttons */
+.cm-primary-button {
+    background: #ef6c00;
+    color: #fff;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(239, 108, 0, 0.25);
+}
+
+.cm-plus-icon {
+    display: inline-block;
+    margin-right: 8px;
+    font-size: 18px;
+    line-height: 18px;
+    font-weight: 700;
+}
+
+/* KPI Cards */
+.cm-kpis {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.cm-stat-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 18px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 2px 8px rgba(17, 24, 39, 0.04);
+}
+
+.cm-stat-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, rgba(239, 108, 0, 0.12), rgba(251, 146, 60, 0.08));
+    color: #ea580c;
+}
+
+.cm-stat-label {
+    font-size: 13px;
+    color: #6b7280;
+    margin-bottom: 2px;
+}
+
+.cm-stat-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: #111827;
+}
+
+/* Toolbar */
+.cm-toolbar {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.cm-search-wrap {
+    display: flex;
+    align-items: center;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 0 12px;
+    height: 42px;
+    min-width: 360px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.cm-search-icon {
+    color: #9ca3af;
+    margin-right: 8px;
+    display: flex;
+    align-items: center;
+}
+
+.cm-search-input {
+    border: none;
+    outline: none;
+    flex: 1;
+    height: 38px;
+    font-size: 14px;
+}
+
+.cm-filter-wrap {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+}
+
+.cm-select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    height: 42px;
+    padding: 0 36px 0 12px;
+    font-size: 14px;
+    color: #111827;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.cm-select-chevron {
+    position: absolute;
+    right: 12px;
+    pointer-events: none;
+    color: #6b7280;
+    font-size: 14px;
+}
+
+/* Card & Table */
+.cm-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    box-shadow: 0 6px 24px rgba(17, 24, 39, 0.06);
+}
+
+.cm-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.cm-th {
+    text-align: left;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: #6b7280;
+    padding: 14px 16px;
+    border-bottom: 1px solid #e5e7eb;
+    background: #fafafa;
+}
+
+.cm-tr {
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.cm-td {
+    padding: 14px 16px;
+    color: #111827;
+    font-size: 14px;
+    vertical-align: middle;
+    border-bottom: 1px solid #f3f4f6;
+    white-space: nowrap;
+}
+
+.cm-class-name {
+    font-weight: 600;
+    color: #111827;
+}
+
+.cm-class-subtitle {
+    font-size: 13px;
+    color: #6b7280;
+}
+
+.cm-badge-code {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    background: rgba(249, 115, 22, 0.1);
+    color: #c2410c;
+}
+
+.cm-active-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: #16a34a;
+    font-weight: 600;
+}
+
+/* Progress Bar */
+.cm-progress-outer {
+    position: relative;
+    height: 8px;
+    border-radius: 999px;
+    background: #fee2e2;
+    width: 160px;
+    overflow: hidden;
+}
+
+.cm-progress-inner {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    background: #f97316;
+    border-radius: 999px;
+}
+
+.cm-progress-text {
+    margin-left: 8px;
+    color: #6b7280;
+    font-size: 12px;
+    font-weight: 700;
+    display: inline-block;
+    position: relative;
+    top: -2px;
+    margin-left: 12px;
+}
+
+/* Action Cells */
+.cm-action-cell {
+    display: inline-flex;
+    align-items: center;
+}
+
+.cm-link-btn {
+    background: transparent;
+    border: none;
+    color: #111827;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.cm-empty-cell {
+    padding: 36px 16px;
+    text-align: center;
+    color: #6b7280;
+}
+
+.cm-action-wrap {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+}
+
+.cm-icon-button {
+    background: transparent;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    cursor: pointer;
+    padding: 6px;
+    color: #6b7280;
+}
+
+.cm-menu {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 6px);
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(17, 24, 39, 0.12);
+    min-width: 160px;
+    padding: 6px;
+    z-index: 20;
+}
+
+.cm-menu-item {
+    list-style: none;
+}
+
+.cm-menu-btn {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: transparent;
+    border: none;
+    padding: 10px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    color: #111827;
+    font-size: 14px;
+}
+
+.cm-menu-btn-danger {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: transparent;
+    border: none;
+    padding: 10px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    color: #b91c1c;
+    font-size: 14px;
+}
+
+/* Status Badges */
+.cm-badge-base {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.cm-badge-status-active {
+    background: rgba(16, 185, 129, 0.12);
+    color: #047857;
+}
+
+.cm-badge-status-upcoming {
+    background: rgba(59, 130, 246, 0.12);
+    color: #1d4ed8;
+}
+
+.cm-badge-status-ended {
+    background: rgba(107, 114, 128, 0.12);
+    color: #374151;
+}
+
+/* Modal */
+.cm-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(17, 24, 39, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+    padding: 16px;
+}
+
+.cm-modal-container {
+    width: 100%;
+    max-width: 600px;
+    background: #fff;
+    border-radius: 14px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 24px 48px rgba(17, 24, 39, 0.18);
+    overflow: hidden;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.cm-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.cm-modal-title {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+    color: #111827;
+}
+
+.cm-modal-body {
+    padding: 16px;
+    display: grid;
+    row-gap: 12px;
+}
+
+.cm-modal-label {
+    display: grid;
+    gap: 6px;
+    font-size: 13px;
+    color: #9ca3af;
+    font-weight: 400;
+}
+
+.cm-modal-input {
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    height: 40px;
+    padding: 0 12px;
+    font-size: 14px;
+    color: #374151;
+}
+
+.cm-modal-error {
+    color: #b91c1c;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.cm-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 16px;
+    border-top: 1px solid #f3f4f6;
+}
+
+.cm-modal-ghost-btn {
+    background: transparent;
+    border: 1px solid #e5e7eb;
+    color: #111827;
+    padding: 10px 16px;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+/* Responsive */
+@media (max-width: 760px) {
+    .cm-kpis {
+        grid-template-columns: 1fr;
+    }
+
+    ._cm-toolbar {
+        flex-direction: column;
+        gap: 12px;
+        align-items: stretch;
+    }
+
+    ._cm-search {
+        width: 100%;
+    }
+}
