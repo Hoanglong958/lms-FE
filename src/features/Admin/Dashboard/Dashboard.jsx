@@ -1,95 +1,204 @@
-// Đường dẫn: src/features/Admin/Dashboard/components/DashboardOverview.jsx
+// src/features/Admin/Dashboard/Dashboard.jsx
 
-import React from "react";
-import AdminHeader from "@components/Admin/AdminHeader";
-// Đảm bảo bạn đã import file CSS này
+import React, { useEffect, useState } from "react";
 import "./Dashboard.css";
 
-// 1. IMPORT DATA TỪ MOCK
-import {
-  overviewStatCardsRow1,
-  overviewStatCardsRow2,
-  newUsersData,
-  newCoursesData,
-  recentQuizzesData,
-  topStudentsData,
-} from "./mock/dashboardMock"; // Đường dẫn đến mock
+import { dashboardService } from "@utils/dashboardService";
 
-// 2. IMPORT TẤT CẢ CÁC COMPONENT CON
 import StatCard from "./components/StatCard";
-// Biểu đồ
 import UserGrowthChart from "./components/UserGrowthChart";
 import CourseProgressChart from "./components/CourseProgressChart";
-// Bảng và Danh sách
+
 import NewUsersTable from "./components/NewUsersTable";
 import NewCoursesTable from "./components/NewCoursesTable";
 import RecentQuizzesTable from "./components/RecentQuizzesTable";
 import RankingList from "./components/RankingList";
 
-// 3. XÂY DỰNG LAYOUT
-const DashboardOverview = () => {
+const Dashboard = () => {
+  const [cardsRow1, setCardsRow1] = useState([]);
+  const [cardsRow2, setCardsRow2] = useState([]);
+
+  const [newUsers, setNewUsers] = useState([]);
+  const [newCourses, setNewCourses] = useState([]);
+  const [recentQuizzes, setRecentQuizzes] = useState([]);
+  const [topStudents, setTopStudents] = useState([]);
+
+  const [growthMonth, setGrowthMonth] = useState([]);
+  const [progressData, setProgressData] = useState([]);
+
+  useEffect(() => {
+    let mounted = true;
+
+    // ------------------------------
+    // LOAD OVERVIEW
+    // ------------------------------
+    (async () => {
+      try {
+        const res = await dashboardService.getOverview();
+        const d = res?.data ?? null;
+        if (!mounted || !d) return;
+
+        const row1 = [
+          {
+            title: "Tổng học viên",
+            value: d.totalUsers?.value ?? 0,
+            change: d.totalUsers?.growthPercentage ?? 0,
+          },
+          {
+            title: "Tổng khóa học",
+            value: d.totalCourses?.value ?? 0,
+            change: d.totalCourses?.growthPercentage ?? 0,
+          },
+          {
+            title: "Tổng bài thi",
+            value: d.totalExams?.value ?? 0,
+            change: d.totalExams?.growthPercentage ?? 0,
+          },
+        ];
+
+        const row2 = [
+          {
+            title: "Điểm trung bình",
+            value: d.averageExamScore?.value ?? 0,
+            change: d.averageExamScore?.growthPercentage ?? 0,
+          },
+          {
+            title: "Tỷ lệ hoàn thành",
+            value: d.courseCompletionRate?.value ?? 0,
+            change: d.courseCompletionRate?.growthPercentage ?? 0,
+          },
+          {
+            title: "Tổng lớp học",
+            value: d.totalClasses?.value ?? 0,
+            change: d.totalClasses?.growthPercentage ?? 0,
+          },
+        ];
+
+        setCardsRow1(row1);
+        setCardsRow2(row2);
+
+        setRecentQuizzes(d.recentQuizzes ?? []);
+        setTopStudents(d.topStudents ?? []);
+
+        setGrowthMonth([]);
+        setProgressData([]);
+      } catch (e) {
+        console.error("Dashboard load error:", e);
+      }
+    })();
+
+    // ------------------------------
+    // LOAD NEW USERS
+    // ------------------------------
+    (async () => {
+      try {
+        const res = await dashboardService.getNewUsers();
+        if (!mounted) return;
+
+        const apiUsers = res?.data ?? [];
+
+        const mapped = apiUsers.map((u) => ({
+          id: u.id,
+          name: u.fullName,
+          email: u.gmail,
+          role: u.role,
+          date: new Date(u.createdAt).toLocaleDateString("vi-VN"),
+        }));
+
+        setNewUsers(mapped);
+      } catch (err) {
+        console.error("Load new users API failed:", err);
+      }
+    })();
+
+    // ------------------------------
+    // LOAD NEW COURSES
+    // ------------------------------
+    (async () => {
+      try {
+        const res = await dashboardService.getNewCourses();
+        if (!mounted) return;
+
+        const apiCourses = res?.data ?? [];
+
+        // ⚡ Map API đúng dữ liệu swagger trả về:
+        const mapped = apiCourses.map((c) => ({
+          id: c.id,
+          title: c.title,
+          category: c.level ?? "Không rõ",
+          instructor: c.instructorName,
+          status: "Công khai",
+        }));
+
+        setNewCourses(mapped);
+      } catch (err) {
+        console.error("Load new courses API failed:", err);
+      }
+    })();
+
+    return () => (mounted = false);
+  }, []);
+
   return (
     <div className="dashboard-main">
-      {/* <AdminHeader
-        title="Dashboard Tổng Quan"
-        subtitle="Thống kê và phân tích hệ thống LMS"
-        breadcrumb={<span>Admin / Dashboard</span>}
-      /> */}
-
       <div className="dashboard-overview-grid">
-        {/* === HÀNG 1: 4 THẺ STATS === */}
+
+        {/* ROW 1 */}
         <section className="col-span-12">
-          {/* Thay thế 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5' */}
           <div className="stat-card-grid">
-            {overviewStatCardsRow1.map((card, index) => (
-              <StatCard key={index} {...card} />
+            {cardsRow1.map((card, i) => (
+              <StatCard key={i} {...card} />
             ))}
           </div>
         </section>
-        {/* === HÀNG 2: 4 THẺ STATS (biến thể) === */}
+
+        {/* ROW 2 */}
         <section className="col-span-12">
           <div className="stat-card-grid">
-            {overviewStatCardsRow2.map((card, index) => (
-              <StatCard key={index} {...card} />
+            {cardsRow2.map((card, i) => (
+              <StatCard key={i} {...card} />
             ))}
           </div>
         </section>
-        {/* === HÀNG 3: BIỂU ĐỒ  === */}
+
+        {/* USER GROWTH */}
         <section className="dashboard-card col-span-12 lg-col-span-7">
           <h3 className="dashboard-card-title">Tăng trưởng người dùng</h3>
-          <div className="chart-container">
-            {/* Cần set chiều cao cho biểu đồ */}
-            <UserGrowthChart />
-          </div>
+          <UserGrowthChart data={growthMonth} />
         </section>
+
+        {/* COURSE PROGRESS */}
         <section className="dashboard-card col-span-12 lg-col-span-5">
           <h3 className="dashboard-card-title">Tiến độ khóa học</h3>
-          <div className="chart-container">
-            <CourseProgressChart />
-          </div>
+          <CourseProgressChart data={progressData} />
         </section>
 
-        {/* === HÀNG 5: BẢNG  === */}
+        {/* NEW USERS */}
         <section className="dashboard-card col-span-12 lg-col-span-7">
           <h3 className="dashboard-card-title">Người dùng mới</h3>
-          <NewUsersTable users={newUsersData} />
-        </section>
-        <section className="dashboard-card col-span-12 lg-col-span-5">
-          <RankingList students={topStudentsData} />
+          <NewUsersTable users={newUsers} />
         </section>
 
-        {/* === HÀNG 6: BẢNG  === */}
-        <section className="dashboard-card col-span-12 lg-col-span-6">
-          <h3 className="dashboard-card-title">Khóa học mới tạo</h3>
-          <NewCoursesTable courses={newCoursesData} />
+        {/* TOP STUDENTS */}
+        <section className="dashboard-card col-span-12 lg-col-span-5">
+          <RankingList students={topStudents} />
         </section>
+
+        {/* NEW COURSES */}
         <section className="dashboard-card col-span-12 lg-col-span-6">
-          <h3 className="dashboard-card-title">Bài thi / Quiz gần đây</h3>
-          <RecentQuizzesTable quizzes={recentQuizzesData} />
+          <h3 className="dashboard-card-title">Khóa học mới</h3>
+          <NewCoursesTable courses={newCourses} />
         </section>
+
+        {/* RECENT QUIZZES */}
+        <section className="dashboard-card col-span-12 lg-col-span-6">
+          <h3 className="dashboard-card-title">Quiz gần đây</h3>
+          <RecentQuizzesTable quizzes={recentQuizzes} />
+        </section>
+
       </div>
     </div>
   );
 };
 
-export default DashboardOverview;
+export default Dashboard;

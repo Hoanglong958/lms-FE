@@ -18,4 +18,11 @@ export const examService = {
 
   // DELETE /api/v1/exams/{id} → Xóa kỳ thi
   deleteExam: (id) => api.delete(`/api/v1/exams/${id}`),
+
+  // ===== Exam Attempts API =====
+  listAttempts: (examId, userId) => api.get(`/api/v1/exam-attempts`, { params: { examId, userId } }),
+  attemptDetail: (id) => api.get(`/api/v1/exam-attempts/detail`, { params: { id } }),
+  startAttempt: (examId, userId) => api.post(`/api/v1/exam-attempts/start`, { examId, userId }),
+  submitAttempt: (id, answers) => api.post(`/api/v1/exam-attempts/${id}/submit`, { answers }),
+  gradeAttempt: (id, data = {}) => api.post(`/api/v1/exam-attempts/${id}/grade`, data),
 };

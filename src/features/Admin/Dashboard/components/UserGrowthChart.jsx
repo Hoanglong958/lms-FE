@@ -1,5 +1,4 @@
 // Đường dẫn: features/Admin/Dashboard/components/UserGrowthChart.jsx
-// (KHÔNG CẦN THAY ĐỔI)
 
 import React from "react";
 import {
@@ -12,14 +11,12 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import { userGrowthData } from "../mock/dashboardMock.js";
 
-const UserGrowthChart = () => {
+const UserGrowthChart = ({ data = [] }) => {
   return (
     <ResponsiveContainer width="100%" height="100%">
-      {" "}
       <LineChart
-        data={userGrowthData}
+        data={data}
         margin={{
           top: 5,
           right: 30,
@@ -31,15 +28,15 @@ const UserGrowthChart = () => {
         <XAxis dataKey="month" tick={{ fontSize: 12 }} />
         <YAxis tick={{ fontSize: 12 }} />
         <Tooltip />
-        <Legend />{" "}
+        <Legend />
         <Line
           type="monotone"
           dataKey="Người dùng"
-          stroke="#3b82f6" // Màu xanh blue
+          stroke="#3b82f6"
           strokeWidth={2}
           activeDot={{ r: 8 }}
-        />{" "}
-      </LineChart>{" "}
+        />
+      </LineChart>
     </ResponsiveContainer>
   );
 };
