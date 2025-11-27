@@ -68,7 +68,9 @@ export default function ExamManagement() {
         students: e.students,
         avgScore: e.avgScore,
         passRate: e.passRate,
-        totalQuestions: e.totalQuestions ?? (Array.isArray(e.questions) ? e.questions.length : undefined),
+        totalQuestions:
+          e.totalQuestions ??
+          (Array.isArray(e.questions) ? e.questions.length : undefined),
         maxScore: e.maxScore,
         passingScore: e.passingScore,
         durationMinutes:
@@ -112,7 +114,8 @@ export default function ExamManagement() {
     students: e.students,
     avgScore: e.avgScore,
     passRate: e.passRate,
-    duration: e.duration || (e.durationMinutes ? `${e.durationMinutes} phút` : "-"),
+    duration:
+      e.duration || (e.durationMinutes ? `${e.durationMinutes} phút` : "-"),
     status: e.status || "Đang mở",
     totalQuestions: e.totalQuestions,
     maxScore: e.maxScore,
@@ -184,10 +187,19 @@ export default function ExamManagement() {
       {/* --- HEADER --- */}
       <AdminHeader
         title="Quản lý bài kiểm tra"
+        breadcrumb={[
+          { label: "Dashboard", to: "/admin/dashboard" },
+          { label: "Bài kiểm tra", to: "/admin/exams" },
+        ]}
         onMenuToggle={toggleSidebar}
         actions={
           <div className="exam-header-buttons">
-            <button className="exam-btn refresh" onClick={handleRefresh} title="Làm mới danh sách" disabled={loading}>
+            <button
+              className="exam-btn refresh"
+              onClick={handleRefresh}
+              title="Làm mới danh sách"
+              disabled={loading}
+            >
               {loading ? "⟳ Đang làm mới..." : "⟳ Làm mới"}
             </button>
             <button className="exam-btn bank" onClick={handleQuestionBank}>
@@ -215,7 +227,10 @@ export default function ExamManagement() {
             <p className="exam-card-title">Điểm trung bình</p>
             <h3>
               {(() => {
-                const total = exams.reduce((sum, e) => sum + (e.avgScore || 0), 0);
+                const total = exams.reduce(
+                  (sum, e) => sum + (e.avgScore || 0),
+                  0
+                );
                 const avg = exams.length > 0 ? total / exams.length : 0;
                 return avg.toFixed(1);
               })()}
@@ -231,14 +246,20 @@ export default function ExamManagement() {
               type="text"
               placeholder="Tìm kiếm bài kiểm tra..."
               value={search}
-              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(1);
+              }}
               className="exam-search-input"
               aria-label="Tìm kiếm bài kiểm tra"
             />
             <select
               className="exam-status-filter"
               value={statusFilter}
-              onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
+              onChange={(e) => {
+                setStatusFilter(e.target.value);
+                setPage(1);
+              }}
               aria-label="Lọc theo trạng thái"
             >
               <option value="ALL">Tất cả trạng thái</option>
@@ -255,9 +276,15 @@ export default function ExamManagement() {
           const q = search.trim().toLowerCase();
           const filtered = exams.filter((e) => {
             const matchText = q
-              ? String(e.title || e.name || "").toLowerCase().includes(q) || String(e.description || "").toLowerCase().includes(q)
+              ? String(e.title || e.name || "")
+                  .toLowerCase()
+                  .includes(q) ||
+                String(e.description || "")
+                  .toLowerCase()
+                  .includes(q)
               : true;
-            const matchStatus = statusFilter === "ALL" ? true : String(e.status) === statusFilter;
+            const matchStatus =
+              statusFilter === "ALL" ? true : String(e.status) === statusFilter;
             return matchText && matchStatus;
           });
           const total = filtered.length;
@@ -309,7 +336,9 @@ export default function ExamManagement() {
                 const next = [mapExam(created), ...prev];
                 // dedupe theo id
                 const seen = new Set();
-                const deduped = next.filter((x) => (seen.has(x.id) ? false : (seen.add(x.id), true)));
+                const deduped = next.filter((x) =>
+                  seen.has(x.id) ? false : (seen.add(x.id), true)
+                );
                 try {
                   localStorage.setItem("exams", JSON.stringify(deduped));
                 } catch {}
@@ -329,8 +358,12 @@ export default function ExamManagement() {
             if (updated && updated.id) {
               const mapped = mapExam(updated);
               setExams((prev) => {
-                const next = prev.map((e) => (String(e.id) === String(mapped.id) ? { ...e, ...mapped } : e));
-                try { localStorage.setItem("exams", JSON.stringify(next)); } catch {}
+                const next = prev.map((e) =>
+                  String(e.id) === String(mapped.id) ? { ...e, ...mapped } : e
+                );
+                try {
+                  localStorage.setItem("exams", JSON.stringify(next));
+                } catch {}
                 return next;
               });
             } else {

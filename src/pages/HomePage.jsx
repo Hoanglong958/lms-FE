@@ -8,10 +8,6 @@ import "./HomePage.css";
 import heroImg from "@assets/images/HeroImg.svg";
 import quotes1 from "@assets/icons/quotes1.svg";
 import quotes2 from "@assets/icons/quotes2.svg";
-import N1ChillClass from "@assets/images/N1ChillClass.svg";
-import N2ChillClass from "@assets/images/N2ChillClass.svg";
-import PhatAmJVoice from "@assets/images/PhatAmJVoice.svg";
-import ITTalk from "@assets/images/ITTalk.svg";
 import clockIcon from "@assets/icons/clock-icon.svg";
 import bookIcon from "@assets/icons/book2-icon.svg";
 import profileIcon from "@assets/icons/profile-icon.svg";
@@ -45,12 +41,6 @@ export default function HomePage() {
 
     fetchCourses();
   }, []);
-
-  let repetitions;
-  if (width >= 820) repetitions = 3;
-  else if (width >= 375) repetitions = 2;
-  else repetitions = 1;
-  const repetitionArray = Array.from({ length: repetitions });
 
   const filteredCourses = courses.filter((c) =>
     c.title.toLowerCase().includes(searchQuery.toLowerCase())
@@ -97,70 +87,54 @@ export default function HomePage() {
         <h2 className="courses-title">TẤT CẢ KHÓA HỌC</h2>
         <div className="course-grid">
           {filteredCourses.map((course, index) => (
-            <div className="course-row" key={index}>
-              {repetitionArray.map((_, subIndex) => (
-                <div
-                  className="course-card"
-                  key={subIndex}
-                  onClick={() => handleCourseClick(course)}
-                >
-                  <div className="course-image-wrapper">
-                    <img
-                      src={course.imageUrl || Level}
-                      alt={course.title}
-                      className="course-image"
-                    />
-                  </div>
-                  <div className="course-content">
-                    <img src={Level} alt="level" className="level-badge" />
-                    <div className="course-info">
-                      <div className="course-meta">
-                        <div className="meta-item">
-                          <img
-                            src={clockIcon}
-                            alt="clock"
-                            className="meta-icon"
-                          />
-                          <span>{course.durationMinutes || 360} phút</span>
-                        </div>
-                        <div className="divider"></div>
-                        <div className="meta-item">
-                          <img
-                            src={bookIcon}
-                            alt="book"
-                            className="meta-icon"
-                          />
-                          <span>{course.totalSessions || 32} Chương</span>
-                        </div>
-                        <div className="divider"></div>
-                        <div className="meta-item">
-                          <img
-                            src={profileIcon}
-                            alt="teacher"
-                            className="meta-icon"
-                          />
-                          <span>{course.teacherName || "Giang Sensei"}</span>
-                        </div>
-                      </div>
-                      <h3 className="course-title-card">{course.title}</h3>
+            <div
+              className="course-card"
+              key={index}
+              onClick={() => handleCourseClick(course)}
+            >
+              <div className="course-image-wrapper">
+                <img
+                  src={course.imageUrl || Level}
+                  alt={course.title}
+                  className="course-image"
+                />
+              </div>
+              <div className="course-content">
+                <img src={Level} alt="level" className="level-badge" />
+                <div className="course-info">
+                  <div className="course-meta">
+                    <div className="meta-item">
+                      <img src={clockIcon} alt="clock" className="meta-icon" />
+                      <span>{course.durationMinutes || 360} phút</span>
                     </div>
-                    <button
-                      className="btn-learn"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleCourseClick(course);
-                      }}
-                    >
-                      <span>HỌC NGAY</span>
+                    <div className="divider"></div>
+                    <div className="meta-item">
+                      <img src={bookIcon} alt="book" className="meta-icon" />
+                      <span>{course.totalSessions || 32} Chương</span>
+                    </div>
+                    <div className="divider"></div>
+                    <div className="meta-item">
                       <img
-                        src={arrowUpRight}
-                        alt="arrow"
-                        className="btn-icon"
+                        src={profileIcon}
+                        alt="teacher"
+                        className="meta-icon"
                       />
-                    </button>
+                      <span>{course.teacherName || "Giang Sensei"}</span>
+                    </div>
                   </div>
+                  <h3 className="course-title-card">{course.title}</h3>
                 </div>
-              ))}
+                <button
+                  className="btn-learn"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleCourseClick(course);
+                  }}
+                >
+                  <span>HỌC NGAY</span>
+                  <img src={arrowUpRight} alt="arrow" className="btn-icon" />
+                </button>
+              </div>
             </div>
           ))}
         </div>

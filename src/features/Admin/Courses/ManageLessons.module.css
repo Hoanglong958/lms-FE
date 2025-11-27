@@ -3,7 +3,7 @@
 /* === BASE LAYOUT === */
 .page {
   @apply p-8 font-sans bg-gray-50 min-h-screen;
-  padding: 0;
+  padding: 0.5rem;
 }
 
 .header {
@@ -231,16 +231,62 @@
 }
 
 /* === MODAL === */
+/* === MODAL OVERLAY === */
 .modalOverlay {
-  @apply fixed inset-0 bg-black/40 grid place-items-center z-[1000] backdrop-blur-sm p-8 overflow-y-auto;
+  @apply fixed inset-0 bg-black/40 grid place-items-center z-[1000] backdrop-blur-sm p-6 overflow-y-auto;
 }
+
+/* === MODAL CONTENT === */
 .modalContent {
-  @apply bg-white p-8 rounded-lg w-[90%] max-w-xl shadow-2xl m-auto animate-[modalFadeIn_0.25s_ease-out];
+  @apply bg-white rounded-xl w-[90%] max-w-lg shadow-xl p-6 md:p-8 
+         animate-[modalFadeIn_0.25s_ease-out];
+  border: 1px solid #e5e7eb;
 }
+
+/* Title */
+.modalContent h2 {
+  @apply text-xl font-semibold text-gray-800 mb-6;
+}
+
+/* === FORM GROUP === */
+.formGroup {
+  @apply flex flex-col gap-2 mb-5;
+}
+
+.formGroup label {
+  @apply text-sm font-medium text-gray-700;
+}
+
+.formGroup input {
+  @apply border border-gray-300 rounded-md px-3 py-2 text-gray-800
+         focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none;
+}
+
+/* === FORM ACTIONS === */
+.formActions {
+  @apply flex items-center justify-end gap-3 mt-2 pt-4 border-t border-gray-200;
+}
+
+.formActions button {
+  @apply px-4 py-2 rounded-md text-sm font-medium cursor-pointer select-none;
+}
+
+/* Button: Cancel */
+.formActions > button[type="button"] {
+  @apply text-gray-600 hover:text-gray-800;
+}
+
+/* Button: Save */
+.btnPrimary {
+  @apply bg-orange-500 text-white shadow
+         hover:bg-orange-600 active:bg-orange-700;
+}
+
+/* Animation */
 @keyframes modalFadeIn {
   from {
     opacity: 0;
-    transform: translateY(-10px) scale(0.98);
+    transform: translateY(-8px) scale(0.97);
   }
   to {
     opacity: 1;
@@ -517,5 +563,65 @@
 
   .detailVideo iframe {
     height: 300px;
+  }
+}
+
+/* ====== CARD LAYOUT ====== */
+.cardLayout {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1.5rem;
+  margin: 24px 0;
+}
+
+.card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+}
+
+.cardTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #f97316;
+  margin: 0 0 8px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cardDescription {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ====== RESPONSIVE ====== */
+@media (max-width: 640px) {
+  .cardLayout {
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .cardTitle {
+    font-size: 0.95rem;
+  }
+
+  .cardDescription {
+    font-size: 0.8rem;
   }
 }

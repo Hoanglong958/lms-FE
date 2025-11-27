@@ -59,6 +59,8 @@ export default function LessonDocumentCreate({ lesson, onCreated }) {
           className="ldc-input"
           value={form.title}
           onChange={(e) => setForm({ ...form, title: e.target.value })}
+          required
+          autoFocus
         />
       </div>
 

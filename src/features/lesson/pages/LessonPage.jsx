@@ -4,7 +4,7 @@ import { courseService } from "@utils/courseService";
 import { sessionService } from "@utils/sessionService";
 import { lessonService } from "@utils/lessonService";
 import { slugify } from "@utils/slugify";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react"; // Bỏ useMemo cho đơn giản
 
 import LessonContentDisplay from "@features/lesson/components/LessonContentDisplay";
 import VideoPlayer from "@features/lesson/components/VideoPlayer";
@@ -16,12 +16,13 @@ import "./LessonPage.css";
 export default function LessonPage() {
   const { courseSlug, lessonId } = useParams();
   const navigate = useNavigate();
+
   const [course, setCourse] = useState(null);
   const [sessions, setSessions] = useState([]);
   const [lesson, setLesson] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Lấy course theo slug
+  // 1. Lấy thông tin Course
   useEffect(() => {
     courseService.getCourses().then((res) => {
       const c = res.data.find(
@@ -30,58 +31,77 @@ export default function LessonPage() {
       if (!c) return navigate("/courses");
       setCourse(c);
     });
-  }, [courseSlug]);
+  }, [courseSlug, navigate]);
 
-  // Lấy session và lessons theo courseId
+  // 2. Lấy Sessions và Lessons
   useEffect(() => {
     if (!course?.id) return;
     const loadSessionsAndLessons = async () => {
-      const sessionRes = await sessionService.getSessionsByCourse(course.id);
-      const sessionsData = Array.isArray(sessionRes.data)
-        ? sessionRes.data
-        : [];
+      try {
+        const sessionRes = await sessionService.getSessionsByCourse(course.id);
+        const sessionsData = Array.isArray(sessionRes.data)
+          ? sessionRes.data
+          : [];
 
-      const sessionsWithLessons = await Promise.all(
-        sessionsData.map(async (session) => {
-          const lessonRes = await lessonService.getLessonsBySession(session.id);
-          return {
-            ...session,
-            lessons: lessonRes.data || [],
-          };
-        })
-      );
-
-      setSessions(sessionsWithLessons);
+        const sessionsWithLessons = await Promise.all(
+          sessionsData.map(async (session) => {
+            const lessonRes = await lessonService.getLessonsBySession(
+              session.id
+            );
+            return {
+              ...session,
+              lessons: lessonRes.data || [],
+            };
+          })
+        );
+        setSessions(sessionsWithLessons);
+      } catch (err) {
+        console.error(err);
+      }
     };
     loadSessionsAndLessons();
   }, [course]);
 
-  // Flatten tất cả lesson từ sessions
-  const allLessons = useMemo(() => {
-    return sessions.flatMap((s) => s.lessons || []);
-  }, [sessions]);
+  // 3. Tính toán danh sách bài học trực tiếp (Không dùng useMemo để đảm bảo luôn tươi mới)
+  const allLessons = sessions.flatMap((s) => s.lessons || []);
 
-  // Redirect nếu chưa có lessonId
+  // 4. Redirect nếu vào trang mà chưa có lessonId
   useEffect(() => {
     if (!lessonId && allLessons.length > 0) {
       navigate(`/courses/${courseSlug}/${allLessons[0].id}`, { replace: true });
     }
   }, [lessonId, allLessons, courseSlug, navigate]);
 
-  // Lấy lesson chi tiết
+  // 5. Lấy chi tiết bài học hiện tại
   useEffect(() => {
     if (!lessonId) return;
     setLoading(true);
     lessonService
       .getLesson(lessonId)
-      .then((res) => setLesson(res.data))
+      .then((res) => {
+        const data = Array.isArray(res.data) ? res.data[0] : res.data;
+        setLesson(data);
+      })
       .finally(() => setLoading(false));
   }, [lessonId]);
 
-  // Tìm index hiện tại
+  // 6. TÍNH TOÁN TIẾN ĐỘ (QUAN TRỌNG)
+  // -----------------------------------------------------------------
+  // Tìm vị trí bài học hiện tại
   const currentLessonIndex = allLessons.findIndex(
     (l) => String(l.id) === String(lessonId)
   );
+
+  // Logic hiển thị text:
+  // - Mặc định là "..."
+  // - Nếu tìm thấy index -> hiện "X/Y Bài học"
+  let progressText = "...";
+
+  if (allLessons.length > 0 && currentLessonIndex !== -1) {
+    progressText = `${currentLessonIndex + 1}/${allLessons.length} Bài học`;
+  }
+  // -----------------------------------------------------------------
+
   const handleNavigation = (dir) => {
     const newIndex = currentLessonIndex + dir;
     if (newIndex >= 0 && newIndex < allLessons.length) {
@@ -95,12 +115,12 @@ export default function LessonPage() {
 
   return (
     <div className="lesson-layout">
-      {/* Header top: Breadcrumb + Nav */}
+      {/* Header */}
       <div className="lesson-header-top">
         <div className="breadcrumbs">
           <a href="/courses">Trang chủ</a>
           <span className="breadcrumb-divider">/</span>
-          <span className="breadcrumb-active">{course.title}</span>
+          <span className="breadcrumb-active">{course?.title}</span>
         </div>
 
         <div className="lesson-navigation">
@@ -131,7 +151,6 @@ export default function LessonPage() {
             onClick={() => handleNavigation(1)}
           >
             <span className="nav-text">Bài tiếp theo</span>
-            {/* SVG Mũi tên phải */}
             <svg
               width="20"
               height="20"
@@ -149,13 +168,22 @@ export default function LessonPage() {
         </div>
       </div>
 
-      {/* Nội dung bài học */}
       <LessonContentDisplay item={lesson} />
 
-      {/* Component theo type */}
-      {lesson.type === "video" && <VideoPlayer item={lesson} />}
-      {lesson.type === "document" && <DocumentViewer item={lesson} />}
-      {lesson.type === "quiz" && <QuizComponent item={lesson} />}
+      {/* Truyền progressText xuống component con */}
+      {/* Lưu ý: progressText bây giờ mặc định là "..." chứ không phải rỗng */}
+
+      {lesson.type === "video" && (
+        <VideoPlayer item={lesson} progress={progressText} />
+      )}
+
+      {lesson.type === "document" && (
+        <DocumentViewer item={lesson} progress={progressText} />
+      )}
+
+      {lesson.type === "quiz" && (
+        <QuizComponent item={lesson} progress={progressText} />
+      )}
     </div>
   );
 }

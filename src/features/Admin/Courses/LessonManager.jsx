@@ -109,6 +109,7 @@ export default function LessonManager({
                     setFormData({ ...formData, title: e.target.value })
                   }
                   required
+                  autoFocus
                 />
               </div>
               <div className={styles.formGroup}>

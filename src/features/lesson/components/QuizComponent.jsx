@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { lessonQuizService } from "@utils/lessonQuizService";
-import quizIllustration from "@assets/images/quiz-cat-illustration.svg"; // Đảm bảo đúng đường dẫn ảnh
+import quizIllustration from "@assets/images/quiz-cat-illustration.svg";
 import QuizExamPage from "./QuizExamPage";
 import "./QuizComponent.css";
 
@@ -16,14 +16,12 @@ const formatDate = (dateString) => {
   });
 };
 
-const QuizComponent = ({ item }) => {
+// Nhận prop 'progress'
+const QuizComponent = ({ item, progress }) => {
   const navigate = useNavigate();
   const [showQuiz, setShowQuiz] = useState(false);
   const [quiz, setQuiz] = useState(null);
   const [loading, setLoading] = useState(true);
-
-  // Giả lập progress text (hoặc lấy từ props)
-  const progressText = "4/10 Bài học";
 
   useEffect(() => {
     if (!item?.id) {
@@ -55,19 +53,17 @@ const QuizComponent = ({ item }) => {
   if (loading)
     return <div className="qc-loading">Đang tải bài kiểm tra...</div>;
 
-  // Nếu đã bấm bắt đầu -> Show giao diện làm bài
   if (showQuiz && quiz) {
     return <QuizExamPage quizId={quiz.quizId || quiz.id || item.id} />;
   }
 
-  // Giao diện Intro (Giống Figma)
   const displayTitle = quiz?.title || item.title || "Bài kiểm tra";
-  const questionCount = quiz?.questionCount || item.questions || 5; // Fallback số câu
+  const questionCount = quiz?.questionCount || item.questions || 5;
   const description = quiz?.description || "Nội dung đang được cập nhật...";
 
   return (
     <div className="qc-container">
-      {/* 1. INTRO CARD (Phần khung chứa ảnh con mèo và nút) */}
+      {/* 1. INTRO CARD */}
       <div className="qc-intro-card">
         <div className="qc-intro-image">
           <img src={quizIllustration} alt="Quiz Illustration" />
@@ -77,7 +73,6 @@ const QuizComponent = ({ item }) => {
           <h2 className="qc-card-title">{displayTitle}</h2>
           <p className="qc-card-meta">Bài kiểm tra • {questionCount} câu hỏi</p>
           <p className="qc-card-desc">
-            {/* Chỉ hiện 1 đoạn ngắn mô tả trong card thôi cho đẹp */}
             Ornare eu elementum felis porttitor nunc tortor. Ornare neque
             accumsan metus nulla ultricies.
           </p>
@@ -103,9 +98,8 @@ const QuizComponent = ({ item }) => {
         </div>
       </div>
 
-      {/* 2. INFO SECTION (Phần thông tin chi tiết bên dưới - Giống VideoPlayer) */}
+      {/* 2. INFO SECTION */}
       <div className="qc-info-section">
-        {/* Header: Title + Progress */}
         <div className="qc-info-header">
           <h1 className="qc-main-title">{displayTitle}</h1>
           <div className="qc-progress">
@@ -121,11 +115,12 @@ const QuizComponent = ({ item }) => {
               <circle cx="12" cy="12" r="10" />
               <path d="M12 6v6l4 2" />
             </svg>
-            <span>{progressText}</span>
+
+            {/* SỬA Ở ĐÂY: Thêm fallback nếu progress bị rỗng */}
+            <span>{progress || "Đang tải..."}</span>
           </div>
         </div>
 
-        {/* Date */}
         <div className="qc-meta-date">
           <svg
             width="16"
@@ -145,12 +140,10 @@ const QuizComponent = ({ item }) => {
           </span>
         </div>
 
-        {/* Description Box */}
         <div className="qc-desc-box">
           <h3 className="qc-desc-title">Mô tả</h3>
           <div className="qc-desc-content">
             <p>{description}</p>
-            {/* Placeholder text giống ảnh mẫu nếu description ngắn */}
             <p style={{ marginTop: 8, color: "#666" }}>
               Ornare eu elementum felis porttitor nunc tortor. Ornare neque
               accumsan metus nulla ultricies maecenas rhoncus ultrices cras.

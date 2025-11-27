@@ -2,11 +2,13 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, useOutletContext } from "react-router-dom";
 import { courseService } from "@utils/courseService.js";
 import { sessionService } from "@utils/sessionService.js";
+import { lessonService } from "@utils/lessonService";
 import AdminHeader from "@components/Admin/AdminHeader";
 import LessonManager from "./LessonManager.jsx";
 import LessonDetailView from "./LessonDetailView.jsx";
 import styles from "./ManageLessons.module.css";
 import { slugify } from "@utils/slugify";
+import dayjs from "dayjs";
 
 export default function ManageLessons() {
   const { courseSlug } = useParams();
@@ -19,6 +21,7 @@ export default function ManageLessons() {
   const [currentSession, setCurrentSession] = useState(null);
   const [formData, setFormData] = useState({ title: "" });
   const { toggleSidebar } = useOutletContext() || {};
+  const [totalLessons, setTotalLessons] = useState(0);
 
   useEffect(() => {
     const loadCourse = async () => {
@@ -43,6 +46,21 @@ export default function ManageLessons() {
     };
     loadSessions();
   }, [course]);
+
+  useEffect(() => {
+    const loadLessonsCount = async () => {
+      if (!sessions.length) return;
+      let count = 0;
+      for (let s of sessions) {
+        try {
+          const res = await lessonService.getLessonsBySession(s.id); // gọi GET /lessons?sessionId=s.id
+          count += res.data.length;
+        } catch (err) {}
+      }
+      setTotalLessons(count);
+    };
+    loadLessonsCount();
+  }, [sessions]);
 
   const handleAddSession = () => {
     setCurrentSession(null);
@@ -92,8 +110,9 @@ export default function ManageLessons() {
     <div className={styles.page}>
       <AdminHeader
         title={`Quản lý nội dung cho: ${course?.title || ""}`}
+        subtitle={course?.description || ""}
         onMenuToggle={toggleSidebar}
-        onBack={() => window.history.back()}
+        onBack={() => navigate(`/admin/courses`)}
         actions={
           <button
             onClick={handleAddSession}
@@ -103,6 +122,34 @@ export default function ManageLessons() {
           </button>
         }
       />
+
+      <div className={styles.cardLayout}>
+        {course && (
+          <>
+            <div className={styles.card}>
+              <h3 className={styles.cardTitle}>Giảng viên</h3>
+              <p className={styles.cardDescription}>{course.instructorName}</p>
+            </div>
+
+            <div className={styles.card}>
+              <h3 className={styles.cardTitle}>Ngày tạo</h3>
+              <p className={styles.cardDescription}>
+                {dayjs(course.createdAt).format("DD/MM/YYYY")}
+              </p>
+            </div>
+
+            <div className={styles.card}>
+              <h3 className={styles.cardTitle}>Tổng số session</h3>
+              <p className={styles.cardDescription}>{sessions.length}</p>
+            </div>
+
+            <div className={styles.card}>
+              <h3 className={styles.cardTitle}>Tổng số lesson</h3>
+              <p className={styles.cardDescription}>{totalLessons}</p>
+            </div>
+          </>
+        )}
+      </div>
 
       <div className={styles.contentLayout}>
         <aside className={styles.contentSidebar}>
@@ -169,6 +216,7 @@ export default function ManageLessons() {
                   value={formData.title}
                   onChange={(e) => setFormData({ title: e.target.value })}
                   required
+                  autoFocus
                 />
               </div>
               <div className={styles.formGroup}>

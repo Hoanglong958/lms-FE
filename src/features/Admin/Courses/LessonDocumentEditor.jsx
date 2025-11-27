@@ -103,6 +103,7 @@ export default function LessonDocumentEditor({ document, onUpdated }) {
           className="lde-input"
           value={form.title}
           onChange={(e) => setForm({ ...form, title: e.target.value })}
+          autoFocus
         />
       </div>
 
