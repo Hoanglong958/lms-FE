@@ -13,7 +13,6 @@ export default function ClassManagement() {
   useEffect(() => {
     fetchClasses();
   }, []);
-
   const fetchClasses = async () => {
     try {
       const res = await classService.getClasses({
@@ -35,8 +34,45 @@ export default function ClassManagement() {
         apiData = res.data;
       }
 
-      setClasses(Array.isArray(apiData) ? apiData : []);
+      // Map API response to expected structure
+      const mappedClasses = apiData.map((item) => {
+        // Calculate end date if not provided (3 months after start date)
+        let endDate = item.endDate || item.end_date || "N/A";
+        if (endDate === "N/A" && item.startDate) {
+          try {
+            const start = new Date(item.startDate);
+            const end = new Date(start);
+            end.setMonth(end.getMonth() + 3);
+            endDate = end.toISOString().split("T")[0];
+          } catch (e) {
+            endDate = "N/A";
+          }
+        }
+
+        return {
+          id: item.id,
+          name: item.className || item.name || item.class_name || "Chưa có tên",
+          subtitle: item.description || item.subtitle || item.sub_title || "",
+          code: item.classCode || item.code || item.class_code || `CLASS-${item.id}`,
+          teacher:
+            item.instructorName ||
+            item.teacher ||
+            item.instructor ||
+            item.teacherName ||
+            "Chưa phân công",
+          students: item.maxStudents || item.students || item.max_students || 0,
+          active: item.activeStudents || item.active || item.active_students || 0,
+          progress: item.progress || item.completion || 0,
+          startDate: item.startDate || item.start_date || "N/A",
+          endDate: endDate,
+          status: item.status || "upcoming",
+          schedule: item.schedule || item.timetable || "",
+        };
+      });
+
+      setClasses(Array.isArray(mappedClasses) ? mappedClasses : []);
     } catch (err) {
+      console.error("❌ Error fetching classes:", err);
       alert("Không thể tải danh sách lớp học!");
     }
   };
@@ -68,19 +104,19 @@ export default function ClassManagement() {
       prev.map((c) =>
         c.id === id
           ? {
-              ...c,
-              name: payload.name.trim(),
-              subtitle: payload.subtitle.trim(),
-              code: payload.code.trim(),
-              teacher: payload.teacher.trim(),
-              students: parseInt(payload.students) || 0,
-              active: parseInt(payload.active) || 0,
-              progress: parseInt(payload.progress) || 0,
-              startDate: payload.startDate,
-              endDate: payload.endDate,
-              status: payload.status || "upcoming",
-              schedule: payload.schedule.trim(),
-            }
+            ...c,
+            name: payload.name.trim(),
+            subtitle: payload.subtitle.trim(),
+            code: payload.code.trim(),
+            teacher: payload.teacher.trim(),
+            students: parseInt(payload.students) || 0,
+            active: parseInt(payload.active) || 0,
+            progress: parseInt(payload.progress) || 0,
+            startDate: payload.startDate,
+            endDate: payload.endDate,
+            status: payload.status || "upcoming",
+            schedule: payload.schedule.trim(),
+          }
           : c
       )
     );
@@ -110,9 +146,9 @@ export default function ClassManagement() {
       classes.length === 0
         ? 0
         : Math.round(
-            classes.reduce((s, c) => s + (parseInt(c.progress) || 0), 0) /
-              classes.length
-          );
+          classes.reduce((s, c) => s + (parseInt(c.progress) || 0), 0) /
+          classes.length
+        );
     return {
       totalClasses,
       totalActiveClasses: activeClasses,
