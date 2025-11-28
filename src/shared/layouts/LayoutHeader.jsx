@@ -41,12 +41,12 @@ export default function Header() {
             src={mankaiLogo}
             alt="Mankai Logo"
             className="logo-img"
-            onClick={() => handleNavigate("/")}
+            onClick={() => handleNavigate("/dashboard")}
           />
           <nav className="menu-desktop">
             <div className="logo-divider"></div>
             <div className="menu-items">
-              <div className="menu-item" onClick={() => handleNavigate("/")}>
+              <div className="menu-item" onClick={() => handleNavigate("/dashboard")}>
                 <img src={homeIcon} alt="Home" />
                 <span>Trang Chủ</span>
               </div>
@@ -129,7 +129,7 @@ export default function Header() {
         </div>
         <div className="mobile-menu-content">
           <nav className="mobile-menu-nav">
-            <a onClick={() => handleNavigate("/")}>
+            <a onClick={() => handleNavigate("/dashboard")}>
               <img src={homeIcon} alt="Trang chủ" /> Trang chủ
             </a>
             <a onClick={() => handleNavigate("/lessons")}>
