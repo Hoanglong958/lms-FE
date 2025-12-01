@@ -1,5 +1,7 @@
 import React, { useMemo, useState, useEffect, useRef } from "react";
 import { classService } from "@utils/classService";
+import ClassDetail from "./ClassDetail";
+import "./class.css";
 
 export default function ClassManagement() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -9,10 +11,12 @@ export default function ClassManagement() {
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [viewingClass, setViewingClass] = useState(null);
   const [classes, setClasses] = useState([]);
+
   // --- Load classes từ API khi component mount ---
   useEffect(() => {
     fetchClasses();
   }, []);
+
   const fetchClasses = async () => {
     try {
       const res = await classService.getClasses({
@@ -78,24 +82,31 @@ export default function ClassManagement() {
   };
 
   // --- Thêm lớp mới ---
-  function handleAddClass(payload) {
-    const nextId = Math.max(0, ...classes.map((c) => c.id)) + 1;
-    const newClass = {
-      id: nextId,
-      name: payload.name.trim(),
-      subtitle: payload.subtitle.trim(),
-      code: payload.code.trim(),
-      teacher: payload.teacher.trim(),
-      students: parseInt(payload.students) || 0,
-      active: parseInt(payload.active) || 0,
-      progress: parseInt(payload.progress) || 0,
-      startDate: payload.startDate,
-      endDate: payload.endDate,
-      status: payload.status || "upcoming",
-      schedule: payload.schedule.trim(),
-    };
-    setClasses((prev) => [newClass, ...prev]);
-    setIsAddOpen(false);
+  // --- Thêm lớp mới ---
+  async function handleAddClass(payload) {
+    try {
+      const apiPayload = {
+        className: payload.name.trim(),
+        description: payload.subtitle.trim(),
+        classCode: payload.code.trim(),
+        maxStudents: parseInt(payload.students) || 0,
+        startDate: payload.startDate,
+        endDate: payload.endDate,
+        status: payload.status,
+        instructorName: payload.teacher.trim(), // API có thể chưa hỗ trợ field này nhưng cứ gửi
+        schedule: payload.schedule.trim(),
+      };
+
+      await classService.addClass(apiPayload);
+      await fetchClasses(); // Tải lại danh sách sau khi thêm thành công
+      setIsAddOpen(false);
+    } catch (err) {
+      console.error("❌ Error adding class:", err);
+      alert(
+        "Không thể thêm lớp học: " +
+        (err.response?.data?.message || err.message || "Lỗi không xác định")
+      );
+    }
   }
 
   // --- Chỉnh sửa lớp ---
@@ -128,10 +139,19 @@ export default function ClassManagement() {
     setConfirmDelete(cls);
   }
 
-  function handleConfirmDelete() {
+  async function handleConfirmDelete() {
     if (!confirmDelete) return;
-    setClasses((prev) => prev.filter((c) => c.id !== confirmDelete.id));
-    setConfirmDelete(null);
+    try {
+      await classService.deleteClass(confirmDelete.id);
+      await fetchClasses();
+      setConfirmDelete(null);
+    } catch (err) {
+      console.error("❌ Error deleting class:", err);
+      alert(
+        "Không thể xóa lớp học: " +
+        (err.response?.data?.message || err.message || "Lỗi không xác định")
+      );
+    }
   }
 
   // --- Thống kê ---
@@ -175,6 +195,17 @@ export default function ClassManagement() {
     }
     return result;
   }, [classes, searchQuery, statusFilter]);
+
+  // --- Render ---
+  // If viewing a class, render the detail view
+  if (viewingClass) {
+    return (
+      <ClassDetail
+        classData={viewingClass}
+        onBack={() => setViewingClass(null)}
+      />
+    );
+  }
 
   return (
     <div style={styles.page}>

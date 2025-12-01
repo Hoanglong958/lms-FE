@@ -10,7 +10,7 @@ export default function PrivateRoute({ role }) {
   if (role && storedUser.role !== role) {
     if (storedUser.role === "ROLE_ADMIN")
       return <Navigate to="/admin" replace />;
-    if (storedUser.role === "ROLE_USER") return <Navigate to="/home" replace />;
+    if (storedUser.role === "ROLE_USER") return <Navigate to="/dashboard" replace />;
     return <Navigate to="/login" replace />;
   }
 
