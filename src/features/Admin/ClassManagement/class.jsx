@@ -53,7 +53,11 @@ export default function ClassManagement() {
           id: item.id,
           name: item.className || item.name || item.class_name || "Chưa có tên",
           subtitle: item.description || item.subtitle || item.sub_title || "",
-          code: item.classCode || item.code || item.class_code || `CLASS-${item.id}`,
+          code:
+            item.classCode ||
+            item.code ||
+            item.class_code ||
+            `CLASS-${item.id}`,
           teacher:
             item.instructorName ||
             item.teacher ||
@@ -61,7 +65,8 @@ export default function ClassManagement() {
             item.teacherName ||
             "Chưa phân công",
           students: item.maxStudents || item.students || item.max_students || 0,
-          active: item.activeStudents || item.active || item.active_students || 0,
+          active:
+            item.activeStudents || item.active || item.active_students || 0,
           progress: item.progress || item.completion || 0,
           startDate: item.startDate || item.start_date || "N/A",
           endDate: endDate,
@@ -104,19 +109,19 @@ export default function ClassManagement() {
       prev.map((c) =>
         c.id === id
           ? {
-            ...c,
-            name: payload.name.trim(),
-            subtitle: payload.subtitle.trim(),
-            code: payload.code.trim(),
-            teacher: payload.teacher.trim(),
-            students: parseInt(payload.students) || 0,
-            active: parseInt(payload.active) || 0,
-            progress: parseInt(payload.progress) || 0,
-            startDate: payload.startDate,
-            endDate: payload.endDate,
-            status: payload.status || "upcoming",
-            schedule: payload.schedule.trim(),
-          }
+              ...c,
+              name: payload.name.trim(),
+              subtitle: payload.subtitle.trim(),
+              code: payload.code.trim(),
+              teacher: payload.teacher.trim(),
+              students: parseInt(payload.students) || 0,
+              active: parseInt(payload.active) || 0,
+              progress: parseInt(payload.progress) || 0,
+              startDate: payload.startDate,
+              endDate: payload.endDate,
+              status: payload.status || "upcoming",
+              schedule: payload.schedule.trim(),
+            }
           : c
       )
     );
@@ -146,16 +151,16 @@ export default function ClassManagement() {
       classes.length === 0
         ? 0
         : Math.round(
-          classes.reduce((s, c) => s + (parseInt(c.progress) || 0), 0) /
-          classes.length
-        );
+            classes.reduce((s, c) => s + (parseInt(c.progress) || 0), 0) /
+              classes.length
+          );
     return {
       totalClasses,
       totalActiveClasses: activeClasses,
       totalStudents,
       avgProgress,
     };
-  }, [classes]);
+  }, [classes]);   
 
   // --- Lọc và tìm kiếm ---
   const filtered = useMemo(() => {
@@ -176,6 +181,8 @@ export default function ClassManagement() {
     return result;
   }, [classes, searchQuery, statusFilter]);
 
+  const [selectedClassId, setSelectedClassId] = useState("");
+
   return (
     <div style={styles.page}>
       <LocalStyles />
@@ -186,13 +193,48 @@ export default function ClassManagement() {
             Danh sách lớp học và theo dõi tiến độ học viên
           </p>
         </div>
-        <button
-          type="button"
-          style={styles.primaryButton}
-          onClick={() => setIsAddOpen(true)}
-        >
-          <span style={styles.plusIcon}>+</span> Tạo lớp học
-        </button>
+
+        {/* Select class to send id to calendar */}
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <select
+            aria-label="Chọn lớp để xem thời khóa biểu"
+            value={selectedClassId}
+            onChange={(e) => setSelectedClassId(e.target.value)}
+            style={{ ...styles.select, height: 42 }}
+          >
+            <option value="">Chọn lớp</option>
+            {classes.map((cls) => (
+              <option key={cls.id} value={cls.id}>
+                {cls.name} {cls.code ? `(${cls.code})` : ""}
+              </option>
+            ))}
+          </select>
+
+          <button
+            type="button"
+            onClick={() => {
+              if (!selectedClassId) {
+                alert("Vui lòng chọn một lớp để mở thời khóa biểu.");
+                return;
+              }
+              // navigate to calendar with classId query param
+              window.location.href = `/calendar?classId=${encodeURIComponent(
+                selectedClassId
+              )}`;
+            }}
+            style={{ ...styles.primaryButton, padding: "10px 12px" }}
+          >
+            <span style={styles.plusIcon}>Thời khóa biểu</span>
+          </button>
+
+          <button
+            type="button"
+            style={styles.primaryButton}
+            onClick={() => setIsAddOpen(true)}
+          >
+            <span style={styles.plusIcon}>+ Tạo lớp học</span>
+          </button>
+        </div>
       </header>
 
       <section style={styles.kpis}>
