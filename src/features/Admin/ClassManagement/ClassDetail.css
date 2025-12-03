@@ -69,200 +69,74 @@
     margin-top: 4px;
 }
 
-/* Content */
-.cd-content {
-    padding: 24px;
-    max-width: 1200px;
-    margin: 0 auto;
-    width: 100%;
-    box-sizing: border-box;
-}
-
-/* Stats Bar */
-.cd-stats-bar {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 16px;
-    margin-bottom: 24px;
-}
-
-.cd-stat-card {
-    background: #fff;
-    padding: 16px;
-    border-radius: 12px;
-    border: 1px solid #e5e7eb;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
-}
-
-.cd-stat-label {
-    font-size: 13px;
-    color: #6b7280;
-    margin-bottom: 4px;
-}
-
-.cd-stat-value {
-    font-size: 24px;
-    font-weight: 700;
-    color: #111827;
-}
-
-/* Attendance Table */
-.cd-table-card {
-    background: #fff;
-    border-radius: 12px;
-    border: 1px solid #e5e7eb;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-    overflow: hidden;
-}
-
-.cd-table-header {
-    padding: 16px 24px;
-    border-bottom: 1px solid #e5e7eb;
+/* Info Tags */
+.cd-info-tags {
     display: flex;
-    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.cd-info-tag {
+    display: inline-flex;
     align-items: center;
-}
-
-.cd-table-title {
-    font-size: 16px;
-    font-weight: 700;
-    color: #111827;
-}
-
-.cd-date-picker {
-    border: 1px solid #e5e7eb;
-    padding: 6px 12px;
+    gap: 8px;
+    padding: 8px 14px;
+    background: #f3f4f6;
     border-radius: 8px;
     font-size: 14px;
     color: #374151;
-    outline: none;
-}
-
-.cd-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-.cd-th {
-    text-align: left;
-    padding: 12px 24px;
-    background: #f9fafb;
-    color: #6b7280;
-    font-size: 12px;
-    font-weight: 600;
-    text-transform: uppercase;
-    border-bottom: 1px solid #e5e7eb;
-}
-
-.cd-td {
-    padding: 16px 24px;
-    border-bottom: 1px solid #f3f4f6;
-    color: #1f2937;
-    font-size: 14px;
-    vertical-align: middle;
-}
-
-.cd-student-info {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.cd-avatar {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background: #e0e7ff;
-    color: #4f46e5;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 600;
-    font-size: 14px;
-}
-
-.cd-student-name {
     font-weight: 500;
-    color: #111827;
 }
 
-.cd-student-id {
-    font-size: 12px;
+.cd-info-tag svg {
+    flex-shrink: 0;
     color: #6b7280;
 }
 
-/* Attendance Options */
-.cd-attendance-options {
-    display: flex;
-    gap: 8px;
+.cd-tag-code {
+    background: #eff6ff;
+    color: #1e40af;
 }
 
-.cd-att-btn {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
-    border-radius: 8px;
-    border: 1px solid #e5e7eb;
-    background: #fff;
-    padding: 16px 24px;
-    border-bottom: 1px solid #e5e7eb;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+.cd-tag-code svg {
+    color: #3b82f6;
 }
 
-.cd-back-btn {
-    background: transparent;
-    border: 1px solid #e5e7eb;
-    border-radius: 8px;
-    width: 36px;
-    height: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    color: #6b7280;
-    transition: all 0.2s;
+.cd-tag-teacher {
+    background: #f0fdf4;
+    color: #166534;
 }
 
-.cd-back-btn:hover {
-    background: #f3f4f6;
-    color: #111827;
+.cd-tag-teacher svg {
+    color: #22c55e;
 }
 
-.cd-title-wrap {
-    flex: 1;
+.cd-tag-students {
+    background: #fef3c7;
+    color: #92400e;
 }
 
-.cd-class-name {
-    font-size: 20px;
-    font-weight: 700;
-    color: #111827;
-    margin: 0;
+.cd-tag-students svg {
+    color: #f59e0b;
+}
+
+.cd-tag-schedule {
+    background: #fce7f3;
+    color: #9f1239;
+}
+
+.cd-tag-schedule svg {
+    color: #ec4899;
+}
+
+/* Header actions */
+.cd-header-actions {
     display: flex;
     align-items: center;
     gap: 12px;
 }
 
-.cd-class-code {
-    font-size: 13px;
-    background: #eff6ff;
-    color: #1d4ed8;
-    padding: 2px 8px;
-    border-radius: 6px;
-    font-weight: 600;
-}
-
-.cd-subtitle {
-    font-size: 14px;
-    color: #6b7280;
-    margin-top: 4px;
-}
 
 /* Content */
 .cd-content {
@@ -453,4 +327,490 @@
 
 .cd-radio {
     accent-color: currentColor;
+}
+
+/* Info Tags - Added for class detail tags */
+.cd-info-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.cd-info-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: #f3f4f6;
+    border-radius: 6px;
+    font-size: 13px;
+    color: #374151;
+    font-weight: 500;
+}
+
+.cd-info-tag svg {
+    flex-shrink: 0;
+    color: #6b7280;
+}
+
+.cd-tag-code {
+    background: #eff6ff;
+    color: #1e40af;
+}
+
+.cd-tag-code svg {
+    color: #3b82f6;
+}
+
+.cd-tag-teacher {
+    background: #f0fdf4;
+    color: #166534;
+}
+
+.cd-tag-teacher svg {
+    color: #22c55e;
+}
+
+.cd-tag-students {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.cd-tag-students svg {
+    color: #f59e0b;
+}
+
+.cd-tag-schedule {
+    background: #fce7f3;
+    color: #9f1239;
+}
+
+.cd-tag-schedule svg {
+    color: #ec4899;
+}
+
+/* Clickable Tags */
+.cd-tag-clickable {
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+    text-align: left;
+}
+
+.cd-tag-clickable:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.cd-tag-clickable:active {
+    transform: translateY(0);
+}
+
+/* Modal Styles */
+.cd-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.cd-modal-content {
+    background: white;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 80vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.cd-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.cd-modal-header h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #111827;
+}
+
+.cd-modal-close {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: #f3f4f6;
+    border-radius: 6px;
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+    color: #6b7280;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.cd-modal-close:hover {
+    background: #e5e7eb;
+    color: #111827;
+}
+
+.cd-modal-body {
+    padding: 20px 24px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.cd-modal-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 12px 0;
+    border-bottom: 1px solid #f3f4f6;
+    gap: 16px;
+}
+
+.cd-modal-item:last-child {
+    border-bottom: none;
+}
+
+.cd-modal-label {
+    font-weight: 500;
+    color: #6b7280;
+    flex-shrink: 0;
+    min-width: 140px;
+}
+
+.cd-modal-value {
+    color: #111827;
+    text-align: right;
+    flex: 1;
+}
+
+.cd-modal-footer-note {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid #e5e7eb;
+    color: #6b7280;
+    font-size: 14px;
+    font-style: italic;
+    text-align: center;
+}
+
+/* New Styles for Attendance Filters */
+.cd-filter-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.cd-filter-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #4b5563;
+}
+
+.cd-select {
+    border: 1px solid #e5e7eb;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #374151;
+    outline: none;
+    background-color: white;
+    min-width: 160px;
+    cursor: pointer;
+}
+
+.cd-select:focus {
+    border-color: #f97316;
+    box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.1);
+}
+
+.cd-tag-schedule {
+    background: #fce7f3;
+    color: #9f1239;
+}
+
+.cd-tag-schedule svg {
+    color: #ec4899;
+}
+
+/* Clickable Tags */
+.cd-tag-clickable {
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+    text-align: left;
+}
+
+.cd-tag-clickable:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.cd-tag-clickable:active {
+    transform: translateY(0);
+}
+
+/* Modal Styles */
+.cd-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.cd-modal-content {
+    background: white;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 80vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.cd-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.cd-modal-header h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #111827;
+}
+
+.cd-modal-close {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: #f3f4f6;
+    border-radius: 6px;
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+    color: #6b7280;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.cd-modal-close:hover {
+    background: #e5e7eb;
+    color: #111827;
+}
+
+.cd-modal-body {
+    padding: 20px 24px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.cd-modal-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 12px 0;
+    border-bottom: 1px solid #f3f4f6;
+    gap: 16px;
+}
+
+.cd-modal-item:last-child {
+    border-bottom: none;
+}
+
+.cd-modal-label {
+    font-weight: 500;
+    color: #6b7280;
+    flex-shrink: 0;
+    min-width: 140px;
+}
+
+.cd-modal-value {
+    color: #111827;
+    text-align: right;
+    flex: 1;
+}
+
+.cd-modal-footer-note {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid #e5e7eb;
+    color: #6b7280;
+    font-size: 14px;
+    font-style: italic;
+    text-align: center;
+}
+
+/* New Styles for Attendance Filters */
+.cd-filter-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.cd-filter-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #4b5563;
+}
+
+.cd-select {
+    border: 1px solid #e5e7eb;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #374151;
+    outline: none;
+    background-color: white;
+    min-width: 160px;
+    cursor: pointer;
+}
+
+.cd-select:focus {
+    border-color: #f97316;
+    box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.1);
+}
+
+.cd-save-btn {
+    transition: all 0.2s ease;
+}
+
+.cd-save-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(234, 88, 12, 0.4) !important;
+}
+
+.cd-save-btn:active {
+    transform: translateY(0);
+}
+
+/* Toggle Attendance Button */
+.cd-toggle-attendance-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: none;
+
+    /* Default state (Start Attendance) */
+    background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
+    color: white;
+    box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2), 0 2px 4px -1px rgba(79, 70, 229, 0.1);
+}
+
+.cd-toggle-attendance-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 12px -1px rgba(79, 70, 229, 0.3), 0 4px 6px -1px rgba(79, 70, 229, 0.15);
+}
+
+.cd-toggle-attendance-btn:active {
+    transform: translateY(0);
+}
+
+/* Active state (Hide Attendance) */
+.cd-toggle-attendance-btn.active {
+    background: #f3f4f6;
+    color: #4b5563;
+    border: 1px solid #e5e7eb;
+    box-shadow: none;
+}
+
+.cd-toggle-attendance-btn.active:hover {
+    background: #fee2e2;
+    color: #dc2626;
+    border-color: #fecaca;
+    transform: none;
+}
+
+.cd-toggle-attendance-btn svg {
+    transition: transform 0.3s ease;
+}
+
+.cd-toggle-attendance-btn:hover svg {
+    transform: scale(1.1);
+}
+
+.cd-toggle-attendance-btn.active:hover svg {
+    transform: rotate(90deg);
 }
