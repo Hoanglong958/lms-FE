@@ -47,6 +47,9 @@ import QuestionBankCreate from "@features/Admin/ExamManagement/QuestionBankCreat
 import UserManagement from "@features/Admin/UserManagement/user";
 import ClassManagement from "@features/Admin/ClassManagement/class";
 
+// Quản lý thời khóa biểu
+import CalendarManagement from "@features/Admin/CalendarManagement/Calendar";
+
 export default function AppRouter() {
   return (
     <>
@@ -118,6 +121,9 @@ export default function AppRouter() {
               path="courses/part/:courseSlug"
               element={<ManageLessons />}
             />
+
+            {/* Quản lý thời khóa biểu */}
+            <Route path="calendar" element={<CalendarManagement />} />
           </Route>
 
           {/* ✅ Trang quản lý bài học chi tiết (ẩn sidebar mặc định) */}

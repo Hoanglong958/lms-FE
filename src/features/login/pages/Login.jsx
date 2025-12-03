@@ -14,7 +14,7 @@ export default function Login() {
     const storedUser = JSON.parse(localStorage.getItem("loggedInUser"));
     if (storedUser) {
       if (storedUser.role === "ROLE_ADMIN") navigate("/admin");
-      else if (storedUser.role === "ROLE_USER") navigate("/home");
+      else if (storedUser.role === "ROLE_USER") navigate("/dashboard");
       else navigate("/login");
     }
   }, [navigate]);
@@ -33,7 +33,7 @@ export default function Login() {
       localStorage.setItem("loggedInUser", JSON.stringify(user));
 
       if (user.role === "ROLE_ADMIN") navigate("/admin");
-      else navigate("/home");
+      else navigate("/dashboard");
     } catch (err) {
       console.error("Đăng nhập lỗi:", err);
       const status = err?.response?.status;

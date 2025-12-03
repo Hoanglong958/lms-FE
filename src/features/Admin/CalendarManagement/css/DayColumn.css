@@ -1,0 +1,58 @@
+/* css/DayColumn.css */
+
+.column {
+  flex: 1; /* Chia đều không gian còn lại */
+  /* min-width: 140px;  <-- XOÁ DÒNG CŨ NÀY ĐI */
+  min-width: 0; /* THAY BẰNG 0: Để cột có thể co nhỏ lại cho vừa màn hình */
+
+  border-right: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  background: white;
+}
+
+/* Các phần khác giữ nguyên */
+.header {
+  height: 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1px solid #e5e7eb;
+  background-color: #f9fafb;
+  box-sizing: border-box;
+  overflow: hidden;
+  padding: 0 4px;
+}
+
+.dayName {
+  font-weight: 600;
+  color: #111827;
+  /* Thêm dòng này để nếu tên dài quá thì tự xuống dòng hoặc co lại */
+  white-space: nowrap;
+  font-size: 13px; /* Giảm size chữ xíu nếu màn hình bé */
+}
+
+.dayDate {
+  font-size: 11px;
+  color: #6b7280;
+  margin-top: 2px;
+}
+
+.slots {
+  display: flex;
+  flex-direction: column;
+  background-image: linear-gradient(#f9fafb 1px, transparent 1px);
+  background-size: 100% 45px;
+  width: 100%; /* Đảm bảo full width */
+}
+
+.columnSeparator {
+  background: repeating-linear-gradient(
+    45deg,
+    #f3f4f6,
+    #f3f4f6 10px,
+    #e5e7eb 10px,
+    #e5e7eb 20px
+  );
+}

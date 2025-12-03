@@ -1,7 +1,9 @@
 import React, { useMemo, useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { classService } from "@utils/classService";
 
 export default function ClassManagement() {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [isAddOpen, setIsAddOpen] = useState(false);
@@ -217,10 +219,8 @@ export default function ClassManagement() {
                 alert("Vui lòng chọn một lớp để mở thời khóa biểu.");
                 return;
               }
-              // navigate to calendar with classId query param
-              window.location.href = `/calendar?classId=${encodeURIComponent(
-                selectedClassId
-              )}`;
+              // Navigate to calendar page with classId query parameter
+              navigate(`/admin/calendar?classId=${encodeURIComponent(selectedClassId)}`);
             }}
             style={{ ...styles.primaryButton, padding: "10px 12px" }}
           >

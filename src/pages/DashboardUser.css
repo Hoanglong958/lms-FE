@@ -82,19 +82,24 @@
 
 .learning-cards-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
   gap: 32px;
   width: 100%;
+  justify-items: center;
 }
 
 .learning-card {
   display: flex;
-  flex-direction: column;
+  width: 584px;
+  max-width: 100%;
   padding: 32px;
+  flex-direction: column;
+  align-items: flex-start;
   gap: 32px;
   border-radius: 16px;
-  background: #FAFAFA;
+  background: var(--Gray-25, #FAFAFA);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+  cursor: pointer;
 }
 
 .learning-card:hover {
@@ -172,7 +177,12 @@
   }
 
   .learning-cards-grid {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 24px;
+  }
+
+  .learning-card {
+    width: 100%;
   }
 
   .card-title {

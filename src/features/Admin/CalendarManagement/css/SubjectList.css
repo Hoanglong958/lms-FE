@@ -1,0 +1,36 @@
+/* SubjectList.css */
+.subjectListContainer {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 16px;
+  width: 200px;
+  max-height: calc(100vh - 200px);
+  overflow-y: auto;
+}
+
+.subjectListTitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 4px 0;
+}
+
+.subjectListSubtitle {
+  font-size: 12px;
+  color: #6b7280;
+  margin-bottom: 16px;
+}
+
+.subjectList {
+  display: flex;
+  flex-direction: column;
+}
+
+.subjectListEmpty {
+  text-align: center;
+  color: #9ca3af;
+  font-size: 13px;
+  padding: 20px 0;
+}
+

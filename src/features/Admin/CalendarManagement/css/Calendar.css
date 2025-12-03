@@ -1,0 +1,107 @@
+/* Calendar.css */
+.calendarPage {
+  padding: 28px 24px;
+  background: #f7f8fa;
+  min-height: 100%;
+}
+
+.calendarLoading {
+  text-align: center;
+  padding: 60px 20px;
+  font-size: 16px;
+  color: #6b7280;
+}
+
+.calendarError {
+  text-align: center;
+  padding: 60px 20px;
+  background: #fff;
+  border-radius: 14px;
+  border: 1px solid #e5e7eb;
+}
+
+.calendarHeaderContainer {
+  margin-bottom: 24px;
+}
+
+.calendarContent {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+.calendarSidebar {
+  width: 240px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  flex-shrink: 0;
+}
+
+.calendarMainContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.calendarWeekInfo {
+  margin-bottom: 16px;
+}
+
+.calendarWeekTitle {
+  font-size: 20px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+
+.calendarEmptyState {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 60px 40px;
+  text-align: center;
+}
+
+.calendarEmptyIcon {
+  font-size: 64px;
+  margin-bottom: 16px;
+}
+
+.calendarEmptyTitle {
+  font-size: 20px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 8px 0;
+}
+
+.calendarEmptyText {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0;
+}
+
+.calendarPrimaryButton {
+  background: #ef6c00;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 14px;
+  margin-top: 16px;
+}
+
+@media (max-width: 1200px) {
+  .calendarContent {
+    flex-direction: column;
+  }
+  .calendarSidebar {
+    width: 100%;
+    margin-bottom: 24px;
+  }
+  .calendarMainContent {
+    width: 100%;
+  }
+}
+
