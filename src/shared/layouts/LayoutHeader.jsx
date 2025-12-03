@@ -88,7 +88,7 @@ export default function Header() {
                   <button
                     onClick={() => {
                       setOpenDropdown(false);
-                      navigate("/@features/userProfile/  ");
+                      navigate("/profile");
                     }}
                   >
                     Hồ sơ của tôi
@@ -141,7 +141,7 @@ export default function Header() {
           </nav>
           <div className="divider-mobile"></div>
           <div className="mobile-menu-user-links">
-            <a>Hồ sơ của tôi</a>
+            <a onClick={() => handleNavigate("/profile")}>Hồ sơ của tôi</a>
             <a>Khóa học của tôi</a>
           </div>
           <div className="mobile-menu-footer">

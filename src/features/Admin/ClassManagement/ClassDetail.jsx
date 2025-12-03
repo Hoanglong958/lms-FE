@@ -16,8 +16,14 @@ export default function ClassDetail({ classData, onBack }) {
     const [attendanceDate, setAttendanceDate] = useState(
         new Date().toISOString().split("T")[0]
     );
+    const [attendanceShift, setAttendanceShift] = useState("morning");
 
-    // State to store attendance status: { studentId: 'present' | 'absent' | 'late' }
+
+    const [showAttendance, setShowAttendance] = useState(false);
+    const [showDetailModal, setShowDetailModal] = useState(false);
+    const [modalContent, setModalContent] = useState(null);
+
+    // State to store attendance status: { studentId: 'present' | 'excused' | 'unexcused' }
     const [attendance, setAttendance] = useState(() => {
         const initial = {};
         const count = parseInt(classData.students) || 0;
@@ -33,6 +39,72 @@ export default function ClassDetail({ classData, onBack }) {
             ...prev,
             [studentId]: status,
         }));
+    };
+
+    const handleSaveAttendance = () => {
+        alert("Đã lưu điểm danh thành công!");
+        console.log("Attendance data:", attendance);
+    };
+
+    const handleTagClick = (type) => {
+        let content = null;
+
+        switch (type) {
+            case 'code':
+                content = {
+                    title: 'Thông tin mã lớp',
+                    items: [
+                        { label: 'Mã lớp', value: classData.code },
+                        { label: 'Tên lớp', value: classData.name },
+                        { label: 'Ngày bắt đầu', value: classData.startDate || 'Chưa xác định' },
+                        { label: 'Ngày kết thúc', value: classData.endDate || 'Chưa xác định' },
+                        { label: 'Trạng thái', value: classData.status || 'Đang hoạt động' },
+                        { label: 'Tiến độ', value: `${classData.progress || 0}%` }
+                    ]
+                };
+                break;
+            case 'teacher':
+                content = {
+                    title: 'Thông tin giảng viên',
+                    items: [
+                        { label: 'Họ tên', value: classData.teacher },
+                        { label: 'Email', value: 'teacher@rikkei.edu.vn' },
+                        { label: 'Số điện thoại', value: '0123 456 789' },
+                        { label: 'Chuyên môn', value: 'Full-stack Development' },
+                        { label: 'Kinh nghiệm', value: '5+ năm giảng dạy' },
+                        { label: 'Đánh giá', value: '⭐⭐⭐⭐⭐ (4.9/5)' }
+                    ]
+                };
+                break;
+            case 'students':
+                content = {
+                    title: 'Danh sách học viên',
+                    items: studentsList.slice(0, 10).map((s, i) => ({
+                        label: `${i + 1}. ${s.name}`,
+                        value: s.code
+                    })),
+                    footer: studentsList.length > 10 ? `Và ${studentsList.length - 10} học viên khác...` : null
+                };
+                break;
+            case 'schedule':
+                content = {
+                    title: 'Lịch học chi tiết',
+                    items: [
+                        { label: 'Lịch học', value: classData.schedule || 'Chưa có lịch' },
+                        { label: 'Thứ 2, 4, 6', value: '18:30 - 21:30' },
+                        { label: 'Thời lượng/buổi', value: '3 giờ' },
+                        { label: 'Phòng học', value: 'R301 - Tầng 3' },
+                        { label: 'Tổng số buổi', value: '36 buổi' },
+                        { label: 'Đã hoàn thành', value: `${Math.floor((classData.progress || 0) / 100 * 36)} buổi` }
+                    ]
+                };
+                break;
+            default:
+                return;
+        }
+
+        setModalContent(content);
+        setShowDetailModal(true);
     };
 
     // Calculate stats
@@ -54,117 +126,213 @@ export default function ClassDetail({ classData, onBack }) {
                     </svg>
                 </button>
                 <div className="cd-title-wrap">
-                    <h1 className="cd-class-name">
-                        {classData.name}
-                        <span className="cd-class-code">{classData.code}</span>
-                    </h1>
-                    <div className="cd-subtitle">
-                        Giảng viên: {classData.teacher} • {classData.schedule || "Chưa có lịch"}
+                    <h1 className="cd-class-name">{classData.name}</h1>
+                    <div className="cd-info-tags">
+                        <span className="cd-info-tag cd-tag-code">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                                <line x1="9" y1="9" x2="15" y2="9" />
+                                <line x1="9" y1="15" x2="15" y2="15" />
+                            </svg>
+                            <span>Mã lớp: {classData.code}</span>
+                        </span>
+                        <span className="cd-info-tag cd-tag-teacher">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                                <circle cx="12" cy="7" r="4" />
+                            </svg>
+                            <span>Giảng viên: {classData.teacher}</span>
+                        </span>
+                        <span className="cd-info-tag cd-tag-students">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                                <circle cx="9" cy="7" r="4" />
+                                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                            </svg>
+                            <span>Sĩ số: {classData.students} HV</span>
+                        </span>
+                        {classData.schedule && (
+                            <span className="cd-info-tag cd-tag-schedule">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                                    <line x1="16" y1="2" x2="16" y2="6" />
+                                    <line x1="8" y1="2" x2="8" y2="6" />
+                                    <line x1="3" y1="10" x2="21" y2="10" />
+                                </svg>
+                                <span>{classData.schedule}</span>
+                            </span>
+                        )}
                     </div>
                 </div>
                 <div>
-                    <button className="cm-primary-button">Lưu điểm danh</button>
+                    <button
+                        className={`cd-toggle-attendance-btn ${showAttendance ? 'active' : ''}`}
+                        onClick={() => setShowAttendance(!showAttendance)}
+                    >
+                        {showAttendance ? (
+                            <>
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" strokeLinejoin="round" />
+                                </svg>
+                                Ẩn điểm danh
+                            </>
+                        ) : (
+                            <>
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <path d="M9 11l3 3L22 4" strokeLinecap="round" strokeLinejoin="round" />
+                                    <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" strokeLinecap="round" strokeLinejoin="round" />
+                                </svg>
+                                Bắt đầu điểm danh
+                            </>
+                        )}
+                    </button>
                 </div>
             </header>
 
             <div className="cd-content">
-                {/* Stats Bar */}
-                <div className="cd-stats-bar">
-                    <div className="cd-stat-card">
-                        <div className="cd-stat-label">Tổng sĩ số</div>
-                        <div className="cd-stat-value">{stats.total}</div>
-                    </div>
-                    <div className="cd-stat-card" style={{ borderLeft: "4px solid #22c55e" }}>
-                        <div className="cd-stat-label">Có mặt</div>
-                        <div className="cd-stat-value" style={{ color: "#16a34a" }}>{stats.present}</div>
-                    </div>
-                    <div className="cd-stat-card" style={{ borderLeft: "4px solid #eab308" }}>
-                        <div className="cd-stat-label">Nghỉ có phép</div>
-                        <div className="cd-stat-value" style={{ color: "#ca8a04" }}>{stats.excused}</div>
-                    </div>
-                    <div className="cd-stat-card" style={{ borderLeft: "4px solid #ef4444" }}>
-                        <div className="cd-stat-label">Nghỉ không phép</div>
-                        <div className="cd-stat-value" style={{ color: "#dc2626" }}>{stats.unexcused}</div>
-                    </div>
-                </div>
+                {showAttendance && (
+                    <>
+                        {/* Stats Bar */}
+                        <div className="cd-stats-bar">
+                            <div className="cd-stat-card">
+                                <div className="cd-stat-label">Tổng sĩ số</div>
+                                <div className="cd-stat-value">{stats.total}</div>
+                            </div>
+                            <div className="cd-stat-card" style={{ borderLeft: "4px solid #22c55e" }}>
+                                <div className="cd-stat-label">Có mặt</div>
+                                <div className="cd-stat-value" style={{ color: "#16a34a" }}>{stats.present}</div>
+                            </div>
+                            <div className="cd-stat-card" style={{ borderLeft: "4px solid #eab308" }}>
+                                <div className="cd-stat-label">Nghỉ có phép</div>
+                                <div className="cd-stat-value" style={{ color: "#ca8a04" }}>{stats.excused}</div>
+                            </div>
+                            <div className="cd-stat-card" style={{ borderLeft: "4px solid #ef4444" }}>
+                                <div className="cd-stat-label">Nghỉ không phép</div>
+                                <div className="cd-stat-value" style={{ color: "#dc2626" }}>{stats.unexcused}</div>
+                            </div>
+                        </div>
 
-                {/* Attendance Table */}
-                <div className="cd-table-card">
-                    <div className="cd-table-header">
-                        <div className="cd-table-title">Điểm danh lớp học</div>
-                        <input
-                            type="date"
-                            className="cd-date-picker"
-                            value={attendanceDate}
-                            onChange={(e) => setAttendanceDate(e.target.value)}
-                        />
-                    </div>
-                    <table className="cd-table">
-                        <thead>
-                            <tr>
-                                <th className="cd-th" style={{ width: "60px" }}>STT</th>
-                                <th className="cd-th">Học viên</th>
-                                <th className="cd-th">Trạng thái điểm danh</th>
-                                <th className="cd-th">Ghi chú</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {studentsList.map((student, index) => (
-                                <tr key={student.id}>
-                                    <td className="cd-td" style={{ textAlign: "center", color: "#6b7280" }}>
-                                        {index + 1}
-                                    </td>
-                                    <td className="cd-td">
-                                        <div className="cd-student-info">
-                                            <div className="cd-avatar">
-                                                {student.name.charAt(0)}
-                                            </div>
-                                            <div>
-                                                <div className="cd-student-name">{student.name}</div>
-                                                <div className="cd-student-id">{student.code}</div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td className="cd-td">
-                                        <div className="cd-attendance-options">
-                                            <AttendanceButton
-                                                type="present"
-                                                label="Có mặt"
-                                                active={attendance[student.id] === 'present'}
-                                                onClick={() => handleAttendanceChange(student.id, 'present')}
-                                            />
-                                            <AttendanceButton
-                                                type="excused"
-                                                label="Nghỉ có phép"
-                                                active={attendance[student.id] === 'excused'}
-                                                onClick={() => handleAttendanceChange(student.id, 'excused')}
-                                            />
-                                            <AttendanceButton
-                                                type="unexcused"
-                                                label="Nghỉ không phép"
-                                                active={attendance[student.id] === 'unexcused'}
-                                                onClick={() => handleAttendanceChange(student.id, 'unexcused')}
-                                            />
-                                        </div>
-                                    </td>
-                                    <td className="cd-td">
+                        {/* Attendance Table */}
+                        <div className="cd-table-card">
+                            <div className="cd-table-header">
+                                <div className="cd-table-title">Điểm danh lớp học</div>
+                                <div className="cd-header-actions">
+                                    <div className="cd-filter-group">
+                                        <label className="cd-filter-label">Ngày học:</label>
                                         <input
-                                            type="text"
-                                            placeholder="Ghi chú..."
-                                            style={{
-                                                border: "1px solid #e5e7eb",
-                                                borderRadius: "6px",
-                                                padding: "6px 10px",
-                                                width: "100%",
-                                                fontSize: "13px"
-                                            }}
+                                            type="date"
+                                            className="cd-date-picker"
+                                            value={attendanceDate}
+                                            onChange={(e) => setAttendanceDate(e.target.value)}
                                         />
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+                                    </div>
+
+                                    <div className="cd-filter-group">
+                                        <label className="cd-filter-label">Ca học:</label>
+                                        <select
+                                            className="cd-select"
+                                            value={attendanceShift}
+                                            onChange={(e) => setAttendanceShift(e.target.value)}
+                                        >
+                                            <option value="morning">Ca Sáng (8:00 - 11:30)</option>
+                                            <option value="afternoon">Ca Chiều (13:30 - 17:00)</option>
+                                            <option value="evening">Ca Tối (18:30 - 21:30)</option>
+                                        </select>
+                                    </div>
+
+                                    <button
+                                        className="cm-primary-button cd-save-btn"
+                                        onClick={handleSaveAttendance}
+                                        style={{
+                                            background: "linear-gradient(135deg, #f97316 0%, #ea580c 100%)",
+                                            boxShadow: "0 4px 12px rgba(234, 88, 12, 0.3)",
+                                            border: "none",
+                                            padding: "10px 24px",
+                                            fontSize: "14px",
+                                            fontWeight: "600",
+                                            display: "flex",
+                                            alignItems: "center",
+                                            gap: "8px"
+                                        }}
+                                    >
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                                            <polyline points="17 21 17 13 7 13 7 21" />
+                                            <polyline points="7 3 7 8 15 8" />
+                                        </svg>
+                                        LƯU ĐIỂM DANH
+                                    </button>
+                                </div>
+                            </div>
+                            <table className="cd-table">
+                                <thead>
+                                    <tr>
+                                        <th className="cd-th" style={{ width: "60px" }}>STT</th>
+                                        <th className="cd-th">Học viên</th>
+                                        <th className="cd-th">Trạng thái điểm danh</th>
+                                        <th className="cd-th">Ghi chú</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {studentsList.map((student, index) => (
+                                        <tr key={student.id}>
+                                            <td className="cd-td" style={{ textAlign: "center", color: "#6b7280" }}>
+                                                {index + 1}
+                                            </td>
+                                            <td className="cd-td">
+                                                <div className="cd-student-info">
+                                                    <div className="cd-avatar">
+                                                        {student.name.charAt(0)}
+                                                    </div>
+                                                    <div>
+                                                        <div className="cd-student-name">{student.name}</div>
+                                                        <div className="cd-student-id">{student.code}</div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="cd-td">
+                                                <div className="cd-attendance-options">
+                                                    <AttendanceButton
+                                                        type="present"
+                                                        label="Có mặt"
+                                                        active={attendance[student.id] === 'present'}
+                                                        onClick={() => handleAttendanceChange(student.id, 'present')}
+                                                    />
+                                                    <AttendanceButton
+                                                        type="excused"
+                                                        label="Nghỉ có phép"
+                                                        active={attendance[student.id] === 'excused'}
+                                                        onClick={() => handleAttendanceChange(student.id, 'excused')}
+                                                    />
+                                                    <AttendanceButton
+                                                        type="unexcused"
+                                                        label="Nghỉ không phép"
+                                                        active={attendance[student.id] === 'unexcused'}
+                                                        onClick={() => handleAttendanceChange(student.id, 'unexcused')}
+                                                    />
+                                                </div>
+                                            </td>
+                                            <td className="cd-td">
+                                                <input
+                                                    type="text"
+                                                    placeholder="Ghi chú..."
+                                                    style={{
+                                                        border: "1px solid #e5e7eb",
+                                                        borderRadius: "6px",
+                                                        padding: "6px 10px",
+                                                        width: "100%",
+                                                        fontSize: "13px"
+                                                    }}
+                                                />
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </>
+                )}
             </div>
         </div>
     );

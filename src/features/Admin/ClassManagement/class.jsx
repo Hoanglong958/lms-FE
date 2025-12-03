@@ -1,6 +1,7 @@
 import React, { useMemo, useState, useEffect, useRef } from "react";
 import { classService } from "@utils/classService";
 import ClassDetail from "./ClassDetail";
+import ClassDetailModal from "./ClassDetailModal";
 import "./class.css";
 
 export default function ClassManagement() {
@@ -11,6 +12,8 @@ export default function ClassManagement() {
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [viewingClass, setViewingClass] = useState(null);
   const [classes, setClasses] = useState([]);
+  const [modalState, setModalState] = useState({ isOpen: false, type: null, data: null });
+
 
   // --- Load classes từ API khi component mount ---
   useEffect(() => {
@@ -314,10 +317,46 @@ export default function ClassManagement() {
                     </div>
                   </td>
                   <td style={styles.td}>
-                    <BadgeCode text={c.code} />
+                    <span
+                      className="cm-badge cm-badge-code"
+                      onClick={() => setModalState({ isOpen: true, type: "code", data: c })}
+                    >
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M8 6l-6 6 6 6M16 6l6 6-6 6M13 2l-2 20" opacity="0.8" />
+                      </svg>
+                      {c.code}
+                    </span>
                   </td>
-                  <td style={styles.td}>{c.teacher}</td>
-                  <td style={styles.td}>{c.students}</td>
+                  <td style={styles.td}>
+                    <span
+                      className="cm-badge cm-badge-teacher"
+                      onClick={() => setModalState({ isOpen: true, type: "teacher", data: c })}
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                        <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="2" />
+                        <path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2" stroke="currentColor" strokeWidth="2" />
+                      </svg>
+                      {c.teacher}
+                    </span>
+                  </td>
+                  <td style={styles.td}>
+                    <div className="cm-enrollment-cell">
+                      <span
+                        className="cm-badge cm-badge-enrollment"
+                        onClick={() => setModalState({ isOpen: true, type: "enrollment", data: c })}
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" strokeWidth="2" />
+                          <circle cx="9" cy="7" r="4" stroke="currentColor" strokeWidth="2" />
+                          <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" strokeWidth="2" />
+                        </svg>
+                        {c.students}
+                      </span>
+                      <span className="cm-badge-percentage">
+                        {c.students ? Math.round((c.active / c.students) * 100) : 0}%
+                      </span>
+                    </div>
+                  </td>
                   <td style={styles.td}>
                     <span style={styles.activeWrap}>
                       <IconCheckSmall />
@@ -382,6 +421,13 @@ export default function ClassManagement() {
           onConfirm={handleConfirmDelete}
         />
       )}
+
+      <ClassDetailModal
+        isOpen={modalState.isOpen}
+        onClose={() => setModalState({ ...modalState, isOpen: false })}
+        type={modalState.type}
+        data={modalState.data}
+      />
     </div>
   );
 }
