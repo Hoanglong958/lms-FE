@@ -1,0 +1,115 @@
+@import url("https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@400;500;600;700&display=swap");
+
+:root {
+  --primary: #DD673C;
+  --text-dark: #1A1A1A;
+  --text-light: #6B6B6B;
+  --bg: #fafafb;
+  --radius: 18px;
+}
+
+/* PAGE */
+.classes-page {
+  padding: 50px 20px;
+  background: var(--bg);
+  font-family: "SF Pro Display";
+  animation: fadeIn 0.6s ease;
+}
+
+.page-title {
+  font-size: 40px;
+  font-weight: 700;
+  margin-bottom: 40px;
+  color: var(--text-dark);
+  text-align: center;
+}
+
+/* GRID */
+.classes-grid {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
+  gap: 32px;
+}
+
+/* CARD */
+.class-card {
+  background: #fff;
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+  transition: 0.3s ease;
+  cursor: pointer;
+}
+
+.class-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.12);
+}
+
+/* IMAGE */
+.class-image {
+  width: 100%;
+  height: 230px;      /* tăng nhẹ cho ảnh đứng nhìn đẹp hơn */
+  object-fit: cover;  /* vẫn giữ cover để card đồng đều */
+  object-position: top;  /* quan trọng: không cắt đầu ảnh */
+  border-radius: var(--radius) var(--radius) 0 0;
+}
+
+/* CONTENT */
+.class-content {
+  padding: 22px;
+}
+
+.class-name {
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 14px;
+}
+
+/* INFO */
+.class-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-light);
+  font-size: 15px;
+  margin-bottom: 6px;
+}
+
+.class-label {
+  font-weight: 600;
+  color: var(--text-dark);
+}
+
+.icon {
+  color: var(--primary);
+  font-size: 16px;
+}
+
+/* STATUS BADGE */
+.status-badge {
+  margin-top: 14px;
+  display: inline-block;
+  padding: 7px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 20px;
+}
+
+.status-active {
+  background: #E3F8EA;
+  color: #168f44;
+}
+
+.status-finished {
+  background: #ffe8db;
+  color: #c74b24;
+}
+
+/* Smooth Fade */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}

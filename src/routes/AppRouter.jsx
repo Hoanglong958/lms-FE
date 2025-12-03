@@ -2,13 +2,12 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import ScrollToTop from "@components/common/ScrollToTop";
 import PrivateRoute from "@components/common/PrivateRoute";
 
-// ===== Layouts =====
 import MainLayout from "@layouts/MainLayout";
 import LessonLayout from "@layouts/LessonLayout";
 import AuthLayout from "@layouts/AuthLayout";
 import AdminLayout from "@layouts/AdminLayout";
 
-// ===== Pages (User) =====
+// User Pages
 import HomePage from "@pages/HomePage";
 import DashboardUser from "@pages/DashboardUser";
 import BlogList from "@features/baiviet/pages/BlogList";
@@ -20,114 +19,118 @@ import QuizExamPage from "@features/lesson/components/QuizExamPage";
 import Login from "@features/login/pages/login";
 import Register from "@features/login/pages/Register";
 
-// ===== Pages (Admin) =====
-// Dashboard
+// ⭐ USER CLASS PAGE
+import ClassesPage from "@pages/ClassesPage";
+import ClassDetailPage from "@pages/ClassDetailPage";
+
+// ⭐⭐ THÊM ROUTE MỚI
+import JavaExamCard from "@pages/JavaExamCard";
+import JavaExamPage from "@pages/JavaExamPage";
+import JavaExamResult from "@pages/JavaExamResult";
+
+// ================= ADMIN =================
 import DashboardPage from "@features/Admin/Dashboard/DashboardPage";
 import Dashboard from "@features/Admin/Dashboard/Dashboard";
 import DashboardDetails from "@features/Admin/Dashboard/dashboarddetails";
 
-// Quản lý khóa học
 import ManageCourses from "@admin/Courses/ManageCourses";
 import ManageLessons from "@admin/Courses/ManageLessons";
 import AdminHomePage from "@pages/AdminHomePage";
-
-// Quản lý Exam
 
 import ExamManagement from "@features/Admin/ExamManagement/ExamManagement";
 import ExamDetail from "@features/Admin/ExamManagement/ExamDetail";
 import ExamPreview from "@features/Admin/ExamManagement/ExamPreview";
 import AssignmentManagement from "@features/Admin/ExamManagement/AssignmentManagement";
 
-// Ngân hàng câu hỏi
 import QuestionBank from "@features/Admin/ExamManagement/QuestionBank";
 import QuestionCreate from "@features/Admin/ExamManagement/QuestionCreate";
 import QuestionBankCreate from "@features/Admin/ExamManagement/QuestionBankCreate";
 
-// Quản lý người dùng và lớp
 import UserManagement from "@features/Admin/UserManagement/user";
-import ClassManagement from "@features/Admin/ClassManagement/class";
+import AdminClassManagement from "@features/Admin/ClassManagement/class";
 
 export default function AppRouter() {
   return (
     <>
       <ScrollToTop />
+
       <Routes>
-        {/* ===== MẶC ĐỊNH ===== */}
+        {/* REDIRECT ROOT → LOGIN */}
         <Route path="/" element={<Navigate to="/login" replace />} />
 
-        {/* ===== AUTH ===== */}
+        {/* ================= AUTH ROUTES ================= */}
         <Route element={<AuthLayout />}>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
         </Route>
 
-        {/* ===== USER ===== */}
+        {/* ================= USER ROUTES ================= */}
         <Route element={<PrivateRoute role="ROLE_USER" />}>
           <Route element={<MainLayout />}>
             <Route path="/home" element={<HomePage />} />
             <Route path="/dashboard" element={<DashboardUser />} />
+
+            {/* USER CLASS */}
+            <Route path="/classes" element={<ClassesPage />} />
+            <Route path="/classes/:id" element={<ClassDetailPage />} />
+
+            {/* BLOG */}
             <Route path="/bai-viet" element={<BlogList />} />
             <Route path="/bai-viet/:id" element={<BlogDetail />} />
             <Route path="/baiviet" element={<Posts />} />
+
             <Route path="/search" element={<SearchPage />} />
+
+            {/* ⭐⭐ JAVA EXAM PAGE */}
+            <Route path="/java-exam" element={<JavaExamCard />} />
+            <Route path="/java-exam/start" element={<JavaExamPage />} />
+            <Route path="/java-exam/result" element={<JavaExamResult />} />
           </Route>
 
+          {/* COURSE LESSONS */}
           <Route path="/courses/:courseSlug" element={<LessonLayout />}>
             <Route index element={<LessonPage />} />
             <Route path=":lessonId" element={<LessonPage />} />
           </Route>
 
+          {/* QUIZ */}
           <Route path="/quiz-exam/:quizId" element={<QuizExamPage />} />
         </Route>
 
-        {/* ===== ADMIN ===== */}
+        {/* ================= ADMIN ROUTES ================= */}
         <Route element={<PrivateRoute role="ROLE_ADMIN" />}>
           <Route path="/admin" element={<AdminLayout />}>
-            {/* Default /admin -> dashboard */}
             <Route index element={<Navigate to="dashboard" replace />} />
 
-            {/* Dashboard */}
             <Route path="dashboard" element={<DashboardPage />}>
               <Route index element={<Dashboard />} />
               <Route path="details" element={<DashboardDetails />} />
             </Route>
 
-            {/* Quản lý người dùng & lớp */}
             <Route path="users" element={<UserManagement />} />
-            <Route path="classes" element={<ClassManagement />} />
-
-            {/* Admin Home */}
+            <Route path="classes" element={<AdminClassManagement />} />
             <Route path="home" element={<AdminHomePage />} />
 
-            {/* Quản lý Exam */}
+            {/* EXAM MANAGEMENT */}
             <Route path="exam" element={<ExamManagement />} />
             <Route path="exam/:examId/detail" element={<ExamDetail />} />
             <Route path="exam/:examId/preview" element={<ExamPreview />} />
 
-            {/* Assignment */}
             <Route path="exercises" element={<AssignmentManagement />} />
 
-            {/* Ngân hàng câu hỏi */}
             <Route path="question-bank" element={<QuestionBank />} />
             <Route path="question-bank/create" element={<QuestionCreate />} />
             <Route path="question-bank/add" element={<QuestionBankCreate />} />
 
-            {/* Quản lý khóa học */}
             <Route path="courses" element={<ManageCourses />} />
-            <Route
-              path="courses/part/:courseSlug"
-              element={<ManageLessons />}
-            />
+            <Route path="courses/part/:courseSlug" element={<ManageLessons />} />
           </Route>
 
-          {/* ✅ Trang quản lý bài học chi tiết (ẩn sidebar mặc định) */}
-          <Route
-            path="/admin/courses/:courseSlug"
-            element={<ManageLessons />}
-          />
+          {/* ADMIN MANAGE LESSONS FROM OUTSIDE */}
+          <Route path="/admin/courses/:courseSlug" element={<ManageLessons />} />
         </Route>
 
-        {/* ===== Fallback ===== */}
+        {/* NOT FOUND → LOGIN */}
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </>

@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect, useRef } from "react";
+import React, { useMemo, useState, useEffect, useRef, useCallback } from "react";
 import { classService } from "@utils/classService";
 import ClassDetail from "./ClassDetail";
 import "./class.css";
@@ -12,12 +12,7 @@ export default function ClassManagement() {
   const [viewingClass, setViewingClass] = useState(null);
   const [classes, setClasses] = useState([]);
 
-  // --- Load classes từ API khi component mount ---
-  useEffect(() => {
-    fetchClasses();
-  }, []);
-
-  const fetchClasses = async () => {
+  const fetchClasses = useCallback(async () => {
     try {
       const res = await classService.getClasses({
         page: 0,
@@ -48,7 +43,7 @@ export default function ClassManagement() {
             const end = new Date(start);
             end.setMonth(end.getMonth() + 3);
             endDate = end.toISOString().split("T")[0];
-          } catch (e) {
+          } catch {
             endDate = "N/A";
           }
         }
@@ -79,7 +74,12 @@ export default function ClassManagement() {
       console.error("❌ Error fetching classes:", err);
       alert("Không thể tải danh sách lớp học!");
     }
-  };
+  }, [searchQuery, statusFilter]);
+
+  // --- Load classes từ API khi component mount / hoặc khi thay đổi bộ lọc ---
+  useEffect(() => {
+    fetchClasses();
+  }, [fetchClasses]);
 
   // --- Thêm lớp mới ---
   // --- Thêm lớp mới ---
@@ -1476,14 +1476,13 @@ const styles = {
     borderRadius: 999,
   },
   progressText: {
-    marginLeft: 8,
+    marginLeft: 12,
     color: "#6b7280",
     fontSize: 12,
     fontWeight: 700,
     display: "inline-block",
     position: "relative",
     top: -2,
-    marginLeft: 12,
   },
   actionCell: {
     display: "inline-flex",
