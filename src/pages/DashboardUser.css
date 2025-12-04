@@ -274,3 +274,20 @@
     line-height: 20px;
   }
 }
+/* Nút bài kiểm tra thử */
+.trial-test-btn {
+  margin-top: 12px;
+  padding: 12px 28px;
+  background: #DD673C;
+  color: #FFF;
+  border: none;
+  border-radius: 12px;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.trial-test-btn:hover {
+  background: #c75c35;
+}

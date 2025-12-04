@@ -60,7 +60,7 @@ export default function DashboardUser() {
       ),
       title: "Lớp học",
       description: "Xem danh sách các lớp học, thời khoá biểu và theo dõi tiến độ học tập của bạn",
-      path: "/home"
+      path: "/classes"
     },
     {
       id: 5,
@@ -69,7 +69,7 @@ export default function DashboardUser() {
           <g clipPath="url(#clip0_10632_35605)">
             <path d="M15.3001 41.8202C15.2401 41.8202 15.1601 41.8602 15.1001 41.8602C11.2201 39.9402 8.06012 36.7602 6.12012 32.8802C6.12012 32.8202 6.16012 32.7402 6.16012 32.6802C8.60012 33.4002 11.1201 33.9402 13.6201 34.3602C14.0601 36.8802 14.5801 39.3802 15.3001 41.8202Z" fill="#F37142" />
             <path d="M41.8801 32.9002C39.9001 36.8802 36.6001 40.1002 32.5801 42.0402C33.3401 39.5002 33.9801 36.9402 34.4001 34.3602C36.9201 33.9402 39.4001 33.4002 41.8401 32.6802C41.8201 32.7602 41.8801 32.8402 41.8801 32.9002Z" fill="#F37142" />
-            <path d="M42.0401 15.42C39.5201 14.66 36.9801 14.04 34.4001 13.6C33.9801 11.02 33.3601 8.45996 32.5801 5.95996C36.7201 7.93996 40.0601 11.28 42.0401 15.42Z" fill="#F37142" />
+            <path d="M42.0401 15.42C39.5201 14.66 36.9801 14 34.4001 13.6C33.9801 11.02 33.3601 8.45996 32.5801 5.95996C36.7201 7.93996 40.0601 11.28 42.0401 15.42Z" fill="#F37142" />
             <path d="M15.3 6.18012C14.58 8.62012 14.06 11.1001 13.64 13.6201C11.06 14.0201 8.49996 14.6601 5.95996 15.4201C7.89996 11.4001 11.12 8.10012 15.1 6.12012C15.16 6.12012 15.24 6.18012 15.3 6.18012Z" fill="#F37142" />
             <path d="M30.9795 13.18C26.3395 12.66 21.6595 12.66 17.0195 13.18C17.5195 10.44 18.1595 7.7 19.0595 5.06C19.0995 4.9 19.0795 4.78 19.0995 4.62C20.6795 4.24 22.2995 4 23.9995 4C25.6795 4 27.3195 4.24 28.8795 4.62C28.8995 4.78 28.8995 4.9 28.9395 5.06C29.8395 7.72 30.4795 10.44 30.9795 13.18Z" fill="#F37142" />
             <path d="M13.18 30.98C10.42 30.48 7.7 29.84 5.06 28.94C4.9 28.9 4.78 28.92 4.62 28.9C4.24 27.32 4 25.7 4 24C4 22.32 4.24 20.68 4.62 19.12C4.78 19.1 4.9 19.1 5.06 19.06C7.72 18.18 10.42 17.52 13.18 17.02C12.68 21.66 12.68 26.34 13.18 30.98Z" fill="#F37142" />
@@ -87,7 +87,29 @@ export default function DashboardUser() {
       title: "Quản lý đào tạo",
       description: "Công cụ tạo và quản lý các bài kiểm tra trực tuyến, giúp giáo viên đánh giá kiến thức của học sinh một cách dễ dàng và nhanh chóng",
       path: "/home"
-    }
+    },
+
+    /* ⭐ THẺ MỚI – Bài kiểm tra thử */
+    {
+      id: 6,
+      icon: (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="48"
+          height="48"
+          viewBox="0 0 24 24"
+          fill="#DD673C"
+        >
+          <path d="M12 2a10 10 0 100 20 10 10 0 000-20zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
+        </svg>
+      ),
+      title: "Bài kiểm tra thử",
+      description:
+        "Làm bài kiểm tra thử để đánh giá năng lực và chuẩn bị tốt hơn cho các bài thi chính thức",
+
+      /* ⭐ Chỉ sửa path đúng yêu cầu */
+      path: "/java-exam",
+    },
   ];
 
   return (
@@ -99,16 +121,15 @@ export default function DashboardUser() {
             Cùng khám phá kho tàng kiến thức bất tận cùng bộ tài liệu độc quyền với Rikkei Education nhé!
           </p>
         </div>
+
         <div className="banner-image">
-          <img
-            src={dashboardStudent}
-            alt="Dashboard illustration"
-          />
+          <img src={dashboardStudent} alt="Dashboard illustration" />
         </div>
       </div>
 
       <div className="learning-system-section">
         <h2 className="section-title">Hệ thống học tập</h2>
+
         <div className="learning-cards-grid">
           {learningSystemCards.map((card) => (
             <div
@@ -117,10 +138,12 @@ export default function DashboardUser() {
               onClick={() => navigate(card.path)}
             >
               <div className="card-icon">{card.icon}</div>
+
               <div className="card-content">
                 <h3 className="card-title">{card.title}</h3>
                 <p className="card-description">{card.description}</p>
               </div>
+
             </div>
           ))}
         </div>

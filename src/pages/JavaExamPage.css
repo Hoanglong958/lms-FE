@@ -1,0 +1,144 @@
+.exam-layout {
+  display: flex;
+  gap: 20px;
+  padding: 25px;
+  background: #f5f7fb;
+  min-height: 100vh;
+  font-family: "SF Pro Display", sans-serif;
+}
+
+.exam-content {
+  flex: 3;
+  background: #fff;
+  padding: 20px 25px;
+  border-radius: 12px;
+  box-shadow: 0 3px 12px rgba(0,0,0,0.05);
+}
+
+.exam-title {
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 5px;
+}
+
+.exam-desc {
+  color: #555;
+  margin-bottom: 20px;
+}
+
+.question-box {
+  background: #fff;
+  padding: 18px;
+  border-radius: 10px;
+  margin-bottom: 25px;
+  border: 1px solid #e5e5e5;
+}
+
+.question-title {
+  font-size: 17px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.answers {
+  display: grid;
+  gap: 10px;
+}
+
+.answer-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px;
+  font-size: 15px;
+  background: #fafafa;
+  border: 1px solid #dcdcdc;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.answer-btn:hover {
+  background: #f0f0f0;
+}
+
+.answer-btn.selected {
+  border-color: #3b82f6;
+  background: #eaf2ff;
+}
+
+.answer-label {
+  font-weight: bold;
+  background: #fff;
+  padding: 5px 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+.sidebar {
+  flex: 1;
+  background: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 3px 12px rgba(0,0,0,0.05);
+  height: fit-content;
+  position: sticky;
+  top: 20px;
+}
+
+.timer-box {
+  background: #f7faff;
+  padding: 12px;
+  border-radius: 8px;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.timer {
+  font-size: 24px;
+  font-weight: 600;
+  color: #2563eb;
+}
+
+.sidebar-title {
+  font-weight: 700;
+  margin: 10px 0;
+}
+
+.question-list {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.question-number {
+  padding: 10px 0;
+  background: #f3f4f6;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.question-number.done {
+  background: #d1e6ff;
+  border: 1px solid #3b82f6;
+}
+
+.submit-btn {
+  width: 100%;
+  padding: 12px;
+  background: #dd673c;
+  border: none;
+  color: #fff;
+  font-size: 17px;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.submit-btn:hover {
+  background: #c45a31;
+}

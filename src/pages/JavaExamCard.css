@@ -1,0 +1,96 @@
+.exam-container {
+  max-width: 650px;
+  margin: 30px auto;
+  padding: 25px;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08);
+  text-align: center;
+  font-family: "SF Pro Display", sans-serif;
+}
+
+.title {
+  font-size: 26px;
+  font-weight: 700;
+  color: #222;
+  margin-bottom: 10px;
+}
+
+.subtitle {
+  font-size: 15px;
+  font-weight: 400;
+  color: #555;
+}
+
+.exam-code {
+  margin-top: 12px;
+  font-size: 16px;
+  color: #444;
+}
+
+.exam-info {
+  list-style: none;
+  padding: 0;
+  margin: 20px 0 30px 0;
+  text-align: left;
+}
+
+.exam-info li {
+  font-size: 16px;
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.start-btn {
+  width: 100%;
+  padding: 12px 0;
+  background-color: #dd673c;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 18px;
+  cursor: pointer;
+  transition: 0.3s ease;
+  margin-bottom: 12px;
+}
+
+.start-btn:hover {
+  background-color: #bf532f;
+}
+
+.history-btn {
+  width: 100%;
+  padding: 12px 0;
+  background-color: #ececec;
+  color: #333;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: 0.3s ease;
+}
+
+.history-btn:hover {
+  background-color: #d9d9d9;
+}
+
+.history-panel { margin-top: 16px; text-align: left; }
+.history-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; background: #f3f4f6; border: 1px solid #e5e7eb; border-radius: 12px; }
+.history-header h3 { margin: 0; font-size: 16px; font-weight: 700; color: #0f172a; }
+.history-count { color: #64748b; font-weight: 600; }
+
+.history-items { margin-top: 12px; display: grid; grid-template-columns: 1fr; gap: 10px; }
+.history-card { background: #ffffff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 14px; box-shadow: 0 8px 20px rgba(15,23,42,0.06); }
+.history-top { display: flex; align-items: center; gap: 10px; }
+.history-percent { min-width: 64px; text-align: center; padding: 6px 10px; border-radius: 10px; color: #ffffff; font-weight: 700; }
+.history-percent.success { background: #16a34a; }
+.history-percent.danger { background: #ef4444; }
+.history-score { color: #0f172a; font-size: 16px; font-weight: 700; }
+.history-meta { margin-top: 8px; display: flex; align-items: center; justify-content: space-between; color: #334155; font-size: 14px; }
+.history-progress { margin-top: 10px; background: #f1f5f9; border-radius: 10px; height: 10px; overflow: hidden; }
+.history-progress-bar { height: 100%; background: linear-gradient(90deg, #f97316, #fb923c); border-radius: 10px; }
+.history-empty { margin-top: 12px; color: #64748b; font-style: italic; }
+
+@media (max-width: 640px) {
+  .history-meta { flex-direction: column; align-items: flex-start; gap: 6px; }
+}
