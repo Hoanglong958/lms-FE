@@ -117,19 +117,19 @@ export default function ClassManagement() {
       prev.map((c) =>
         c.id === id
           ? {
-              ...c,
-              name: payload.name.trim(),
-              subtitle: payload.subtitle.trim(),
-              code: payload.code.trim(),
-              teacher: payload.teacher.trim(),
-              students: parseInt(payload.students) || 0,
-              active: parseInt(payload.active) || 0,
-              progress: parseInt(payload.progress) || 0,
-              startDate: payload.startDate,
-              endDate: payload.endDate,
-              status: payload.status || "upcoming",
-              schedule: payload.schedule.trim(),
-            }
+            ...c,
+            name: payload.name.trim(),
+            subtitle: payload.subtitle.trim(),
+            code: payload.code.trim(),
+            teacher: payload.teacher.trim(),
+            students: parseInt(payload.students) || 0,
+            active: parseInt(payload.active) || 0,
+            progress: parseInt(payload.progress) || 0,
+            startDate: payload.startDate,
+            endDate: payload.endDate,
+            status: payload.status || "upcoming",
+            schedule: payload.schedule.trim(),
+          }
           : c
       )
     );
@@ -159,16 +159,16 @@ export default function ClassManagement() {
       classes.length === 0
         ? 0
         : Math.round(
-            classes.reduce((s, c) => s + (parseInt(c.progress) || 0), 0) /
-              classes.length
-          );
+          classes.reduce((s, c) => s + (parseInt(c.progress) || 0), 0) /
+          classes.length
+        );
     return {
       totalClasses,
       totalActiveClasses: activeClasses,
       totalStudents,
       avgProgress,
     };
-  }, [classes]);   
+  }, [classes]);
 
   // --- Lọc và tìm kiếm ---
   const filtered = useMemo(() => {
@@ -422,9 +422,9 @@ export default function ClassManagement() {
         />
       )}
       {viewingClass && (
-        <ViewClassModal
-          cls={viewingClass}
-          onClose={() => setViewingClass(null)}
+        <ClassDetail
+          classData={viewingClass}
+          onBack={() => setViewingClass(null)}
         />
       )}
       {confirmDelete && (
@@ -441,6 +441,10 @@ export default function ClassManagement() {
         onClose={() => setModalState({ ...modalState, isOpen: false })}
         type={modalState.type}
         data={modalState.data}
+        onAttendance={(classData) => {
+          setViewingClass(classData);
+          setModalState({ isOpen: false, type: null, data: null });
+        }}
       />
     </div>
   );

@@ -2,9 +2,14 @@ import React, { useState, useMemo } from "react";
 import "./ClassDetail.css";
 
 export default function ClassDetail({ classData, onBack }) {
+    // Debug: Log classData to verify students count
+    console.log("ClassDetail received classData:", classData);
+    console.log("Students count:", classData.students);
+
     // Generate mock students based on classData.students
     const studentsList = useMemo(() => {
         const count = parseInt(classData.students) || 0;
+        console.log("Generating", count, "students");
         return Array.from({ length: count }, (_, i) => ({
             id: i + 1,
             name: `Học viên ${i + 1}`,
@@ -19,7 +24,7 @@ export default function ClassDetail({ classData, onBack }) {
     const [attendanceShift, setAttendanceShift] = useState("morning");
 
 
-    const [showAttendance, setShowAttendance] = useState(false);
+    const [showAttendance, setShowAttendance] = useState(true);
     const [showDetailModal, setShowDetailModal] = useState(false);
     const [modalContent, setModalContent] = useState(null);
 
