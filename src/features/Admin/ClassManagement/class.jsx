@@ -207,37 +207,6 @@ export default function ClassManagement() {
 
         {/* Select class to send id to calendar */}
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <select
-            aria-label="Chọn lớp để xem thời khóa biểu"
-            value={selectedClassId}
-            onChange={(e) => setSelectedClassId(e.target.value)}
-            style={{ ...styles.select, height: 42 }}
-          >
-            <option value="">Chọn lớp</option>
-            {classes.map((cls) => (
-              <option key={cls.id} value={cls.id}>
-                {cls.name} {cls.code ? `(${cls.code})` : ""}
-              </option>
-            ))}
-          </select>
-
-          <button
-            type="button"
-            onClick={() => {
-              if (!selectedClassId) {
-                alert("Vui lòng chọn một lớp để mở thời khóa biểu.");
-                return;
-              }
-              // Navigate to calendar page with classId query parameter
-              navigate(
-                `/admin/calendar?classId=${encodeURIComponent(selectedClassId)}`
-              );
-            }}
-            style={{ ...styles.primaryButton, padding: "10px 12px" }}
-          >
-            <span style={styles.plusIcon}>Thời khóa biểu</span>
-          </button>
-
           <button
             type="button"
             style={styles.primaryButton}
@@ -452,6 +421,7 @@ export default function ClassManagement() {
                   </td>
                   <td style={styles.td}>
                     <ActionCell
+                      cls={c}
                       onView={() => setViewingClass(c)}
                       onEdit={() => setEditingClass(c)}
                       onDelete={() => handleRequestDelete(c)}
@@ -545,10 +515,10 @@ function StatusBadge({ status }) {
   return <span style={{ ...badgeStyles.base, ...style }}>{label}</span>;
 }
 
-function ActionCell({ onView, onEdit, onDelete }) {
+function ActionCell({ cls, onView, onEdit, onDelete }) {
   const [open, setOpen] = useState(false);
   const containerRef = useRef(null);
-
+  const navigate = useNavigate();
   useEffect(() => {
     if (!open) return;
     function handleGlobalPointerDown(e) {
@@ -610,6 +580,17 @@ function ActionCell({ onView, onEdit, onDelete }) {
               Chỉnh sửa
             </button>
           </li>
+          <li style={styles.menuItem}>
+            <button
+              type="button"
+              onClick={() => {
+                navigate(`/admin/calendar?classId=${cls.id}`);
+              }}
+            >
+              Thời khóa biểu
+            </button>
+          </li>
+
           <li style={styles.menuItem}>
             <button
               type="button"
