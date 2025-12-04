@@ -21,7 +21,7 @@ export default function Breadcrumb({ customItems }) {
                 </span>
               ) : (
                 <Link
-                  to={item.path || `/${item.slug}`}
+                  to={item.to || item.path || `/${item.slug}`}
                   className="breadcrumb-item breadcrumb-link"
                 >
                   {item.label}

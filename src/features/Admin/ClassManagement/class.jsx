@@ -583,6 +583,7 @@ function ActionCell({ cls, onView, onEdit, onDelete }) {
           <li style={styles.menuItem}>
             <button
               type="button"
+              style={styles.menuBtn}
               onClick={() => {
                 navigate(`/admin/calendar?classId=${cls.id}`);
               }}
