@@ -11,55 +11,36 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 8px 14px;
-    border-radius: 8px;
-    font-size: 13px;
-    font-weight: 600;
-    transition: all 0.2s ease;
-    cursor: pointer;
-    user-select: none;
-}
-
-.cm-badge:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    background: #f3f4f6;
+    color: #374151;
+    border: 1px solid #e5e7eb;
 }
 
 .cm-badge svg {
     flex-shrink: 0;
+    color: #6b7280;
 }
 
 .cm-badge-code {
-    background: linear-gradient(135deg, rgba(249, 115, 22, 0.15), rgba(251, 146, 60, 0.1));
-    color: #c2410c;
-    border: 1.5px solid rgba(249, 115, 22, 0.3);
-}
-
-.cm-badge-code:hover {
-    background: linear-gradient(135deg, rgba(249, 115, 22, 0.2), rgba(251, 146, 60, 0.15));
-    border-color: rgba(249, 115, 22, 0.5);
+    background: #f3f4f6;
+    color: #374151;
+    border: 1px solid #e5e7eb;
 }
 
 .cm-badge-teacher {
-    background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.1));
-    color: #6366f1;
-    border: 1.5px solid rgba(99, 102, 241, 0.3);
-}
-
-.cm-badge-teacher:hover {
-    background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.15));
-    border-color: rgba(99, 102, 241, 0.5);
+    background: #f3f4f6;
+    color: #374151;
+    border: 1px solid #e5e7eb;
 }
 
 .cm-badge-enrollment {
-    background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(5, 150, 105, 0.1));
-    color: #059669;
-    border: 1.5px solid rgba(16, 185, 129, 0.3);
-}
-
-.cm-badge-enrollment:hover {
-    background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.15));
-    border-color: rgba(16, 185, 129, 0.5);
+    background: #f3f4f6;
+    color: #374151;
+    border: 1px solid #e5e7eb;
 }
 
 .cm-enrollment-cell {
@@ -138,7 +119,6 @@
 
     to {
         transform: translateY(0);
-        opacity: 1;
     }
 }
 
