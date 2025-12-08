@@ -1,24 +1,24 @@
 import React, { useState, useEffect } from "react";
 import { Link, useOutletContext, useNavigate } from "react-router-dom";
 import { courseService } from "@utils/courseService.js";
+import { userService } from "@utils/userService";
 import styles from "./ManageCourses.module.css";
 import AdminHeader from "@components/Admin/AdminHeader";
 import { slugify } from "@utils/slugify";
+
 // Giá trị khởi tạo form
 const initialFormData = {
   title: "",
   description: "",
-  instructorName: "",
-  level: "", // có thể là "Beginner", "Intermediate", "Advanced"
+  instructorId: "",
+  level: "",
 };
 
-// Component dòng khóa học (table row)
+// Component dòng khóa học
 function CourseRow({ course, onEdit, onDelete }) {
   const navigate = useNavigate();
-  const isPublic = !course.isPrerequisite;
 
   const handleRowClick = (e) => {
-    // Tránh click vào các button không navigate
     if (e.target.closest("button")) return;
     navigate(`/admin/courses/${course.slug || slugify(course.title)}`, {
       state: { course },
@@ -57,17 +57,44 @@ function CourseRow({ course, onEdit, onDelete }) {
 
 // Component Trang Chính
 export default function ManageCourses() {
-  const [courses, setCourses] = useState([]); // bỏ init local
+  const [courses, setCourses] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [currentCourse, setCurrentCourse] = useState(null);
   const [formData, setFormData] = useState(initialFormData);
   const [searchTerm, setSearchTerm] = useState("");
+  const [instructors, setInstructors] = useState([]);
 
-  // --- Load danh sách từ API ---
+  // Load giảng viên
+  useEffect(() => {
+    userService
+      .getAllUsers({
+        role: "ROLE_TEACHER",
+        isActive: true,
+        size: 999,
+        page: 0,
+      })
+      .then((res) => {
+        console.log("INSTRUCTORS RAW:", res.data);
+
+        const listRaw = res.data?.data?.content || [];
+
+        // TỰ LỌC CHẮC ĂN
+        const teachers = listRaw.filter(
+          (u) => u.role === "ROLE_TEACHER" && u.isActive
+        );
+
+        console.log("INSTRUCTORS PARSED:", teachers);
+
+        setInstructors(teachers);
+      })
+      .catch((err) => console.error(err));
+  }, []);
+
+  // Load courses
   const loadCourses = async () => {
     try {
       const res = await courseService.getCourses();
-      setCourses(res.data); // API trả về danh sách
+      setCourses(res.data);
     } catch {}
   };
 
@@ -75,11 +102,14 @@ export default function ManageCourses() {
     loadCourses();
   }, []);
 
-  // --- Các hàm xử lý ---
+  // Input change
   const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    const val = type === "checkbox" ? checked : value;
-    setFormData((prev) => ({ ...prev, [name]: val }));
+    const { name, value } = e.target;
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: name === "instructorId" ? Number(value) : value,
+    }));
   };
 
   const handleAdd = () => {
@@ -93,7 +123,8 @@ export default function ManageCourses() {
     setFormData({
       title: course.title,
       description: course.description,
-      isPrerequisite: course.isPrerequisite,
+      instructorId: course.instructorId || "",
+      level: course.level || "",
     });
     setShowModal(true);
   };
@@ -109,28 +140,25 @@ export default function ManageCourses() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      const payload = {
-        ...formData,
-        slug: slugify(formData.title), // tạo slug
-      };
 
+    const payload = {
+      ...formData,
+      slug: slugify(formData.title),
+    };
+
+    try {
       if (currentCourse) {
         await courseService.updateCourse(currentCourse.id, payload);
       } else {
         await courseService.addCourse(payload);
       }
 
-      loadCourses(); // refresh list
+      loadCourses();
       setShowModal(false);
-    } catch (err) {}
+    } catch {}
   };
 
-  // --- Dữ liệu cho thẻ Stats ---
-  const totalCourses = courses.length;
-  const totalStudents = 1690;
-  const avgProgress = 67;
-
+  // Filtering
   const normalizedSearch = searchTerm.trim().toLowerCase();
   const displayedCourses = courses.filter((course) => {
     if (!normalizedSearch) return true;
@@ -139,7 +167,6 @@ export default function ManageCourses() {
       .some((field) => field.toLowerCase().includes(normalizedSearch));
   });
 
-  // const { toggleSidebar } = useOutletContext() || {};
   let toggleSidebar = () => {};
   try {
     toggleSidebar = useOutletContext()?.toggleSidebar || (() => {});
@@ -147,7 +174,6 @@ export default function ManageCourses() {
 
   return (
     <div className={styles.page}>
-      {/* Header của page */}
       <AdminHeader
         title="Quản lý khóa học"
         breadcrumb={[
@@ -166,48 +192,17 @@ export default function ManageCourses() {
       />
 
       <div className={styles.courseContentWrapper}>
-        {/* 4 Thẻ thống kê */}
-        <div className={styles.statsGrid}>
-          <div className={styles.statCard}>
-            <div className={`${styles.statIcon} ${styles.iconBgOrange}`}>
-              📚
-            </div>
-            <div className={styles.statInfo}>
-              <p>Tổng khóa học</p>
-              <span>{totalCourses}</span>
-            </div>
-          </div>
-          <div className={styles.statCard}>
-            <div className={`${styles.statIcon} ${styles.iconBgBlue}`}>👥</div>
-            <div className={styles.statInfo}>
-              <p>Tổng học viên</p>
-              <span>{totalStudents.toLocaleString("vi-VN")}</span>
-            </div>
-          </div>
-          <div className={styles.statCard}>
-            <div className={`${styles.statIcon} ${styles.iconBgGreen}`}>📈</div>
-            <div className={styles.statInfo}>
-              <p>Tiến độ hoàn thành TB</p>
-              <span>{avgProgress}%</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Thanh Tìm kiếm và Lọc */}
         <div className={styles.filterBar}>
           <div className={styles.searchInput}>
-            <span className={styles.searchIcon}></span>
             <input
               type="text"
               placeholder="Tìm kiếm khóa học..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              aria-label="Tìm kiếm khóa học"
             />
           </div>
         </div>
 
-        {/* Danh sách khóa học dạng bảng */}
         <div className={styles.tableWrapper}>
           <table className={styles.courseTable}>
             <thead>
@@ -230,29 +225,26 @@ export default function ManageCourses() {
           </table>
         </div>
 
-        {/* Modal */}
         {showModal && (
           <div className={styles.modalOverlay}>
             <div className={styles.modalContent}>
               <h2>{currentCourse ? "Sửa khóa học" : "Thêm khóa học mới"}</h2>
+
               <form onSubmit={handleSubmit}>
                 <div className={styles.formGroup}>
-                  <label htmlFor="title">Tên khóa học</label>
+                  <label>Tên khóa học</label>
                   <input
                     type="text"
-                    id="title"
                     name="title"
                     value={formData.title}
                     onChange={handleInputChange}
                     required
-                    autoFocus
                   />
                 </div>
 
                 <div className={styles.formGroup}>
-                  <label htmlFor="description">Mô tả</label>
+                  <label>Mô tả</label>
                   <textarea
-                    id="description"
                     name="description"
                     value={formData.description}
                     onChange={handleInputChange}
@@ -260,21 +252,28 @@ export default function ManageCourses() {
                 </div>
 
                 <div className={styles.formGroup}>
-                  <label htmlFor="instructorName">Tên giảng viên</label>
-                  <input
-                    type="text"
-                    id="instructorName"
-                    name="instructorName"
-                    value={formData.instructorName}
+                  <label>Giảng viên</label>
+
+                  <select
+                    id="instructorId"
+                    name="instructorId"
+                    value={formData.instructorId}
                     onChange={handleInputChange}
                     required
-                  />
+                  >
+                    <option value="">-- Chọn giảng viên --</option>
+
+                    {instructors.map((user) => (
+                      <option key={user.id} value={String(user.id)}>
+                        {user.fullName}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 <div className={styles.formGroup}>
-                  <label htmlFor="level">Cấp độ</label>
+                  <label>Cấp độ</label>
                   <select
-                    id="level"
                     name="level"
                     value={formData.level}
                     onChange={handleInputChange}
@@ -282,7 +281,7 @@ export default function ManageCourses() {
                   >
                     <option value="">Chọn cấp độ</option>
                     <option value="BEGINNER">Beginner</option>
-                    <option value="INTERMEDIATE">Intermediate</option>
+                    <option value="INTERMEDIATE">Inrmediate</option>
                     <option value="ADVANCED">Advanced</option>
                   </select>
                 </div>
@@ -290,8 +289,8 @@ export default function ManageCourses() {
                 <div className={styles.formActions}>
                   <button
                     type="button"
-                    onClick={() => setShowModal(false)}
                     className={styles.btn}
+                    onClick={() => setShowModal(false)}
                   >
                     Hủy
                   </button>
