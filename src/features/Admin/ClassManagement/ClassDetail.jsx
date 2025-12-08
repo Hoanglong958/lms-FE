@@ -1,10 +1,16 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import "./ClassDetail.css";
+import ClassDetailModal from "./ClassDetailModal";
 
 export default function ClassDetail({ classData, onBack }) {
+    // Debug: Log classData to verify students count
+    console.log("ClassDetail received classData:", classData);
+    console.log("Students count:", classData.students);
+
     // Generate mock students based on classData.students
     const studentsList = useMemo(() => {
         const count = parseInt(classData.students) || 0;
+        console.log("Generating", count, "students");
         return Array.from({ length: count }, (_, i) => ({
             id: i + 1,
             name: `Học viên ${i + 1}`,
@@ -19,7 +25,7 @@ export default function ClassDetail({ classData, onBack }) {
     const [attendanceShift, setAttendanceShift] = useState("morning");
 
 
-    const [showAttendance, setShowAttendance] = useState(false);
+    const [showAttendance, setShowAttendance] = useState(true);
     const [showDetailModal, setShowDetailModal] = useState(false);
     const [modalContent, setModalContent] = useState(null);
 
@@ -34,6 +40,16 @@ export default function ClassDetail({ classData, onBack }) {
         return initial;
     });
 
+    // Reset attendance when class changes
+    useEffect(() => {
+        const initial = {};
+        const count = parseInt(classData.students) || 0;
+        for (let i = 0; i < count; i++) {
+            initial[i + 1] = "present";
+        }
+        setAttendance(initial);
+    }, [classData.id, classData.students]);
+
     const handleAttendanceChange = (studentId, status) => {
         setAttendance((prev) => ({
             ...prev,
@@ -47,63 +63,9 @@ export default function ClassDetail({ classData, onBack }) {
     };
 
     const handleTagClick = (type) => {
-        let content = null;
-
-        switch (type) {
-            case 'code':
-                content = {
-                    title: 'Thông tin mã lớp',
-                    items: [
-                        { label: 'Mã lớp', value: classData.code },
-                        { label: 'Tên lớp', value: classData.name },
-                        { label: 'Ngày bắt đầu', value: classData.startDate || 'Chưa xác định' },
-                        { label: 'Ngày kết thúc', value: classData.endDate || 'Chưa xác định' },
-                        { label: 'Trạng thái', value: classData.status || 'Đang hoạt động' },
-                        { label: 'Tiến độ', value: `${classData.progress || 0}%` }
-                    ]
-                };
-                break;
-            case 'teacher':
-                content = {
-                    title: 'Thông tin giảng viên',
-                    items: [
-                        { label: 'Họ tên', value: classData.teacher },
-                        { label: 'Email', value: 'teacher@rikkei.edu.vn' },
-                        { label: 'Số điện thoại', value: '0123 456 789' },
-                        { label: 'Chuyên môn', value: 'Full-stack Development' },
-                        { label: 'Kinh nghiệm', value: '5+ năm giảng dạy' },
-                        { label: 'Đánh giá', value: '⭐⭐⭐⭐⭐ (4.9/5)' }
-                    ]
-                };
-                break;
-            case 'students':
-                content = {
-                    title: 'Danh sách học viên',
-                    items: studentsList.slice(0, 10).map((s, i) => ({
-                        label: `${i + 1}. ${s.name}`,
-                        value: s.code
-                    })),
-                    footer: studentsList.length > 10 ? `Và ${studentsList.length - 10} học viên khác...` : null
-                };
-                break;
-            case 'schedule':
-                content = {
-                    title: 'Lịch học chi tiết',
-                    items: [
-                        { label: 'Lịch học', value: classData.schedule || 'Chưa có lịch' },
-                        { label: 'Thứ 2, 4, 6', value: '18:30 - 21:30' },
-                        { label: 'Thời lượng/buổi', value: '3 giờ' },
-                        { label: 'Phòng học', value: 'R301 - Tầng 3' },
-                        { label: 'Tổng số buổi', value: '36 buổi' },
-                        { label: 'Đã hoàn thành', value: `${Math.floor((classData.progress || 0) / 100 * 36)} buổi` }
-                    ]
-                };
-                break;
-            default:
-                return;
-        }
-
-        setModalContent(content);
+        // Map type to modal type
+        const modalType = type === 'students' ? 'enrollment' : type;
+        setModalContent({ type: modalType });
         setShowDetailModal(true);
     };
 
@@ -128,7 +90,7 @@ export default function ClassDetail({ classData, onBack }) {
                 <div className="cd-title-wrap">
                     <h1 className="cd-class-name">{classData.name}</h1>
                     <div className="cd-info-tags">
-                        <span className="cd-info-tag cd-tag-code">
+                        <span className="cd-info-tag cd-tag-code" onClick={() => handleTagClick('code')} title="Click để xem chi tiết">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                 <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
                                 <line x1="9" y1="9" x2="15" y2="9" />
@@ -136,14 +98,14 @@ export default function ClassDetail({ classData, onBack }) {
                             </svg>
                             <span>Mã lớp: {classData.code}</span>
                         </span>
-                        <span className="cd-info-tag cd-tag-teacher">
+                        <span className="cd-info-tag cd-tag-teacher" onClick={() => handleTagClick('teacher')} title="Click để xem thông tin giảng viên">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                                 <circle cx="12" cy="7" r="4" />
                             </svg>
                             <span>Giảng viên: {classData.teacher}</span>
                         </span>
-                        <span className="cd-info-tag cd-tag-students">
+                        <span className="cd-info-tag cd-tag-students" onClick={() => handleTagClick('students')} title="Click để xem danh sách học viên">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                 <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
                                 <circle cx="9" cy="7" r="4" />
@@ -153,7 +115,7 @@ export default function ClassDetail({ classData, onBack }) {
                             <span>Sĩ số: {classData.students} HV</span>
                         </span>
                         {classData.schedule && (
-                            <span className="cd-info-tag cd-tag-schedule">
+                            <span className="cd-info-tag cd-tag-schedule" onClick={() => handleTagClick('schedule')} title="Click để xem lịch học chi tiết">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                     <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
                                     <line x1="16" y1="2" x2="16" y2="6" />
@@ -334,6 +296,14 @@ export default function ClassDetail({ classData, onBack }) {
                     </>
                 )}
             </div>
+
+            {/* Detail Info Modal */}
+            <ClassDetailModal
+                isOpen={showDetailModal}
+                onClose={() => setShowDetailModal(false)}
+                type={modalContent?.type}
+                data={classData}
+            />
         </div>
     );
 }

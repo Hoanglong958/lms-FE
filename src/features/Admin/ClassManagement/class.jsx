@@ -81,11 +81,13 @@ export default function ClassManagement() {
           progress: item.progress || item.completion || 0,
           startDate: item.startDate || item.start_date || "N/A",
           endDate: endDate,
-          status: item.status || "upcoming",
+          status: (item.status || "upcoming").toLowerCase().replace('ongoing', 'active').replace('completed', 'ended'),
           schedule: item.schedule || item.timetable || "",
         };
       });
 
+      console.log("📊 Mapped classes:", mappedClasses);
+      console.log("📊 Status values:", mappedClasses.map(c => c.status));
       setClasses(Array.isArray(mappedClasses) ? mappedClasses : []);
     } catch (err) {
       console.error("❌ Error fetching classes:", err);
@@ -120,19 +122,19 @@ export default function ClassManagement() {
       prev.map((c) =>
         c.id === id
           ? {
-              ...c,
-              name: payload.name.trim(),
-              subtitle: payload.subtitle.trim(),
-              code: payload.code.trim(),
-              teacher: payload.teacher.trim(),
-              students: parseInt(payload.students) || 0,
-              active: parseInt(payload.active) || 0,
-              progress: parseInt(payload.progress) || 0,
-              startDate: payload.startDate,
-              endDate: payload.endDate,
-              status: payload.status || "upcoming",
-              schedule: payload.schedule.trim(),
-            }
+            ...c,
+            name: payload.name.trim(),
+            subtitle: payload.subtitle.trim(),
+            code: payload.code.trim(),
+            teacher: payload.teacher.trim(),
+            students: parseInt(payload.students) || 0,
+            active: parseInt(payload.active) || 0,
+            progress: parseInt(payload.progress) || 0,
+            startDate: payload.startDate,
+            endDate: payload.endDate,
+            status: payload.status || "upcoming",
+            schedule: payload.schedule.trim(),
+          }
           : c
       )
     );
@@ -150,10 +152,68 @@ export default function ClassManagement() {
     setConfirmDelete(null);
   }
 
+  // --- Thay đổi trạng thái ---
+  async function handleStatusChange(classId, newStatus) {
+    // Tìm class hiện tại
+    const currentClass = classes.find(c => c.id === classId);
+    if (!currentClass) return;
+
+    const oldStatus = currentClass.status;
+
+    // Optimistic update - cập nhật UI ngay lập tức
+    setClasses((prev) =>
+      prev.map((c) =>
+        c.id === classId
+          ? { ...c, status: newStatus }
+          : c
+      )
+    );
+
+    // Gọi API để lưu vào database - gửi toàn bộ object
+    try {
+      // Map status values to API format
+      const statusMapping = {
+        'active': 'ONGOING',
+        'upcoming': 'UPCOMING',
+        'ended': 'COMPLETED'
+      };
+
+      const updateData = {
+        className: currentClass.name,
+        classCode: currentClass.code,
+        description: currentClass.subtitle,
+        instructorName: currentClass.teacher,
+        maxStudents: currentClass.students,
+        startDate: currentClass.startDate,
+        endDate: currentClass.endDate,
+        status: statusMapping[newStatus] || newStatus.toUpperCase(),
+        schedule: currentClass.schedule,
+      };
+
+      console.log('📤 Sending update data:', updateData);
+
+      await classService.updateClass(classId, updateData);
+      console.log(`✅ Cập nhật trạng thái lớp ${classId} thành công`);
+    } catch (error) {
+      console.error(`❌ Lỗi cập nhật trạng thái lớp ${classId}:`, error);
+      console.error('Error details:', error.response?.data);
+
+      // Rollback về trạng thái cũ
+      setClasses((prev) =>
+        prev.map((c) =>
+          c.id === classId
+            ? { ...c, status: oldStatus }
+            : c
+        )
+      );
+      alert('Không thể cập nhật trạng thái. Vui lòng thử lại!');
+    }
+  }
+
   // --- Thống kê ---
   const stats = useMemo(() => {
     const totalClasses = classes.length;
-    const activeClasses = classes.filter((c) => c.status === "active").length;
+    const activeClasses = classes.filter((c) => c.status === "active" || c.status === "ongoing").length;
     const totalStudents = classes.reduce(
       (s, c) => s + (parseInt(c.students) || 0),
       0
@@ -162,9 +222,9 @@ export default function ClassManagement() {
       classes.length === 0
         ? 0
         : Math.round(
-            classes.reduce((s, c) => s + (parseInt(c.progress) || 0), 0) /
-              classes.length
-          );
+          classes.reduce((s, c) => s + (parseInt(c.progress) || 0), 0) /
+          classes.length
+        );
     return {
       totalClasses,
       totalActiveClasses: activeClasses,
@@ -256,7 +316,7 @@ export default function ClassManagement() {
         />
         <StatCard
           icon={<IconCheckCircle />}
-          label="Đang hoạt động"
+          label="Đang học"
           value={stats.totalActiveClasses}
         />
         <StatCard
@@ -288,7 +348,7 @@ export default function ClassManagement() {
             style={styles.select}
           >
             <option value="all">Tất cả trạng thái</option>
-            <option value="active">Đang hoạt động</option>
+            <option value="active">Đang học</option>
             <option value="upcoming">Sắp bắt đầu</option>
             <option value="ended">Đã kết thúc</option>
           </select>
@@ -307,8 +367,6 @@ export default function ClassManagement() {
                 <th style={{ ...styles.th, width: 140 }}>Mã lớp</th>
                 <th style={{ ...styles.th, width: 160 }}>Giảng viên</th>
                 <th style={{ ...styles.th, width: 110 }}>Học viên</th>
-                <th style={{ ...styles.th, width: 120 }}>Hoạt động</th>
-                <th style={{ ...styles.th, width: 180 }}>Tiến độ</th>
                 <th style={{ ...styles.th, width: 210 }}>Thời gian</th>
                 <th style={{ ...styles.th, width: 120 }}>Trạng thái</th>
                 <th style={{ ...styles.th, width: 120 }}>Thao tác</th>
@@ -336,119 +394,42 @@ export default function ClassManagement() {
                     </div>
                   </td>
                   <td style={styles.td}>
-                    <span
-                      className="cm-badge cm-badge-code"
-                      onClick={() =>
-                        setModalState({ isOpen: true, type: "code", data: c })
-                      }
-                    >
-                      <svg
-                        width="12"
-                        height="12"
-                        viewBox="0 0 24 24"
-                        fill="currentColor"
-                      >
-                        <path
-                          d="M8 6l-6 6 6 6M16 6l6 6-6 6M13 2l-2 20"
-                          opacity="0.8"
-                        />
+                    <span className="cm-badge cm-badge-code">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M8 6l-6 6 6 6M16 6l6 6-6 6M13 2l-2 20" opacity="0.8" />
                       </svg>
                       {c.code}
                     </span>
                   </td>
                   <td style={styles.td}>
-                    <span
-                      className="cm-badge cm-badge-teacher"
-                      onClick={() =>
-                        setModalState({
-                          isOpen: true,
-                          type: "teacher",
-                          data: c,
-                        })
-                      }
-                    >
-                      <svg
-                        width="14"
-                        height="14"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                      >
-                        <circle
-                          cx="12"
-                          cy="8"
-                          r="4"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        />
-                        <path
-                          d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        />
+                    <span className="cm-badge cm-badge-teacher">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                        <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="2" />
+                        <path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2" stroke="currentColor" strokeWidth="2" />
                       </svg>
                       {c.teacher}
                     </span>
                   </td>
                   <td style={styles.td}>
                     <div className="cm-enrollment-cell">
-                      <span
-                        className="cm-badge cm-badge-enrollment"
-                        onClick={() =>
-                          setModalState({
-                            isOpen: true,
-                            type: "enrollment",
-                            data: c,
-                          })
-                        }
-                      >
-                        <svg
-                          width="14"
-                          height="14"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                        >
-                          <path
-                            d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                          />
-                          <circle
-                            cx="9"
-                            cy="7"
-                            r="4"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                          />
-                          <path
-                            d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                          />
+                      <span className="cm-badge cm-badge-enrollment">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" strokeWidth="2" />
+                          <circle cx="9" cy="7" r="4" stroke="currentColor" strokeWidth="2" />
+                          <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" strokeWidth="2" />
                         </svg>
                         {c.students}
                       </span>
-                      <span className="cm-badge-percentage">
-                        {c.students
-                          ? Math.round((c.active / c.students) * 100)
-                          : 0}
-                        %
-                      </span>
                     </div>
-                  </td>
-                  <td style={styles.td}>
-                    <span style={styles.activeWrap}>
-                      <IconCheckSmall />
-                      <span>{c.active}</span>
-                    </span>
-                  </td>
-                  <td style={styles.td}>
-                    <ProgressBar percent={c.progress} />
                   </td>
                   <td style={styles.td}>
                     {c.startDate} - {c.endDate}
                   </td>
                   <td style={styles.td}>
-                    <StatusBadge status={c.status} />
+                    <StatusSelect
+                      status={c.status}
+                      onChange={(newStatus) => handleStatusChange(c.id, newStatus)}
+                    />
                   </td>
                   <td style={styles.td}>
                     <ActionCell
@@ -461,7 +442,7 @@ export default function ClassManagement() {
               ))}
               {filtered.length === 0 && (
                 <tr>
-                  <td style={styles.emptyCell} colSpan={9}>
+                  <td style={styles.emptyCell} colSpan={7}>
                     Không tìm thấy lớp học phù hợp
                   </td>
                 </tr>
@@ -477,36 +458,47 @@ export default function ClassManagement() {
           onClose={() => setIsAddOpen(false)}
           onSubmit={handleAddClass}
         />
-      )}
-      {editingClass && (
-        <EditClassModal
-          cls={editingClass}
-          onClose={() => setEditingClass(null)}
-          onSubmit={(payload) => handleEditClass(editingClass.id, payload)}
-        />
-      )}
-      {viewingClass && (
-        <ViewClassModal
-          cls={viewingClass}
-          onClose={() => setViewingClass(null)}
-        />
-      )}
-      {confirmDelete && (
-        <ConfirmModal
-          title="Xóa lớp học"
-          message={`Bạn có chắc muốn xóa '${confirmDelete.name}'?`}
-          onCancel={() => setConfirmDelete(null)}
-          onConfirm={handleConfirmDelete}
-        />
-      )}
+      )
+      }
+      {
+        editingClass && (
+          <EditClassModal
+            cls={editingClass}
+            onClose={() => setEditingClass(null)}
+            onSubmit={(payload) => handleEditClass(editingClass.id, payload)}
+          />
+        )
+      }
+      {
+        viewingClass && (
+          <ClassDetail
+            classData={viewingClass}
+            onBack={() => setViewingClass(null)}
+          />
+        )
+      }
+      {
+        confirmDelete && (
+          <ConfirmModal
+            title="Xóa lớp học"
+            message={`Bạn có chắc muốn xóa '${confirmDelete.name}'?`}
+            onCancel={() => setConfirmDelete(null)}
+            onConfirm={handleConfirmDelete}
+          />
+        )
+      }
 
       <ClassDetailModal
         isOpen={modalState.isOpen}
         onClose={() => setModalState({ ...modalState, isOpen: false })}
         type={modalState.type}
         data={modalState.data}
+        onAttendance={(classData) => {
+          setViewingClass(classData);
+          setModalState({ isOpen: false, type: null, data: null });
+        }}
       />
-    </div>
+    </div >
   );
 }
 
@@ -543,6 +535,46 @@ function StatusBadge({ status }) {
   };
   const { label, style } = mapping[status] ?? mapping.active;
   return <span style={{ ...badgeStyles.base, ...style }}>{label}</span>;
+}
+
+function StatusSelect({ status, onChange }) {
+  const handleChange = (e) => {
+    onChange(e.target.value);
+  };
+
+  const getStatusStyle = (currentStatus) => {
+    const mapping = {
+      active: { bg: 'rgba(16, 185, 129, 0.12)', color: '#047857', border: 'rgba(16, 185, 129, 0.2)' },
+      upcoming: { bg: 'rgba(59, 130, 246, 0.12)', color: '#1e40af', border: 'rgba(59, 130, 246, 0.2)' },
+      ended: { bg: 'rgba(107, 114, 128, 0.12)', color: '#374151', border: 'rgba(107, 114, 128, 0.2)' },
+    };
+    return mapping[currentStatus] || mapping.active;
+  };
+
+  const statusStyle = getStatusStyle(status);
+
+  return (
+    <select
+      value={status}
+      onChange={handleChange}
+      style={{
+        padding: '6px 12px',
+        borderRadius: '999px',
+        fontSize: '12px',
+        fontWeight: 600,
+        background: statusStyle.bg,
+        color: statusStyle.color,
+        border: `1px solid ${statusStyle.border}`,
+        cursor: 'pointer',
+        outline: 'none',
+        transition: 'all 0.2s',
+      }}
+    >
+      <option value="active">Đang học</option>
+      <option value="upcoming">Sắp bắt đầu</option>
+      <option value="ended">Đã kết thúc</option>
+    </select>
+  );
 }
 
 function ActionCell({ onView, onEdit, onDelete }) {

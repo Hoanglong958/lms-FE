@@ -814,3 +814,107 @@
 .cd-toggle-attendance-btn.active:hover svg {
     transform: rotate(90deg);
 }
+
+   
+
+/* Clickable Info Tags */
+.cd-info-tags .cd-info-tag {
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+}
+
+.cd-info-tags .cd-info-tag:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.cd-info-tags .cd-tag-code:hover {
+    background: linear-gradient(135deg, rgba(249, 115, 22, 0.25), rgba(251, 146, 60, 0.2));
+    border-color: rgba(249, 115, 22, 0.5);
+}
+
+.cd-info-tags .cd-tag-teacher:hover {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.25), rgba(139, 92, 246, 0.2));
+    border-color: rgba(99, 102, 241, 0.5);
+}
+
+.cd-info-tags .cd-tag-students:hover {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.25), rgba(5, 150, 105, 0.2));
+    border-color: rgba(16, 185, 129, 0.5);
+}
+
+.cd-info-tags .cd-tag-schedule:hover {
+    background: linear-gradient(135deg, rgba(236, 72, 153, 0.25), rgba(219, 39, 119, 0.2));
+}
+
+/* Modal wrapper */
+.cd-modal-wrapper {
+    background: white;
+    border-radius: 16px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 80vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    animation: slideUp 0.3s ease;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.cd-modal-title {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+    color: #111827;
+}
+
+.cd-modal-footer {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid #e5e7eb;
+    color: #6b7280;
+    font-size: 13px;
+    font-style: italic;
+    text-align: center;
+}
+/* Enhanced Tag Styles */
+.cd-info-tags .cd-info-tag {
+    padding: 12px 20px;
+    font-size: 15px;
+    font-weight: 600;
+    border-radius: 12px;
+    gap: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.cd-info-tags .cd-info-tag svg {
+    width: 20px;
+    height: 20px;
+}
+
+.cd-info-tags .cd-tag-code {
+    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+    border: 2px solid #93c5fd;
+}
+
+.cd-info-tags .cd-tag-teacher {
+    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+    color: #065f46;
+    border: 2px solid #6ee7b7;
+}
+
+.cd-info-tags .cd-tag-teacher svg {
+    color: #10b981;
+}
+
+.cd-info-tags .cd-tag-students {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    border: 2px solid #fcd34d;
+}
+
+.cd-info-tags .cd-tag-schedule {
+    background: linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%);
+    border: 2px solid #f9a8d4;
+}
