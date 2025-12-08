@@ -23,10 +23,7 @@ export default function JavaExamResult() {
     }
   }, [location.state]);
 
-  useEffect(() => {
-    const t = setTimeout(() => navigate("/java-exam"), 5000);
-    return () => clearTimeout(t);
-  }, [navigate]);
+  // Bỏ tự động quay về, chỉ cho phép người dùng bấm nút quay lại
 
   if (!attempt) {
     return (
@@ -86,7 +83,6 @@ export default function JavaExamResult() {
 
         <div className="jexr-actions">
           <button className="jexr-btn" onClick={() => navigate("/java-exam")}>Quay về trang thi thử</button>
-          <span className="jexr-note">Tự động quay về sau 5 giây</span>
         </div>
       </div>
     </div>

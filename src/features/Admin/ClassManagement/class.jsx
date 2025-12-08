@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect, useRef } from "react";
+import React, { useMemo, useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { classService } from "@utils/classService";
 import ClassDetail from "./ClassDetail";
@@ -21,10 +21,7 @@ export default function ClassManagement() {
   });
 
   // --- Load classes từ API khi component mount ---
-  useEffect(() => {
-    fetchClasses();
-  }, []);
-  const fetchClasses = async () => {
+  const fetchClasses = useCallback(async () => {
     try {
       const res = await classService.getClasses({
         page: 0,
@@ -55,8 +52,9 @@ export default function ClassManagement() {
             const end = new Date(start);
             end.setMonth(end.getMonth() + 3);
             endDate = end.toISOString().split("T")[0];
-          } catch (e) {
+          } catch (_e) {
             endDate = "N/A";
+            void _e;
           }
         }
 
@@ -93,7 +91,11 @@ export default function ClassManagement() {
       console.error("❌ Error fetching classes:", err);
       alert("Không thể tải danh sách lớp học!");
     }
-  };
+  }, [searchQuery, statusFilter]);
+
+  useEffect(() => {
+    fetchClasses();
+  }, [fetchClasses]);
 
   // --- Thêm lớp mới ---
   function handleAddClass(payload) {
@@ -1640,7 +1642,6 @@ const styles = {
     display: "inline-block",
     position: "relative",
     top: -2,
-    marginLeft: 12,
   },
   actionCell: {
     display: "inline-flex",

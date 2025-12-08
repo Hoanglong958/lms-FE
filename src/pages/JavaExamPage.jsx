@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import "./JavaExamPage.css";
 
@@ -40,6 +40,17 @@ export default function JavaExamPage() {
   const [timeLeft, setTimeLeft] = useState(60 * 20); // 20 phút
   const startRef = useRef(Date.now());
   const navigate = useNavigate();
+  const submittedRef = useRef(false);
+  const wsRef = useRef(null);
+  const [notifs, setNotifs] = useState([]);
+
+  const showNotif = (message, type = "info") => {
+    const id = Date.now() + Math.random();
+    setNotifs((prev) => [...prev, { id, message, type }]);
+    setTimeout(() => {
+      setNotifs((prev) => prev.filter((n) => n.id !== id));
+    }, 3000);
+  };
 
   // ⏳ Đồng hồ đếm ngược
   useEffect(() => {
@@ -49,17 +60,42 @@ export default function JavaExamPage() {
     return () => clearInterval(timer);
   }, []);
 
-  const formatTime = (sec) => {
-    const m = Math.floor(sec / 60);
-    const s = sec % 60;
-    return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
-  };
+  useEffect(() => {
+    const token = localStorage.getItem("accessToken");
+    const url = (import.meta?.env?.VITE_WS_URL) || "ws://localhost:3900/ws";
+    try {
+      const ws = new WebSocket(`${url}${token ? `?token=${encodeURIComponent(token)}` : ""}`);
+      wsRef.current = ws;
+      ws.onopen = () => {
+        showNotif("Đã bắt đầu làm bài thi", "info");
+        try {
+          ws.send(JSON.stringify({ type: "EXAM_STARTED", data: { exam: "java-spring-boot" } }));
+        } catch (e) { void e; }
+      };
+      ws.onmessage = (evt) => {
+        try {
+          const payload = JSON.parse(evt.data);
+          if (payload?.type === "NOTIFICATION" && payload?.message) {
+            showNotif(payload.message, payload.level || "info");
+          }
+        } catch (e) { void e; }
+      };
+      ws.onerror = () => { void 0; };
+      ws.onclose = () => { void 0; };
+    } catch (e) { void e; }
+    return () => {
+      try {
+        wsRef.current?.close();
+      } catch (e) { void e; }
+    };
+  }, []);
 
-  const selectAnswer = (qid, index) => {
-    setSelectedAnswers({ ...selectedAnswers, [qid]: index });
-  };
-
-  const handleSubmit = () => {
+  const handleSubmit = useCallback((auto = false) => {
+    if (submittedRef.current) return;
+    if (!auto) {
+      const ok = window.confirm("Bạn có chắc chắn muốn nộp bài?");
+      if (!ok) return;
+    }
     const total = QUESTIONS.length;
     let correct = 0;
     for (const q of QUESTIONS) {
@@ -91,11 +127,43 @@ export default function JavaExamPage() {
         JSON.stringify(arr.slice(0, 50))
       );
     } catch (_e) { void _e; }
+    submittedRef.current = true;
+    try {
+      wsRef.current?.send(
+        JSON.stringify({ type: "EXAM_SUBMITTED", data: { attemptId: attempt.id } })
+      );
+    } catch (e) { void e; }
+    showNotif("Đã nộp bài thi thành công", "success");
     navigate("/java-exam/result", { state: { id: attempt.id } });
+  }, [navigate, selectedAnswers]);
+
+  useEffect(() => {
+    if (timeLeft === 0 && !submittedRef.current) {
+      handleSubmit(true);
+    }
+  }, [timeLeft, handleSubmit]);
+
+  const formatTime = (sec) => {
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
   };
+
+  const selectAnswer = (qid, index) => {
+    setSelectedAnswers({ ...selectedAnswers, [qid]: index });
+  };
+
+  
 
   return (
     <div className="exam-layout">
+      <div className="toast-container" style={{ position: "fixed", top: 16, right: 16, zIndex: 9999, display: "flex", flexDirection: "column", gap: 8 }}>
+        {notifs.map((n) => (
+          <div key={n.id} style={{ padding: "10px 12px", borderRadius: 8, color: "#fff", fontWeight: 600, boxShadow: "0 6px 20px rgba(0,0,0,0.12)", background: n.type === "success" ? "#16a34a" : n.type === "error" ? "#ef4444" : "#2563eb" }}>
+            {n.message}
+          </div>
+        ))}
+      </div>
       {/* LEFT CONTENT */}
       <div className="exam-content">
         <h2 className="exam-title">Bài Thi Java Spring Boot</h2>
@@ -142,12 +210,14 @@ export default function JavaExamPage() {
                 selectedAnswers[q.id] !== undefined ? "done" : ""
               }`}
             >
-              {i + 1}
+              {selectedAnswers[q.id] !== undefined
+                ? String.fromCharCode(65 + selectedAnswers[q.id])
+                : i + 1}
             </button>
           ))}
         </div>
 
-        <button className="submit-btn" onClick={handleSubmit}>Nộp bài</button>
+        <button className="submit-btn" onClick={() => handleSubmit(false)}>Nộp bài</button>
       </div>
     </div>
   );
