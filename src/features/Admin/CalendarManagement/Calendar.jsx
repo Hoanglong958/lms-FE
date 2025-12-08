@@ -7,6 +7,7 @@ import { useOutletContext } from "react-router-dom";
 import "./css/Calendar.css";
 
 // Components
+import PeriodManagementModal from "./components/Period/PeriodManagementModal";
 import CalendarPicker from "./components/CalendarPicker";
 import WeekSelector from "./components/WeekSelector";
 import SubjectList from "./components/SubjectList";
@@ -20,6 +21,8 @@ export default function CalendarManagement() {
   const [classInfo, setClassInfo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [courses, setCourses] = useState([]);
+
+  const [showPeriodModal, setShowPeriodModal] = useState(false);
 
   // Calendar states
   const [startDate, setStartDate] = useState(null);
@@ -231,6 +234,7 @@ export default function CalendarManagement() {
               onDateRangeSelect={handleDateRangeSelect}
               initialStartDate={startDate}
               initialEndDate={endDate}
+              onOpenPeriodModal={() => setShowPeriodModal(true)} // 👈 THIS
             />
           }
         />
@@ -294,6 +298,9 @@ export default function CalendarManagement() {
           )}
         </div>
       </div>
+      {showPeriodModal && (
+        <PeriodManagementModal onClose={() => setShowPeriodModal(false)} />
+      )}
     </div>
   );
 }
