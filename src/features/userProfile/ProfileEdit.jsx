@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { authService } from "@utils/authService";
 import "./ProfileEdit.css";
 
 export default function ProfileEdit() {
@@ -40,9 +41,65 @@ export default function ProfileEdit() {
         }
     };
 
+    // Password Modal State
+    const [showPasswordModal, setShowPasswordModal] = useState(false);
+    const [passwordData, setPasswordData] = useState({
+        oldPassword: "",
+        newPassword: "",
+        confirmPassword: ""
+    });
+    const [showPassword, setShowPassword] = useState({
+        old: false,
+        new: false,
+        confirm: false
+    });
+
     const handleChangePassword = () => {
-        // TODO: Implement password change logic
-        alert("Chức năng đổi mật khẩu sẽ được triển khai sau");
+        setShowPasswordModal(true);
+    };
+
+    const handleClosePasswordModal = () => {
+        setShowPasswordModal(false);
+        setPasswordData({ oldPassword: "", newPassword: "", confirmPassword: "" });
+        setShowPassword({ old: false, new: false, confirm: false });
+    };
+
+    const handlePasswordChangeInput = (e) => {
+        const { name, value } = e.target;
+        setPasswordData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const toggleShowPassword = (field) => {
+        setShowPassword(prev => ({ ...prev, [field]: !prev[field] }));
+    };
+
+    const handlePasswordSubmit = async () => {
+        const { oldPassword, newPassword, confirmPassword } = passwordData;
+
+        if (!oldPassword || !newPassword || !confirmPassword) {
+            alert("Vui lòng điền đầy đủ thông tin");
+            return;
+        }
+
+        if (newPassword !== confirmPassword) {
+            alert("Mật khẩu xác nhận không khớp");
+            return;
+        }
+
+        if (newPassword.length < 6) {
+            alert("Mật khẩu mới phải có ít nhất 6 ký tự");
+            return;
+        }
+
+        try {
+            await authService.changePassword({ oldPassword, newPassword });
+            alert("Đổi mật khẩu thành công!");
+            handleClosePasswordModal();
+        } catch (error) {
+            console.error("Change password error:", error);
+            const msg = error.response?.data?.message || "Đổi mật khẩu thất bại";
+            alert(msg);
+        }
     };
 
     const handleSubmit = (e) => {
@@ -55,15 +112,17 @@ export default function ProfileEdit() {
     return (
         <div className="profile-edit-container">
             <div className="profile-edit-wrapper">
-                <h1 className="profile-edit-title">Chỉnh sửa thông tin</h1>
+                <div className="profile-page-header">
+                    <h1 className="profile-edit-title">Chỉnh sửa thông tin</h1>
 
-                <div className="profile-edit-notice">
-                    <p>
-                        Tại đây bạn có thể xem các thông tin liên hệ của mình và chỉnh sửa ảnh hải điện.
-                    </p>
-                    <p>
-                        Các thông tin cá nhân của bạn là <strong>mặc định</strong> và <strong>không thể chỉnh sửa</strong>
-                    </p>
+                    <div className="profile-edit-notice">
+                        <p>
+                            Tại đây bạn có thể xem các thông tin hiển thị của mình và chỉnh sửa ảnh đại diện.
+                        </p>
+                        <p>
+                            Các thông tin cá nhân còn lại là mặc định và không thể chỉnh sửa.
+                        </p>
+                    </div>
                 </div>
 
                 <form onSubmit={handleSubmit} className="profile-edit-form">
@@ -204,6 +263,74 @@ export default function ProfileEdit() {
                     </div>
                 </form>
             </div>
+
+            {/* Password Change Modal */}
+            {showPasswordModal && (
+                <div className="password-modal-backdrop">
+                    <div className="password-modal">
+                        <h2>Đổi mật khẩu</h2>
+
+                        <div className="password-input-wrapper">
+                            <label>Mật khẩu cũ</label>
+                            <input
+                                type={showPassword.old ? "text" : "password"}
+                                name="oldPassword"
+                                value={passwordData.oldPassword}
+                                onChange={handlePasswordChangeInput}
+                                placeholder="*********"
+                            />
+                            <div className="password-toggle-icon" onClick={() => toggleShowPassword('old')}>
+                                {showPassword.old ? (
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                                ) : (
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="password-input-wrapper">
+                            <label>Mật khẩu mới</label>
+                            <input
+                                type={showPassword.new ? "text" : "password"}
+                                name="newPassword"
+                                value={passwordData.newPassword}
+                                onChange={handlePasswordChangeInput}
+                                placeholder="Nhập mật khẩu mới"
+                            />
+                            <div className="password-toggle-icon" onClick={() => toggleShowPassword('new')}>
+                                {showPassword.new ? (
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                                ) : (
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="password-input-wrapper">
+                            <label>Xác nhận mật khẩu mới</label>
+                            <input
+                                type={showPassword.confirm ? "text" : "password"}
+                                name="confirmPassword"
+                                value={passwordData.confirmPassword}
+                                onChange={handlePasswordChangeInput}
+                                placeholder="Xác nhận mật khẩu mới"
+                            />
+                            <div className="password-toggle-icon" onClick={() => toggleShowPassword('confirm')}>
+                                {showPassword.confirm ? (
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                                ) : (
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="modal-actions">
+                            <button className="btn-cancel" onClick={handleClosePasswordModal}>Hủy</button>
+                            <button className="btn-update" onClick={handlePasswordSubmit}>Cập nhật</button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

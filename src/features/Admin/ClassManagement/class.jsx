@@ -12,7 +12,6 @@ export default function ClassManagement() {
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [editingClass, setEditingClass] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(null);
-  const [viewingClass, setViewingClass] = useState(null);
   const [classes, setClasses] = useState([]);
   const [modalState, setModalState] = useState({ isOpen: false, type: null, data: null });
 
@@ -374,7 +373,7 @@ export default function ClassManagement() {
                     <div style={{ display: "grid", rowGap: 4 }}>
                       <button
                         type="button"
-                        onClick={() => setViewingClass(c)}
+                        onClick={() => navigate(`/admin/classes/${c.id}`, { state: { classData: c } })}
                         style={{
                           background: "transparent",
                           border: "none",
@@ -428,7 +427,7 @@ export default function ClassManagement() {
                   </td>
                   <td style={styles.td}>
                     <ActionCell
-                      onView={() => setViewingClass(c)}
+                      onView={() => navigate(`/admin/classes/${c.id}`, { state: { classData: c } })}
                       onEdit={() => setEditingClass(c)}
                       onDelete={() => handleRequestDelete(c)}
                     />
@@ -464,14 +463,7 @@ export default function ClassManagement() {
           />
         )
       }
-      {
-        viewingClass && (
-          <ClassDetail
-            classData={viewingClass}
-            onBack={() => setViewingClass(null)}
-          />
-        )
-      }
+
       {
         confirmDelete && (
           <ConfirmModal
@@ -489,7 +481,7 @@ export default function ClassManagement() {
         type={modalState.type}
         data={modalState.data}
         onAttendance={(classData) => {
-          setViewingClass(classData);
+          navigate(`/admin/classes/${classData.id}`, { state: { classData } });
           setModalState({ isOpen: false, type: null, data: null });
         }}
       />
@@ -661,8 +653,6 @@ function AddClassModal({ onClose, onSubmit }) {
   const [code, setCode] = useState("");
   const [teacher, setTeacher] = useState("");
   const [students, setStudents] = useState("0");
-  const [active, setActive] = useState("0");
-  const [progress, setProgress] = useState("0");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [status, setStatus] = useState("upcoming");
@@ -676,6 +666,9 @@ function AddClassModal({ onClose, onSubmit }) {
     if (!teacher.trim()) nextErrors.teacher = "Vui lòng nhập tên giáo viên";
     if (!startDate) nextErrors.startDate = "Vui lòng chọn ngày bắt đầu";
     if (!endDate) nextErrors.endDate = "Vui lòng chọn ngày kết thúc";
+    if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
+      nextErrors.endDate = "Ngày kết thúc không được nhỏ hơn ngày bắt đầu";
+    }
     setErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
   }
@@ -689,8 +682,8 @@ function AddClassModal({ onClose, onSubmit }) {
       code,
       teacher,
       students,
-      active,
-      progress,
+      active: 0,
+      progress: 0,
       startDate,
       endDate,
       status,
@@ -737,32 +730,36 @@ function AddClassModal({ onClose, onSubmit }) {
                 placeholder="Ví dụ: React Advanced"
               />
             </label>
-            <label style={modalStyles.label}>
-              Mã khoá học
-              <input
-                type="text"
-                value={code}
-                onChange={(e) => setCode(e.target.value)}
-                style={modalStyles.input}
-                placeholder="Ví dụ: REACT-ADV-01"
-              />
-              {errors.code && (
-                <div style={modalStyles.error}>{errors.code}</div>
-              )}
-            </label>
-            <label style={modalStyles.label}>
-              Giáo viên
-              <input
-                type="text"
-                value={teacher}
-                onChange={(e) => setTeacher(e.target.value)}
-                style={modalStyles.input}
-                placeholder="Ví dụ: Nguyễn Văn A"
-              />
-              {errors.teacher && (
-                <div style={modalStyles.error}>{errors.teacher}</div>
-              )}
-            </label>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              <label style={modalStyles.label}>
+                Mã khoá học
+                <input
+                  type="text"
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                  style={modalStyles.input}
+                  placeholder="Ví dụ: REACT-ADV-01"
+                />
+                {errors.code && (
+                  <div style={modalStyles.error}>{errors.code}</div>
+                )}
+              </label>
+              <label style={modalStyles.label}>
+                Giáo viên
+                <input
+                  type="text"
+                  value={teacher}
+                  onChange={(e) => setTeacher(e.target.value)}
+                  style={modalStyles.input}
+                  placeholder="Ví dụ: Nguyễn Văn A"
+                />
+                {errors.teacher && (
+                  <div style={modalStyles.error}>{errors.teacher}</div>
+                )}
+              </label>
+            </div>
+
             <div
               style={{
                 display: "grid",
@@ -787,6 +784,7 @@ function AddClassModal({ onClose, onSubmit }) {
                 <input
                   type="date"
                   value={endDate}
+                  min={startDate}
                   onChange={(e) => setEndDate(e.target.value)}
                   style={modalStyles.input}
                 />
@@ -795,13 +793,8 @@ function AddClassModal({ onClose, onSubmit }) {
                 )}
               </label>
             </div>
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr 1fr",
-                gap: 12,
-              }}
-            >
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
               <label style={modalStyles.label}>
                 Số học viên
                 <input
@@ -813,27 +806,19 @@ function AddClassModal({ onClose, onSubmit }) {
                 />
               </label>
               <label style={modalStyles.label}>
-                Hoạt động
-                <input
-                  type="number"
-                  value={active}
-                  onChange={(e) => setActive(e.target.value)}
-                  style={modalStyles.input}
-                  min="0"
-                />
-              </label>
-              <label style={modalStyles.label}>
-                Tiến độ (%)
-                <input
-                  type="number"
-                  value={progress}
-                  onChange={(e) => setProgress(e.target.value)}
-                  style={modalStyles.input}
-                  min="0"
-                  max="100"
-                />
+                Trạng thái
+                <select
+                  value={status}
+                  onChange={(e) => setStatus(e.target.value)}
+                  style={{ ...styles.select, width: "100%" }}
+                >
+                  <option value="upcoming">Sắp bắt đầu</option>
+                  <option value="active">Đang hoạt động</option>
+                  <option value="ended">Đã kết thúc</option>
+                </select>
               </label>
             </div>
+
             <label style={modalStyles.label}>
               Lịch học
               <input
@@ -843,18 +828,6 @@ function AddClassModal({ onClose, onSubmit }) {
                 style={modalStyles.input}
                 placeholder="Ví dụ: Thứ 2,4,6"
               />
-            </label>
-            <label style={modalStyles.label}>
-              Trạng thái
-              <select
-                value={status}
-                onChange={(e) => setStatus(e.target.value)}
-                style={{ ...styles.select, width: "100%" }}
-              >
-                <option value="upcoming">Sắp bắt đầu</option>
-                <option value="active">Đang hoạt động</option>
-                <option value="ended">Đã kết thúc</option>
-              </select>
             </label>
           </div>
           <div style={modalStyles.footer}>
@@ -896,6 +869,9 @@ function EditClassModal({ cls, onClose, onSubmit }) {
     if (!teacher.trim()) nextErrors.teacher = "Vui lòng nhập tên giáo viên";
     if (!startDate) nextErrors.startDate = "Vui lòng chọn ngày bắt đầu";
     if (!endDate) nextErrors.endDate = "Vui lòng chọn ngày kết thúc";
+    if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
+      nextErrors.endDate = "Ngày kết thúc không được nhỏ hơn ngày bắt đầu";
+    }
     setErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
   }
@@ -1003,6 +979,7 @@ function EditClassModal({ cls, onClose, onSubmit }) {
                 <input
                   type="date"
                   value={endDate}
+                  min={startDate}
                   onChange={(e) => setEndDate(e.target.value)}
                   style={modalStyles.input}
                 />

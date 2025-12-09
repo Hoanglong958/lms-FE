@@ -11,6 +11,7 @@ import AdminLayout from "@layouts/AdminLayout";
 // ===== Pages (User) =====
 import HomePage from "@pages/HomePage";
 import DashboardUser from "@pages/DashboardUser";
+import ProfileEdit from "@features/userProfile/ProfileEdit";
 import BlogList from "@features/baiviet/pages/BlogList";
 import BlogDetail from "@features/baiviet/pages/BlogDetail";
 import Posts from "@features/baiviet/pages/Posts";
@@ -46,6 +47,7 @@ import QuestionBankCreate from "@features/Admin/ExamManagement/QuestionBankCreat
 // Quản lý người dùng và lớp
 import UserManagement from "@features/Admin/UserManagement/user";
 import ClassManagement from "@features/Admin/ClassManagement/class";
+import ClassDetail from "@features/Admin/ClassManagement/ClassDetail";
 
 // Quản lý thời khóa biểu
 import CalendarManagement from "@features/Admin/CalendarManagement/Calendar";
@@ -73,6 +75,7 @@ export default function AppRouter() {
             <Route path="/bai-viet/:id" element={<BlogDetail />} />
             <Route path="/baiviet" element={<Posts />} />
             <Route path="/search" element={<SearchPage />} />
+            <Route path="/profile/edit" element={<ProfileEdit />} />
           </Route>
 
           <Route path="/courses/:courseSlug" element={<LessonLayout />}>
@@ -98,6 +101,7 @@ export default function AppRouter() {
             {/* Quản lý người dùng & lớp */}
             <Route path="users" element={<UserManagement />} />
             <Route path="classes" element={<ClassManagement />} />
+            <Route path="classes/:id" element={<ClassDetail />} />
 
             {/* Admin Home */}
             <Route path="home" element={<AdminHomePage />} />

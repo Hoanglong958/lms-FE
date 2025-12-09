@@ -11,4 +11,10 @@ export const authService = {
   register(payload) {
     return api.post("/api/v1/auth/register", payload);
   },
+
+  // POST /api/v1/users/change-password (Assuming this endpoint based on common practices)
+  // or /api/v1/auth/change-password
+  changePassword(payload) {
+    return api.post("/api/v1/auth/change-password", payload);
+  },
 };

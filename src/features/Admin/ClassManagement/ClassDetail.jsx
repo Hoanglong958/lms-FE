@@ -1,23 +1,85 @@
 import React, { useState, useMemo, useEffect } from "react";
+import { useLocation, useParams, useNavigate } from "react-router-dom";
+import { classService } from "@utils/classService";
 import "./ClassDetail.css";
 import ClassDetailModal from "./ClassDetailModal";
 
-export default function ClassDetail({ classData, onBack }) {
-    // Debug: Log classData to verify students count
-    console.log("ClassDetail received classData:", classData);
-    console.log("Students count:", classData.students);
+export default function ClassDetail({ classData: propClassData, onBack }) {
+    const { state } = useLocation();
+    const { id } = useParams();
+    const navigate = useNavigate();
 
-    // Generate mock students based on classData.students
+    // Use passed prop, or state from navigation, or null (to fetch)
+    const [classData, setClassData] = useState(propClassData || state?.classData || null);
+    const [loading, setLoading] = useState(!classData);
+
+    useEffect(() => {
+        // Validation: If we have state data matching the ID (if applicable), use it
+        if (state?.classData) {
+            setClassData(state.classData);
+            setLoading(false);
+            return;
+        }
+
+        // If prop is provided and matches (or we assume it matches if no ID checks), use it
+        if (propClassData) {
+            setClassData(propClassData);
+            setLoading(false);
+            return;
+        }
+
+        // Otherwise if we have an ID, fetch it
+        if (id) {
+            // Only fetch if we don't have data or data ID doesn't match URL ID
+            if (!classData || String(classData.id) !== String(id)) {
+                setLoading(true);
+                classService.getClassDetail(id)
+                    .then(res => {
+                        const data = res.data?.data || res.data;
+
+                        const mapped = {
+                            id: data.id,
+                            name: data.className || data.name,
+                            code: data.classCode || data.code,
+                            teacher: data.instructorName || data.teacher,
+                            students: data.maxStudents || 0,
+                            active: data.activeStudents || 0,
+                            progress: data.progress || 0,
+                            startDate: data.startDate,
+                            endDate: data.endDate,
+                            status: (data.status || 'upcoming').toLowerCase().replace('ongoing', 'active').replace('completed', 'ended'),
+                            schedule: data.schedule
+                        };
+                        setClassData(mapped);
+                    })
+                    .catch(err => {
+                        console.error("Failed to fetch class detail", err);
+                        alert("Không tìm thấy thông tin lớp học");
+                    })
+                    .finally(() => setLoading(false));
+            }
+        }
+    }, [id, state, propClassData]); // Removed classData from dependency to avoid infinite loops
+
+    const handleBack = () => {
+        if (onBack) {
+            onBack();
+        } else {
+            navigate("/admin/classes");
+        }
+    };
+
+    // Generate mock students based on classData
     const studentsList = useMemo(() => {
+        if (!classData) return [];
         const count = parseInt(classData.students) || 0;
-        console.log("Generating", count, "students");
         return Array.from({ length: count }, (_, i) => ({
             id: i + 1,
             name: `Học viên ${i + 1}`,
             code: `HV${String(i + 1).padStart(3, "0")}`,
             avatar: null,
         }));
-    }, [classData.students]);
+    }, [classData]);
 
     const [attendanceDate, setAttendanceDate] = useState(
         new Date().toISOString().split("T")[0]
@@ -29,26 +91,19 @@ export default function ClassDetail({ classData, onBack }) {
     const [showDetailModal, setShowDetailModal] = useState(false);
     const [modalContent, setModalContent] = useState(null);
 
-    // State to store attendance status: { studentId: 'present' | 'excused' | 'unexcused' }
-    const [attendance, setAttendance] = useState(() => {
-        const initial = {};
-        const count = parseInt(classData.students) || 0;
-        // Initialize all as present
-        for (let i = 0; i < count; i++) {
-            initial[i + 1] = "present";
-        }
-        return initial;
-    });
+    // State to store attendance status
+    const [attendance, setAttendance] = useState({});
 
     // Reset attendance when class changes
     useEffect(() => {
+        if (!classData) return;
         const initial = {};
         const count = parseInt(classData.students) || 0;
         for (let i = 0; i < count; i++) {
             initial[i + 1] = "present";
         }
         setAttendance(initial);
-    }, [classData.id, classData.students]);
+    }, [classData]);
 
     const handleAttendanceChange = (studentId, status) => {
         setAttendance((prev) => ({
@@ -63,26 +118,27 @@ export default function ClassDetail({ classData, onBack }) {
     };
 
     const handleTagClick = (type) => {
-        // Map type to modal type
         const modalType = type === 'students' ? 'enrollment' : type;
         setModalContent({ type: modalType });
         setShowDetailModal(true);
     };
 
+    if (loading) return <div className="p-8">Đang tải...</div>;
+    if (!classData) return <div className="p-8">Không tìm thấy dữ liệu lớp học.</div>;
+
     // Calculate stats
-    const stats = useMemo(() => {
-        const total = studentsList.length;
-        const present = Object.values(attendance).filter((s) => s === "present").length;
-        const excused = Object.values(attendance).filter((s) => s === "excused").length;
-        const unexcused = Object.values(attendance).filter((s) => s === "unexcused").length;
-        return { total, present, excused, unexcused };
-    }, [attendance, studentsList]);
+    const stats = {
+        total: studentsList.length,
+        present: Object.values(attendance).filter((s) => s === "present").length,
+        excused: Object.values(attendance).filter((s) => s === "excused").length,
+        unexcused: Object.values(attendance).filter((s) => s === "unexcused").length,
+    };
 
     return (
         <div className="cd-container">
             {/* Header */}
             <header className="cd-header">
-                <button className="cd-back-btn" onClick={onBack} title="Quay lại">
+                <button className="cd-back-btn" onClick={handleBack} title="Quay lại">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <path d="M19 12H5M12 19l-7-7 7-7" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
