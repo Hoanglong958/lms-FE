@@ -97,24 +97,45 @@ export default function ClassManagement() {
   }, [fetchClasses]);
 
   // --- Thêm lớp mới ---
-  function handleAddClass(payload) {
-    const nextId = Math.max(0, ...classes.map((c) => c.id)) + 1;
-    const newClass = {
-      id: nextId,
-      name: payload.name.trim(),
-      subtitle: payload.subtitle.trim(),
-      code: payload.code.trim(),
-      teacher: payload.teacher.trim(),
-      students: parseInt(payload.students) || 0,
-      active: parseInt(payload.active) || 0,
-      progress: parseInt(payload.progress) || 0,
-      startDate: payload.startDate,
-      endDate: payload.endDate,
-      status: payload.status || "upcoming",
-      schedule: payload.schedule.trim(),
-    };
-    setClasses((prev) => [newClass, ...prev]);
-    setIsAddOpen(false);
+  // --- Thêm lớp mới ---
+  async function handleAddClass(payload) {
+    // Check for duplicate class code
+    const isDuplicate = classes.some(
+      (c) => c.code.toLowerCase() === payload.code.trim().toLowerCase()
+    );
+
+    if (isDuplicate) {
+      alert("Mã lớp đã tồn tại. Vui lòng chọn mã lớp khác.");
+      return;
+    }
+
+    try {
+      const statusMapping = {
+        'active': 'ONGOING',
+        'upcoming': 'UPCOMING',
+        'ended': 'COMPLETED'
+      };
+
+      const apiPayload = {
+        className: payload.name.trim(),
+        classCode: payload.code.trim(),
+        description: payload.subtitle.trim(),
+        instructorName: payload.teacher.trim(),
+        maxStudents: parseInt(payload.students) || 0,
+        startDate: payload.startDate,
+        endDate: payload.endDate,
+        status: statusMapping[payload.status] || payload.status.toUpperCase(),
+        schedule: payload.schedule.trim(),
+      };
+
+      await classService.createClass(apiPayload);
+      await fetchClasses(); // Reload list from API
+      setIsAddOpen(false);
+      alert("Tạo lớp học thành công!");
+    } catch (error) {
+      console.error("Create class error:", error);
+      alert("Lỗi khi tạo lớp học: " + (error.response?.data?.message || error.message));
+    }
   }
 
   // --- Chỉnh sửa lớp ---
@@ -668,7 +689,7 @@ function AddClassModal({ onClose, onSubmit }) {
   function validate() {
     const nextErrors = {};
     if (!name.trim()) nextErrors.name = "Vui lòng nhập tên lớp học";
-    if (!code.trim()) nextErrors.code = "Vui lòng nhập mã khoá học";
+    if (!code.trim()) nextErrors.code = "Vui lòng nhập mã lớp học";
     if (!teacher.trim()) nextErrors.teacher = "Vui lòng nhập tên giáo viên";
     if (!startDate) nextErrors.startDate = "Vui lòng chọn ngày bắt đầu";
     if (!endDate) nextErrors.endDate = "Vui lòng chọn ngày kết thúc";
@@ -739,7 +760,7 @@ function AddClassModal({ onClose, onSubmit }) {
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
               <label style={modalStyles.label}>
-                Mã khoá học
+                Mã lớp học
                 <input
                   type="text"
                   value={code}
@@ -811,18 +832,6 @@ function AddClassModal({ onClose, onSubmit }) {
                   min="0"
                 />
               </label>
-              <label style={modalStyles.label}>
-                Trạng thái
-                <select
-                  value={status}
-                  onChange={(e) => setStatus(e.target.value)}
-                  style={{ ...styles.select, width: "100%" }}
-                >
-                  <option value="upcoming">Sắp bắt đầu</option>
-                  <option value="active">Đang hoạt động</option>
-                  <option value="ended">Đã kết thúc</option>
-                </select>
-              </label>
             </div>
 
             <label style={modalStyles.label}>
@@ -871,7 +880,7 @@ function EditClassModal({ cls, onClose, onSubmit }) {
   function validate() {
     const nextErrors = {};
     if (!name.trim()) nextErrors.name = "Vui lòng nhập tên lớp học";
-    if (!code.trim()) nextErrors.code = "Vui lòng nhập mã khoá học";
+    if (!code.trim()) nextErrors.code = "Vui lòng nhập mã lớp học";
     if (!teacher.trim()) nextErrors.teacher = "Vui lòng nhập tên giáo viên";
     if (!startDate) nextErrors.startDate = "Vui lòng chọn ngày bắt đầu";
     if (!endDate) nextErrors.endDate = "Vui lòng chọn ngày kết thúc";
@@ -938,7 +947,7 @@ function EditClassModal({ cls, onClose, onSubmit }) {
               />
             </label>
             <label style={modalStyles.label}>
-              Mã khoá học
+              Mã lớp học
               <input
                 type="text"
                 value={code}
