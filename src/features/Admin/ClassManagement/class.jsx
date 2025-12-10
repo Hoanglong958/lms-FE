@@ -113,28 +113,65 @@ export default function ClassManagement() {
   }
 
   // --- Chỉnh sửa lớp ---
-  function handleEditClass(id, payload) {
-    setClasses((prev) =>
-      prev.map((c) =>
-        c.id === id
-          ? {
-            ...c,
-            name: payload.name.trim(),
-            subtitle: payload.subtitle.trim(),
-            code: payload.code.trim(),
-            teacher: payload.teacher.trim(),
-            students: parseInt(payload.students) || 0,
-            active: parseInt(payload.active) || 0,
-            progress: parseInt(payload.progress) || 0,
-            startDate: payload.startDate,
-            endDate: payload.endDate,
-            status: payload.status || "upcoming",
-            schedule: payload.schedule.trim(),
-          }
-          : c
-      )
+  // --- Chỉnh sửa lớp ---
+  async function handleEditClass(id, payload) {
+    // Check for duplicate class code
+    const isDuplicate = classes.some(
+      (c) => c.code.toLowerCase() === payload.code.trim().toLowerCase() && c.id !== id
     );
-    setEditingClass(null);
+
+    if (isDuplicate) {
+      alert("Mã lớp đã tồn tại. Vui lòng chọn mã lớp khác.");
+      return;
+    }
+
+    try {
+      const statusMapping = {
+        'active': 'ONGOING',
+        'upcoming': 'UPCOMING',
+        'ended': 'COMPLETED'
+      };
+
+      const apiPayload = {
+        className: payload.name.trim(),
+        classCode: payload.code.trim(),
+        description: payload.subtitle.trim(),
+        instructorName: payload.teacher.trim(),
+        maxStudents: parseInt(payload.students) || 0,
+        startDate: payload.startDate,
+        endDate: payload.endDate,
+        status: statusMapping[payload.status] || payload.status.toUpperCase(),
+        schedule: payload.schedule.trim(),
+      };
+
+      await classService.updateClass(id, apiPayload);
+
+      setClasses((prev) =>
+        prev.map((c) =>
+          c.id === id
+            ? {
+              ...c,
+              name: payload.name.trim(),
+              subtitle: payload.subtitle.trim(),
+              code: payload.code.trim(),
+              teacher: payload.teacher.trim(),
+              students: parseInt(payload.students) || 0,
+              active: parseInt(payload.active) || 0,
+              progress: parseInt(payload.progress) || 0,
+              startDate: payload.startDate,
+              endDate: payload.endDate,
+              status: payload.status || "upcoming",
+              schedule: payload.schedule.trim(),
+            }
+            : c
+        )
+      );
+      setEditingClass(null);
+      alert("Cập nhật lớp học thành công!");
+    } catch (error) {
+      console.error("Failed to update class:", error);
+      alert("Lỗi khi cập nhật lớp học: " + (error.response?.data?.message || error.message));
+    }
   }
 
   // --- Xóa lớp ---
@@ -262,36 +299,8 @@ export default function ClassManagement() {
         </div>
 
         {/* Select class to send id to calendar */}
+        {/* Select class to send id to calendar */}
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <select
-            aria-label="Chọn lớp để xem thời khóa biểu"
-            value={selectedClassId}
-            onChange={(e) => setSelectedClassId(e.target.value)}
-            style={{ ...styles.select, height: 42 }}
-          >
-            <option value="">Chọn lớp</option>
-            {classes.map((cls) => (
-              <option key={cls.id} value={cls.id}>
-                {cls.name} {cls.code ? `(${cls.code})` : ""}
-              </option>
-            ))}
-          </select>
-
-          <button
-            type="button"
-            onClick={() => {
-              if (!selectedClassId) {
-                alert("Vui lòng chọn một lớp để mở thời khóa biểu.");
-                return;
-              }
-              // Navigate to calendar page with classId query parameter
-              navigate(`/admin/calendar?classId=${encodeURIComponent(selectedClassId)}`);
-            }}
-            style={{ ...styles.primaryButton, padding: "10px 12px" }}
-          >
-            <span style={styles.plusIcon}>Thời khóa biểu</span>
-          </button>
-
           <button
             type="button"
             style={styles.primaryButton}
@@ -389,29 +398,17 @@ export default function ClassManagement() {
                   </td>
                   <td style={styles.td}>
                     <span className="cm-badge cm-badge-code">
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M8 6l-6 6 6 6M16 6l6 6-6 6M13 2l-2 20" opacity="0.8" />
-                      </svg>
                       {c.code}
                     </span>
                   </td>
                   <td style={styles.td}>
                     <span className="cm-badge cm-badge-teacher">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                        <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="2" />
-                        <path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2" stroke="currentColor" strokeWidth="2" />
-                      </svg>
                       {c.teacher}
                     </span>
                   </td>
                   <td style={styles.td}>
                     <div className="cm-enrollment-cell">
                       <span className="cm-badge cm-badge-enrollment">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" strokeWidth="2" />
-                          <circle cx="9" cy="7" r="4" stroke="currentColor" strokeWidth="2" />
-                          <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" strokeWidth="2" />
-                        </svg>
                         {c.students}
                       </span>
                     </div>
@@ -545,9 +542,10 @@ function StatusSelect({ status, onChange }) {
       value={status}
       onChange={handleChange}
       style={{
-        padding: '6px 12px',
-        borderRadius: '999px',
-        fontSize: '12px',
+        padding: '0 12px',
+        height: '32px',
+        borderRadius: '8px',
+        fontSize: '13px',
         fontWeight: 600,
         background: statusStyle.bg,
         color: statusStyle.color,
@@ -555,6 +553,8 @@ function StatusSelect({ status, onChange }) {
         cursor: 'pointer',
         outline: 'none',
         transition: 'all 0.2s',
+        appearance: 'none', // Remove default arrow if needed, but keeping for now
+        minWidth: '120px',
       }}
     >
       <option value="active">Đang học</option>

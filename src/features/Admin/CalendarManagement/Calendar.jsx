@@ -31,10 +31,10 @@ export default function CalendarManagement() {
   const [draggingSubject, setDraggingSubject] = useState(null);
 
   // Get toggleSidebar from context
-  let toggleSidebar = () => {};
+  let toggleSidebar = () => { };
   try {
-    toggleSidebar = useOutletContext()?.toggleSidebar || (() => {});
-  } catch {}
+    toggleSidebar = useOutletContext()?.toggleSidebar || (() => { });
+  } catch { }
 
   // Load class info and courses
   useEffect(() => {
@@ -57,10 +57,10 @@ export default function CalendarManagement() {
         const coursesData = Array.isArray(coursesRes.data)
           ? coursesRes.data
           : Array.isArray(coursesRes.data?.data)
-          ? coursesRes.data.data
-          : Array.isArray(coursesRes.data?.content)
-          ? coursesRes.data.content
-          : [];
+            ? coursesRes.data.data
+            : Array.isArray(coursesRes.data?.content)
+              ? coursesRes.data.content
+              : [];
         setCourses(coursesData);
 
         // Initialize subjects with courses
@@ -221,6 +221,7 @@ export default function CalendarManagement() {
             { label: "Thời khóa biểu", to: `/admin/calendar?classId=${classId}` },
           ]}
           onMenuToggle={toggleSidebar}
+          onBack={() => navigate(-1)}
           actions={
             <CalendarPicker
               onDateRangeSelect={handleDateRangeSelect}
