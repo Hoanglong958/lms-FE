@@ -100,10 +100,13 @@ export default function UserManagement({ currentUserRole = "admin" }) {
 		try {
 			// Gọi API DELETE /api/v1/users/{id}
 			await userService.deleteUser(confirmDelete.id);
-			await fetchUsers();
+			// Cập nhật UI ngay lập tức bằng cách lọc bỏ user đã xóa
+			setUsers((prev) => prev.filter((u) => u.id !== confirmDelete.id));
 			setConfirmDelete(null);
+			// alert("Đã xóa người dùng thành công!"); // Optional: Feedback
 		} catch (err) {
-			// Thêm thông báo lỗi
+			console.error("Delete Error:", err);
+			alert("Không thể xóa người dùng: " + (err.response?.data?.message || err.message));
 		}
 	}
 
