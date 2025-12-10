@@ -42,7 +42,7 @@ export default function ManageLessons() {
       try {
         const res = await sessionService.getSessionsByCourse(course.id);
         setSessions(res.data || []);
-      } catch (err) {}
+      } catch (err) { }
     };
     loadSessions();
   }, [course]);
@@ -55,7 +55,7 @@ export default function ManageLessons() {
         try {
           const res = await lessonService.getLessonsBySession(s.id); // gọi GET /lessons?sessionId=s.id
           count += res.data.length;
-        } catch (err) {}
+        } catch (err) { }
       }
       setTotalLessons(count);
     };
@@ -103,7 +103,7 @@ export default function ManageLessons() {
         setSessions([...sessions, res.data]);
       }
       setShowModal(false);
-    } catch (err) {}
+    } catch (err) { }
   };
 
   return (
@@ -123,33 +123,7 @@ export default function ManageLessons() {
         }
       />
 
-      <div className={styles.cardLayout}>
-        {course && (
-          <>
-            <div className={styles.card}>
-              <h3 className={styles.cardTitle}>Giảng viên</h3>
-              <p className={styles.cardDescription}>{course.instructorName}</p>
-            </div>
 
-            <div className={styles.card}>
-              <h3 className={styles.cardTitle}>Ngày tạo</h3>
-              <p className={styles.cardDescription}>
-                {dayjs(course.createdAt).format("DD/MM/YYYY")}
-              </p>
-            </div>
-
-            <div className={styles.card}>
-              <h3 className={styles.cardTitle}>Tổng số session</h3>
-              <p className={styles.cardDescription}>{sessions.length}</p>
-            </div>
-
-            <div className={styles.card}>
-              <h3 className={styles.cardTitle}>Tổng số lesson</h3>
-              <p className={styles.cardDescription}>{totalLessons}</p>
-            </div>
-          </>
-        )}
-      </div>
 
       <div className={styles.contentLayout}>
         <aside className={styles.contentSidebar}>
@@ -158,9 +132,8 @@ export default function ManageLessons() {
             return (
               <div
                 key={s.id}
-                className={`${styles.sectionPanel} ${
-                  isExpanded ? styles.sectionPanelExpanded : ""
-                }`}
+                className={`${styles.sectionPanel} ${isExpanded ? styles.sectionPanelExpanded : ""
+                  }`}
               >
                 <div className={styles.sectionPanelHeader}>
                   <button
@@ -200,9 +173,34 @@ export default function ManageLessons() {
           })}
         </aside>
 
-        <section className={styles.contentDetail}>
-          <LessonDetailView lesson={selectedLesson} />
-        </section>
+        <div className={styles.rightContent}>
+          <div className={styles.cardLayout}>
+            {course && (
+              <>
+                <div className={styles.card}>
+                  <h3 className={styles.cardTitle}>Ngày tạo</h3>
+                  <p className={styles.cardDescription}>
+                    {dayjs(course.createdAt).format("DD/MM/YYYY")}
+                  </p>
+                </div>
+
+                <div className={styles.card}>
+                  <h3 className={styles.cardTitle}>Tổng số session</h3>
+                  <p className={styles.cardDescription}>{sessions.length}</p>
+                </div>
+
+                <div className={styles.card}>
+                  <h3 className={styles.cardTitle}>Tổng số lesson</h3>
+                  <p className={styles.cardDescription}>{totalLessons}</p>
+                </div>
+              </>
+            )}
+          </div>
+
+          <section className={styles.contentDetail}>
+            <LessonDetailView lesson={selectedLesson} />
+          </section>
+        </div>
       </div>
 
       {showModal && (

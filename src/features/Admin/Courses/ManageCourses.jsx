@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useOutletContext, useNavigate } from "react-router-dom";
 import { courseService } from "@utils/courseService.js";
-import { userService } from "@utils/userService";
+
 import styles from "./ManageCourses.module.css";
 import AdminHeader from "@components/Admin/AdminHeader";
 import { slugify } from "@utils/slugify";
@@ -10,8 +10,8 @@ import { slugify } from "@utils/slugify";
 const initialFormData = {
   title: "",
   description: "",
-  instructorId: "",
   level: "",
+  totalSessions: 0,
 };
 
 // Component dòng khóa học
@@ -32,7 +32,12 @@ function CourseRow({ course, onEdit, onDelete }) {
       style={{ cursor: "pointer" }}
     >
       <td className={styles.colTitle}>{course.title}</td>
-      <td className={styles.colDesc}>{course.description || "—"}</td>
+      <td className={styles.colDesc}>
+        {course.description && course.description.length > 50
+          ? course.description.substring(0, 50) + "..."
+          : course.description || "—"}
+      </td>
+      <td>{course.totalSessions || 0}</td>
       <td className={styles.colActions}>
         <div className={styles.rowActions}>
           <button
@@ -62,40 +67,14 @@ export default function ManageCourses() {
   const [currentCourse, setCurrentCourse] = useState(null);
   const [formData, setFormData] = useState(initialFormData);
   const [searchTerm, setSearchTerm] = useState("");
-  const [instructors, setInstructors] = useState([]);
 
-  // Load giảng viên
-  useEffect(() => {
-    userService
-      .getAllUsers({
-        role: "ROLE_TEACHER",
-        isActive: true,
-        size: 999,
-        page: 0,
-      })
-      .then((res) => {
-        console.log("INSTRUCTORS RAW:", res.data);
-
-        const listRaw = res.data?.data?.content || [];
-
-        // TỰ LỌC CHẮC ĂN
-        const teachers = listRaw.filter(
-          (u) => u.role === "ROLE_TEACHER" && u.isActive
-        );
-
-        console.log("INSTRUCTORS PARSED:", teachers);
-
-        setInstructors(teachers);
-      })
-      .catch((err) => console.error(err));
-  }, []);
 
   // Load courses
   const loadCourses = async () => {
     try {
       const res = await courseService.getCourses();
       setCourses(res.data);
-    } catch {}
+    } catch { }
   };
 
   useEffect(() => {
@@ -108,7 +87,7 @@ export default function ManageCourses() {
 
     setFormData((prev) => ({
       ...prev,
-      [name]: name === "instructorId" ? Number(value) : value,
+      [name]: name === "totalSessions" ? Number(value) : value,
     }));
   };
 
@@ -123,8 +102,8 @@ export default function ManageCourses() {
     setFormData({
       title: course.title,
       description: course.description,
-      instructorId: course.instructorId || "",
       level: course.level || "",
+      totalSessions: course.totalSessions || 0,
     });
     setShowModal(true);
   };
@@ -135,7 +114,7 @@ export default function ManageCourses() {
     try {
       await courseService.deleteCourse(course.id);
       loadCourses();
-    } catch {}
+    } catch { }
   };
 
   const handleSubmit = async (e) => {
@@ -155,7 +134,7 @@ export default function ManageCourses() {
 
       loadCourses();
       setShowModal(false);
-    } catch {}
+    } catch { }
   };
 
   // Filtering
@@ -167,10 +146,10 @@ export default function ManageCourses() {
       .some((field) => field.toLowerCase().includes(normalizedSearch));
   });
 
-  let toggleSidebar = () => {};
+  let toggleSidebar = () => { };
   try {
-    toggleSidebar = useOutletContext()?.toggleSidebar || (() => {});
-  } catch {}
+    toggleSidebar = useOutletContext()?.toggleSidebar || (() => { });
+  } catch { }
 
   return (
     <div className={styles.page}>
@@ -209,6 +188,7 @@ export default function ManageCourses() {
               <tr className={styles.tableHeader}>
                 <th className={styles.colTitle}>Tên khóa học</th>
                 <th className={styles.colDesc}>Mô tả</th>
+                <th>Tổng buổi</th>
                 <th className={styles.colActions}>Thao tác</th>
               </tr>
             </thead>
@@ -252,23 +232,15 @@ export default function ManageCourses() {
                 </div>
 
                 <div className={styles.formGroup}>
-                  <label>Giảng viên</label>
-
-                  <select
-                    id="instructorId"
-                    name="instructorId"
-                    value={formData.instructorId}
+                  <label>Tổng số buổi học</label>
+                  <input
+                    type="number"
+                    name="totalSessions"
+                    value={formData.totalSessions}
                     onChange={handleInputChange}
                     required
-                  >
-                    <option value="">-- Chọn giảng viên --</option>
-
-                    {instructors.map((user) => (
-                      <option key={user.id} value={String(user.id)}>
-                        {user.fullName}
-                      </option>
-                    ))}
-                  </select>
+                    min="1"
+                  />
                 </div>
 
                 <div className={styles.formGroup}>
