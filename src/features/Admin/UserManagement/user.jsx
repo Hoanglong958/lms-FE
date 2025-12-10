@@ -113,17 +113,29 @@ export default function UserManagement({ currentUserRole = "admin" }) {
 	}
 
 	// Hàm xác nhận và gọi API Khóa/Mở khóa (sử dụng toggleStatus)
-	// Hàm xác nhận và gọi API Khóa/Mở khóa (sử dụng toggleStatus)
 	async function handleConfirmLock() {
+		console.log("Clicked Confirm Lock/Unlock", confirmLock);
 		if (!confirmLock) return;
 		try {
-			// Gọi API PATCH /api/v1/users/{id}/status?active={boolean}
-			// Nếu đang active -> active=false, ngược lại active=true
-			const newStatus = !confirmLock.isActive;
-			await userService.toggleStatus(confirmLock.id, newStatus);
+			// Gọi API UPDATE (PUT) thay vì PATCH status riêng lẻ vì PATCH bị 403
+			// Gửi đầy đủ thông tin để đảm bảo không bị mất dữ liệu
+			const apiPayload = {
+				fullName: confirmLock.fullName,
+				gmail: confirmLock.gmail,
+				role: confirmLock.role,
+				isActive: !confirmLock.isActive, // Toggle status
+				password: confirmLock.password // Nếu backend cần password, nhưng thường update không cần nếu ko đổi
+			};
+
+			// Nếu API update không cần password thì bỏ qua. Thường API update user admin sẽ không require password cũ.
+			// Nếu PUT /api/v1/users/{id} hoạt động cho Edit, nó sẽ hoạt động cho Lock.
+
+			await userService.updateUser(confirmLock.id, apiPayload);
 			await fetchUsers();
 			setConfirmLock(null);
 		} catch (err) {
+			console.error("Lock/Unlock Error:", err);
+			alert("Có lỗi xảy ra khi thay đổi trạng thái tài khoản. " + (err.response?.data?.message || err.message));
 		}
 	}
 
@@ -263,6 +275,7 @@ export default function UserManagement({ currentUserRole = "admin" }) {
 											onLock={() => handleRequestLock(u)}
 											onEdit={() => setEditingUser(u)}
 											onDelete={() => handleRequestDelete(u)}
+											isActive={u.isActive}
 										/>
 									</td>
 								</tr>
@@ -315,7 +328,8 @@ export default function UserManagement({ currentUserRole = "admin" }) {
 					onCancel={() => setConfirmLock(null)}
 					onConfirm={handleConfirmLock}
 					confirmLabel={confirmLock.isActive ? 'Khóa' : 'Mở khóa'}
-					confirmStyle={confirmLock.isActive ? modalStyles.dangerBtn : modalStyles.primaryBtn}
+					// Ensure style object is valid
+					confirmStyle={confirmLock.isActive ? { ...modalStyles.dangerBtn } : { ...modalStyles.primaryBtn }}
 				/>
 			)}
 		</div>
@@ -505,13 +519,13 @@ function ConfirmModal({ title, message, onCancel, onConfirm, confirmLabel = "Xó
 					<div style={{ color: "#374151", fontSize: 14 }}>{message}</div>
 				</div>
 				<div style={modalStyles.footer}>
-					<button type="button" onClick={onCancel} style={modalStyles.ghostBtn}>
+					<button type="button" onClick={onCancel} style={{ ...modalStyles.ghostBtn, cursor: "pointer" }}>
 						Hủy
 					</button>
 					<button
 						type="button"
 						onClick={onConfirm}
-						style={confirmStyle || { ...styles.primaryButton, background: "#b91c1c" }}
+						style={{ ...(confirmStyle || { ...styles.primaryButton, background: "#b91c1c" }), cursor: "pointer", zIndex: 60 }}
 					>
 						{confirmLabel}
 					</button>
@@ -537,7 +551,7 @@ function StatusBadge({ status }) {
 	return <span style={{ ...badgeStyles.base, ...style }}>{label}</span>;
 }
 
-function RowActions({ onView, onLock, onEdit, onDelete }) {
+function RowActions({ onView, onLock, onEdit, onDelete, isActive }) {
 	const [open, setOpen] = useState(false);
 	const containerRef = useRef(null);
 
@@ -573,15 +587,26 @@ function RowActions({ onView, onLock, onEdit, onDelete }) {
 			</button>
 			<button
 				type="button"
-				aria-label="Khóa/Mở khóa"
-				title="Khóa/Mở khóa"
+				aria-label={isActive ? "Khóa tài khoản" : "Mở khóa tài khoản"}
+				title={isActive ? "Khóa tài khoản" : "Mở khóa tài khoản"}
 				onClick={() => onLock && onLock()}
-				style={{ ...styles.iconButton, marginLeft: 6 }}
+				style={{ ...styles.iconButton, marginLeft: 6, color: isActive ? "#6b7280" : "#ef4444" }}
 			>
-				<svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-					<path d="M7 10V7a5 5 0 0 1 9.584-2.058" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-					<rect x="4" y="10" width="16" height="10" rx="2" stroke="currentColor" strokeWidth="1.6" />
-				</svg>
+				{isActive ? (
+					// Icon Open Lock (Đang mở -> Click để khóa)
+					// Hoặc user yêu cầu: "Icon đóng vào khi khóa" -> Tức là khi locked (isActive=false) thì icon đóng.
+					// Khi isActive=true (Active) -> Icon mở.
+					<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+						<rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+						<path d="M7 11V7a5 5 0 0 1 9.9-1"></path>
+					</svg>
+				) : (
+					// Icon Closed Lock (Đang khóa -> Click để mở)
+					<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+						<rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+						<path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+					</svg>
+				)}
 			</button>
 			<button
 				type="button"
@@ -931,7 +956,7 @@ const modalStyles = {
 		display: "flex",
 		alignItems: "center",
 		justifyContent: "center",
-		zIndex: 50,
+		zIndex: 9999,
 		padding: 16
 	},
 	container: {

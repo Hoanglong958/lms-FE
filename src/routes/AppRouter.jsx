@@ -10,6 +10,7 @@ import AdminLayout from "@layouts/AdminLayout";
 // User Pages
 import HomePage from "@pages/HomePage";
 import DashboardUser from "@pages/DashboardUser";
+import ProfileEdit from "@features/userProfile/ProfileEdit";
 import BlogList from "@features/baiviet/pages/BlogList";
 import BlogDetail from "@features/baiviet/pages/BlogDetail";
 import Posts from "@features/baiviet/pages/Posts";
@@ -48,6 +49,7 @@ import QuestionBankCreate from "@features/Admin/ExamManagement/QuestionBankCreat
 
 import UserManagement from "@features/Admin/UserManagement/user";
 import ClassManagement from "@features/Admin/ClassManagement/class";
+import ClassDetail from "@features/Admin/ClassManagement/ClassDetail";
 
 // Quản lý thời khóa biểu
 import CalendarManagement from "@features/Admin/CalendarManagement/Calendar";
@@ -88,6 +90,7 @@ export default function AppRouter() {
             <Route path="/java-exam" element={<JavaExamCard />} />
             <Route path="/java-exam/start" element={<JavaExamPage />} />
             <Route path="/java-exam/result" element={<JavaExamResult />} />
+            <Route path="/profile/edit" element={<ProfileEdit />} />
           </Route>
 
           {/* COURSE LESSONS */}
@@ -112,6 +115,9 @@ export default function AppRouter() {
 
             <Route path="users" element={<UserManagement />} />
             <Route path="classes" element={<ClassManagement />} />
+            <Route path="classes/:id" element={<ClassDetail />} />
+
+            {/* Admin Home */}
             <Route path="home" element={<AdminHomePage />} />
 
             {/* EXAM MANAGEMENT */}

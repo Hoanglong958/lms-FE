@@ -12,7 +12,6 @@ export default function ClassManagement() {
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [editingClass, setEditingClass] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(null);
-  const [viewingClass, setViewingClass] = useState(null);
   const [classes, setClasses] = useState([]);
   const [modalState, setModalState] = useState({
     isOpen: false,
@@ -119,28 +118,65 @@ export default function ClassManagement() {
   }
 
   // --- Chỉnh sửa lớp ---
-  function handleEditClass(id, payload) {
-    setClasses((prev) =>
-      prev.map((c) =>
-        c.id === id
-          ? {
-            ...c,
-            name: payload.name.trim(),
-            subtitle: payload.subtitle.trim(),
-            code: payload.code.trim(),
-            teacher: payload.teacher.trim(),
-            students: parseInt(payload.students) || 0,
-            active: parseInt(payload.active) || 0,
-            progress: parseInt(payload.progress) || 0,
-            startDate: payload.startDate,
-            endDate: payload.endDate,
-            status: payload.status || "upcoming",
-            schedule: payload.schedule.trim(),
-          }
-          : c
-      )
+  // --- Chỉnh sửa lớp ---
+  async function handleEditClass(id, payload) {
+    // Check for duplicate class code
+    const isDuplicate = classes.some(
+      (c) => c.code.toLowerCase() === payload.code.trim().toLowerCase() && c.id !== id
     );
-    setEditingClass(null);
+
+    if (isDuplicate) {
+      alert("Mã lớp đã tồn tại. Vui lòng chọn mã lớp khác.");
+      return;
+    }
+
+    try {
+      const statusMapping = {
+        'active': 'ONGOING',
+        'upcoming': 'UPCOMING',
+        'ended': 'COMPLETED'
+      };
+
+      const apiPayload = {
+        className: payload.name.trim(),
+        classCode: payload.code.trim(),
+        description: payload.subtitle.trim(),
+        instructorName: payload.teacher.trim(),
+        maxStudents: parseInt(payload.students) || 0,
+        startDate: payload.startDate,
+        endDate: payload.endDate,
+        status: statusMapping[payload.status] || payload.status.toUpperCase(),
+        schedule: payload.schedule.trim(),
+      };
+
+      await classService.updateClass(id, apiPayload);
+
+      setClasses((prev) =>
+        prev.map((c) =>
+          c.id === id
+            ? {
+              ...c,
+              name: payload.name.trim(),
+              subtitle: payload.subtitle.trim(),
+              code: payload.code.trim(),
+              teacher: payload.teacher.trim(),
+              students: parseInt(payload.students) || 0,
+              active: parseInt(payload.active) || 0,
+              progress: parseInt(payload.progress) || 0,
+              startDate: payload.startDate,
+              endDate: payload.endDate,
+              status: payload.status || "upcoming",
+              schedule: payload.schedule.trim(),
+            }
+            : c
+        )
+      );
+      setEditingClass(null);
+      alert("Cập nhật lớp học thành công!");
+    } catch (error) {
+      console.error("Failed to update class:", error);
+      alert("Lỗi khi cập nhật lớp học: " + (error.response?.data?.message || error.message));
+    }
   }
 
   // --- Xóa lớp ---
@@ -268,38 +304,8 @@ export default function ClassManagement() {
         </div>
 
         {/* Select class to send id to calendar */}
+        {/* Select class to send id to calendar */}
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <select
-            aria-label="Chọn lớp để xem thời khóa biểu"
-            value={selectedClassId}
-            onChange={(e) => setSelectedClassId(e.target.value)}
-            style={{ ...styles.select, height: 42 }}
-          >
-            <option value="">Chọn lớp</option>
-            {classes.map((cls) => (
-              <option key={cls.id} value={cls.id}>
-                {cls.name} {cls.code ? `(${cls.code})` : ""}
-              </option>
-            ))}
-          </select>
-
-          <button
-            type="button"
-            onClick={() => {
-              if (!selectedClassId) {
-                alert("Vui lòng chọn một lớp để mở thời khóa biểu.");
-                return;
-              }
-              // Navigate to calendar page with classId query parameter
-              navigate(
-                `/admin/calendar?classId=${encodeURIComponent(selectedClassId)}`
-              );
-            }}
-            style={{ ...styles.primaryButton, padding: "10px 12px" }}
-          >
-            <span style={styles.plusIcon}>Thời khóa biểu</span>
-          </button>
-
           <button
             type="button"
             style={styles.primaryButton}
@@ -381,7 +387,7 @@ export default function ClassManagement() {
                     <div style={{ display: "grid", rowGap: 4 }}>
                       <button
                         type="button"
-                        onClick={() => setViewingClass(c)}
+                        onClick={() => navigate(`/admin/classes/${c.id}`, { state: { classData: c } })}
                         style={{
                           background: "transparent",
                           border: "none",
@@ -397,29 +403,17 @@ export default function ClassManagement() {
                   </td>
                   <td style={styles.td}>
                     <span className="cm-badge cm-badge-code">
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M8 6l-6 6 6 6M16 6l6 6-6 6M13 2l-2 20" opacity="0.8" />
-                      </svg>
                       {c.code}
                     </span>
                   </td>
                   <td style={styles.td}>
                     <span className="cm-badge cm-badge-teacher">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                        <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="2" />
-                        <path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2" stroke="currentColor" strokeWidth="2" />
-                      </svg>
                       {c.teacher}
                     </span>
                   </td>
                   <td style={styles.td}>
                     <div className="cm-enrollment-cell">
                       <span className="cm-badge cm-badge-enrollment">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" strokeWidth="2" />
-                          <circle cx="9" cy="7" r="4" stroke="currentColor" strokeWidth="2" />
-                          <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" strokeWidth="2" />
-                        </svg>
                         {c.students}
                       </span>
                     </div>
@@ -435,7 +429,7 @@ export default function ClassManagement() {
                   </td>
                   <td style={styles.td}>
                     <ActionCell
-                      onView={() => setViewingClass(c)}
+                      onView={() => navigate(`/admin/classes/${c.id}`, { state: { classData: c } })}
                       onEdit={() => setEditingClass(c)}
                       onDelete={() => handleRequestDelete(c)}
                     />
@@ -471,14 +465,7 @@ export default function ClassManagement() {
           />
         )
       }
-      {
-        viewingClass && (
-          <ClassDetail
-            classData={viewingClass}
-            onBack={() => setViewingClass(null)}
-          />
-        )
-      }
+
       {
         confirmDelete && (
           <ConfirmModal
@@ -496,7 +483,7 @@ export default function ClassManagement() {
         type={modalState.type}
         data={modalState.data}
         onAttendance={(classData) => {
-          setViewingClass(classData);
+          navigate(`/admin/classes/${classData.id}`, { state: { classData } });
           setModalState({ isOpen: false, type: null, data: null });
         }}
       />
@@ -560,9 +547,10 @@ function StatusSelect({ status, onChange }) {
       value={status}
       onChange={handleChange}
       style={{
-        padding: '6px 12px',
-        borderRadius: '999px',
-        fontSize: '12px',
+        padding: '0 12px',
+        height: '32px',
+        borderRadius: '8px',
+        fontSize: '13px',
         fontWeight: 600,
         background: statusStyle.bg,
         color: statusStyle.color,
@@ -570,6 +558,8 @@ function StatusSelect({ status, onChange }) {
         cursor: 'pointer',
         outline: 'none',
         transition: 'all 0.2s',
+        appearance: 'none', // Remove default arrow if needed, but keeping for now
+        minWidth: '120px',
       }}
     >
       <option value="active">Đang học</option>
@@ -669,8 +659,6 @@ function AddClassModal({ onClose, onSubmit }) {
   const [code, setCode] = useState("");
   const [teacher, setTeacher] = useState("");
   const [students, setStudents] = useState("0");
-  const [active, setActive] = useState("0");
-  const [progress, setProgress] = useState("0");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [status, setStatus] = useState("upcoming");
@@ -684,6 +672,9 @@ function AddClassModal({ onClose, onSubmit }) {
     if (!teacher.trim()) nextErrors.teacher = "Vui lòng nhập tên giáo viên";
     if (!startDate) nextErrors.startDate = "Vui lòng chọn ngày bắt đầu";
     if (!endDate) nextErrors.endDate = "Vui lòng chọn ngày kết thúc";
+    if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
+      nextErrors.endDate = "Ngày kết thúc không được nhỏ hơn ngày bắt đầu";
+    }
     setErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
   }
@@ -697,8 +688,8 @@ function AddClassModal({ onClose, onSubmit }) {
       code,
       teacher,
       students,
-      active,
-      progress,
+      active: 0,
+      progress: 0,
       startDate,
       endDate,
       status,
@@ -745,32 +736,36 @@ function AddClassModal({ onClose, onSubmit }) {
                 placeholder="Ví dụ: React Advanced"
               />
             </label>
-            <label style={modalStyles.label}>
-              Mã khoá học
-              <input
-                type="text"
-                value={code}
-                onChange={(e) => setCode(e.target.value)}
-                style={modalStyles.input}
-                placeholder="Ví dụ: REACT-ADV-01"
-              />
-              {errors.code && (
-                <div style={modalStyles.error}>{errors.code}</div>
-              )}
-            </label>
-            <label style={modalStyles.label}>
-              Giáo viên
-              <input
-                type="text"
-                value={teacher}
-                onChange={(e) => setTeacher(e.target.value)}
-                style={modalStyles.input}
-                placeholder="Ví dụ: Nguyễn Văn A"
-              />
-              {errors.teacher && (
-                <div style={modalStyles.error}>{errors.teacher}</div>
-              )}
-            </label>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              <label style={modalStyles.label}>
+                Mã khoá học
+                <input
+                  type="text"
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                  style={modalStyles.input}
+                  placeholder="Ví dụ: REACT-ADV-01"
+                />
+                {errors.code && (
+                  <div style={modalStyles.error}>{errors.code}</div>
+                )}
+              </label>
+              <label style={modalStyles.label}>
+                Giáo viên
+                <input
+                  type="text"
+                  value={teacher}
+                  onChange={(e) => setTeacher(e.target.value)}
+                  style={modalStyles.input}
+                  placeholder="Ví dụ: Nguyễn Văn A"
+                />
+                {errors.teacher && (
+                  <div style={modalStyles.error}>{errors.teacher}</div>
+                )}
+              </label>
+            </div>
+
             <div
               style={{
                 display: "grid",
@@ -795,6 +790,7 @@ function AddClassModal({ onClose, onSubmit }) {
                 <input
                   type="date"
                   value={endDate}
+                  min={startDate}
                   onChange={(e) => setEndDate(e.target.value)}
                   style={modalStyles.input}
                 />
@@ -803,13 +799,8 @@ function AddClassModal({ onClose, onSubmit }) {
                 )}
               </label>
             </div>
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr 1fr",
-                gap: 12,
-              }}
-            >
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
               <label style={modalStyles.label}>
                 Số học viên
                 <input
@@ -821,27 +812,19 @@ function AddClassModal({ onClose, onSubmit }) {
                 />
               </label>
               <label style={modalStyles.label}>
-                Hoạt động
-                <input
-                  type="number"
-                  value={active}
-                  onChange={(e) => setActive(e.target.value)}
-                  style={modalStyles.input}
-                  min="0"
-                />
-              </label>
-              <label style={modalStyles.label}>
-                Tiến độ (%)
-                <input
-                  type="number"
-                  value={progress}
-                  onChange={(e) => setProgress(e.target.value)}
-                  style={modalStyles.input}
-                  min="0"
-                  max="100"
-                />
+                Trạng thái
+                <select
+                  value={status}
+                  onChange={(e) => setStatus(e.target.value)}
+                  style={{ ...styles.select, width: "100%" }}
+                >
+                  <option value="upcoming">Sắp bắt đầu</option>
+                  <option value="active">Đang hoạt động</option>
+                  <option value="ended">Đã kết thúc</option>
+                </select>
               </label>
             </div>
+
             <label style={modalStyles.label}>
               Lịch học
               <input
@@ -851,18 +834,6 @@ function AddClassModal({ onClose, onSubmit }) {
                 style={modalStyles.input}
                 placeholder="Ví dụ: Thứ 2,4,6"
               />
-            </label>
-            <label style={modalStyles.label}>
-              Trạng thái
-              <select
-                value={status}
-                onChange={(e) => setStatus(e.target.value)}
-                style={{ ...styles.select, width: "100%" }}
-              >
-                <option value="upcoming">Sắp bắt đầu</option>
-                <option value="active">Đang hoạt động</option>
-                <option value="ended">Đã kết thúc</option>
-              </select>
             </label>
           </div>
           <div style={modalStyles.footer}>
@@ -904,6 +875,9 @@ function EditClassModal({ cls, onClose, onSubmit }) {
     if (!teacher.trim()) nextErrors.teacher = "Vui lòng nhập tên giáo viên";
     if (!startDate) nextErrors.startDate = "Vui lòng chọn ngày bắt đầu";
     if (!endDate) nextErrors.endDate = "Vui lòng chọn ngày kết thúc";
+    if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
+      nextErrors.endDate = "Ngày kết thúc không được nhỏ hơn ngày bắt đầu";
+    }
     setErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
   }
@@ -1011,6 +985,7 @@ function EditClassModal({ cls, onClose, onSubmit }) {
                 <input
                   type="date"
                   value={endDate}
+                  min={startDate}
                   onChange={(e) => setEndDate(e.target.value)}
                   style={modalStyles.input}
                 />

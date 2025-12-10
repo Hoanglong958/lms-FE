@@ -8,40 +8,29 @@
 
 /* ===== BADGES ===== */
 .cm-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
-    border-radius: 6px;
-    font-size: 12px;
+    /* display: inline-flex; */
+    /* align-items: center; */
+    /* justify-content: center; */
+    /* gap: 8px; */
+    /* height: 32px; */
+    /* padding: 0 12px; */
+    /* border-radius: 8px; */
+    font-size: 14px;
     font-weight: 500;
-    background: #f3f4f6;
+    /* transition: all 0.2s ease; */
+    /* border: 1px solid transparent; */
+    white-space: nowrap;
     color: #374151;
-    border: 1px solid #e5e7eb;
 }
 
 .cm-badge svg {
     flex-shrink: 0;
-    color: #6b7280;
+    width: 16px;
+    height: 16px;
+    opacity: 0.8;
 }
 
-.cm-badge-code {
-    background: #f3f4f6;
-    color: #374151;
-    border: 1px solid #e5e7eb;
-}
 
-.cm-badge-teacher {
-    background: #f3f4f6;
-    color: #374151;
-    border: 1px solid #e5e7eb;
-}
-
-.cm-badge-enrollment {
-    background: #f3f4f6;
-    color: #374151;
-    border: 1px solid #e5e7eb;
-}
 
 .cm-enrollment-cell {
     display: flex;
@@ -62,9 +51,12 @@
 }
 
 .cm-badge-status-active {
-    padding: 6px 12px;
-    border-radius: 999px;
-    font-size: 12px;
+    padding: 0 12px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    border-radius: 8px;
+    font-size: 13px;
     font-weight: 600;
     background: rgba(16, 185, 129, 0.12);
     color: #047857;
