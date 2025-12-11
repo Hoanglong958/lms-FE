@@ -1,9 +1,27 @@
 import React, { useMemo, useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { classService } from "@utils/classService";
+import { userService } from "@utils/userService";
 import ClassDetail from "./ClassDetail";
 import ClassDetailModal from "./ClassDetailModal";
 import "./class.css";
+
+
+const calculateStatus = (startDate, endDate) => {
+  if (!startDate || !endDate || startDate === 'N/A' || endDate === 'N/A') return "upcoming";
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+
+  const start = new Date(startDate);
+  start.setHours(0, 0, 0, 0);
+
+  const end = new Date(endDate);
+  end.setHours(0, 0, 0, 0);
+
+  if (now < start) return "upcoming";
+  if (now > end) return "ended";
+  return "active";
+};
 
 export default function ClassManagement() {
   const navigate = useNavigate();
@@ -77,7 +95,7 @@ export default function ClassManagement() {
           progress: item.progress || item.completion || 0,
           startDate: item.startDate || item.start_date || "N/A",
           endDate: endDate,
-          status: (item.status || "upcoming").toLowerCase().replace('ongoing', 'active').replace('completed', 'ended'),
+          status: calculateStatus(item.startDate || item.start_date, endDate),
           schedule: item.schedule || item.timetable || "",
         };
       });
@@ -111,6 +129,8 @@ export default function ClassManagement() {
         'ended': 'COMPLETED'
       };
 
+      const calculatedStatus = calculateStatus(payload.startDate, payload.endDate);
+
       const apiPayload = {
         className: payload.name.trim(),
         classCode: payload.code.trim(),
@@ -119,7 +139,7 @@ export default function ClassManagement() {
         maxStudents: parseInt(payload.students) || 0,
         startDate: payload.startDate,
         endDate: payload.endDate,
-        status: statusMapping[payload.status] || payload.status.toUpperCase(),
+        status: statusMapping[calculatedStatus] || calculatedStatus.toUpperCase(),
         schedule: payload.schedule.trim(),
       };
 
@@ -153,6 +173,8 @@ export default function ClassManagement() {
         'ended': 'COMPLETED'
       };
 
+      const calculatedStatus = calculateStatus(payload.startDate, payload.endDate);
+
       const apiPayload = {
         className: payload.name.trim(),
         classCode: payload.code.trim(),
@@ -161,7 +183,7 @@ export default function ClassManagement() {
         maxStudents: parseInt(payload.students) || 0,
         startDate: payload.startDate,
         endDate: payload.endDate,
-        status: statusMapping[payload.status] || payload.status.toUpperCase(),
+        status: statusMapping[calculatedStatus] || calculatedStatus.toUpperCase(),
         schedule: payload.schedule.trim(),
       };
 
@@ -181,7 +203,7 @@ export default function ClassManagement() {
               progress: parseInt(payload.progress) || 0,
               startDate: payload.startDate,
               endDate: payload.endDate,
-              status: payload.status || "upcoming",
+              status: calculatedStatus,
               schedule: payload.schedule.trim(),
             }
             : c
@@ -200,69 +222,21 @@ export default function ClassManagement() {
     setConfirmDelete(cls);
   }
 
-  function handleConfirmDelete() {
+  async function handleConfirmDelete() {
     if (!confirmDelete) return;
-    setClasses((prev) => prev.filter((c) => c.id !== confirmDelete.id));
-    setConfirmDelete(null);
-  }
-
-  // --- Thay đổi trạng thái ---
-  async function handleStatusChange(classId, newStatus) {
-    // Tìm class hiện tại
-    const currentClass = classes.find(c => c.id === classId);
-    if (!currentClass) return;
-
-    const oldStatus = currentClass.status;
-
-    // Optimistic update - cập nhật UI ngay lập tức
-    setClasses((prev) =>
-      prev.map((c) =>
-        c.id === classId
-          ? { ...c, status: newStatus }
-          : c
-      )
-    );
-
-    // Gọi API để lưu vào database - gửi toàn bộ object
     try {
-      // Map status values to API format
-      const statusMapping = {
-        'active': 'ONGOING',
-        'upcoming': 'UPCOMING',
-        'ended': 'COMPLETED'
-      };
-
-      const updateData = {
-        className: currentClass.name,
-        classCode: currentClass.code,
-        description: currentClass.subtitle,
-        instructorName: currentClass.teacher,
-        maxStudents: currentClass.students,
-        startDate: currentClass.startDate,
-        endDate: currentClass.endDate,
-        status: statusMapping[newStatus] || newStatus.toUpperCase(),
-        schedule: currentClass.schedule,
-      };
-
-      console.log('📤 Sending update data:', updateData);
-
-      await classService.updateClass(classId, updateData);
-      console.log(`✅ Cập nhật trạng thái lớp ${classId} thành công`);
+      await classService.deleteClass(confirmDelete.id);
+      setClasses((prev) => prev.filter((c) => c.id !== confirmDelete.id));
+      alert("Xóa lớp học thành công!");
     } catch (error) {
-      console.error(`❌ Lỗi cập nhật trạng thái lớp ${classId}:`, error);
-      console.error('Error details:', error.response?.data);
-
-      // Rollback về trạng thái cũ
-      setClasses((prev) =>
-        prev.map((c) =>
-          c.id === classId
-            ? { ...c, status: oldStatus }
-            : c
-        )
-      );
-      alert('Không thể cập nhật trạng thái. Vui lòng thử lại!');
+      console.error("Failed to delete class:", error);
+      alert("Lỗi khi xóa lớp học: " + (error.response?.data?.message || error.message));
+    } finally {
+      setConfirmDelete(null);
     }
   }
+
+
 
   // --- Thống kê ---
   const stats = useMemo(() => {
@@ -438,10 +412,7 @@ export default function ClassManagement() {
                     {c.startDate} - {c.endDate}
                   </td>
                   <td style={styles.td}>
-                    <StatusSelect
-                      status={c.status}
-                      onChange={(newStatus) => handleStatusChange(c.id, newStatus)}
-                    />
+                    <StatusBadge status={c.status} />
                   </td>
                   <td style={styles.td}>
                     <ActionCell
@@ -542,48 +513,7 @@ function StatusBadge({ status }) {
   return <span style={{ ...badgeStyles.base, ...style }}>{label}</span>;
 }
 
-function StatusSelect({ status, onChange }) {
-  const handleChange = (e) => {
-    onChange(e.target.value);
-  };
 
-  const getStatusStyle = (currentStatus) => {
-    const mapping = {
-      active: { bg: 'rgba(16, 185, 129, 0.12)', color: '#047857', border: 'rgba(16, 185, 129, 0.2)' },
-      upcoming: { bg: 'rgba(59, 130, 246, 0.12)', color: '#1e40af', border: 'rgba(59, 130, 246, 0.2)' },
-      ended: { bg: 'rgba(107, 114, 128, 0.12)', color: '#374151', border: 'rgba(107, 114, 128, 0.2)' },
-    };
-    return mapping[currentStatus] || mapping.active;
-  };
-
-  const statusStyle = getStatusStyle(status);
-
-  return (
-    <select
-      value={status}
-      onChange={handleChange}
-      style={{
-        padding: '0 12px',
-        height: '32px',
-        borderRadius: '8px',
-        fontSize: '13px',
-        fontWeight: 600,
-        background: statusStyle.bg,
-        color: statusStyle.color,
-        border: `1px solid ${statusStyle.border}`,
-        cursor: 'pointer',
-        outline: 'none',
-        transition: 'all 0.2s',
-        appearance: 'none', // Remove default arrow if needed, but keeping for now
-        minWidth: '120px',
-      }}
-    >
-      <option value="active">Đang học</option>
-      <option value="upcoming">Sắp bắt đầu</option>
-      <option value="ended">Đã kết thúc</option>
-    </select>
-  );
-}
 
 function ActionCell({ onView, onEdit, onDelete }) {
   const [open, setOpen] = useState(false);
@@ -677,14 +607,37 @@ function AddClassModal({ onClose, onSubmit }) {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [status, setStatus] = useState("upcoming");
-  const [schedule, setSchedule] = useState("");
   const [errors, setErrors] = useState({});
+  const [teachers, setTeachers] = useState([]);
+
+  const today = new Date().toISOString().split("T")[0];
+
+  useEffect(() => {
+    userService
+      .getAllUsers({ role: "ROLE_TEACHER", size: 100 })
+      .then((res) => {
+        let data = [];
+        if (res.data.data && res.data.data.content) {
+          data = res.data.data.content;
+        } else if (res.data.content) {
+          data = res.data.content;
+        } else if (res.data.data && Array.isArray(res.data.data)) {
+          data = res.data.data;
+        } else if (Array.isArray(res.data)) {
+          data = res.data;
+        }
+        // Filter client-side to be absolutely sure
+        const validTeachers = data.filter(u => u.role === "ROLE_TEACHER");
+        setTeachers(validTeachers);
+      })
+      .catch((err) => console.error("Failed to load teachers", err));
+  }, []);
 
   function validate() {
     const nextErrors = {};
     if (!name.trim()) nextErrors.name = "Vui lòng nhập tên lớp học";
     if (!code.trim()) nextErrors.code = "Vui lòng nhập mã lớp học";
-    if (!teacher.trim()) nextErrors.teacher = "Vui lòng nhập tên giáo viên";
+    if (!teacher.trim()) nextErrors.teacher = "Vui lòng chọn giảng viên";
     if (!startDate) nextErrors.startDate = "Vui lòng chọn ngày bắt đầu";
     if (!endDate) nextErrors.endDate = "Vui lòng chọn ngày kết thúc";
     if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
@@ -708,7 +661,7 @@ function AddClassModal({ onClose, onSubmit }) {
       startDate,
       endDate,
       status,
-      schedule,
+      schedule: "",
     });
   }
 
@@ -767,14 +720,27 @@ function AddClassModal({ onClose, onSubmit }) {
                 )}
               </label>
               <label style={modalStyles.label}>
-                Giáo viên
-                <input
-                  type="text"
-                  value={teacher}
-                  onChange={(e) => setTeacher(e.target.value)}
-                  style={modalStyles.input}
-                  placeholder="Ví dụ: Nguyễn Văn A"
-                />
+                Giảng viên
+                <div style={{ position: "relative" }}>
+                  <select
+                    value={teacher}
+                    onChange={(e) => setTeacher(e.target.value)}
+                    style={{ ...styles.select, width: "100%", height: 40 }}
+                  >
+                    <option value="">-- Chọn giảng viên --</option>
+                    {teachers.map((t) => (
+                      <option key={t.id} value={t.fullName}>
+                        {t.fullName}
+                      </option>
+                    ))}
+                  </select>
+                  <span
+                    style={{ ...styles.selectChevron, top: 12 }}
+                    aria-hidden="true"
+                  >
+                    ▾
+                  </span>
+                </div>
                 {errors.teacher && (
                   <div style={modalStyles.error}>{errors.teacher}</div>
                 )}
@@ -793,6 +759,7 @@ function AddClassModal({ onClose, onSubmit }) {
                 <input
                   type="date"
                   value={startDate}
+                  min={today}
                   onChange={(e) => setStartDate(e.target.value)}
                   style={modalStyles.input}
                 />
@@ -827,17 +794,6 @@ function AddClassModal({ onClose, onSubmit }) {
                 />
               </label>
             </div>
-
-            <label style={modalStyles.label}>
-              Lịch học
-              <input
-                type="text"
-                value={schedule}
-                onChange={(e) => setSchedule(e.target.value)}
-                style={modalStyles.input}
-                placeholder="Ví dụ: Thứ 2,4,6"
-              />
-            </label>
           </div>
           <div style={modalStyles.footer}>
             <button
@@ -1045,18 +1001,7 @@ function EditClassModal({ cls, onClose, onSubmit }) {
                 style={modalStyles.input}
               />
             </label>
-            <label style={modalStyles.label}>
-              Trạng thái
-              <select
-                value={status}
-                onChange={(e) => setStatus(e.target.value)}
-                style={{ ...styles.select, width: "100%" }}
-              >
-                <option value="upcoming">Sắp bắt đầu</option>
-                <option value="active">Đang hoạt động</option>
-                <option value="ended">Đã kết thúc</option>
-              </select>
-            </label>
+
           </div>
           <div style={modalStyles.footer}>
             <button
