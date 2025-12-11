@@ -2,6 +2,7 @@ import React, { useMemo, useState, useEffect, useRef, useCallback } from "react"
 import { useNavigate } from "react-router-dom";
 import { classService } from "@utils/classService";
 import { userService } from "@utils/userService";
+import { classTeacherService } from "@utils/classTeacherService";
 import ClassDetail from "./ClassDetail";
 import ClassDetailModal from "./ClassDetailModal";
 import "./class.css";
@@ -128,7 +129,29 @@ export default function ClassManagement() {
         schedule: payload.schedule.trim(),
       };
 
-      await classService.createClass(apiPayload);
+      const newClassRes = await classService.createClass(apiPayload);
+
+      // Assign teacher if selected
+      if (payload.teacherId) {
+        // Need ID from the created class login.
+        // Assuming createClass returns the full object or ID is in data.
+        const createdClassId = newClassRes.data?.id || newClassRes.data?.data?.id;
+
+        if (createdClassId) {
+          try {
+            await classTeacherService.assignTeacher({
+              classId: createdClassId,
+              teacherId: payload.teacherId,
+              role: "TEACHER",
+              note: "Giảng viên chính"
+            });
+          } catch (err) {
+            console.error("Failed to assign teacher:", err);
+            // Don't block success alert, but maybe log warning
+          }
+        }
+      }
+
       await fetchClasses(); // Reload list from API
       setIsAddOpen(false);
       alert("Tạo lớp học thành công!");
@@ -172,6 +195,21 @@ export default function ClassManagement() {
 
       await classService.updateClass(id, apiPayload);
 
+      // Handle teacher assignment update
+      // Find teacher ID from the teacher name selected (payload.teacherId is passed from modal)
+      if (payload.teacherId && String(payload.teacherId) !== String(payload.currentTeacherId)) {
+        try {
+          await classTeacherService.assignTeacher({
+            classId: id,
+            teacherId: payload.teacherId,
+            role: "TEACHER",
+            note: "Cập nhật giảng viên"
+          });
+        } catch (err) {
+          console.error("Failed to update teacher assignment:", err);
+        }
+      }
+
       setClasses((prev) =>
         prev.map((c) =>
           c.id === id
@@ -180,7 +218,7 @@ export default function ClassManagement() {
               name: payload.name.trim(),
               subtitle: payload.subtitle.trim(),
               code: payload.code.trim(),
-              teacher: payload.teacher.trim(),
+              teacher: payload.teacher.trim(), // Optimistic update
               students: parseInt(payload.students) || 0,
               active: parseInt(payload.active) || 0,
               progress: parseInt(payload.progress) || 0,
@@ -403,22 +441,22 @@ export default function ClassManagement() {
             </thead>
             <tbody>
               {filtered.map((c) => (
-                <tr key={c.id} style={styles.tr}>
+                <tr
+                  key={c.id}
+                  style={{ ...styles.tr, cursor: "pointer" }}
+                  onClick={() => navigate(`/admin/classes/${c.id}`, { state: { classData: c } })}
+                >
                   <td style={styles.td}>
                     <div style={{ display: "grid", rowGap: 4 }}>
-                      <button
-                        type="button"
-                        onClick={() => navigate(`/admin/classes/${c.id}`, { state: { classData: c } })}
+                      <div
                         style={{
-                          background: "transparent",
-                          border: "none",
-                          padding: 0,
-                          textAlign: "left",
-                          cursor: "pointer",
+                          fontWeight: 600,
+                          fontSize: 14,
+                          color: "#111827",
                         }}
                       >
-                        <div style={styles.className}>{c.name}</div>
-                      </button>
+                        {c.name}
+                      </div>
                       <div style={styles.classSubtitle}>{c.subtitle}</div>
                     </div>
                   </td>
@@ -442,28 +480,30 @@ export default function ClassManagement() {
                   <td style={styles.td}>
                     {c.startDate} - {c.endDate}
                   </td>
-                  <td style={styles.td}>
+                  <td style={styles.td} onClick={(e) => e.stopPropagation()}>
                     <StatusSelect
                       status={c.status}
                       onChange={(newStatus) => handleStatusChange(c.id, newStatus)}
                     />
                   </td>
-                  <td style={styles.td}>
+                  <td style={styles.td} onClick={(e) => e.stopPropagation()}>
                     <ActionCell
-                      onView={() => navigate(`/admin/classes/${c.id}`, { state: { classData: c } })}
                       onEdit={() => setEditingClass(c)}
                       onDelete={() => handleRequestDelete(c)}
                     />
                   </td>
                 </tr>
-              ))}
-              {filtered.length === 0 && (
-                <tr>
-                  <td style={styles.emptyCell} colSpan={7}>
-                    Không tìm thấy lớp học phù hợp
-                  </td>
-                </tr>
-              )}
+              ))
+              }
+              {
+                filtered.length === 0 && (
+                  <tr>
+                    <td style={styles.emptyCell} colSpan={7}>
+                      Không tìm thấy lớp học phù hợp
+                    </td>
+                  </tr>
+                )
+              }
             </tbody>
           </table>
         </div>
@@ -590,86 +630,73 @@ function StatusSelect({ status, onChange }) {
   );
 }
 
-function ActionCell({ onView, onEdit, onDelete }) {
-  const [open, setOpen] = useState(false);
-  const containerRef = useRef(null);
-
-  useEffect(() => {
-    if (!open) return;
-    function handleGlobalPointerDown(e) {
-      if (!containerRef.current) return;
-      if (!containerRef.current.contains(e.target)) {
-        setOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleGlobalPointerDown);
-    document.addEventListener("touchstart", handleGlobalPointerDown, {
-      passive: true,
-    });
-    return () => {
-      document.removeEventListener("mousedown", handleGlobalPointerDown);
-      document.removeEventListener("touchstart", handleGlobalPointerDown);
-    };
-  }, [open]);
-
+function ActionCell({ onEdit, onDelete }) {
   return (
-    <div ref={containerRef} style={styles.actionWrap}>
+    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
       <button
         type="button"
-        aria-label="Xem lớp"
-        onClick={() => onView && onView()}
+        title="Chỉnh sửa"
+        onClick={(e) => {
+          e.stopPropagation();
+          onEdit && onEdit();
+        }}
         style={{
           background: "transparent",
           border: "none",
           cursor: "pointer",
-          color: "#6b7280",
-          marginRight: 8,
-          padding: 6,
+          color: "#2563eb",
+          padding: 4,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
         }}
       >
-        <IconEye />
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+        </svg>
       </button>
       <button
         type="button"
-        aria-label="Thao tác"
-        onClick={() => setOpen((v) => !v)}
-        style={{ ...styles.iconButton, marginLeft: 6 }}
+        title="Xóa"
+        onClick={(e) => {
+          e.stopPropagation();
+          onDelete && onDelete();
+        }}
+        style={{
+          background: "transparent",
+          border: "none",
+          cursor: "pointer",
+          color: "#ef4444",
+          padding: 4,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
       >
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-          <circle cx="5" cy="12" r="2" />
-          <circle cx="12" cy="12" r="2" />
-          <circle cx="19" cy="12" r="2" />
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <polyline points="3 6 5 6 21 6" />
+          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
         </svg>
       </button>
-      {open && (
-        <ul style={styles.menu}>
-          <li style={styles.menuItem}>
-            <button
-              type="button"
-              style={styles.menuBtn}
-              onClick={() => {
-                setOpen(false);
-                onEdit && onEdit();
-              }}
-            >
-              Chỉnh sửa
-            </button>
-          </li>
-
-          <li style={styles.menuItem}>
-            <button
-              type="button"
-              style={styles.menuBtnDanger}
-              onClick={() => {
-                setOpen(false);
-                onDelete && onDelete();
-              }}
-            >
-              Xóa
-            </button>
-          </li>
-        </ul>
-      )}
     </div>
   );
 }
@@ -678,7 +705,8 @@ function AddClassModal({ onClose, onSubmit }) {
   const [name, setName] = useState("");
   const [subtitle, setSubtitle] = useState("");
   const [code, setCode] = useState("");
-  const [teacher, setTeacher] = useState("");
+  const [teacherId, setTeacherId] = useState(""); // Use ID for selection
+  const [teacherName, setTeacherName] = useState("");
   const [students, setStudents] = useState("0");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -705,7 +733,7 @@ function AddClassModal({ onClose, onSubmit }) {
     const nextErrors = {};
     if (!name.trim()) nextErrors.name = "Vui lòng nhập tên lớp học";
     if (!code.trim()) nextErrors.code = "Vui lòng nhập mã lớp học";
-    if (!teacher.trim()) nextErrors.teacher = "Vui lòng nhập tên giáo viên";
+    if (!teacherId) nextErrors.teacher = "Vui lòng chọn giáo viên";
     if (!startDate) nextErrors.startDate = "Vui lòng chọn ngày bắt đầu";
     if (!endDate) nextErrors.endDate = "Vui lòng chọn ngày kết thúc";
     if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
@@ -722,7 +750,8 @@ function AddClassModal({ onClose, onSubmit }) {
       name,
       subtitle,
       code,
-      teacher,
+      teacher: teacherName,
+      teacherId,
       students,
       active: 0,
       progress: 0,
@@ -790,13 +819,18 @@ function AddClassModal({ onClose, onSubmit }) {
               <label style={modalStyles.label}>
                 Giáo viên
                 <select
-                  value={teacher}
-                  onChange={(e) => setTeacher(e.target.value)}
+                  value={teacherId}
+                  onChange={(e) => {
+                    const selectedId = e.target.value;
+                    setTeacherId(selectedId);
+                    const selectedTeacher = teachersList.find(t => String(t.id) === String(selectedId));
+                    setTeacherName(selectedTeacher ? (selectedTeacher.fullName || selectedTeacher.username) : "");
+                  }}
                   style={modalStyles.input}
                 >
                   <option value="">-- Chọn giảng viên --</option>
                   {teachersList.map((t) => (
-                    <option key={t.id} value={t.fullName || t.username}>
+                    <option key={t.id} value={t.id}>
                       {t.fullName || t.username} ({t.gmail || t.email})
                     </option>
                   ))}
@@ -887,7 +921,11 @@ function EditClassModal({ cls, onClose, onSubmit }) {
   const [name, setName] = useState(cls.name || "");
   const [subtitle, setSubtitle] = useState(cls.subtitle || "");
   const [code, setCode] = useState(cls.code || "");
-  const [teacher, setTeacher] = useState(cls.teacher || "");
+  // teacher input is mainly for display or legacy string. We need ID.
+  const [teacherId, setTeacherId] = useState("");
+  const [teacherName, setTeacherName] = useState(cls.teacher || "");
+  const [currentTeacherId, setCurrentTeacherId] = useState(null); // To detect changes
+
   const [students, setStudents] = useState(String(cls.students) || "0");
   const [active, setActive] = useState(String(cls.active) || "0");
   const [progress, setProgress] = useState(String(cls.progress) || "0");
@@ -909,13 +947,28 @@ function EditClassModal({ cls, onClose, onSubmit }) {
         setTeachersList(teachers);
       })
       .catch((err) => console.error("Failed to load teachers", err));
-  }, []);
+
+    // Fetch current assigned teacher(s)
+    if (cls.id) {
+      classTeacherService.getTeachers(cls.id)
+        .then(res => {
+          const data = res.data?.data || res.data || [];
+          if (data.length > 0) {
+            const assigned = data[0];
+            setTeacherId(assigned.teacherId);
+            setCurrentTeacherId(assigned.teacherId);
+            setTeacherName(assigned.teacherName);
+          }
+        })
+        .catch(err => console.error("Failed to load assigned teacher", err));
+    }
+  }, [cls.id]);
 
   function validate() {
     const nextErrors = {};
     if (!name.trim()) nextErrors.name = "Vui lòng nhập tên lớp học";
     if (!code.trim()) nextErrors.code = "Vui lòng nhập mã lớp học";
-    if (!teacher.trim()) nextErrors.teacher = "Vui lòng nhập tên giáo viên";
+    if (!teacherId) nextErrors.teacher = "Vui lòng chọn giáo viên";
     if (!startDate) nextErrors.startDate = "Vui lòng chọn ngày bắt đầu";
     if (!endDate) nextErrors.endDate = "Vui lòng chọn ngày kết thúc";
     if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
@@ -932,7 +985,9 @@ function EditClassModal({ cls, onClose, onSubmit }) {
       name,
       subtitle,
       code,
-      teacher,
+      teacher: teacherName,
+      teacherId,
+      currentTeacherId,
       students,
       active,
       progress,
@@ -995,13 +1050,18 @@ function EditClassModal({ cls, onClose, onSubmit }) {
             <label style={modalStyles.label}>
               Giáo viên
               <select
-                value={teacher}
-                onChange={(e) => setTeacher(e.target.value)}
+                value={teacherId}
+                onChange={(e) => {
+                  const selectedId = e.target.value;
+                  setTeacherId(selectedId);
+                  const selectedTeacher = teachersList.find(t => String(t.id) === String(selectedId));
+                  setTeacherName(selectedTeacher ? (selectedTeacher.fullName || selectedTeacher.username) : "");
+                }}
                 style={modalStyles.input}
               >
                 <option value="">-- Chọn giảng viên --</option>
                 {teachersList.map((t) => (
-                  <option key={t.id} value={t.fullName || t.username}>
+                  <option key={t.id} value={t.id}>
                     {t.fullName || t.username} ({t.gmail || t.email})
                   </option>
                 ))}
