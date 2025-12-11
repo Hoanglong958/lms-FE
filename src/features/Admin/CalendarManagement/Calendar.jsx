@@ -7,6 +7,7 @@ import { useOutletContext } from "react-router-dom";
 import "./css/Calendar.css";
 
 // Components
+import PeriodManagementModal from "./components/Period/PeriodManagementModal";
 import CalendarPicker from "./components/CalendarPicker";
 import WeekSelector from "./components/WeekSelector";
 import SubjectList from "./components/SubjectList";
@@ -20,6 +21,8 @@ export default function CalendarManagement() {
   const [classInfo, setClassInfo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [courses, setCourses] = useState([]);
+
+  const [showPeriodModal, setShowPeriodModal] = useState(false);
 
   // Calendar states
   const [startDate, setStartDate] = useState(null);
@@ -214,11 +217,16 @@ export default function CalendarManagement() {
     <div className="calendarPage">
       <div className="calendarHeaderContainer">
         <AdminHeader
-          title={`Thời khóa biểu - ${classInfo?.className || classInfo?.name || "Lớp học"}`}
+          title={`Thời khóa biểu - ${
+            classInfo?.className || classInfo?.name || "Lớp học"
+          }`}
           breadcrumb={[
             { label: "Dashboard", to: "/admin/dashboard" },
             { label: "Lớp học", to: "/admin/classes" },
-            { label: "Thời khóa biểu", to: `/admin/calendar?classId=${classId}` },
+            {
+              label: "Thời khóa biểu",
+              to: `/admin/calendar?classId=${classId}`,
+            },
           ]}
           onMenuToggle={toggleSidebar}
           onBack={() => navigate(-1)}
@@ -227,6 +235,7 @@ export default function CalendarManagement() {
               onDateRangeSelect={handleDateRangeSelect}
               initialStartDate={startDate}
               initialEndDate={endDate}
+              onOpenPeriodModal={() => setShowPeriodModal(true)} // 👈 THIS
             />
           }
         />
@@ -283,14 +292,16 @@ export default function CalendarManagement() {
               <div className="calendarEmptyIcon">📅</div>
               <h3 className="calendarEmptyTitle">Chưa chọn tuần học</h3>
               <p className="calendarEmptyText">
-                Vui lòng chọn khoảng thời gian từ lịch ở góc phải trên để bắt đầu
-                tạo thời khóa biểu.
+                Vui lòng chọn khoảng thời gian từ lịch ở góc phải trên để bắt
+                đầu tạo thời khóa biểu.
               </p>
             </div>
           )}
         </div>
       </div>
+      {showPeriodModal && (
+        <PeriodManagementModal onClose={() => setShowPeriodModal(false)} />
+      )}
     </div>
   );
 }
-

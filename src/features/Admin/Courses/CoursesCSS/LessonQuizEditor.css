@@ -418,3 +418,59 @@
     width: 100%;
   }
 }
+
+/* =========================================
+   6. SELECTION STYLING (New)
+   ========================================= */
+
+.lqz-select-item label {
+  /* Ensure label is flex container from previous rules, but verify alignment */
+  justify-content: space-between;
+}
+
+.lqz-select-text {
+  margin-right: 12px;
+  flex: 1;
+}
+
+.lqz-select-status {
+  background-color: var(--lqz-success);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 4px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Selected state styling revamp */
+/* Default (Kept) */
+.lqz-select-item.lqz-kept label {
+  background-color: #ecfdf5; /* Light green */
+  border-color: var(--lqz-success);
+}
+.lqz-select-item.lqz-kept .lqz-select-status {
+  background-color: var(--lqz-success); /* Green badge */
+}
+
+/* Pending Remove (User unticked existing) */
+.lqz-select-item.lqz-pending-remove label {
+  background-color: #fef2f2; /* Light red */
+  border-color: var(--lqz-danger);
+  /* opacity: 0.7; Optional: make it look "faded" */
+}
+.lqz-select-item.lqz-pending-remove .lqz-select-status {
+  background-color: var(--lqz-danger); /* Red badge */
+}
+
+/* Pending Add (User ticked new) */
+.lqz-select-item.lqz-pending-add label {
+  background-color: #eff6ff; /* Light blue */
+  border-color: #3b82f6; /* Blue border */
+}
+
+.lqz-select-item.lqz-pending-add .lqz-select-status {
+  background-color: #3b82f6; /* Blue badge */
+}

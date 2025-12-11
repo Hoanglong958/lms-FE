@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { lessonVideoService } from "@utils/lessonVideoService.js";
+import { uploadService } from "@utils/uploadService";
 import "./CoursesCSS/LessonVideoCreate.css";
 
 function isValidUrl(url) {
@@ -27,16 +28,34 @@ export default function LessonVideoCreate({ lesson, onCreated }) {
     durationSeconds: "",
     description: "",
   });
+  const [uploading, setUploading] = useState(false);
+
+  async function handleVideoUpload(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setUploading(true);
+    try {
+      const res = await uploadService.uploadVideo(file);
+      // Giả sử API trả về { url: "..." } hoặc res.data là string url tuỳ swagger
+      // Swagger: { "url": "string" } => res.data.url
+      const url = res.data.url || res.data;
+      setForm((prev) => ({ ...prev, videoUrl: url }));
+    } catch (err) {
+      alert("Upload video thất bại!");
+      console.error(err);
+    } finally {
+      setUploading(false);
+    }
+  }
 
   function handleChange(e) {
     setForm({ ...form, [e.target.name]: e.target.value });
   }
 
   async function handleCreate() {
-    if (!isValidVideoUrl(form.videoUrl)) {
-      alert(
-        "Video URL không hợp lệ! Hãy nhập YouTube hoặc file MP4/WebM hợp lệ."
-      );
+    if (!form.videoUrl) {
+      alert("Vui lòng upload video trước khi tạo!");
       return;
     }
 
@@ -66,13 +85,22 @@ export default function LessonVideoCreate({ lesson, onCreated }) {
       </div>
 
       <div className="lvc-form-row">
-        <label className="lvc-label">Video URL:</label>
-        <input
-          className="lvc-input"
-          name="videoUrl"
-          value={form.videoUrl}
-          onChange={handleChange}
-        />
+        <label className="lvc-label">Video File:</label>
+        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+          <input
+            type="file"
+            accept="video/*"
+            onChange={handleVideoUpload}
+            disabled={uploading}
+            className="lvc-input"
+          />
+          {uploading && <span style={{ color: "orange" }}>Đang upload...</span>}
+          {form.videoUrl && (
+            <div style={{ fontSize: "0.85rem", color: "green" }}>
+              Đã upload: {form.videoUrl}
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="lvc-form-row">
@@ -96,8 +124,8 @@ export default function LessonVideoCreate({ lesson, onCreated }) {
         />
       </div>
 
-      <button className="lvc-btn" onClick={handleCreate}>
-        Tạo Video
+      <button className="lvc-btn" onClick={handleCreate} disabled={uploading}>
+        {uploading ? "Đang xử lý..." : "Tạo Video"}
       </button>
     </div>
   );

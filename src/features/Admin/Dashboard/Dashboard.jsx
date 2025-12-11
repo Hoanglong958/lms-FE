@@ -121,7 +121,6 @@ const Dashboard = () => {
 
         const apiCourses = res?.data ?? [];
 
-        // ⚡ Map API đúng dữ liệu swagger trả về:
         const mapped = apiCourses.map((c) => ({
           id: c.id,
           title: c.title,
@@ -133,6 +132,27 @@ const Dashboard = () => {
         setNewCourses(mapped);
       } catch (err) {
         console.error("Load new courses API failed:", err);
+      }
+    })();
+
+    // ------------------------------
+    // LOAD USER GROWTH (MONTH)
+    // ------------------------------
+    (async () => {
+      try {
+        const res = await dashboardService.getUserGrowthByMonth();
+        if (!mounted) return;
+
+        const api = res?.data ?? [];
+
+        const mapped = api.map((item) => ({
+          month: item.month,
+          "Người dùng": item.count,
+        }));
+
+        setGrowthMonth(mapped);
+      } catch (err) {
+        console.error("Load user growth API failed:", err);
       }
     })();
 

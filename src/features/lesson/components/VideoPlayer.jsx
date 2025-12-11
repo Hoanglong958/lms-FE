@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { lessonVideoService } from "@utils/lessonVideoService";
 import "./VideoPlayer.css";
+import VideoProgress from "@components/VideoPlayer/VideoProgress";
 
 // Hàm format ngày tháng (để hiển thị ngày cập nhật)
 const formatDate = (dateString) => {
@@ -63,14 +64,19 @@ const VideoPlayer = ({ item }) => {
   return (
     <div className="video-component-container">
       {/* 1. Phần Player */}
+      {/* 1. Phần Player */}
       <div className="video-player-wrapper">
-        <iframe
-          src={embedUrl}
-          title={video.title || item.title}
-          frameBorder="0"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowFullScreen
-        ></iframe>
+        {match ? (
+          <iframe
+            src={embedUrl}
+            title={video.title || item.title}
+            frameBorder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          ></iframe>
+        ) : (
+          <VideoProgress src={video.videoUrl} />
+        )}
       </div>
 
       {/* 2. Phần Thông tin chi tiết (Title, Date, Description) */}

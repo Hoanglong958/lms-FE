@@ -1,117 +1,239 @@
+/* ======================= BANNER ======================= */
 .baiviet-banner {
-    background: linear-gradient(90deg, #ff7b00, #ff4500);
+    background: linear-gradient(120deg, #ff7a00, #ff5e00);
     color: #fff;
     text-align: center;
-    padding: 60px 0 40px;
+    padding: 70px 0 50px;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.baiviet-banner-content {
+    text-align: center;
+}
+
+.baiviet-banner-content .breadcrumb {
+    font-size: 14px;
+    opacity: 0.9;
+    margin: 0;
+    margin-bottom: 8px;
 }
 
 .baiviet-banner h1 {
-    font-size: 36px;
-    margin: 0;
+    font-size: 38px;
     font-weight: 700;
+    margin: 0;
 }
 
+
+/* ======================= CONTAINER ======================= */
 .baiviet-container {
-    max-width: 1200px;
-    margin: 40px auto;
+    max-width: 1250px;
+    margin: 40px auto 60px;
 }
 
+
+/* ======================= HEADER ======================= */
 .baiviet-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 24px;
+    margin-bottom: 28px;
+}
+
+.baiviet-header h3 {
+    font-size: 20px;
+    font-weight: 600;
 }
 
 .baiviet-header h3 span {
-    color: gray;
-    font-weight: 400;
-    font-size: 14px;
+    font-size: 13px;
+    color: #777;
+    margin-left: 6px;
 }
 
+
+/* ======================= GRID ======================= */
 .baiviet-list {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 32px;
+    gap: 36px;
 }
 
+
+/* ======================= CARD ======================= */
 .baiviet-card {
-    background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+    background: #ffffff;
+    border-radius: 14px;
     overflow: hidden;
-    transition: transform 0.2s ease;
+    text-decoration: none;
+    color: inherit;
+    padding-bottom: 6px;
+
+    box-shadow: 0 4px 22px rgba(0, 0, 0, 0.08);
+    border: 1px solid #f1f1f1;
+
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 .baiviet-card:hover {
-    transform: translateY(-4px);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 28px rgba(0, 0, 0, 0.12);
 }
 
+
+/* hình card */
 .baiviet-card img {
     width: 100%;
-    height: 200px;
+    height: 200px; 
     object-fit: cover;
+    border-bottom: 1px solid #eee;
+    border-radius: 14px 14px 0 0;
 }
 
+
+/* ======================= CARD INFO ======================= */
 .baiviet-info {
-    padding: 16px;
+    padding: 18px 20px 20px;
 }
 
 .baiviet-info .category {
-    color: #ff6600;
-    font-size: 14px;
-    margin-bottom: 4px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #ff6a00;
+    margin-bottom: 6px;
 }
 
 .baiviet-info h4 {
-    font-size: 16px;
+    font-size: 17px;
     font-weight: 600;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
+    line-height: 22px;
 }
 
+.baiviet-info p {
+    font-size: 14px;
+    color: #666;
+    line-height: 20px;
+    margin-bottom: 14px;
+}
+
+
+/* meta (ngày + view) */
 .baiviet-info .meta {
     display: flex;
     justify-content: space-between;
     font-size: 13px;
-    color: gray;
+    color: #999;
 }
 
+
+/* ======================= PHÂN TRANG ======================= */
 .baiviet-pagination {
     display: flex;
     justify-content: center;
     align-items: center;
-    margin: 40px 0;
-    gap: 16px;
+    gap: 14px;
+    margin-top: 55px;
+}
+
+.baiviet-pagination button {
+    background: none;
+    border: none;
+    font-size: 14px;
+    cursor: pointer;
+    font-weight: 500;
 }
 
 .baiviet-pagination .pages span {
-    margin: 0 6px;
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 4px;
+    border-radius: 50%;
     cursor: pointer;
-    color: gray;
+    font-size: 14px;
+    color: #555;
+    transition: 0.2s;
+}
+
+.baiviet-pagination .pages span:hover {
+    background: #ffe4d1;
 }
 
 .baiviet-pagination .pages span.active {
-    color: #ff6600;
-    font-weight: bold;
-}
-
-.baiviet-footer {
-    background: linear-gradient(90deg, #ff7b00, #ff4500);
+    background: #ff6a00;
     color: #fff;
-    padding: 60px 0;
-    margin-top: 40px;
+    font-weight: 600;
+    box-shadow: 0 3px 10px rgba(255, 150, 80, 0.4);
 }
 
-.footer-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
+.baiviet-pagination .disable {
+    opacity: 0.4;
+    cursor: default;
+}
+/* ======================= SORT DROPDOWN ======================= */
+.sort-dropdown-wrapper {
+    position: relative;
+    font-size: 14px;
 }
 
-.footer-columns {
-    display: flex;
-    justify-content: space-around;
-    width: 100%;
-    margin-top: 30px;
+.sort-selected {
+    background: #fff;
+    border: 1px solid #ddd;
+    padding: 8px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    user-select: none;
+    min-width: 120px;
+}
+
+.sort-menu {
+    position: absolute;
+    top: 42px;
+    right: 0;
+    background: #fff;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.1);
+    z-index: 20;
+}
+
+.sort-menu span {
+    display: block;
+    padding: 10px 14px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.sort-menu span:hover {
+    background: #ffe0c2;
+}
+
+.sort-menu .active {
+    color: #ff6a00;
+    font-weight: 600;
+}
+/* BREADCRUMB */
+.breadcrumb {
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.breadcrumb .crumb {
+  color: #ffffffcc;
+  text-decoration: none;
+}
+
+.breadcrumb .crumb:hover {
+  text-decoration: underline;
+}
+
+.breadcrumb .crumb.active {
+  color: #fff;
+  font-weight: 600;
 }

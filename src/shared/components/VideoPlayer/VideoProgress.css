@@ -1,0 +1,133 @@
+/* Container chung */
+.video-progress-container {
+  position: relative;
+  width: 100%;
+  height: 100%; /* Fill parent height if needed, or auto */
+  background-color: #000;
+  border-radius: 8px;
+  overflow: hidden;
+  font-family: sans-serif;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  display: flex; /* Remove default block spacing issues with video */
+  flex-direction: column;
+}
+
+.video-element {
+  width: 100%;
+  display: block;
+  cursor: pointer;
+}
+
+/* Disable native controls specifically for WebKit/Blink */
+.video-element::-webkit-media-controls {
+  display: none !important;
+}
+.video-element::-webkit-media-controls-enclosure {
+  display: none !important;
+}
+
+/* Click Overlay */
+.click-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%; /* Cover the video completely */
+  z-index: 10; /* Above video, below controls-overlay */
+  cursor: pointer;
+  background: transparent; /* Invisible */
+}
+
+/* Controls overlay (hiện khi hover hoặc paused) */
+.controls-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
+  padding: 10px 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 20; /* Above click-overlay */
+  pointer-events: auto; /* Enable clicks on buttons */
+}
+
+.video-progress-container:hover .controls-overlay,
+.video-progress-container.paused .controls-overlay {
+  opacity: 1;
+}
+
+/* Thanh progress bar (Read-only) */
+.progress-bar-wrapper {
+  width: 100%;
+  height: 6px;
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: 3px;
+  cursor: not-allowed;
+  position: relative;
+  pointer-events: none; /* Disable all interactions */
+}
+
+.progress-fill {
+  height: 100%;
+  background-color: #ff7f50; /* Màu cam chủ đạo */
+  border-radius: 3px;
+  width: 0%;
+  transition: width 0.1s linear;
+}
+
+/* Hàng nút bấm dưới cùng */
+.controls-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #fff;
+}
+
+.left-controls,
+.right-controls {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+/* Buttons */
+.control-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px;
+  transition: transform 0.1s, color 0.2s;
+}
+
+.control-btn:hover {
+  color: #ff7f50;
+  transform: scale(1.1);
+}
+
+.control-btn svg {
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+}
+
+/* Time display */
+.time-display {
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.9;
+}
+
+/* Volume container */
+.volume-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}

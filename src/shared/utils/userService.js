@@ -3,6 +3,7 @@ import api from "@services/api";
 const USER_BASE_PATH = "/api/v1/users";
 
 export const userService = {
+  
   // GET /api/v1/users
   getAllUsers(params = {}) {
     return api.get(USER_BASE_PATH, { params });
@@ -30,6 +31,8 @@ export const userService = {
     // Let's try body first as it is more standard for PATCH.
     return api.patch(`${USER_BASE_PATH}/${id}/status`, { active });
   },
+  
 };
+
 
 export default userService;

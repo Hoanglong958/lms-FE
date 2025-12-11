@@ -40,7 +40,7 @@ export default function LessonDetailView({ lesson }) {
         type: q.type ?? "N/A",
       }));
       setAllQuestions(processed);
-    } catch (err) {}
+    } catch (err) { }
   }
 
   useEffect(() => {
@@ -165,24 +165,32 @@ export default function LessonDetailView({ lesson }) {
               <div style={{ marginTop: 12 }}>
                 <button
                   onClick={async () => {
-                    if (
-                      selectedQuestions.length !== selectedQuiz.questionCount
-                    ) {
-                      alert(
-                        `Cần chọn đúng ${selectedQuiz.questionCount} câu hỏi. Hiện tại: ${selectedQuestions.length}`
-                      );
+                    if (selectedQuestions.length === 0) {
+                      alert("Chưa chọn câu hỏi nào");
                       return;
                     }
-                    const payload = selectedQuestions.map(
-                      (questionId, index) => ({
-                        quizId: selectedQuiz.quizId,
-                        questionId,
-                        orderIndex: index + 1,
-                      })
-                    );
-                    await quizQuestionService.addBatch(payload);
+                    // Validation removed (auto count)
+                    try {
+                      for (let index = 0; index < selectedQuestions.length; index++) {
+                        const questionId = selectedQuestions[index];
+                        const payload = {
+                          quizId: selectedQuiz.quizId,
+                          questionId,
+                          orderIndex: index + 1,
+                        };
+                        await quizQuestionService.add(payload);
+                      }
+                      alert("Đã gắn câu hỏi vào quiz");
+                      setSelectingQuestions(false);
+                    } catch (err) {
+                      alert("Gắn câu hỏi thất bại");
+                    }
                     alert("Đã gắn câu hỏi vào quiz");
                     setSelectingQuestions(false);
+                    // Trigger a refresh/reload or just let the user see the update in the editor if it re-renders
+                    window.location.reload();
+                    // Simple fix for LessonDetailView to ensure consistency if this UI is used. 
+                    // Ideally we'd trigger a callback to reload data.
                   }}
                 >
                   Lưu danh sách câu hỏi

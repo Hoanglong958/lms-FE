@@ -8,8 +8,13 @@ export const dashboardService = {
   getQuizReports: () => api.get("/api/v1/dashboard/quiz-reports"),
   getRecentQuizzes: () => api.get("/api/v1/dashboard/recent-quizzes"),
   getTopStudents: () => api.get("/api/v1/dashboard/top-students"),
-  getUserGrowthByMonth: () => api.get("/api/v1/dashboard/user-growth/month"),
-  getUserGrowthByWeek: () => api.get("/api/v1/dashboard/user-growth/week"),
+
+  // ⭐ FIXED: truyền params theo requirement Swagger
+  getUserGrowthByMonth: (months = 12) =>
+    api.get(`/api/v1/dashboard/user-growth/month?months=${months}`),
+
+  getUserGrowthByWeek: (weeks = 4) =>
+    api.get(`/api/v1/dashboard/user-growth/week?weeks=${weeks}`),
 };
 
 export default dashboardService;
