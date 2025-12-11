@@ -4,6 +4,7 @@ import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 import { lessonDocumentService } from "@utils/lessonDocumentService.js";
 import { uploadService } from "@utils/uploadService";
 import VideoProgress from "@components/VideoPlayer/VideoProgress";
+import NotificationModal from "@components/NotificationModal/NotificationModal";
 import "./CoursesCSS/LessonDocumentEditor.css";
 
 // Toolbar dùng chung
@@ -44,6 +45,21 @@ export default function LessonDocumentEditor({ document, onUpdated }) {
     setEditing(false);
   }, [document]);
 
+  const [notification, setNotification] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    type: "info",
+  });
+
+  const showNotification = (title, message, type = "info") => {
+    setNotification({ isOpen: true, title, message, type });
+  };
+
+  const closeNotification = () => {
+    setNotification((prev) => ({ ...prev, isOpen: false }));
+  };
+
   const [uploading, setUploading] = useState(false);
 
   const handleImageUpload = async (e) => {
@@ -54,8 +70,9 @@ export default function LessonDocumentEditor({ document, onUpdated }) {
       const res = await uploadService.uploadImage(file);
       const url = res.data.url || res.data;
       setForm((prev) => ({ ...prev, imageUrl: url }));
+      setForm((prev) => ({ ...prev, imageUrl: url }));
     } catch (err) {
-      alert("Upload ảnh thất bại");
+      showNotification("Lỗi", "Upload ảnh thất bại", "error");
     } finally {
       setUploading(false);
     }
@@ -69,8 +86,9 @@ export default function LessonDocumentEditor({ document, onUpdated }) {
       const res = await uploadService.uploadVideo(file);
       const url = res.data.url || res.data;
       setForm((prev) => ({ ...prev, videoUrl: url }));
+      setForm((prev) => ({ ...prev, videoUrl: url }));
     } catch (err) {
-      alert("Upload video thất bại");
+      showNotification("Lỗi", "Upload video thất bại", "error");
     } finally {
       setUploading(false);
     }
@@ -78,7 +96,7 @@ export default function LessonDocumentEditor({ document, onUpdated }) {
 
   const handleSave = async () => {
     if (!form.title) {
-      alert("Tiêu đề không được để trống");
+      showNotification("Lỗi", "Tiêu đề không được để trống", "error");
       return;
     }
 
@@ -91,7 +109,7 @@ export default function LessonDocumentEditor({ document, onUpdated }) {
       onUpdated(res.data);
       setEditing(false);
     } catch (err) {
-      alert("Lưu tài liệu thất bại.");
+      showNotification("Lỗi", "Lưu tài liệu thất bại.", "error");
     }
   };
 
@@ -232,6 +250,14 @@ export default function LessonDocumentEditor({ document, onUpdated }) {
       <button className="lde-btn-secondary" onClick={() => setEditing(false)}>
         Hủy
       </button>
+
+      <NotificationModal
+        isOpen={notification.isOpen}
+        onClose={closeNotification}
+        title={notification.title}
+        message={notification.message}
+        type={notification.type}
+      />
     </div>
   );
 }

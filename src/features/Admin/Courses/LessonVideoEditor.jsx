@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { lessonVideoService } from "@utils/lessonVideoService.js";
 import { uploadService } from "@utils/uploadService";
-
 import "../Courses/CoursesCSS/LessonVideoEditor.css";
 import VideoProgress from "@components/VideoPlayer/VideoProgress";
+import NotificationModal from "@components/NotificationModal/NotificationModal";
 
 function isValidUrl(url) {
   try {
@@ -33,6 +33,21 @@ export default function LessonVideoEditor({ video, onUpdated }) {
     description: "",
   });
 
+  const [notification, setNotification] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    type: "info",
+  });
+
+  const showNotification = (title, message, type = "info") => {
+    setNotification({ isOpen: true, title, message, type });
+  };
+
+  const closeNotification = () => {
+    setNotification((prev) => ({ ...prev, isOpen: false }));
+  };
+
   // Khi video prop thay đổi → reset form
   useEffect(() => {
     if (!video) return;
@@ -61,7 +76,7 @@ export default function LessonVideoEditor({ video, onUpdated }) {
       const url = res.data.url || res.data;
       setForm((prev) => ({ ...prev, videoUrl: url }));
     } catch (err) {
-      alert("Upload video thất bại!");
+      showNotification("Lỗi", "Upload video thất bại!", "error");
       console.error(err);
     } finally {
       setUploading(false);
@@ -70,20 +85,24 @@ export default function LessonVideoEditor({ video, onUpdated }) {
 
   async function handleSave() {
     if (!form.videoUrl) {
-      alert("Vui lòng upload video trước khi lưu!");
+      showNotification("Lỗi", "Vui lòng upload video trước khi lưu!", "error");
       return;
     }
 
-    const res = await lessonVideoService.updateVideo(video.videoId, {
-      lessonId: video.lessonId,
-      title: form.title,
-      videoUrl: form.videoUrl,
-      durationSeconds: Number(form.durationSeconds),
-      description: form.description,
-    });
+    try {
+      const res = await lessonVideoService.updateVideo(video.videoId, {
+        lessonId: video.lessonId,
+        title: form.title,
+        videoUrl: form.videoUrl,
+        durationSeconds: Number(form.durationSeconds),
+        description: form.description,
+      });
 
-    onUpdated(res.data);
-    setEditing(false);
+      onUpdated(res.data);
+      setEditing(false);
+    } catch (err) {
+      showNotification("Lỗi", "Lưu video thất bại", "error");
+    }
   }
 
   // ============================
@@ -97,9 +116,7 @@ export default function LessonVideoEditor({ video, onUpdated }) {
     // Nếu là YouTube thì convert sang embed link
     const youtubeRegex = /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&]+)/;
     const match = url.match(youtubeRegex);
-    // URL for file videos (assuming MP4/WebM)
-    // We can also double check using isValidUrl or isVideoFile logic if needed,
-    // but typically if it's not a YouTube link we assume it's a file for this player.
+
     if (!match) {
       return (
         <div style={{ marginBottom: "20px" }}>
@@ -196,6 +213,14 @@ export default function LessonVideoEditor({ video, onUpdated }) {
 
         {/* Phần Video Player */}
         <div className="videoholderlesson">{renderVideo()}</div>
+
+        <NotificationModal
+          isOpen={notification.isOpen}
+          onClose={closeNotification}
+          title={notification.title}
+          message={notification.message}
+          type={notification.type}
+        />
       </div>
     );
   }
@@ -263,6 +288,14 @@ export default function LessonVideoEditor({ video, onUpdated }) {
       <button className="button" onClick={() => setEditing(false)}>
         Hủy
       </button>
+
+      <NotificationModal
+        isOpen={notification.isOpen}
+        onClose={closeNotification}
+        title={notification.title}
+        message={notification.message}
+        type={notification.type}
+      />
     </div>
   );
 }

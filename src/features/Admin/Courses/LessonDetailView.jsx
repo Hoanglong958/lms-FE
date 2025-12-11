@@ -15,6 +15,7 @@ import LessonDocumentEditor from "./LessonDocumentEditor.jsx";
 import LessonDocumentCreate from "./LessonDocumentCreate.jsx";
 
 import "../Courses/CoursesCSS/LessonDetailView.css";
+import NotificationModal from "@components/NotificationModal/NotificationModal";
 
 export default function LessonDetailView({ lesson }) {
   const [videos, setVideos] = useState([]);
@@ -29,6 +30,21 @@ export default function LessonDetailView({ lesson }) {
 
   const [documents, setDocuments] = useState([]);
   const [selectedDocument, setSelectedDocument] = useState(null);
+
+  const [notification, setNotification] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    type: "info",
+  });
+
+  const showNotification = (title, message, type = "info") => {
+    setNotification({ isOpen: true, title, message, type });
+  };
+
+  const closeNotification = () => {
+    setNotification((prev) => ({ ...prev, isOpen: false }));
+  };
 
   // Load tất cả câu hỏi
   async function loadAllQuestions() {
@@ -166,7 +182,7 @@ export default function LessonDetailView({ lesson }) {
                 <button
                   onClick={async () => {
                     if (selectedQuestions.length === 0) {
-                      alert("Chưa chọn câu hỏi nào");
+                      showNotification("Cảnh báo", "Chưa chọn câu hỏi nào", "info");
                       return;
                     }
                     // Validation removed (auto count)
@@ -180,17 +196,13 @@ export default function LessonDetailView({ lesson }) {
                         };
                         await quizQuestionService.add(payload);
                       }
-                      alert("Đã gắn câu hỏi vào quiz");
+                      showNotification("Thành công", "Đã gắn câu hỏi vào quiz", "success");
                       setSelectingQuestions(false);
+                      // Trigger a refresh/reload
+                      window.location.reload();
                     } catch (err) {
-                      alert("Gắn câu hỏi thất bại");
+                      showNotification("Lỗi", "Gắn câu hỏi thất bại", "error");
                     }
-                    alert("Đã gắn câu hỏi vào quiz");
-                    setSelectingQuestions(false);
-                    // Trigger a refresh/reload or just let the user see the update in the editor if it re-renders
-                    window.location.reload();
-                    // Simple fix for LessonDetailView to ensure consistency if this UI is used. 
-                    // Ideally we'd trigger a callback to reload data.
                   }}
                 >
                   Lưu danh sách câu hỏi
@@ -233,6 +245,14 @@ export default function LessonDetailView({ lesson }) {
           )}
         </div>
       )}
+
+      <NotificationModal
+        isOpen={notification.isOpen}
+        onClose={closeNotification}
+        title={notification.title}
+        message={notification.message}
+        type={notification.type}
+      />
     </div>
   );
 }

@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { lessonQuizService } from "@utils/lessonQuizService.js";
-
-// IMPORT CSS RIÊNG CHO TRANG NÀY
+import NotificationModal from "@components/NotificationModal/NotificationModal";
 import "./CoursesCSS/LessonQuizCreate.css";
 
 export default function LessonQuizCreate({ lesson, onCreated }) {
@@ -12,14 +11,29 @@ export default function LessonQuizCreate({ lesson, onCreated }) {
     passingScore: 0,
   });
 
+  const [notification, setNotification] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    type: "info",
+  });
+
+  const showNotification = (title, message, type = "info") => {
+    setNotification({ isOpen: true, title, message, type });
+  };
+
+  const closeNotification = () => {
+    setNotification((prev) => ({ ...prev, isOpen: false }));
+  };
+
   const handleCreate = async () => {
     if (!form.title || !form.passingScore) {
-      alert("Không được để trống trường nào!");
+      showNotification("Lỗi", "Không được để trống trường nào!", "error");
       return;
     }
 
     if (form.passingScore < 5 || form.passingScore > 10) {
-      alert("Điểm đạt phải từ 5 đến 10");
+      showNotification("Lỗi", "Điểm đạt phải từ 5 đến 10", "error");
       return;
     }
 
@@ -35,14 +49,12 @@ export default function LessonQuizCreate({ lesson, onCreated }) {
       const res = await lessonQuizService.addQuiz(payload);
       onCreated(res.data);
     } catch (err) {
-      alert("Không thể tạo quiz");
+      showNotification("Lỗi", "Không thể tạo quiz", "error");
     }
   };
 
   const fields = [
     { key: "title", label: "Tiêu đề", type: "text" },
-    // questionCount removed, default 0
-    // maxScore is hidden/default 10
     { key: "passingScore", label: "Điểm đạt (5-10)", type: "number", min: 5, max: 10 },
   ];
 
@@ -69,6 +81,14 @@ export default function LessonQuizCreate({ lesson, onCreated }) {
       <button className="lqc-btn" onClick={handleCreate}>
         Tạo Quiz
       </button>
+
+      <NotificationModal
+        isOpen={notification.isOpen}
+        onClose={closeNotification}
+        title={notification.title}
+        message={notification.message}
+        type={notification.type}
+      />
     </div>
   );
 }

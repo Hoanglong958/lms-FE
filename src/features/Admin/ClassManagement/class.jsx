@@ -1,6 +1,7 @@
 import React, { useMemo, useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { classService } from "@utils/classService";
+import { userService } from "@utils/userService";
 import ClassDetail from "./ClassDetail";
 import ClassDetailModal from "./ClassDetailModal";
 import "./class.css";
@@ -83,8 +84,7 @@ export default function ClassManagement() {
         };
       });
 
-      console.log("📊 Mapped classes:", mappedClasses);
-      console.log("📊 Status values:", mappedClasses.map(c => c.status));
+
       setClasses(Array.isArray(mappedClasses) ? mappedClasses : []);
     } catch (err) {
       console.error("❌ Error fetching classes:", err);
@@ -684,7 +684,22 @@ function AddClassModal({ onClose, onSubmit }) {
   const [endDate, setEndDate] = useState("");
   const [status, setStatus] = useState("upcoming");
   const [schedule, setSchedule] = useState("");
+
   const [errors, setErrors] = useState({});
+  const [teachersList, setTeachersList] = useState([]);
+
+  useEffect(() => {
+    userService.getAllUsers({ role: "TEACHER", size: 100 })
+      .then((res) => {
+        // Handle various response structures
+        const data = res.data?.data?.content || res.data?.content || res.data || [];
+        const allUsers = Array.isArray(data) ? data : [];
+        // Filter client-side to ensure only teachers are shown
+        const teachers = allUsers.filter(u => (u.role || "").toUpperCase().includes("TEACHER"));
+        setTeachersList(teachers);
+      })
+      .catch((err) => console.error("Failed to load teachers", err));
+  }, []);
 
   function validate() {
     const nextErrors = {};
@@ -774,13 +789,18 @@ function AddClassModal({ onClose, onSubmit }) {
               </label>
               <label style={modalStyles.label}>
                 Giáo viên
-                <input
-                  type="text"
+                <select
                   value={teacher}
                   onChange={(e) => setTeacher(e.target.value)}
                   style={modalStyles.input}
-                  placeholder="Ví dụ: Nguyễn Văn A"
-                />
+                >
+                  <option value="">-- Chọn giảng viên --</option>
+                  {teachersList.map((t) => (
+                    <option key={t.id} value={t.fullName || t.username}>
+                      {t.fullName || t.username} ({t.gmail || t.email})
+                    </option>
+                  ))}
+                </select>
                 {errors.teacher && (
                   <div style={modalStyles.error}>{errors.teacher}</div>
                 )}
@@ -875,7 +895,21 @@ function EditClassModal({ cls, onClose, onSubmit }) {
   const [endDate, setEndDate] = useState(cls.endDate || "");
   const [status, setStatus] = useState(cls.status || "upcoming");
   const [schedule, setSchedule] = useState(cls.schedule || "");
+
   const [errors, setErrors] = useState({});
+  const [teachersList, setTeachersList] = useState([]);
+
+  useEffect(() => {
+    userService.getAllUsers({ role: "TEACHER", size: 100 })
+      .then((res) => {
+        const data = res.data?.data?.content || res.data?.content || res.data || [];
+        const allUsers = Array.isArray(data) ? data : [];
+        // Filter client-side to ensure only teachers are shown
+        const teachers = allUsers.filter(u => (u.role || "").toUpperCase().includes("TEACHER"));
+        setTeachersList(teachers);
+      })
+      .catch((err) => console.error("Failed to load teachers", err));
+  }, []);
 
   function validate() {
     const nextErrors = {};
@@ -960,12 +994,18 @@ function EditClassModal({ cls, onClose, onSubmit }) {
             </label>
             <label style={modalStyles.label}>
               Giáo viên
-              <input
-                type="text"
+              <select
                 value={teacher}
                 onChange={(e) => setTeacher(e.target.value)}
                 style={modalStyles.input}
-              />
+              >
+                <option value="">-- Chọn giảng viên --</option>
+                {teachersList.map((t) => (
+                  <option key={t.id} value={t.fullName || t.username}>
+                    {t.fullName || t.username} ({t.gmail || t.email})
+                  </option>
+                ))}
+              </select>
               {errors.teacher && (
                 <div style={modalStyles.error}>{errors.teacher}</div>
               )}
