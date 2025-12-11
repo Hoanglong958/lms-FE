@@ -24,10 +24,11 @@ export default function QuizQuestionSelector({ quiz, onChange }) {
   };
 
   const handleAddSelected = async () => {
-    if (selectedIds.length !== quiz.questionCount) {
-      alert(`Quiz cần đúng ${quiz.questionCount} câu hỏi`);
+    if (selectedIds.length === 0) {
+      alert("Chưa chọn câu hỏi nào");
       return;
     }
+    // Validation removed as per user request (auto count)
 
     const payload = selectedIds.map((questionId, index) => ({
       quizId: quiz.quizId,
@@ -35,9 +36,21 @@ export default function QuizQuestionSelector({ quiz, onChange }) {
       orderIndex: index + 1,
     }));
 
-    await quizQuestionService.addBatch(payload);
-    onChange?.();
-    setShowModal(false);
+    try {
+      for (let index = 0; index < selectedIds.length; index++) {
+        const questionId = selectedIds[index];
+        const payload = {
+          quizId: quiz.quizId,
+          questionId,
+          orderIndex: index + 1,
+        };
+        await quizQuestionService.add(payload);
+      }
+      onChange?.();
+      setShowModal(false);
+    } catch (err) {
+      alert("Lỗi thêm câu hỏi");
+    }
   };
 
   return (

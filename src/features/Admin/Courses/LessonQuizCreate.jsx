@@ -8,25 +8,25 @@ export default function LessonQuizCreate({ lesson, onCreated }) {
   const [form, setForm] = useState({
     title: "",
     questionCount: 0,
-    maxScore: 0,
+    maxScore: 10,
     passingScore: 0,
   });
 
   const handleCreate = async () => {
-    if (
-      !form.title ||
-      !form.questionCount ||
-      !form.maxScore ||
-      !form.passingScore
-    ) {
+    if (!form.title || !form.passingScore) {
       alert("Không được để trống trường nào!");
+      return;
+    }
+
+    if (form.passingScore < 5 || form.passingScore > 10) {
+      alert("Điểm đạt phải từ 5 đến 10");
       return;
     }
 
     const payload = {
       lessonId: lesson.id,
       title: form.title,
-      questionCount: Number(form.questionCount),
+      questionCount: 0,
       maxScore: Number(form.maxScore),
       passingScore: Number(form.passingScore),
     };
@@ -41,9 +41,9 @@ export default function LessonQuizCreate({ lesson, onCreated }) {
 
   const fields = [
     { key: "title", label: "Tiêu đề", type: "text" },
-    { key: "questionCount", label: "Số câu hỏi", type: "number" },
-    { key: "maxScore", label: "Điểm tối đa", type: "number" },
-    { key: "passingScore", label: "Điểm đạt", type: "number" },
+    // questionCount removed, default 0
+    // maxScore is hidden/default 10
+    { key: "passingScore", label: "Điểm đạt (5-10)", type: "number", min: 5, max: 10 },
   ];
 
   return (
@@ -55,6 +55,8 @@ export default function LessonQuizCreate({ lesson, onCreated }) {
           <label className="lqc-label">{f.label}:</label>
           <input
             type={f.type}
+            min={f.min}
+            max={f.max}
             className="lqc-input"
             value={form[f.key]}
             onChange={(e) => setForm({ ...form, [f.key]: e.target.value })}

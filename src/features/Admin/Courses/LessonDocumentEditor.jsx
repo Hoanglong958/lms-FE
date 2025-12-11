@@ -3,6 +3,7 @@ import { CKEditor } from "@ckeditor/ckeditor5-react";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 import { lessonDocumentService } from "@utils/lessonDocumentService.js";
 import { uploadService } from "@utils/uploadService";
+import VideoProgress from "@components/VideoPlayer/VideoProgress";
 import "./CoursesCSS/LessonDocumentEditor.css";
 
 // Toolbar dùng chung
@@ -99,7 +100,25 @@ export default function LessonDocumentEditor({ document, onUpdated }) {
   if (!editing) {
     return (
       <div className="lde-wrapper">
-        <h3 className="lde-title">{document.title}</h3>
+        <div className="lde-header">
+          <h3 className="lde-title">{document.title}</h3>
+          <button className="lde-btn-edit" onClick={() => setEditing(true)}>
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+            </svg>
+            Sửa tài liệu
+          </button>
+        </div>
         <div
           className="lde-content html-content"
           dangerouslySetInnerHTML={{ __html: document.content }}
@@ -116,16 +135,19 @@ export default function LessonDocumentEditor({ document, onUpdated }) {
           />
         )}
         {document.videoUrl && (
-          <a href={document.videoUrl} className="lde-link" target="_blank">
-            Video Link
-          </a>
+          <div style={{ marginTop: "12px", marginBottom: "12px" }}>
+            {/* Simple check: if youtube, show link (or iframe if we wanted), else VideoProgress */}
+            {/youtube\.com|youtu\.be/.test(document.videoUrl) ? (
+              <a href={document.videoUrl} className="lde-link" target="_blank">
+                Link Video (YouTube)
+              </a>
+            ) : (
+              <VideoProgress src={document.videoUrl} />
+            )}
+          </div>
         )}
         <p>
-          <b>Thứ tự:</b> {document.sortOrder}
         </p>
-        <button className="lde-btn" onClick={() => setEditing(true)}>
-          Sửa
-        </button>
       </div>
     );
   }
