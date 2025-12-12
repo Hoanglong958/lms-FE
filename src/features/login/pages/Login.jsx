@@ -3,6 +3,8 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { authService } from "@utils/authService"; // import service
 import NotificationModal from "@components/NotificationModal/NotificationModal";
+import NotificationModal from "@components/NotificationModal/NotificationModal";
+import ForgotPasswordModal from "../components/ForgotPasswordModal";
 import "./login.css";
 
 export default function Login() {
@@ -13,8 +15,10 @@ export default function Login() {
     isOpen: false,
     title: "",
     message: "",
+    message: "",
     type: "info",
   });
+  const [showForgotModal, setShowForgotModal] = useState(false);
   const navigate = useNavigate();
 
   const showNotification = (title, message, type = "info") => {
@@ -123,7 +127,14 @@ export default function Login() {
             </button>
 
             <p className="forgot-password">
-              <Link to="/forgot-password">Quên mật khẩu?</Link>
+              <button
+                type="button"
+                className="link-button" // Add style if needed or reuse existing
+                onClick={() => setShowForgotModal(true)}
+                style={{ background: "none", border: "none", color: "#f28c38", cursor: "pointer", padding: 0, fontSize: "14px", fontWeight: "500" }}
+              >
+                Quên mật khẩu?
+              </button>
             </p>
 
             <p className="register-link">
@@ -152,6 +163,10 @@ export default function Login() {
         title={notification.title}
         message={notification.message}
         type={notification.type}
+      />
+      <ForgotPasswordModal
+        isOpen={showForgotModal}
+        onClose={() => setShowForgotModal(false)}
       />
     </div>
   );

@@ -6,10 +6,13 @@ export default function PrivateRoute({ role }) {
   // ❌ Không đăng nhập → về /login
   if (!storedUser) return <Navigate to="/login" replace />;
 
-  // ❌ Sai role → chặn vào
+  // ✅ Admin có quyền truy cập tất cả (bao gồm routes của User)
+  if (storedUser.role === "ROLE_ADMIN") {
+    return <Outlet />;
+  }
+
+  // ❌ Sai role (User cố vào Admin, hoặc role khác không khớp)
   if (role && storedUser.role !== role) {
-    if (storedUser.role === "ROLE_ADMIN")
-      return <Navigate to="/admin" replace />;
     if (storedUser.role === "ROLE_USER") return <Navigate to="/dashboard" replace />;
     return <Navigate to="/login" replace />;
   }

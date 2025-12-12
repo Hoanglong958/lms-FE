@@ -1,19 +1,21 @@
 import api from "@services/api";
 
-const BASE_PATH = "/api/v1/classes";
+const BASE_PATH = "/api/v1/classes/teachers";
 
-const getTeachers = (classId) =>
-  api.get(`${BASE_PATH}/teachers`, { params: { classId } });
+// GET /api/v1/classes/teachers?classId={classId}
+const getClassTeachers = (classId) => api.get(BASE_PATH, { params: { classId: parseInt(classId) } });
 
-const assignTeacher = (data) => api.post(`${BASE_PATH}/teachers`, data);
+// POST /api/v1/classes/teachers
+const assignTeacherToClass = (data) => api.post(BASE_PATH, data);
 
-const removeTeacher = (classId, teacherId) =>
-  api.delete(`${BASE_PATH}/${classId}/teachers/${teacherId}`);
+// DELETE /api/v1/classes/{classId}/teachers/{teacherId}
+const removeTeacherFromClass = (classId, teacherId) =>
+    api.delete(`/api/v1/classes/${classId}/teachers/${teacherId}`);
 
 export const classTeacherService = {
-  getTeachers,
-  assignTeacher,
-  removeTeacher,
+    getClassTeachers,
+    assignTeacherToClass,
+    removeTeacherFromClass
 };
 
 export default classTeacherService;

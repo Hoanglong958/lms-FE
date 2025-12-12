@@ -54,6 +54,9 @@ import ClassDetail from "@features/Admin/ClassManagement/ClassDetail";
 // Quản lý thời khóa biểu
 import CalendarManagement from "@features/Admin/CalendarManagement/Calendar";
 
+// Quản lý lộ trình
+import Roadmap from "@features/Admin/Roadmap/Roadmap";
+
 export default function AppRouter() {
   return (
     <>
@@ -139,6 +142,9 @@ export default function AppRouter() {
 
             {/* Quản lý thời khóa biểu */}
             <Route path="calendar" element={<CalendarManagement />} />
+
+            {/* Quản lý lộ trình */}
+            <Route path="roadmap" element={<Roadmap />} />
           </Route>
 
           {/* ADMIN MANAGE LESSONS FROM OUTSIDE */}

@@ -73,11 +73,11 @@ export default function UserManagement({ currentUserRole = "admin" }) {
 			// Map fields: name -> fullName, email -> gmail
 			const apiPayload = {
 				fullName: payload.name,
+				username: payload.email,
 				gmail: payload.email,
 				role: payload.role,
 				password: "Password123!", // Mật khẩu mặc định
 				isActive: true,
-				phone: "" // Optional
 			};
 			await userService.createUser(apiPayload);
 			await fetchUsers();
@@ -248,6 +248,7 @@ export default function UserManagement({ currentUserRole = "admin" }) {
 					>
 						<option value="all">Tất cả vai trò</option>
 						<option value="ROLE_ADMIN">Quản trị viên</option>
+						<option value="ROLE_TEACHER">Giảng viên</option>
 						<option value="ROLE_USER">Người dùng</option>
 					</select>
 					<span style={styles.selectChevron} aria-hidden="true">▾</span>
@@ -316,7 +317,7 @@ export default function UserManagement({ currentUserRole = "admin" }) {
 				<AddUserModal
 					onClose={() => setIsAddOpen(false)}
 					onSubmit={handleAddUser}
-					allowedRoles={["ROLE_ADMIN", "ROLE_USER"]}
+					allowedRoles={["ROLE_ADMIN", "ROLE_TEACHER", "ROLE_USER"]}
 				/>
 			)}
 
@@ -325,7 +326,7 @@ export default function UserManagement({ currentUserRole = "admin" }) {
 					user={editingUser}
 					onClose={() => setEditingUser(null)}
 					onSubmit={(payload) => handleEditUser(editingUser.id, payload)}
-					allowedRoles={["ROLE_ADMIN", "ROLE_USER"]}
+					allowedRoles={["ROLE_ADMIN", "ROLE_TEACHER", "ROLE_USER"]}
 				/>
 			)}
 
@@ -427,7 +428,11 @@ function AddUserModal({ onClose, onSubmit, allowedRoles }) {
 							>
 								{allowedRoles.map((r) => (
 									<option key={r} value={r}>
-										{r === "ROLE_ADMIN" ? "Quản trị viên" : "Người dùng"}
+										{r === "ROLE_ADMIN"
+											? "Quản trị viên"
+											: r === "ROLE_TEACHER"
+												? "Giảng viên"
+												: "Người dùng"}
 									</option>
 								))}
 							</select>
@@ -513,7 +518,11 @@ function EditUserModal({ user, onClose, onSubmit, allowedRoles }) {
 							>
 								{allowedRoles.map((r) => (
 									<option key={r} value={r}>
-										{r === "ROLE_ADMIN" ? "Quản trị viên" : "Người dùng"}
+										{r === "ROLE_ADMIN"
+											? "Quản trị viên"
+											: r === "ROLE_TEACHER"
+												? "Giảng viên"
+												: "Người dùng"}
 									</option>
 								))}
 							</select>
@@ -562,9 +571,17 @@ function ConfirmModal({ title, message, onCancel, onConfirm, confirmLabel = "Xó
 }
 
 function RoleBadge({ role }) {
-	const label = role === "ROLE_ADMIN" ? "Quản trị viên" : "Người dùng";
-	const style =
-		role === "ROLE_ADMIN" ? badgeStyles.roleAdmin : badgeStyles.roleUser;
+	let label = "Người dùng";
+	let style = badgeStyles.roleUser;
+
+	if (role === "ROLE_ADMIN") {
+		label = "Quản trị viên";
+		style = badgeStyles.roleAdmin;
+	} else if (role === "ROLE_TEACHER") {
+		label = "Giảng viên";
+		style = badgeStyles.roleTeacher;
+	}
+
 	return <span style={{ ...badgeStyles.base, ...style }}>{label}</span>;
 }
 
@@ -947,6 +964,10 @@ const badgeStyles = {
 	roleAdmin: {
 		background: "rgba(59,130,246,0.1)",
 		color: "#1d4ed8"
+	},
+	roleTeacher: {
+		background: "rgba(245, 158, 11, 0.12)",
+		color: "#b45309"
 	},
 	roleUser: {
 		background: "rgba(16,185,129,0.12)",

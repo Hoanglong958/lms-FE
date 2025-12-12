@@ -47,14 +47,14 @@ export default function QuizExamPage({ quizId }) {
               timeLimit: detail.data.timeLimit || "00:01:00",
               options,
             });
-          } catch (err) {}
+          } catch (err) { }
         }
         setQuizQuestions(detailedQuestions);
         if (detailedQuestions[0])
           setTimeRemaining(
             convertTimeToSeconds(detailedQuestions[0].timeLimit)
           );
-      } catch (err) {}
+      } catch (err) { }
     })();
   }, [quizIdFromParams]);
 
@@ -161,11 +161,10 @@ export default function QuizExamPage({ quizId }) {
           {currentQuestion.options.map((opt) => (
             <div
               key={opt.id}
-              className={`quiz-option ${
-                userSelections[currentQuestionIndex] === opt.id
-                  ? "selected"
-                  : ""
-              }`}
+              className={`quiz-option ${userSelections[currentQuestionIndex] === opt.id
+                ? "selected"
+                : ""
+                }`}
               onClick={() => handleOptionSelect(opt.id)}
             >
               {opt.text}

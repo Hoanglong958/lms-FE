@@ -104,7 +104,7 @@ export default function ProfileEdit() {
         }
 
         try {
-            await authService.changePassword({ oldPassword, newPassword });
+            await authService.changePassword({ oldPassword, newPassword, confirmPassword });
             showNotification("Thành công", "Đổi mật khẩu thành công!", "success");
             handleClosePasswordModal();
         } catch (error) {
