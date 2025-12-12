@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import "./ExamCreateDialog.css";
 import { examService } from "@utils/examService";
 import QuestionSelector from "./QuestionSelector";
+import NotificationModal from "@components/NotificationModal/NotificationModal";
 
 export default function ExamCreateDialog({ open, onOpenChange, onSuccess }) {
   const [submitting, setSubmitting] = useState(false);
@@ -18,6 +19,17 @@ export default function ExamCreateDialog({ open, onOpenChange, onSuccess }) {
     autoAddQuestions: false,
     questionIds: [],
   });
+
+  const [notification, setNotification] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    type: "info",
+  });
+
+  const showNotification = (title, message, type = "info") => {
+    setNotification({ isOpen: true, title, message, type });
+  };
 
   useEffect(() => {
     if (!open) {
@@ -84,7 +96,7 @@ export default function ExamCreateDialog({ open, onOpenChange, onSuccess }) {
       const status = err?.response?.status;
       const data = err?.response?.data;
       const message = data?.message || data?.error || err.message || "Lỗi không xác định";
-      alert(`Tạo bài kiểm tra thất bại! Status: ${status || "n/a"}. Message: ${message}`);
+      showNotification("Lỗi", `Tạo bài kiểm tra thất bại! Status: ${status || "n/a"}. Message: ${message}`, "error");
     } finally {
       setSubmitting(false);
     }
@@ -188,7 +200,15 @@ export default function ExamCreateDialog({ open, onOpenChange, onSuccess }) {
             onSelectQuestions={(ids) => setForm((prev) => ({ ...prev, questionIds: ids }))}
           />
         )}
+
       </div>
+      <NotificationModal
+        isOpen={notification.isOpen}
+        onClose={() => setNotification((prev) => ({ ...prev, isOpen: false }))}
+        title={notification.title}
+        message={notification.message}
+        type={notification.type}
+      />
     </div>
   );
 }

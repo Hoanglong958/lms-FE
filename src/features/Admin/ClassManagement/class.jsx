@@ -5,6 +5,7 @@ import { userService } from "@utils/userService";
 import { classTeacherService } from "@utils/classTeacherService";
 import ClassDetail from "./ClassDetail";
 import ClassDetailModal from "./ClassDetailModal";
+import NotificationModal from "@components/NotificationModal/NotificationModal";
 import "./class.css";
 
 export default function ClassManagement() {
@@ -20,6 +21,17 @@ export default function ClassManagement() {
     type: null,
     data: null,
   });
+
+  const [notification, setNotification] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    type: "info",
+  });
+
+  const showNotification = (title, message, type = "info") => {
+    setNotification({ isOpen: true, title, message, type });
+  };
 
   // --- Load classes từ API khi component mount ---
   const fetchClasses = useCallback(async () => {
@@ -89,7 +101,8 @@ export default function ClassManagement() {
       setClasses(Array.isArray(mappedClasses) ? mappedClasses : []);
     } catch (err) {
       console.error("❌ Error fetching classes:", err);
-      alert("Không thể tải danh sách lớp học!");
+      // Avoid showing alert on initial load failure if it disrupts UX, but here we replace with notification
+      showNotification("Lỗi", "Không thể tải danh sách lớp học!", "error");
     }
   }, [searchQuery, statusFilter]);
 
@@ -538,15 +551,25 @@ export default function ClassManagement() {
         )
       }
 
-      <ClassDetailModal
-        isOpen={modalState.isOpen}
-        onClose={() => setModalState({ ...modalState, isOpen: false })}
-        type={modalState.type}
-        data={modalState.data}
-        onAttendance={(classData) => {
-          navigate(`/admin/classes/${classData.id}`, { state: { classData } });
-          setModalState({ isOpen: false, type: null, data: null });
-        }}
+      {modalState.isOpen && (
+        <ClassDetailModal
+          isOpen={modalState.isOpen}
+          onClose={() => setModalState({ isOpen: false, type: null, data: null })}
+          type={modalState.type}
+          data={modalState.data}
+          onAttendance={(classData) => {
+            navigate(`/admin/classes/${classData.id}`, { state: { classData } });
+            setModalState({ isOpen: false, type: null, data: null });
+          }}
+        />
+      )}
+
+      <NotificationModal
+        isOpen={notification.isOpen}
+        onClose={() => setNotification((prev) => ({ ...prev, isOpen: false }))}
+        title={notification.title}
+        message={notification.message}
+        type={notification.type}
       />
     </div >
   );

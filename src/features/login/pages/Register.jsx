@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { authService } from "@utils/authService"; // import service
+import NotificationModal from "@components/NotificationModal/NotificationModal";
 import "./login.css";
 
 export default function Register() {
@@ -9,7 +10,17 @@ export default function Register() {
   const [password, setPassword] = useState("");
   const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
+  const [notification, setNotification] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    type: "info",
+  });
   const navigate = useNavigate();
+
+  const showNotification = (title, message, type = "info") => {
+    setNotification({ isOpen: true, title, message, type });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -19,18 +30,24 @@ export default function Register() {
 
     try {
       await authService.register(payload); // dùng service
-      alert("Đăng ký thành công! Hãy đăng nhập.");
-      navigate("/login");
+      showNotification("Thành công", "Đăng ký thành công! Hãy đăng nhập.", "success");
+      setTimeout(() => navigate("/login"), 1500);
     } catch (err) {
-      if (err.response) {
-        alert(
-          `Đăng ký lỗi! Code: ${err.response.status}, Message: ${JSON.stringify(
-            err.response.data
-          )}`
-        );
-      } else {
-        alert("Có lỗi xảy ra, vui lòng thử lại!");
+      console.error("Đăng ký lỗi:", err);
+      const status = err?.response?.status;
+      const data = err?.response?.data;
+
+      let message = "Có lỗi xảy ra, vui lòng thử lại!";
+
+      if (status === 409) {
+        message = "Email này đã được sử dụng. Vui lòng chọn email khác.";
+      } else if (data) {
+        message = typeof data === "string" ? data : (data.message || data.error || message);
+      } else if (err.message) {
+        message = err.message;
       }
+
+      showNotification("Đăng ký thất bại", message, "error");
     } finally {
       setLoading(false);
     }
@@ -118,6 +135,13 @@ export default function Register() {
           </div>
         </div>
       </div>
+      <NotificationModal
+        isOpen={notification.isOpen}
+        onClose={() => setNotification((prev) => ({ ...prev, isOpen: false }))}
+        title={notification.title}
+        message={notification.message}
+        type={notification.type}
+      />
     </div>
   );
 }

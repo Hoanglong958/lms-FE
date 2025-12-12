@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import "./ExamEditDialog.css";
 import { examService } from "@utils/examService.js";
+import NotificationModal from "@components/NotificationModal/NotificationModal";
 
 export default function ExamEditDialog({ open, onOpenChange, exam, onSuccess }) {
   const [submitting, setSubmitting] = useState(false);
@@ -18,6 +19,17 @@ export default function ExamEditDialog({ open, onOpenChange, exam, onSuccess }) 
     autoAddQuestions: false,
     questionIds: [],
   });
+
+  const [notification, setNotification] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    type: "info",
+  });
+
+  const showNotification = (title, message, type = "info") => {
+    setNotification({ isOpen: true, title, message, type });
+  };
 
   // Prefill when dialog opens
   useEffect(() => {
@@ -81,8 +93,8 @@ export default function ExamEditDialog({ open, onOpenChange, exam, onSuccess }) 
         type === "checkbox"
           ? checked
           : type === "number"
-          ? Number(value)
-          : value ?? "",
+            ? Number(value)
+            : value ?? "",
     }));
   };
 
@@ -117,7 +129,7 @@ export default function ExamEditDialog({ open, onOpenChange, exam, onSuccess }) 
       if (onSuccess) onSuccess(res.data?.data || res.data);
       if (onOpenChange) onOpenChange(false);
     } catch (err) {
-      alert("Có lỗi xảy ra khi cập nhật bài kiểm tra");
+      showNotification("Lỗi", "Có lỗi xảy ra khi cập nhật bài kiểm tra", "error");
     } finally {
       setSubmitting(false);
     }
@@ -337,8 +349,8 @@ export default function ExamEditDialog({ open, onOpenChange, exam, onSuccess }) 
                         onClick={() =>
                           active
                             ? handleSelectQuestions(
-                                form.questionIds.filter((q) => q !== id)
-                              )
+                              form.questionIds.filter((q) => q !== id)
+                            )
                             : handleSelectQuestions([...form.questionIds, id])
                         }
                       >
@@ -361,6 +373,13 @@ export default function ExamEditDialog({ open, onOpenChange, exam, onSuccess }) 
           </div>
         )}
       </div>
+      <NotificationModal
+        isOpen={notification.isOpen}
+        onClose={() => setNotification((prev) => ({ ...prev, isOpen: false }))}
+        title={notification.title}
+        message={notification.message}
+        type={notification.type}
+      />
     </div>
   );
 }

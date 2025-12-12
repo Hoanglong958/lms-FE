@@ -1,11 +1,24 @@
 import React, { useEffect, useState } from "react";
 import "./ExamDetailDialog.css";
 import { examService } from "@utils/examService.js";
+import NotificationModal from "@components/NotificationModal/NotificationModal";
 
 export default function ExamDetailDialog({ open, onOpenChange, exam, examId }) {
   const [examState, setExamState] = useState(null);
   const [loading, setLoading] = useState(false);
+
   const id = exam?.id ?? examId;
+
+  const [notification, setNotification] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    type: "info",
+  });
+
+  const showNotification = (title, message, type = "info") => {
+    setNotification({ isOpen: true, title, message, type });
+  };
 
   useEffect(() => {
     if (open && exam) {
@@ -35,8 +48,9 @@ export default function ExamDetailDialog({ open, onOpenChange, exam, examId }) {
           setExamState(found);
           return;
         }
-      } catch {}
-      alert("Không thể tải chi tiết kỳ thi");
+      } catch { }
+
+      showNotification("Lỗi", "Không thể tải chi tiết kỳ thi", "error");
     } finally {
       setLoading(false);
     }
@@ -72,8 +86,8 @@ export default function ExamDetailDialog({ open, onOpenChange, exam, examId }) {
       typeof q.correctAnswerIndex === "number"
         ? q.correctAnswerIndex
         : typeof q.correctIndex === "number"
-        ? q.correctIndex
-        : undefined;
+          ? q.correctIndex
+          : undefined;
     if (typeof ci === "number" && ci === idx) return true;
     // 4) correctOptions: array of indices or strings
     if (Array.isArray(q.correctOptions)) {
@@ -264,6 +278,13 @@ export default function ExamDetailDialog({ open, onOpenChange, exam, examId }) {
           <div className="examd-empty">Không tìm thấy dữ liệu</div>
         )}
       </div>
+      <NotificationModal
+        isOpen={notification.isOpen}
+        onClose={() => setNotification((prev) => ({ ...prev, isOpen: false }))}
+        title={notification.title}
+        message={notification.message}
+        type={notification.type}
+      />
     </div>
   );
 }

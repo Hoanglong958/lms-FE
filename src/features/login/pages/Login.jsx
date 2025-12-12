@@ -1,13 +1,25 @@
 import React, { useState, useEffect } from "react";
+// start
 import { useNavigate, Link } from "react-router-dom";
 import { authService } from "@utils/authService"; // import service
+import NotificationModal from "@components/NotificationModal/NotificationModal";
 import "./login.css";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [notification, setNotification] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    type: "info",
+  });
   const navigate = useNavigate();
+
+  const showNotification = (title, message, type = "info") => {
+    setNotification({ isOpen: true, title, message, type });
+  };
 
   // Nếu đã login → redirect
   useEffect(() => {
@@ -26,7 +38,7 @@ export default function Login() {
     try {
       const payload = { gmail: email.trim().toLowerCase(), password };
       console.log("Login payload:", payload);
-      const response = await authService.login(payload); // backend dùng 'gmail'
+      const response = await authService.login(payload);
       const { accessToken, user } = response.data.data;
 
       localStorage.setItem("accessToken", accessToken);
@@ -38,9 +50,31 @@ export default function Login() {
       console.error("Đăng nhập lỗi:", err);
       const status = err?.response?.status;
       const data = err?.response?.data;
-      const message =
-        data?.message || data?.error || err.message || "Lỗi không xác định";
-      alert(`Đăng nhập lỗi! Status: ${status || "n/a"}. Message: ${message}`);
+
+      let message = "Đăng nhập thất bại. Vui lòng thử lại.";
+
+      if (data) {
+        if (typeof data === "string") {
+          message = data;
+        } else if (data.data && typeof data.data === "string") {
+          message = data.data;
+        } else if (data.message) {
+          message = data.message;
+        } else if (data.error) {
+          message = data.error;
+        }
+      }
+
+      // Fallback only if we didn't get a specific message from backend
+      if (message === "Đăng nhập thất bại. Vui lòng thử lại.") {
+        if (status === 401 || status === 403 || status === 400) {
+          message = "Tên đăng nhập hoặc mật khẩu không chính xác.";
+        } else if (err.message) {
+          message = err.message;
+        }
+      }
+
+      showNotification("Đăng nhập thất bại", message, "error");
     } finally {
       setLoading(false);
     }
@@ -112,6 +146,13 @@ export default function Login() {
           </div>
         </div>
       </div>
+      <NotificationModal
+        isOpen={notification.isOpen}
+        onClose={() => setNotification((prev) => ({ ...prev, isOpen: false }))}
+        title={notification.title}
+        message={notification.message}
+        type={notification.type}
+      />
     </div>
   );
 }

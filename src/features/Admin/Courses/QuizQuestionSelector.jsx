@@ -1,11 +1,24 @@
 import React, { useEffect, useState } from "react";
 import { quizQuestionService } from "@utils/quizQuestionService.js";
+
 import { questionService } from "@utils/questionService.js"; // giả sử có service lấy tất cả question
+import NotificationModal from "@components/NotificationModal/NotificationModal";
 
 export default function QuizQuestionSelector({ quiz, onChange }) {
   const [allQuestions, setAllQuestions] = useState([]);
   const [selectedIds, setSelectedIds] = useState([]);
   const [showModal, setShowModal] = useState(false);
+
+  const [notification, setNotification] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    type: "info",
+  });
+
+  const showNotification = (title, message, type = "info") => {
+    setNotification({ isOpen: true, title, message, type });
+  };
 
   useEffect(() => {
     // Load tất cả question khi modal mở
@@ -25,7 +38,7 @@ export default function QuizQuestionSelector({ quiz, onChange }) {
 
   const handleAddSelected = async () => {
     if (selectedIds.length === 0) {
-      alert("Chưa chọn câu hỏi nào");
+      showNotification("Chưa chọn", "Chưa chọn câu hỏi nào", "warning");
       return;
     }
     // Validation removed as per user request (auto count)
@@ -49,7 +62,7 @@ export default function QuizQuestionSelector({ quiz, onChange }) {
       onChange?.();
       setShowModal(false);
     } catch (err) {
-      alert("Lỗi thêm câu hỏi");
+      showNotification("Lỗi", "Lỗi thêm câu hỏi", "error");
     }
   };
 
@@ -80,6 +93,13 @@ export default function QuizQuestionSelector({ quiz, onChange }) {
           </div>
         </div>
       )}
+      <NotificationModal
+        isOpen={notification.isOpen}
+        onClose={() => setNotification((prev) => ({ ...prev, isOpen: false }))}
+        title={notification.title}
+        message={notification.message}
+        type={notification.type}
+      />
     </>
   );
 }

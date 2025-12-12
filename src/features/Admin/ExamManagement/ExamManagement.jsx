@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import NotificationModal from "@components/NotificationModal/NotificationModal";
 import "./ExamManagement.css";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import AdminHeader from "@components/Admin/AdminHeader";
@@ -18,6 +19,16 @@ export default function ExamManagement() {
   const [page, setPage] = useState(1);
   const pageSize = 10;
   const [loading, setLoading] = useState(false);
+  const [notification, setNotification] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    type: "info",
+  });
+
+  const showNotification = (title, message, type = "info") => {
+    setNotification({ isOpen: true, title, message, type });
+  };
 
   const loadExams = async () => {
     try {
@@ -28,16 +39,16 @@ export default function ExamManagement() {
       const apiArr = Array.isArray(raw)
         ? raw
         : Array.isArray(raw.data)
-        ? raw.data
-        : Array.isArray(raw.content)
-        ? raw.content
-        : Array.isArray(raw.items)
-        ? raw.items
-        : Array.isArray(raw.data?.content)
-        ? raw.data.content
-        : Array.isArray(raw.data?.items)
-        ? raw.data.items
-        : [];
+          ? raw.data
+          : Array.isArray(raw.content)
+            ? raw.content
+            : Array.isArray(raw.items)
+              ? raw.items
+              : Array.isArray(raw.data?.content)
+                ? raw.data.content
+                : Array.isArray(raw.data?.items)
+                  ? raw.data.items
+                  : [];
 
       const mapped = apiArr.map((e) => ({
         id: e.id,
@@ -59,7 +70,7 @@ export default function ExamManagement() {
       let local = [];
       try {
         local = JSON.parse(localStorage.getItem("exams") || "[]");
-      } catch {}
+      } catch { }
       const localMapped = (Array.isArray(local) ? local : []).map((e) => ({
         id: e.id,
         name: e.title || e.name,
@@ -77,8 +88,8 @@ export default function ExamManagement() {
           typeof e.durationMinutes === "number"
             ? e.durationMinutes
             : typeof e.duration === "string"
-            ? parseInt(String(e.duration).replace(/[^0-9]/g, "")) || undefined
-            : undefined,
+              ? parseInt(String(e.duration).replace(/[^0-9]/g, "")) || undefined
+              : undefined,
         duration:
           e.duration || (e.durationMinutes ? `${e.durationMinutes} phút` : "-"),
         startTime: e.startTime || e.startAt,
@@ -92,7 +103,7 @@ export default function ExamManagement() {
       setExams(merged);
       try {
         localStorage.setItem("exams", JSON.stringify(merged));
-      } catch {}
+      } catch { }
     } catch (err) {
       // Fallback: nếu API lỗi, cố gắng lấy từ localStorage để tránh mất dữ liệu trên UI
       try {
@@ -168,7 +179,7 @@ export default function ExamManagement() {
 
   const handleDelete = (exam) => {
     if (window.confirm(`Bạn có chắc muốn xóa "${exam.name}" không?`)) {
-      alert(`🗑️ Đã xóa kỳ thi: ${exam.name}`);
+      showNotification("Đã xóa", `🗑️ Đã xóa kỳ thi: ${exam.name}`, "success");
       const updated = exams.filter((e) => e.id !== exam.id);
       setExams(updated);
       localStorage.setItem("exams", JSON.stringify(updated));
@@ -277,11 +288,11 @@ export default function ExamManagement() {
           const filtered = exams.filter((e) => {
             const matchText = q
               ? String(e.title || e.name || "")
-                  .toLowerCase()
-                  .includes(q) ||
-                String(e.description || "")
-                  .toLowerCase()
-                  .includes(q)
+                .toLowerCase()
+                .includes(q) ||
+              String(e.description || "")
+                .toLowerCase()
+                .includes(q)
               : true;
             const matchStatus =
               statusFilter === "ALL" ? true : String(e.status) === statusFilter;
@@ -341,7 +352,7 @@ export default function ExamManagement() {
                 );
                 try {
                   localStorage.setItem("exams", JSON.stringify(deduped));
-                } catch {}
+                } catch { }
                 return deduped;
               });
             } else {
@@ -363,7 +374,7 @@ export default function ExamManagement() {
                 );
                 try {
                   localStorage.setItem("exams", JSON.stringify(next));
-                } catch {}
+                } catch { }
                 return next;
               });
             } else {
@@ -377,7 +388,15 @@ export default function ExamManagement() {
           onOpenChange={setOpenDetail}
           exam={detailExam}
         />
+
       </div>
+      <NotificationModal
+        isOpen={notification.isOpen}
+        onClose={() => setNotification((prev) => ({ ...prev, isOpen: false }))}
+        title={notification.title}
+        message={notification.message}
+        type={notification.type}
+      />
     </div>
   );
 }

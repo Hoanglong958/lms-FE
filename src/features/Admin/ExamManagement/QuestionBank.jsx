@@ -1,9 +1,20 @@
 import React, { useState } from "react";
 import "./QuestionBank.css";
 import { useNavigate } from "react-router-dom";
+import NotificationModal from "@components/NotificationModal/NotificationModal";
 
 export default function QuestionBank() {
   const navigate = useNavigate();
+  const [notification, setNotification] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    type: "info",
+  });
+
+  const showNotification = (title, message, type = "info") => {
+    setNotification({ isOpen: true, title, message, type });
+  };
 
   // ================================
   // MOCK DATA
@@ -110,13 +121,13 @@ export default function QuestionBank() {
                   </button>
                   <button
                     className="btn-icon"
-                    onClick={() => alert(`Sửa câu hỏi: ${q.question}`)}
+                    onClick={() => showNotification("Thông báo", `Sửa câu hỏi: ${q.question}`, "info")}
                   >
                     ✏️
                   </button>
                   <button
                     className="btn-icon delete"
-                    onClick={() => 
+                    onClick={() =>
                       window.confirm("Bạn có chắc muốn xóa câu hỏi này?")
                     }
                   >
@@ -129,6 +140,13 @@ export default function QuestionBank() {
         </table>
 
       </div>
+      <NotificationModal
+        isOpen={notification.isOpen}
+        onClose={() => setNotification((prev) => ({ ...prev, isOpen: false }))}
+        title={notification.title}
+        message={notification.message}
+        type={notification.type}
+      />
     </div>
   );
 }

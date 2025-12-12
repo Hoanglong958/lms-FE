@@ -3,6 +3,7 @@ import { CKEditor } from "@ckeditor/ckeditor5-react";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 import { lessonDocumentService } from "@utils/lessonDocumentService.js";
 import { uploadService } from "@utils/uploadService";
+import NotificationModal from "@components/NotificationModal/NotificationModal";
 import "./CoursesCSS/LessonDocumentCreate.css";
 
 // Dùng cùng toolbar
@@ -29,7 +30,18 @@ export default function LessonDocumentCreate({ lesson, onCreated }) {
     videoUrl: "",
     sortOrder: 0,
   });
+
   const [uploading, setUploading] = useState(false);
+  const [notification, setNotification] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    type: "info",
+  });
+
+  const showNotification = (title, message, type = "info") => {
+    setNotification({ isOpen: true, title, message, type });
+  };
 
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
@@ -40,7 +52,7 @@ export default function LessonDocumentCreate({ lesson, onCreated }) {
       const url = res.data.url || res.data;
       setForm((prev) => ({ ...prev, imageUrl: url }));
     } catch (err) {
-      alert("Upload ảnh thất bại");
+      showNotification("Lỗi", "Upload ảnh thất bại", "error");
     } finally {
       setUploading(false);
     }
@@ -55,7 +67,7 @@ export default function LessonDocumentCreate({ lesson, onCreated }) {
       const url = res.data.url || res.data;
       setForm((prev) => ({ ...prev, videoUrl: url }));
     } catch (err) {
-      alert("Upload video thất bại");
+      showNotification("Lỗi", "Upload video thất bại", "error");
     } finally {
       setUploading(false);
     }
@@ -63,7 +75,7 @@ export default function LessonDocumentCreate({ lesson, onCreated }) {
 
   const handleCreate = async () => {
     if (!form.title) {
-      alert("Tiêu đề không được để trống");
+      showNotification("Thiếu thông tin", "Tiêu đề không được để trống", "warning");
       return;
     }
 
@@ -77,7 +89,7 @@ export default function LessonDocumentCreate({ lesson, onCreated }) {
       const res = await lessonDocumentService.addDocument(payload);
       onCreated(res.data);
     } catch (err) {
-      alert("Tạo tài liệu thất bại.");
+      showNotification("Lỗi", "Tạo tài liệu thất bại.", "error");
     }
   };
 
@@ -159,6 +171,14 @@ export default function LessonDocumentCreate({ lesson, onCreated }) {
       <button className="ldc-btn" onClick={handleCreate} disabled={uploading}>
         {uploading ? "Đang xử lý..." : "Tạo Tài liệu"}
       </button>
+
+      <NotificationModal
+        isOpen={notification.isOpen}
+        onClose={() => setNotification((prev) => ({ ...prev, isOpen: false }))}
+        title={notification.title}
+        message={notification.message}
+        type={notification.type}
+      />
     </div>
   );
 }

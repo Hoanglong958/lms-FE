@@ -4,6 +4,7 @@ import { classService } from "@utils/classService";
 import { courseService } from "@utils/courseService";
 import AdminHeader from "@components/Admin/AdminHeader";
 import { useOutletContext } from "react-router-dom";
+import NotificationModal from "@components/NotificationModal/NotificationModal";
 import "./css/Calendar.css";
 
 // Components
@@ -23,6 +24,17 @@ export default function CalendarManagement() {
   const [courses, setCourses] = useState([]);
 
   const [showPeriodModal, setShowPeriodModal] = useState(false);
+
+  const [notification, setNotification] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    type: "info",
+  });
+
+  const showNotification = (title, message, type = "info") => {
+    setNotification({ isOpen: true, title, message, type });
+  };
 
   // Calendar states
   const [startDate, setStartDate] = useState(null);
@@ -77,7 +89,7 @@ export default function CalendarManagement() {
         }
       } catch (err) {
         console.error("Error loading data:", err);
-        alert("Không thể tải thông tin lớp học!");
+        showNotification("Lỗi", "Không thể tải thông tin lớp học!", "error");
       } finally {
         setLoading(false);
       }
@@ -217,9 +229,8 @@ export default function CalendarManagement() {
     <div className="calendarPage">
       <div className="calendarHeaderContainer">
         <AdminHeader
-          title={`Thời khóa biểu - ${
-            classInfo?.className || classInfo?.name || "Lớp học"
-          }`}
+          title={`Thời khóa biểu - ${classInfo?.className || classInfo?.name || "Lớp học"
+            }`}
           breadcrumb={[
             { label: "Dashboard", to: "/admin/dashboard" },
             { label: "Lớp học", to: "/admin/classes" },
@@ -302,6 +313,13 @@ export default function CalendarManagement() {
       {showPeriodModal && (
         <PeriodManagementModal onClose={() => setShowPeriodModal(false)} />
       )}
+      <NotificationModal
+        isOpen={notification.isOpen}
+        onClose={() => setNotification((prev) => ({ ...prev, isOpen: false }))}
+        title={notification.title}
+        message={notification.message}
+        type={notification.type}
+      />
     </div>
   );
 }

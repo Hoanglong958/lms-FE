@@ -1,6 +1,7 @@
 import React, { useMemo, useState, useEffect, useRef } from "react";
 // GIẢ ĐỊNH: userService.js đã implement các API createUser, updateUser, deleteUser, toggleStatus
 import { userService } from "@utils/userService";
+import NotificationModal from "@components/NotificationModal/NotificationModal";
 
 // GIẢ ĐỊNH: Các component khác (AddUserModal, EditUserModal, ConfirmModal, 
 // RoleBadge, StatusBadge, RowActions, PageStyles, getInitials, styles, modalStyles) tồn tại
@@ -16,6 +17,17 @@ export default function UserManagement({ currentUserRole = "admin" }) {
 	const [editingUser, setEditingUser] = useState(null);
 	const [confirmDelete, setConfirmDelete] = useState(null);
 	const [confirmLock, setConfirmLock] = useState(null); // Sử dụng để xác nhận Khóa/Mở khóa
+
+	const [notification, setNotification] = useState({
+		isOpen: false,
+		title: "",
+		message: "",
+		type: "info",
+	});
+
+	const showNotification = (title, message, type = "info") => {
+		setNotification({ isOpen: true, title, message, type });
+	};
 
 	// 🔥 Gọi API lấy danh sách user
 	useEffect(() => {
@@ -71,8 +83,9 @@ export default function UserManagement({ currentUserRole = "admin" }) {
 			await fetchUsers();
 
 			setIsAddOpen(false);
+			showNotification("Thành công", "Tạo người dùng thành công", "success");
 		} catch (err) {
-			alert("Không thể tạo người dùng: " + (err.response?.data?.message || err.message));
+			showNotification("Lỗi", "Không thể tạo người dùng: " + (err.response?.data?.message || err.message), "error");
 		}
 	}
 
@@ -87,7 +100,9 @@ export default function UserManagement({ currentUserRole = "admin" }) {
 			await userService.updateUser(id, apiPayload);
 			await fetchUsers();
 			setEditingUser(null);
+			showNotification("Thành công", "Cập nhật người dùng thành công", "success");
 		} catch (err) {
+			showNotification("Lỗi", "Không thể cập nhật người dùng", "error");
 		}
 	}
 
@@ -103,10 +118,10 @@ export default function UserManagement({ currentUserRole = "admin" }) {
 			// Cập nhật UI ngay lập tức bằng cách lọc bỏ user đã xóa
 			setUsers((prev) => prev.filter((u) => u.id !== confirmDelete.id));
 			setConfirmDelete(null);
-			// alert("Đã xóa người dùng thành công!"); // Optional: Feedback
+			showNotification("Thành công", "Đã xóa người dùng thành công!", "success");
 		} catch (err) {
 			console.error("Delete Error:", err);
-			alert("Không thể xóa người dùng: " + (err.response?.data?.message || err.message));
+			showNotification("Lỗi", "Không thể xóa người dùng: " + (err.response?.data?.message || err.message), "error");
 		}
 	}
 
@@ -136,9 +151,10 @@ export default function UserManagement({ currentUserRole = "admin" }) {
 			await userService.updateUser(confirmLock.id, apiPayload);
 			await fetchUsers();
 			setConfirmLock(null);
+			showNotification("Thành công", "Cập nhật trạng thái thành công", "success");
 		} catch (err) {
 			console.error("Lock/Unlock Error:", err);
-			alert("Có lỗi xảy ra khi thay đổi trạng thái tài khoản. " + (err.response?.data?.message || err.message));
+			showNotification("Lỗi", "Có lỗi xảy ra khi thay đổi trạng thái tài khoản. " + (err.response?.data?.message || err.message), "error");
 		}
 	}
 
@@ -154,7 +170,7 @@ export default function UserManagement({ currentUserRole = "admin" }) {
 
 	function handleViewUser(user) {
 		// Logic điều hướng đến trang chi tiết người dùng
-		alert(`Xem tài khoản: ${user.fullName}`);
+		showNotification("Thông tin", `Xem tài khoản: ${user.fullName}`, "info");
 	}
 
 	// ============================================
@@ -335,6 +351,13 @@ export default function UserManagement({ currentUserRole = "admin" }) {
 					confirmStyle={confirmLock.isActive ? { ...modalStyles.dangerBtn } : { ...modalStyles.primaryBtn }}
 				/>
 			)}
+			<NotificationModal
+				isOpen={notification.isOpen}
+				onClose={() => setNotification((prev) => ({ ...prev, isOpen: false }))}
+				title={notification.title}
+				message={notification.message}
+				type={notification.type}
+			/>
 		</div>
 	);
 }

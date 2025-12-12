@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import "./QuestionCreate.css";
 import { useNavigate } from "react-router-dom";
+import NotificationModal from "@components/NotificationModal/NotificationModal";
 
 export default function QuestionCreate() {
   const navigate = useNavigate();
@@ -8,10 +9,21 @@ export default function QuestionCreate() {
   const [level, setLevel] = useState("Dễ");
   const [type, setType] = useState("Trắc nghiệm");
 
+  const [notification, setNotification] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    type: "info",
+  });
+
+  const showNotification = (title, message, type = "info") => {
+    setNotification({ isOpen: true, title, message, type });
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    alert("✅ Tạo câu hỏi thành công!");
-    navigate("/admin/quiz/question-bank");
+    showNotification("Thành công", "✅ Tạo câu hỏi thành công!", "success");
+    setTimeout(() => navigate("/admin/quiz/question-bank"), 1500);
   };
 
   return (
@@ -58,7 +70,15 @@ export default function QuestionCreate() {
             💾 Lưu câu hỏi
           </button>
         </div>
-      </form>
-    </div>
+
+      </form >
+      <NotificationModal
+        isOpen={notification.isOpen}
+        onClose={() => setNotification((prev) => ({ ...prev, isOpen: false }))}
+        title={notification.title}
+        message={notification.message}
+        type={notification.type}
+      />
+    </div >
   );
 }
