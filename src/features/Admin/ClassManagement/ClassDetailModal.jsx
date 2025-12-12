@@ -135,11 +135,44 @@ export default function ClassDetailModal({ isOpen, onClose, type, data, onAttend
                                 </span>
                                 Thông tin giảng viên: {data.teacher}
                             </h2>
-                            <button onClick={onClose} className="cm-modal-close">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                    <path d="M18 6L6 18M6 6l12 12" strokeWidth="2" strokeLinecap="round" />
-                                </svg>
-                            </button>
+                            <div style={{ display: 'flex', gap: '12px' }}>
+                                {data.onAssignTeachers && (
+                                    <button
+                                        className="cd-toggle-attendance-btn"
+                                        onClick={() => {
+                                            data.onAssignTeachers();
+                                            onClose();
+                                        }}
+                                        style={{
+                                            padding: '8px 16px',
+                                            fontSize: '13px',
+                                            background: '#059669',
+                                            border: 'none',
+                                            color: '#fff',
+                                            borderRadius: '10px',
+                                            cursor: 'pointer',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '6px',
+                                            fontWeight: 600,
+                                            boxShadow: '0 2px 8px rgba(5, 150, 105, 0.25)',
+                                        }}
+                                    >
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" strokeLinecap="round" strokeLinejoin="round" />
+                                            <circle cx="8.5" cy="7" r="4" />
+                                            <line x1="20" y1="8" x2="20" y2="14" strokeLinecap="round" />
+                                            <line x1="23" y1="11" x2="17" y2="11" strokeLinecap="round" />
+                                        </svg>
+                                        Thêm giảng viên
+                                    </button>
+                                )}
+                                <button onClick={onClose} className="cm-modal-close">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                        <path d="M18 6L6 18M6 6l12 12" strokeWidth="2" strokeLinecap="round" />
+                                    </svg>
+                                </button>
+                            </div>
                         </div>
 
                         <div className="cm-modal-body">
@@ -228,6 +261,37 @@ export default function ClassDetailModal({ isOpen, onClose, type, data, onAttend
                                 Thông tin sĩ số lớp: {data.name}
                             </h2>
                             <div style={{ display: 'flex', gap: '12px' }}>
+                                {data.onAddStudents && (
+                                    <button
+                                        className="cd-toggle-attendance-btn"
+                                        onClick={() => {
+                                            data.onAddStudents();
+                                            onClose();
+                                        }}
+                                        style={{
+                                            padding: '8px 16px',
+                                            fontSize: '13px',
+                                            background: '#0ea5e9',
+                                            border: 'none',
+                                            color: '#fff',
+                                            borderRadius: '10px',
+                                            cursor: 'pointer',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '6px',
+                                            fontWeight: 600,
+                                            boxShadow: '0 2px 8px rgba(14, 165, 233, 0.25)',
+                                        }}
+                                    >
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" strokeLinecap="round" strokeLinejoin="round" />
+                                            <circle cx="8.5" cy="7" r="4" />
+                                            <line x1="20" y1="8" x2="20" y2="14" strokeLinecap="round" />
+                                            <line x1="23" y1="11" x2="17" y2="11" strokeLinecap="round" />
+                                        </svg>
+                                        Thêm sinh viên
+                                    </button>
+                                )}
                                 {onAttendance && (
                                     <button
                                         className="cd-toggle-attendance-btn"

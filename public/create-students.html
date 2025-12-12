@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tạo 45 Sinh Viên</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .info-box {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+
+        .info-box h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .info-box ul {
+            margin-left: 20px;
+            color: #555;
+            font-size: 14px;
+            line-height: 1.8;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-bottom: 20px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        #log {
+            background: #1e1e1e;
+            color: #00ff00;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            display: none;
+        }
+
+        #log.show {
+            display: block;
+        }
+
+        .log-line {
+            margin-bottom: 5px;
+        }
+
+        .success {
+            color: #00ff00;
+        }
+
+        .error {
+            color: #ff4444;
+        }
+
+        .info {
+            color: #00bfff;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .stats.show {
+            display: grid;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            color: white;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🎓 Tạo 45 Sinh Viên</h1>
+        <p class="subtitle">Công cụ tạo tự động danh sách sinh viên cho hệ thống</p>
+
+        <div class="info-box">
+            <h3>📋 Thông tin:</h3>
+            <ul>
+                <li>Tạo 45 tài khoản sinh viên</li>
+                <li>Username: student001 đến student045</li>
+                <li>Password mặc định: Student@123</li>
+                <li>Role: ROLE_STUDENT</li>
+                <li>Email: tự động sinh theo tên</li>
+            </ul>
+        </div>
+
+        <button id="createBtn" onclick="createStudents()">
+            🚀 Bắt đầu tạo sinh viên
+        </button>
+
+        <div id="stats" class="stats">
+            <div class="stat-card">
+                <div class="stat-value" id="successCount">0</div>
+                <div class="stat-label">Thành công</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="errorCount">0</div>
+                <div class="stat-label">Lỗi</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="totalCount">45</div>
+                <div class="stat-label">Tổng số</div>
+            </div>
+        </div>
+
+        <div id="log"></div>
+    </div>
+
+    <script>
+        // ⚠️ IMPORTANT: Sử dụng relative path để hoạt động với Vite proxy
+        // Vite đã config proxy /api -> http://localhost:3900 trong vite.config.js
+        const API_BASE = '/api/v1';
+
+        const firstNames = ['Nguyễn', 'Trần', 'Lê', 'Phạm', 'Hoàng', 'Phan', 'Vũ', 'Võ', 'Đặng', 'Bùi', 'Đỗ', 'Hồ', 'Ngô', 'Dương', 'Lý', 'Đinh', 'Mai', 'Trương', 'Tô', 'Lương'];
+        const middleNames = ['Văn', 'Thị', 'Hữu', 'Đức', 'Minh', 'Quang', 'Tuấn', 'Thanh', 'Hoàng', 'Thành', 'Công', 'Hải', 'Bảo', 'Phương', 'Ngọc', 'Kim', 'Hồng', 'Thu', 'Xuân', 'Mai'];
+        const lastNames = ['An', 'Bình', 'Cường', 'Dũng', 'Đạt', 'Giang', 'Hùng', 'Khoa', 'Long', 'Nam', 'Phong', 'Quân', 'Sơn', 'Tài', 'Tùng', 'Vinh', 'Anh', 'Linh', 'Hương', 'Lan', 'Mai', 'Nhi', 'Oanh', 'Phương', 'Quyên', 'Thảo', 'Uyên', 'Vân', 'Yến', 'Hà'];
+
+        function generateRandomName() {
+            const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
+            const middleName = middleNames[Math.floor(Math.random() * middleNames.length)];
+            const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
+            return `${firstName} ${middleName} ${lastName}`;
+        }
+
+        function generateEmail(fullName, index) {
+            const name = fullName
+                .toLowerCase()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .replace(/đ/g, 'd')
+                .split(' ')
+                .filter(part => part.length > 0);
+
+            const lastName = name[name.length - 1];
+            const firstName = name.slice(0, -1).map(n => n[0]).join('');
+
+            // Create username with at least 6 characters
+            let username = `${lastName}${firstName}${index}`;
+
+            // Pad with 'student' prefix if too short
+            if (username.length < 6) {
+                username = `student${username}`;
+            }
+
+            // Must use @gmail.com as per backend requirement
+            return `${username}@gmail.com`;
+        }
+
+        function generatePhoneNumber() {
+            const prefixes = ['032', '033', '034', '035', '036', '037', '038', '039', '086', '096', '097', '098'];
+            const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+            const suffix = Math.floor(1000000 + Math.random() * 9000000);
+            return `${prefix}${suffix}`;
+        }
+
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('log');
+            logDiv.classList.add('show');
+            const line = document.createElement('div');
+            line.className = `log-line ${type}`;
+            line.textContent = message;
+            logDiv.appendChild(line);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        async function createStudents() {
+            const btn = document.getElementById('createBtn');
+            const stats = document.getElementById('stats');
+            const logDiv = document.getElementById('log');
+
+            // Check if user is logged in
+            const token = localStorage.getItem('accessToken');
+            if (!token) {
+                alert('⚠️ Bạn chưa đăng nhập!\n\nVui lòng:\n1. Mở trang web chính (http://localhost:5173)\n2. Đăng nhập với tài khoản admin\n3. Sau đó quay lại trang này để tạo sinh viên');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = '⏳ Đang tạo...';
+            stats.classList.add('show');
+            logDiv.innerHTML = '';
+
+            let successCount = 0;
+            let errorCount = 0;
+
+            log('🚀 Bắt đầu tạo 45 sinh viên...', 'info');
+            log('', 'info');
+
+            for (let i = 1; i <= 45; i++) {
+                const fullName = generateRandomName();
+                const email = generateEmail(fullName, i);
+                const phone = generatePhoneNumber();
+
+                const studentData = {
+                    username: `student${String(i).padStart(3, '0')}`,
+                    password: 'Student@123',
+                    fullName: fullName,
+                    gmail: email,  // Backend uses 'gmail' instead of 'email'
+                    phone: phone,
+                    role: 'USER',  // Backend accepts: USER, TEACHER, ADMIN
+                    active: true
+                };
+
+                try {
+                    // Get JWT token from localStorage (saved when user logs in)
+                    const token = localStorage.getItem('accessToken');
+
+                    const headers = {
+                        'Content-Type': 'application/json',
+                    };
+
+                    // Add Authorization header if token exists
+                    if (token) {
+                        headers['Authorization'] = `Bearer ${token}`;
+                    }
+
+                    const response = await fetch(`${API_BASE}/users`, {
+                        method: 'POST',
+                        headers: headers,
+                        body: JSON.stringify(studentData)
+                    });
+
+                    if (response.ok) {
+                        successCount++;
+                        document.getElementById('successCount').textContent = successCount;
+                        log(`✅ [${i}/45] ${fullName} (${email})`, 'success');
+                    } else {
+                        let errorMsg = 'Unknown error';
+                        try {
+                            const error = await response.json();
+                            errorMsg = error.message || JSON.stringify(error);
+                            console.log('❌ Full error response:', error);
+                        } catch (e) {
+                            errorMsg = await response.text();
+                        }
+                        errorCount++;
+                        document.getElementById('errorCount').textContent = errorCount;
+                        log(`❌ [${i}/45] ${fullName}: ${errorMsg}`, 'error');
+                    }
+                } catch (error) {
+                    errorCount++;
+                    document.getElementById('errorCount').textContent = errorCount;
+                    log(`❌ [${i}/45] ${fullName}: ${error.message}`, 'error');
+                    console.error('Full error:', error);
+                }
+
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+
+            log('', 'info');
+            log(`🎉 Hoàn thành! Thành công: ${successCount}/45`, 'info');
+
+            btn.disabled = false;
+            btn.textContent = '✅ Hoàn thành - Tạo lại nếu cần';
+        }
+    </script>
+</body>
+
+</html>
