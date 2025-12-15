@@ -136,6 +136,22 @@ body {
   text-decoration: underline;
 }
 
+/* ==== Liên kết đăng ký ==== */
+.register-link {
+  font-size: 14px;
+  margin-top: 14px;
+}
+
+.register-link a {
+  color: #f28c38;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.register-link a:hover {
+  text-decoration: underline;
+}
+
 /* ==== Cột bên phải (ảnh) ==== */
 .login-image {
   flex: 1;

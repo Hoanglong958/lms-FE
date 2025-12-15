@@ -5,6 +5,7 @@ import { questionService } from "@utils/questionService.js";
 
 // IMPORT CSS RIÊNG CHO TRANG NÀY
 import "./CoursesCSS/LessonQuizEditor.css";
+import NotificationModal from "@components/NotificationModal/NotificationModal";
 
 export default function LessonQuizEditor({ quiz, onUpdated }) {
   const [editing, setEditing] = useState(false);
@@ -18,6 +19,20 @@ export default function LessonQuizEditor({ quiz, onUpdated }) {
   const [allQuestions, setAllQuestions] = useState([]);
   const [selectingQuestions, setSelectingQuestions] = useState(false);
   const [selectedQuestions, setSelectedQuestions] = useState([]);
+  const [notification, setNotification] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    type: "info",
+  });
+
+  const showNotification = (title, message, type = "info") => {
+    setNotification({ isOpen: true, title, message, type });
+  };
+
+  const closeNotification = () => {
+    setNotification((prev) => ({ ...prev, isOpen: false }));
+  };
 
   // Map quiz questionId với allQuestions để lấy question_text
   const mappedQuestions = questions.map((q) => {
@@ -45,7 +60,7 @@ export default function LessonQuizEditor({ quiz, onUpdated }) {
           category: q.category ?? "N/A",
         }));
         setAllQuestions(processed);
-      } catch (err) {}
+      } catch (err) { }
     })();
   }, []);
 
@@ -56,7 +71,7 @@ export default function LessonQuizEditor({ quiz, onUpdated }) {
     setForm({
       title: quiz.title || "",
       questionCount: quiz.questionCount || 0,
-      maxScore: quiz.maxScore || 0,
+      maxScore: 10,
       passingScore: quiz.passingScore || 0,
     });
     setEditing(false);
@@ -77,13 +92,13 @@ export default function LessonQuizEditor({ quiz, onUpdated }) {
         });
         setQuestions(mapped);
         setSelectedQuestions(mapped.map((q) => q.questionId));
-      } catch (err) {}
+      } catch (err) { }
     })();
   }, [quiz, allQuestions]);
 
   // Save quiz info
   const handleSave = async () => {
-    if (!form.title) return alert("Tiêu đề quiz không được để trống");
+    if (!form.title) return showNotification("Lỗi", "Tiêu đề quiz không được để trống", "error");
 
     const payload = {
       lessonId: quiz.lessonId,
@@ -97,7 +112,7 @@ export default function LessonQuizEditor({ quiz, onUpdated }) {
       onUpdated(res.data);
       setEditing(false);
     } catch (err) {
-      alert("Không thể lưu quiz");
+      showNotification("Lỗi", "Không thể lưu quiz", "error");
     }
   };
 
@@ -108,34 +123,66 @@ export default function LessonQuizEditor({ quiz, onUpdated }) {
       (id) => !existingIds.includes(id)
     );
 
-    if (newQuestionIds.length === 0) {
-      alert("Không có câu hỏi mới để thêm");
+    // Check for changes (add or remove)
+    const toAdd = newQuestionIds.filter((id) => !existingIds.includes(id));
+    const toRemoveQuestionIds = existingIds.filter(
+      (id) => !selectedQuestions.includes(id)
+    );
+
+    if (toAdd.length === 0 && toRemoveQuestionIds.length === 0) {
+      showNotification("Thông báo", "Không có thay đổi nào", "info");
       setSelectingQuestions(false);
       return;
     }
 
-    if (selectedQuestions.length !== Number(form.questionCount)) {
-      return alert(
-        `Cần chọn đúng ${form.questionCount} câu hỏi. Hiện tại: ${selectedQuestions.length}`
-      );
-    }
+    // REMOVED: Check against questionCount
+    // if (selectedQuestions.length !== Number(form.questionCount)) ...
 
     try {
-      const payload = newQuestionIds.map((questionId, index) => ({
-        quizId: quiz.quizId,
-        questionId,
-        orderIndex: questions.length + index + 1,
-      }));
+      // 1. Add new questions
+      if (toAdd.length > 0) {
+        for (let i = 0; i < toAdd.length; i++) {
+          const qId = toAdd[i];
+          const payload = {
+            quizId: quiz.quizId,
+            questionId: qId,
+            orderIndex: existingIds.length + i + 1, // approximate order
+          };
+          await quizQuestionService.add(payload);
+        }
+      }
 
-      await quizQuestionService.addBatch(payload);
+      // 2. Remove unselected questions
+      if (toRemoveQuestionIds.length > 0) {
+        for (let i = 0; i < toRemoveQuestionIds.length; i++) {
+          const qId = toRemoveQuestionIds[i];
+          const questionObj = questions.find((q) => q.questionId === qId);
+          if (questionObj && questionObj.recordId) {
+            await quizQuestionService.delete(questionObj.recordId);
+          }
+        }
+      }
 
-      const newQuestions = allQuestions.filter((q) =>
-        newQuestionIds.includes(q.questionId)
-      );
-      setQuestions((prev) => [...prev, ...newQuestions]);
       setSelectingQuestions(false);
+
+      // Re-fetch questions to ensure we have the correct recordIds for deletion
+      const res = await quizQuestionService.getByQuiz(quiz.quizId);
+      const quizQs = res.data || [];
+      const mapped = quizQs.map((q) => {
+        const full = allQuestions.find((a) => a.questionId === q.questionId);
+        return {
+          recordId: q.id,
+          questionId: q.questionId,
+          question_text: full?.question_text ?? "Không có tên câu hỏi",
+          category: full?.category ?? "N/A",
+        };
+      });
+      setQuestions(mapped);
+      setSelectedQuestions(mapped.map((q) => q.questionId));
+
     } catch (err) {
-      alert("Không thể lưu danh sách câu hỏi");
+      showNotification("Lỗi", "Không thể lưu danh sách câu hỏi. Vui lòng thử lại.", "error");
+      console.error(err);
     }
   };
 
@@ -147,9 +194,10 @@ export default function LessonQuizEditor({ quiz, onUpdated }) {
         prev.filter((item) => item.questionId !== q.questionId)
       );
       setSelectedQuestions((prev) => prev.filter((id) => id !== q.questionId));
-      alert("Đã xóa câu hỏi khỏi quiz");
+      setSelectedQuestions((prev) => prev.filter((id) => id !== q.questionId));
+      showNotification("Thành công", "Đã xóa câu hỏi khỏi quiz", "success");
     } catch (err) {
-      alert("Không thể xóa câu hỏi");
+      showNotification("Lỗi", "Không thể xóa câu hỏi", "error");
     }
   };
 
@@ -165,12 +213,7 @@ export default function LessonQuizEditor({ quiz, onUpdated }) {
             <span className="lqz-question-text">
               {q.question_text} - <i>{q.category}</i>
             </span>
-            <button
-              className="lqz-btn-danger"
-              onClick={() => handleDeleteQuestion(q)}
-            >
-              Xóa
-            </button>
+            {/* Delete button removed as per request. Use 'Select Questions' to uncheck/remove. */}
           </li>
         ))}
       </ul>
@@ -199,20 +242,33 @@ export default function LessonQuizEditor({ quiz, onUpdated }) {
 
         <div className="lqz-modal-body">
           {allQuestions.map((q) => {
-            const already = questions.some(
-              (item) => item.questionId === q.questionId
-            );
+            const isOriginallyIn = questions.some((item) => item.questionId === q.questionId);
+            const isSelected = selectedQuestions.includes(q.questionId);
+
+            let statusClass = "";
+            let statusLabel = "";
+
+            if (isOriginallyIn && isSelected) {
+              statusClass = "lqz-kept";
+              statusLabel = "(Đã có)";
+            } else if (isOriginallyIn && !isSelected) {
+              statusClass = "lqz-pending-remove";
+              statusLabel = "(Sẽ Xóa)";
+            } else if (!isOriginallyIn && isSelected) {
+              statusClass = "lqz-pending-add";
+              statusLabel = "(Mới)";
+            }
+
             return (
               <div
                 key={`modal-all-question-${q.questionId}`}
-                className={`lqz-select-item ${already ? "lqz-disabled" : ""}`}
+                className={`lqz-select-item ${statusClass}`}
               >
                 <label>
                   <input
                     type="checkbox"
                     className="lqz-checkbox"
-                    checked={selectedQuestions.includes(q.questionId)}
-                    disabled={already}
+                    checked={isSelected}
                     onChange={() =>
                       setSelectedQuestions((prev) =>
                         prev.includes(q.questionId)
@@ -221,8 +277,10 @@ export default function LessonQuizEditor({ quiz, onUpdated }) {
                       )
                     }
                   />
-                  {q.question_text} - <i>{q.category}</i>
-                  {already && " (Đã có trong quiz)"}
+                  <span className="lqz-select-text">
+                    {q.question_text} - <i>{q.category}</i>
+                  </span>
+                  {statusLabel && <span className="lqz-select-status">{statusLabel}</span>}
                 </label>
               </div>
             );
@@ -307,10 +365,10 @@ export default function LessonQuizEditor({ quiz, onUpdated }) {
 
             {/* Hàng 2: Các chỉ số (Metadata) */}
             <div className="lqz-meta-row">
-              {/* Số câu hỏi */}
+              {/* Số câu hỏi (Calculated) */}
               <div className="lqz-info">
                 <span className="lqz-label">Số câu hỏi:</span>
-                <span className="lqz-value">{form.questionCount}</span>
+                <span className="lqz-value">{questions.length}</span>
               </div>
 
               {/* Điểm tối đa */}
@@ -334,6 +392,14 @@ export default function LessonQuizEditor({ quiz, onUpdated }) {
         </div>
 
         {selectingQuestions && renderSelectModal()}
+
+        <NotificationModal
+          isOpen={notification.isOpen}
+          onClose={closeNotification}
+          title={notification.title}
+          message={notification.message}
+          type={notification.type}
+        />
       </div>
     );
   }
@@ -345,16 +411,12 @@ export default function LessonQuizEditor({ quiz, onUpdated }) {
     <div className="lqz-wrapper">
       <h3 className="lqz-title">Sửa Quiz</h3>
 
-      {["title", "questionCount", "maxScore", "passingScore"].map((field) => (
+      {["title", "passingScore"].map((field) => (
         <div key={field} className="lqz-form-row">
           <label className="lqz-label">
             {field === "title"
               ? "Tiêu đề:"
-              : field === "questionCount"
-              ? "Số câu hỏi:"
-              : field === "maxScore"
-              ? "Điểm tối đa:"
-              : "Điểm đạt:"}
+              : "Điểm đạt (5-10):"}
           </label>
           <input
             className="lqz-input"
@@ -373,6 +435,14 @@ export default function LessonQuizEditor({ quiz, onUpdated }) {
       <button className="lqz-btn-secondary" onClick={() => setEditing(false)}>
         Hủy
       </button>
+
+      <NotificationModal
+        isOpen={notification.isOpen}
+        onClose={closeNotification}
+        title={notification.title}
+        message={notification.message}
+        type={notification.type}
+      />
     </div>
   );
 }

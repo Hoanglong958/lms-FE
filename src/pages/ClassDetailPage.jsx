@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { classService } from "@utils/classService";
+import { classCourseService } from "@utils/classCourseService";
 import "./ClassDetailPage.css";
 
 const ClassDetailPage = () => {
@@ -13,8 +14,17 @@ const ClassDetailPage = () => {
     (async () => {
       try {
         setLoading(true);
-        const res = await classService.getClassDetail(id);
-        const raw = res?.data;
+        setLoading(true);
+        const [resDetail, resCourses] = await Promise.all([
+          classService.getClassDetail(id),
+          classCourseService.getClassCourses(id)
+        ]);
+
+        const raw = resDetail?.data;
+        const coursesRaw = resCourses?.data || [];
+        // Map courses data
+        const courses = Array.isArray(coursesRaw) ? coursesRaw : (coursesRaw.data || []);
+
         const d = raw?.data || raw?.item || raw?.content || raw || {};
         const endDate = d.endDate || d.end_date || null;
         const startDate = d.startDate || d.start_date || null;
@@ -33,19 +43,20 @@ const ClassDetailPage = () => {
             typeof d.totalStudents === "number"
               ? d.totalStudents
               : Array.isArray(studentsArr)
-              ? studentsArr.length
-              : 0,
+                ? studentsArr.length
+                : 0,
           totalTeachers: d.totalTeachers || 1,
           totalCourses: d.totalCourses || d.coursesCount || 0,
           image,
           students:
             Array.isArray(studentsArr)
               ? studentsArr.map((s) => ({
-                  id: s.id || s.studentId || s.code || Math.random(),
-                  name: s.fullName || s.name || "Học viên",
-                  code: s.code || s.studentCode || "N/A",
-                }))
+                id: s.id || s.studentId || s.code || Math.random(),
+                name: s.fullName || s.name || "Học viên",
+                code: s.code || s.studentCode || "N/A",
+              }))
               : [],
+          courses: courses,
         };
         if (mounted) setDetail(mapped);
       } catch (e) {
@@ -122,9 +133,8 @@ const ClassDetailPage = () => {
 
         {/* Status */}
         <span
-          className={`status-label ${
-            cls.status.toLowerCase()
-          }`}
+          className={`status-label ${cls.status.toLowerCase()
+            }`}
         >
           {cls.status}
         </span>
@@ -147,6 +157,26 @@ const ClassDetailPage = () => {
                 </li>
               ))}
             </ul>
+          )}
+        </div>
+
+        {/* Courses List */}
+        <div className="students-section" style={{ marginTop: "20px" }}>
+          <h3>Danh sách khóa học</h3>
+          {(!cls.courses || cls.courses.length === 0) && (
+            <div className="students-empty">Chưa có khóa học nào</div>
+          )}
+          {cls.courses && cls.courses.length > 0 && (
+            <div className="courses-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '15px' }}>
+              {cls.courses.map((c) => (
+                <Link to={`/courses/${c.slug || c.courseSlug || 'unknown'}`} key={c.id} style={{ textDecoration: 'none', color: 'inherit' }}>
+                  <div className="course-card-mini" style={{ border: '1px solid #eee', borderRadius: '8px', padding: '10px', backgroundColor: '#fff' }}>
+                    <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>{c.courseTitle || c.courseName || c.title || "Khóa học"}</div>
+                    <div style={{ fontSize: '12px', color: '#666' }}>{c.courseCode || "Mã KH"}</div>
+                  </div>
+                </Link>
+              ))}
+            </div>
           )}
         </div>
 

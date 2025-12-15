@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { lessonVideoService } from "@utils/lessonVideoService.js";
-
+import { uploadService } from "@utils/uploadService";
 import "../Courses/CoursesCSS/LessonVideoEditor.css";
+import VideoProgress from "@components/VideoPlayer/VideoProgress";
+import NotificationModal from "@components/NotificationModal/NotificationModal";
 
 function isValidUrl(url) {
   try {
@@ -31,6 +33,21 @@ export default function LessonVideoEditor({ video, onUpdated }) {
     description: "",
   });
 
+  const [notification, setNotification] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    type: "info",
+  });
+
+  const showNotification = (title, message, type = "info") => {
+    setNotification({ isOpen: true, title, message, type });
+  };
+
+  const closeNotification = () => {
+    setNotification((prev) => ({ ...prev, isOpen: false }));
+  };
+
   // Khi video prop thay đổi → reset form
   useEffect(() => {
     if (!video) return;
@@ -47,24 +64,45 @@ export default function LessonVideoEditor({ video, onUpdated }) {
     setForm({ ...form, [e.target.name]: e.target.value });
   }
 
+  const [uploading, setUploading] = useState(false);
+
+  async function handleVideoUpload(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setUploading(true);
+    try {
+      const res = await uploadService.uploadVideo(file);
+      const url = res.data.url || res.data;
+      setForm((prev) => ({ ...prev, videoUrl: url }));
+    } catch (err) {
+      showNotification("Lỗi", "Upload video thất bại!", "error");
+      console.error(err);
+    } finally {
+      setUploading(false);
+    }
+  }
+
   async function handleSave() {
-    if (!isValidVideoUrl(form.videoUrl)) {
-      alert(
-        "Video URL không hợp lệ! Hãy nhập YouTube hoặc file MP4/WebM hợp lệ."
-      );
+    if (!form.videoUrl) {
+      showNotification("Lỗi", "Vui lòng upload video trước khi lưu!", "error");
       return;
     }
 
-    const res = await lessonVideoService.updateVideo(video.videoId, {
-      lessonId: video.lessonId,
-      title: form.title,
-      videoUrl: form.videoUrl,
-      durationSeconds: Number(form.durationSeconds),
-      description: form.description,
-    });
+    try {
+      const res = await lessonVideoService.updateVideo(video.videoId, {
+        lessonId: video.lessonId,
+        title: form.title,
+        videoUrl: form.videoUrl,
+        durationSeconds: Number(form.durationSeconds),
+        description: form.description,
+      });
 
-    onUpdated(res.data);
-    setEditing(false);
+      onUpdated(res.data);
+      setEditing(false);
+    } catch (err) {
+      showNotification("Lỗi", "Lưu video thất bại", "error");
+    }
   }
 
   // ============================
@@ -78,7 +116,17 @@ export default function LessonVideoEditor({ video, onUpdated }) {
     // Nếu là YouTube thì convert sang embed link
     const youtubeRegex = /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&]+)/;
     const match = url.match(youtubeRegex);
-    const embedUrl = match ? `https://www.youtube.com/embed/${match[1]}` : url;
+
+    if (!match) {
+      return (
+        <div style={{ marginBottom: "20px" }}>
+          <VideoProgress src={url} />
+        </div>
+      );
+    }
+
+    // YouTube Embed
+    const embedUrl = `https://www.youtube.com/embed/${match[1]}`;
 
     return (
       <div
@@ -152,7 +200,7 @@ export default function LessonVideoEditor({ video, onUpdated }) {
                   <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                   <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                 </svg>
-                Sửa thông tin
+                Sửa video
               </button>
             </div>
 
@@ -165,6 +213,14 @@ export default function LessonVideoEditor({ video, onUpdated }) {
 
         {/* Phần Video Player */}
         <div className="videoholderlesson">{renderVideo()}</div>
+
+        <NotificationModal
+          isOpen={notification.isOpen}
+          onClose={closeNotification}
+          title={notification.title}
+          message={notification.message}
+          type={notification.type}
+        />
       </div>
     );
   }
@@ -188,13 +244,22 @@ export default function LessonVideoEditor({ video, onUpdated }) {
       </div>
 
       <div className="title-container">
-        <label className="title-label">Video URL: </label>
-        <input
-          className="title-input-text"
-          name="videoUrl"
-          value={form.videoUrl}
-          onChange={handleChange}
-        />
+        <label className="title-label">Video File: </label>
+        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+          <input
+            type="file"
+            accept="video/*"
+            onChange={handleVideoUpload}
+            disabled={uploading}
+            className="title-input-text"
+          />
+          {uploading && <span style={{ color: "orange" }}>Đang upload...</span>}
+          {form.videoUrl && (
+            <div style={{ fontSize: "0.85rem", color: "green" }}>
+              Video hiện tại: {form.videoUrl}
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="title-container">
@@ -217,12 +282,20 @@ export default function LessonVideoEditor({ video, onUpdated }) {
         />
       </div>
 
-      <button className="button" onClick={handleSave}>
-        Lưu
+      <button className="button" onClick={handleSave} disabled={uploading}>
+        {uploading ? "Đang xử lý..." : "Lưu"}
       </button>
       <button className="button" onClick={() => setEditing(false)}>
         Hủy
       </button>
+
+      <NotificationModal
+        isOpen={notification.isOpen}
+        onClose={closeNotification}
+        title={notification.title}
+        message={notification.message}
+        type={notification.type}
+      />
     </div>
   );
 }

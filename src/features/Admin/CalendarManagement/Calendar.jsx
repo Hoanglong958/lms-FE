@@ -4,9 +4,11 @@ import { classService } from "@utils/classService";
 import { courseService } from "@utils/courseService";
 import AdminHeader from "@components/Admin/AdminHeader";
 import { useOutletContext } from "react-router-dom";
+import NotificationModal from "@components/NotificationModal/NotificationModal";
 import "./css/Calendar.css";
 
 // Components
+import PeriodManagementModal from "./components/Period/PeriodManagementModal";
 import CalendarPicker from "./components/CalendarPicker";
 import WeekSelector from "./components/WeekSelector";
 import SubjectList from "./components/SubjectList";
@@ -21,6 +23,19 @@ export default function CalendarManagement() {
   const [loading, setLoading] = useState(true);
   const [courses, setCourses] = useState([]);
 
+  const [showPeriodModal, setShowPeriodModal] = useState(false);
+
+  const [notification, setNotification] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    type: "info",
+  });
+
+  const showNotification = (title, message, type = "info") => {
+    setNotification({ isOpen: true, title, message, type });
+  };
+
   // Calendar states
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
@@ -31,10 +46,10 @@ export default function CalendarManagement() {
   const [draggingSubject, setDraggingSubject] = useState(null);
 
   // Get toggleSidebar from context
-  let toggleSidebar = () => {};
+  let toggleSidebar = () => { };
   try {
-    toggleSidebar = useOutletContext()?.toggleSidebar || (() => {});
-  } catch {}
+    toggleSidebar = useOutletContext()?.toggleSidebar || (() => { });
+  } catch { }
 
   // Load class info and courses
   useEffect(() => {
@@ -57,10 +72,10 @@ export default function CalendarManagement() {
         const coursesData = Array.isArray(coursesRes.data)
           ? coursesRes.data
           : Array.isArray(coursesRes.data?.data)
-          ? coursesRes.data.data
-          : Array.isArray(coursesRes.data?.content)
-          ? coursesRes.data.content
-          : [];
+            ? coursesRes.data.data
+            : Array.isArray(coursesRes.data?.content)
+              ? coursesRes.data.content
+              : [];
         setCourses(coursesData);
 
         // Initialize subjects with courses
@@ -74,7 +89,7 @@ export default function CalendarManagement() {
         }
       } catch (err) {
         console.error("Error loading data:", err);
-        alert("Không thể tải thông tin lớp học!");
+        showNotification("Lỗi", "Không thể tải thông tin lớp học!", "error");
       } finally {
         setLoading(false);
       }
@@ -214,18 +229,24 @@ export default function CalendarManagement() {
     <div className="calendarPage">
       <div className="calendarHeaderContainer">
         <AdminHeader
-          title={`Thời khóa biểu - ${classInfo?.className || classInfo?.name || "Lớp học"}`}
+          title={`Thời khóa biểu - ${classInfo?.className || classInfo?.name || "Lớp học"
+            }`}
           breadcrumb={[
             { label: "Dashboard", to: "/admin/dashboard" },
             { label: "Lớp học", to: "/admin/classes" },
-            { label: "Thời khóa biểu", to: `/admin/calendar?classId=${classId}` },
+            {
+              label: "Thời khóa biểu",
+              to: `/admin/calendar?classId=${classId}`,
+            },
           ]}
           onMenuToggle={toggleSidebar}
+          onBack={() => navigate(-1)}
           actions={
             <CalendarPicker
               onDateRangeSelect={handleDateRangeSelect}
               initialStartDate={startDate}
               initialEndDate={endDate}
+              onOpenPeriodModal={() => setShowPeriodModal(true)} // 👈 THIS
             />
           }
         />
@@ -282,14 +303,23 @@ export default function CalendarManagement() {
               <div className="calendarEmptyIcon">📅</div>
               <h3 className="calendarEmptyTitle">Chưa chọn tuần học</h3>
               <p className="calendarEmptyText">
-                Vui lòng chọn khoảng thời gian từ lịch ở góc phải trên để bắt đầu
-                tạo thời khóa biểu.
+                Vui lòng chọn khoảng thời gian từ lịch ở góc phải trên để bắt
+                đầu tạo thời khóa biểu.
               </p>
             </div>
           )}
         </div>
       </div>
+      {showPeriodModal && (
+        <PeriodManagementModal onClose={() => setShowPeriodModal(false)} />
+      )}
+      <NotificationModal
+        isOpen={notification.isOpen}
+        onClose={() => setNotification((prev) => ({ ...prev, isOpen: false }))}
+        title={notification.title}
+        message={notification.message}
+        type={notification.type}
+      />
     </div>
   );
 }
-

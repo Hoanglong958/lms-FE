@@ -1,9 +1,30 @@
 import React, { useMemo, useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { classService } from "@utils/classService";
+import { userService } from "@utils/userService";
+import { classTeacherService } from "@utils/classTeacherService";
+import { classStudentService } from "@utils/classStudentService";
 import ClassDetail from "./ClassDetail";
 import ClassDetailModal from "./ClassDetailModal";
+import NotificationModal from "@components/NotificationModal/NotificationModal";
 import "./class.css";
+
+
+const calculateStatus = (startDate, endDate) => {
+  if (!startDate || !endDate || startDate === 'N/A' || endDate === 'N/A') return "upcoming";
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+
+  const start = new Date(startDate);
+  start.setHours(0, 0, 0, 0);
+
+  const end = new Date(endDate);
+  end.setHours(0, 0, 0, 0);
+
+  if (now < start) return "upcoming";
+  if (now > end) return "ended";
+  return "active";
+};
 
 export default function ClassManagement() {
   const navigate = useNavigate();
@@ -12,13 +33,24 @@ export default function ClassManagement() {
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [editingClass, setEditingClass] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(null);
-  const [viewingClass, setViewingClass] = useState(null);
   const [classes, setClasses] = useState([]);
+  const [assigningClass, setAssigningClass] = useState(null);
   const [modalState, setModalState] = useState({
     isOpen: false,
     type: null,
     data: null,
   });
+
+  const [notification, setNotification] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    type: "info",
+  });
+
+  const showNotification = (title, message, type = "info") => {
+    setNotification({ isOpen: true, title, message, type });
+  };
 
   // --- Load classes từ API khi component mount ---
   const fetchClasses = useCallback(async () => {
@@ -79,14 +111,66 @@ export default function ClassManagement() {
           progress: item.progress || item.completion || 0,
           startDate: item.startDate || item.start_date || "N/A",
           endDate: endDate,
-          status: item.status || "upcoming",
-          schedule: item.schedule || item.timetable || "",
+          status: calculateStatus(item.startDate || item.start_date, endDate),
+          schedule: item.schedule || "Chưa có lịch",
         };
       });
 
-      setClasses(Array.isArray(mappedClasses) ? mappedClasses : []);
+
+
+      // Fetch teachers and students for each class
+      const classesWithDetails = await Promise.all(mappedClasses.map(async (cls) => {
+        if (!cls.id) return cls;
+
+        let updatedCls = { ...cls };
+
+        // 1. Fetch Teachers
+        try {
+          // If we already have a teacher name from the main API, skip unless we want to verify
+          // But user might want relational data prioritised? Currently code prioritizes relational if main API missed it?
+          // Actually existing code prioritised main API if it existed.
+          // Let's stick to existing logic: if teacher is missing or placeholder, try fetching.
+          // Or just fetch to be safe if 'Chưa phân công'.
+
+          if (updatedCls.teacher === "Chưa phân công") {
+            const tRes = await classTeacherService.getClassTeachers(cls.id);
+            let teachers = [];
+            if (tRes.data?.data && Array.isArray(tRes.data.data)) teachers = tRes.data.data;
+            else if (Array.isArray(tRes.data)) teachers = tRes.data;
+
+            if (teachers.length > 0) {
+              const instructor = teachers.find(t => t.role === "INSTRUCTOR") || teachers[0];
+              if (instructor && instructor.teacherName) {
+                updatedCls.teacher = instructor.teacherName;
+              }
+            }
+          }
+        } catch (e) {
+          // console.warn(`Failed to fetch teacher for class ${cls.id}`, e);
+        }
+
+        // 2. Fetch Students (To sync count with Detail View)
+        try {
+          const sRes = await classStudentService.getClassStudents(cls.id);
+          let studentsData = [];
+          if (sRes.data?.data && Array.isArray(sRes.data.data)) studentsData = sRes.data.data;
+          else if (Array.isArray(sRes.data)) studentsData = sRes.data;
+
+          // Update count
+          updatedCls.students = studentsData.length;
+
+          // Optional: Update active count if needed
+          // updatedCls.active = studentsData.filter(s => s.status === 'ACTIVE').length;
+        } catch (e) {
+          // console.warn(`Failed to fetch students for class ${cls.id}`, e);
+        }
+
+        return updatedCls;
+      }));
+
+      setClasses(classesWithDetails);
     } catch (err) {
-      console.error("❌ Error fetching classes:", err);
+      console.error("Failed to fetch classes", err);
       alert("Không thể tải danh sách lớp học!");
     }
   }, [searchQuery, statusFilter]);
@@ -96,49 +180,153 @@ export default function ClassManagement() {
   }, [fetchClasses]);
 
   // --- Thêm lớp mới ---
-  function handleAddClass(payload) {
-    const nextId = Math.max(0, ...classes.map((c) => c.id)) + 1;
-    const newClass = {
-      id: nextId,
-      name: payload.name.trim(),
-      subtitle: payload.subtitle.trim(),
-      code: payload.code.trim(),
-      teacher: payload.teacher.trim(),
-      students: parseInt(payload.students) || 0,
-      active: parseInt(payload.active) || 0,
-      progress: parseInt(payload.progress) || 0,
-      startDate: payload.startDate,
-      endDate: payload.endDate,
-      status: payload.status || "upcoming",
-      schedule: payload.schedule.trim(),
-    };
-    setClasses((prev) => [newClass, ...prev]);
-    setIsAddOpen(false);
+  // --- Thêm lớp mới ---
+  async function handleAddClass(payload) {
+    // Check for duplicate class code
+    const isDuplicate = classes.some(
+      (c) => c.code.toLowerCase() === payload.code.trim().toLowerCase()
+    );
+
+    if (isDuplicate) {
+      alert("Mã lớp đã tồn tại. Vui lòng chọn mã lớp khác.");
+      return;
+    }
+
+    try {
+      const statusMapping = {
+        'active': 'ONGOING',
+        'upcoming': 'UPCOMING',
+        'ended': 'COMPLETED'
+      };
+
+      const calculatedStatus = calculateStatus(payload.startDate, payload.endDate);
+
+      const apiPayload = {
+        className: payload.name.trim(),
+        classCode: payload.code.trim(),
+        description: payload.subtitle.trim(),
+        instructorName: payload.teacher.trim(),
+        maxStudents: parseInt(payload.students) || 0,
+        startDate: payload.startDate,
+        endDate: payload.endDate,
+        status: statusMapping[calculatedStatus] || calculatedStatus.toUpperCase(),
+        schedule: payload.schedule.trim(),
+      };
+
+      // 2. Call API to add class
+      const res = await classService.createClass(apiPayload);
+
+      const newClassId = res.data?.data?.id || res.data?.id;
+
+      // 3. Assign teacher if selected
+      if (payload.teacherId && newClassId) {
+        try {
+          await classTeacherService.assignTeacherToClass({
+            classId: newClassId,
+            teacherId: payload.teacherId,
+            role: "INSTRUCTOR",
+            note: `Assigned at creation`
+          });
+        } catch (teacherErr) {
+          console.error("Failed to assign teacher:", teacherErr);
+          alert("Lớp đã tạo nhưng lỗi khi gán giảng viên: " + teacherErr.message);
+        }
+      }
+
+      await fetchClasses(); // Reload list from API
+      setIsAddOpen(false);
+      alert("Tạo lớp học thành công!");
+    } catch (error) {
+      console.error("Create class error:", error);
+      alert("Lỗi khi tạo lớp học: " + (error.response?.data?.message || error.message));
+    }
   }
 
   // --- Chỉnh sửa lớp ---
-  function handleEditClass(id, payload) {
-    setClasses((prev) =>
-      prev.map((c) =>
-        c.id === id
-          ? {
+  // --- Chỉnh sửa lớp ---
+  async function handleEditClass(id, payload) {
+    // Check for duplicate class code
+    const isDuplicate = classes.some(
+      (c) => c.code.toLowerCase() === payload.code.trim().toLowerCase() && c.id !== id
+    );
+
+    if (isDuplicate) {
+      alert("Mã lớp đã tồn tại. Vui lòng chọn mã lớp khác.");
+      return;
+    }
+
+    try {
+      const statusMapping = {
+        'active': 'ONGOING',
+        'upcoming': 'UPCOMING',
+        'ended': 'COMPLETED'
+      };
+
+      const calculatedStatus = calculateStatus(payload.startDate, payload.endDate);
+
+      const apiPayload = {
+        className: payload.name.trim(),
+        classCode: payload.code.trim(),
+        description: payload.subtitle.trim(),
+        instructorName: payload.teacher.trim(),
+        maxStudents: parseInt(payload.students) || 0,
+        activeStudents: parseInt(payload.active) || 0,
+        progress: parseInt(payload.progress) || 0,
+        startDate: payload.startDate,
+        endDate: payload.endDate,
+        status: statusMapping[calculatedStatus] || calculatedStatus.toUpperCase(),
+        schedule: payload.schedule.trim(),
+      };
+
+      // 2. Call API to update
+      await classService.updateClass(id, apiPayload);
+
+      // 3. Assign teacher via relational API if teacherId is present
+      // Note: We might want to remove old teacher first? Or just assign (API adds). 
+      // Assuming 'assign' adds/updates the role.
+      if (payload.teacherId) {
+        try {
+          const assignPayload = {
+            classId: parseInt(id),
+            teacherId: parseInt(payload.teacherId),
+            role: "INSTRUCTOR",
+            note: "Updated from Class Management"
+          };
+          console.log("Assigning teacher:", assignPayload);
+          await classTeacherService.assignTeacherToClass(assignPayload);
+        } catch (teacherErr) {
+          console.error("Failed to assign teacher. Payload:", payload, "Error:", teacherErr);
+          const msg = teacherErr.response?.data?.message || teacherErr.message;
+          alert("Lớp đã cập nhật, nhưng lỗi khi phân công giảng viên Relational: " + msg);
+        }
+      }
+
+      setClasses((prev) =>
+        prev.map((c) =>
+          c.id === id
+            ? {
               ...c,
               name: payload.name.trim(),
               subtitle: payload.subtitle.trim(),
               code: payload.code.trim(),
-              teacher: payload.teacher.trim(),
+              teacher: payload.teacher.trim(), // Optimistic update
               students: parseInt(payload.students) || 0,
               active: parseInt(payload.active) || 0,
               progress: parseInt(payload.progress) || 0,
               startDate: payload.startDate,
               endDate: payload.endDate,
-              status: payload.status || "upcoming",
+              status: calculatedStatus,
               schedule: payload.schedule.trim(),
             }
-          : c
-      )
-    );
-    setEditingClass(null);
+            : c
+        )
+      );
+      setEditingClass(null);
+      alert("Cập nhật lớp học thành công!");
+    } catch (error) {
+      console.error("Failed to update class:", error);
+      alert("Lỗi khi cập nhật lớp học: " + (error.response?.data?.message || error.message));
+    }
   }
 
   // --- Xóa lớp ---
@@ -146,34 +334,98 @@ export default function ClassManagement() {
     setConfirmDelete(cls);
   }
 
-  function handleConfirmDelete() {
+  async function handleConfirmDelete() {
     if (!confirmDelete) return;
-    setClasses((prev) => prev.filter((c) => c.id !== confirmDelete.id));
-    setConfirmDelete(null);
+    try {
+      await classService.deleteClass(confirmDelete.id);
+      setClasses((prev) => prev.filter((c) => c.id !== confirmDelete.id));
+      alert("Xóa lớp học thành công!");
+    } catch (error) {
+      console.error("Failed to delete class:", error);
+      alert("Lỗi khi xóa lớp học: " + (error.response?.data?.message || error.message));
+    } finally {
+      setConfirmDelete(null);
+    }
   }
 
-  // --- Thống kê ---
+
+
+  // --- Statistics ---
+  const [totalPlatformStudents, setTotalPlatformStudents] = useState(0);
+
+  useEffect(() => {
+    // Fetch total students (ROLE_USER + ROLE_STUDENT if applicable)
+    // trying both common roles for students
+    const fetchStudentCount = async () => {
+      try {
+        // Try fetching ROLE_USER first as requested by user
+        const res = await userService.getAllUsers({ role: "ROLE_USER", size: 1, page: 0 });
+        let count = 0;
+
+        // Handle different response structures to find totalElements
+        if (res.data?.data?.totalElements !== undefined) count = res.data.data.totalElements;
+        else if (res.data?.totalElements !== undefined) count = res.data.totalElements;
+        else if (res.data?.data && Array.isArray(res.data.data)) count = res.data.data.length;
+        else if (Array.isArray(res.data)) count = res.data.length;
+
+        // If count is suspiciously low (e.g. 0) maybe they are ROLE_STUDENT? 
+        // But user explicitly asked for ROLE_USER in creation tool.
+        // Let's stick to ROLE_USER or maybe add ROLE_STUDENT if ROLE_USER is 0?
+        // logic: if res returns list, use list length (if size=1000 passed, but we passed 1).
+        // Actually best to assume totalElements is available if it's paginated.
+        // If not paginated, we might have to fetch all? user.jsx fetches size=1000.
+
+        // Let's try fetching with size 1 just for count, assuming API returns totalElements.
+        // If the API is simple list, this might return 1 item.
+        // Safest approach without knowing API details: Fetch a large size users like user.jsx does, 
+        // filter by role, and count. It matches user.jsx logic.
+
+        const resAll = await userService.getAllUsers({ role: "ROLE_USER", size: 2000, page: 0 });
+        let allUsers = [];
+        if (resAll.data?.data?.content) allUsers = resAll.data.data.content;
+        else if (resAll.data?.content) allUsers = resAll.data.content;
+        else if (resAll.data?.data && Array.isArray(resAll.data.data)) allUsers = resAll.data.data;
+        else if (Array.isArray(resAll.data)) allUsers = resAll.data;
+
+        // Also fetch ROLE_STUDENT just in case
+        // But for now let's trust user request used ROLE_USER.
+
+        setTotalPlatformStudents(allUsers.length);
+      } catch (e) {
+        console.error("Failed to fetch student count", e);
+      }
+    };
+
+    fetchStudentCount();
+  }, []); // Run once on mount
+
   const stats = useMemo(() => {
     const totalClasses = classes.length;
-    const activeClasses = classes.filter((c) => c.status === "active").length;
-    const totalStudents = classes.reduce(
-      (s, c) => s + (parseInt(c.students) || 0),
-      0
-    );
+    const activeClasses = classes.filter((c) => c.status === "active" || c.status === "ongoing").length;
+
+    // Calculate enrolled students (sum of class.students)
+    // const totalEnrolledStudents = classes.reduce((s, c) => s + (parseInt(c.students) || 0), 0);
+
+    // User wants "New Student Number" -> Total Platform Students
+    // If totalPlatformStudents is 0 (API fail or clean DB), fallback to enrolled count logic?
+    // Or just show totalPlatformStudents.
+
+    // NOTE: If the user just created 100 students, totalPlatformStudents should be >= 100.
+
     const avgProgress =
       classes.length === 0
         ? 0
         : Math.round(
-            classes.reduce((s, c) => s + (parseInt(c.progress) || 0), 0) /
-              classes.length
-          );
+          classes.reduce((s, c) => s + (parseInt(c.progress) || 0), 0) /
+          classes.length
+        );
     return {
       totalClasses,
       totalActiveClasses: activeClasses,
-      totalStudents,
+      totalStudents: totalPlatformStudents, // Use the fetched count
       avgProgress,
     };
-  }, [classes]);
+  }, [classes, totalPlatformStudents]);
 
   // --- Lọc và tìm kiếm ---
   const filtered = useMemo(() => {
@@ -207,39 +459,10 @@ export default function ClassManagement() {
           </p>
         </div>
 
+
+        {/* Select class to send id to calendar */}
         {/* Select class to send id to calendar */}
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <select
-            aria-label="Chọn lớp để xem thời khóa biểu"
-            value={selectedClassId}
-            onChange={(e) => setSelectedClassId(e.target.value)}
-            style={{ ...styles.select, height: 42 }}
-          >
-            <option value="">Chọn lớp</option>
-            {classes.map((cls) => (
-              <option key={cls.id} value={cls.id}>
-                {cls.name} {cls.code ? `(${cls.code})` : ""}
-              </option>
-            ))}
-          </select>
-
-          <button
-            type="button"
-            onClick={() => {
-              if (!selectedClassId) {
-                alert("Vui lòng chọn một lớp để mở thời khóa biểu.");
-                return;
-              }
-              // Navigate to calendar page with classId query parameter
-              navigate(
-                `/admin/calendar?classId=${encodeURIComponent(selectedClassId)}`
-              );
-            }}
-            style={{ ...styles.primaryButton, padding: "10px 12px" }}
-          >
-            <span style={styles.plusIcon}>Thời khóa biểu</span>
-          </button>
-
           <button
             type="button"
             style={styles.primaryButton}
@@ -258,7 +481,7 @@ export default function ClassManagement() {
         />
         <StatCard
           icon={<IconCheckCircle />}
-          label="Đang hoạt động"
+          label="Đang học"
           value={stats.totalActiveClasses}
         />
         <StatCard
@@ -290,7 +513,7 @@ export default function ClassManagement() {
             style={styles.select}
           >
             <option value="all">Tất cả trạng thái</option>
-            <option value="active">Đang hoạt động</option>
+            <option value="active">Đang học</option>
             <option value="upcoming">Sắp bắt đầu</option>
             <option value="ended">Đã kết thúc</option>
           </select>
@@ -309,8 +532,6 @@ export default function ClassManagement() {
                 <th style={{ ...styles.th, width: 140 }}>Mã lớp</th>
                 <th style={{ ...styles.th, width: 160 }}>Giảng viên</th>
                 <th style={{ ...styles.th, width: 110 }}>Học viên</th>
-                <th style={{ ...styles.th, width: 120 }}>Hoạt động</th>
-                <th style={{ ...styles.th, width: 180 }}>Tiến độ</th>
                 <th style={{ ...styles.th, width: 210 }}>Thời gian</th>
                 <th style={{ ...styles.th, width: 120 }}>Trạng thái</th>
                 <th style={{ ...styles.th, width: 120 }}>Thao tác</th>
@@ -318,133 +539,61 @@ export default function ClassManagement() {
             </thead>
             <tbody>
               {filtered.map((c) => (
-                <tr key={c.id} style={styles.tr}>
+                <tr
+                  key={c.id}
+                  style={{ ...styles.tr, cursor: "pointer" }}
+                  onClick={() => navigate(`/admin/classes/${c.id}`, { state: { classData: c } })}
+                >
                   <td style={styles.td}>
                     <div style={{ display: "grid", rowGap: 4 }}>
-                      <button
-                        type="button"
-                        onClick={() => setViewingClass(c)}
+                      <div
                         style={{
-                          background: "transparent",
-                          border: "none",
-                          padding: 0,
-                          textAlign: "left",
-                          cursor: "pointer",
+                          fontWeight: 600,
+                          fontSize: 14,
+                          color: "#111827",
                         }}
                       >
-                        <div style={styles.className}>{c.name}</div>
-                      </button>
+                        {c.name}
+                      </div>
                       <div style={styles.classSubtitle}>{c.subtitle}</div>
                     </div>
                   </td>
                   <td style={styles.td}>
-                    <span
-                      className="cm-badge cm-badge-code"
-                      onClick={() =>
-                        setModalState({ isOpen: true, type: "code", data: c })
-                      }
-                    >
-                      <svg
-                        width="12"
-                        height="12"
-                        viewBox="0 0 24 24"
-                        fill="currentColor"
-                      >
-                        <path
-                          d="M8 6l-6 6 6 6M16 6l6 6-6 6M13 2l-2 20"
-                          opacity="0.8"
-                        />
-                      </svg>
+                    <span className="cm-badge cm-badge-code">
                       {c.code}
                     </span>
                   </td>
                   <td style={styles.td}>
-                    <span
-                      className="cm-badge cm-badge-teacher"
-                      onClick={() =>
-                        setModalState({
-                          isOpen: true,
-                          type: "teacher",
-                          data: c,
-                        })
-                      }
+                    <button
+                      type="button"
+                      onClick={() => setModalState({
+                        isOpen: true,
+                        type: "teacher",
+                        data: {
+                          ...c,
+                          onAssignTeachers: () => {
+                            setAssigningClass(c);
+                          }
+                        }
+                      })}
+                      style={{
+                        background: "transparent",
+                        border: "none",
+                        padding: 0,
+                        cursor: "pointer",
+                      }}
                     >
-                      <svg
-                        width="14"
-                        height="14"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                      >
-                        <circle
-                          cx="12"
-                          cy="8"
-                          r="4"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        />
-                        <path
-                          d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        />
-                      </svg>
-                      {c.teacher}
-                    </span>
+                      <span className="cm-badge cm-badge-teacher">
+                        {c.teacher}
+                      </span>
+                    </button>
                   </td>
                   <td style={styles.td}>
                     <div className="cm-enrollment-cell">
-                      <span
-                        className="cm-badge cm-badge-enrollment"
-                        onClick={() =>
-                          setModalState({
-                            isOpen: true,
-                            type: "enrollment",
-                            data: c,
-                          })
-                        }
-                      >
-                        <svg
-                          width="14"
-                          height="14"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                        >
-                          <path
-                            d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                          />
-                          <circle
-                            cx="9"
-                            cy="7"
-                            r="4"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                          />
-                          <path
-                            d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                          />
-                        </svg>
+                      <span className="cm-badge cm-badge-enrollment">
                         {c.students}
                       </span>
-                      <span className="cm-badge-percentage">
-                        {c.students
-                          ? Math.round((c.active / c.students) * 100)
-                          : 0}
-                        %
-                      </span>
                     </div>
-                  </td>
-                  <td style={styles.td}>
-                    <span style={styles.activeWrap}>
-                      <IconCheckSmall />
-                      <span>{c.active}</span>
-                    </span>
-                  </td>
-                  <td style={styles.td}>
-                    <ProgressBar percent={c.progress} />
                   </td>
                   <td style={styles.td}>
                     {c.startDate} - {c.endDate}
@@ -452,22 +601,24 @@ export default function ClassManagement() {
                   <td style={styles.td}>
                     <StatusBadge status={c.status} />
                   </td>
-                  <td style={styles.td}>
+                  <td style={styles.td} onClick={(e) => e.stopPropagation()}>
                     <ActionCell
-                      onView={() => setViewingClass(c)}
                       onEdit={() => setEditingClass(c)}
                       onDelete={() => handleRequestDelete(c)}
                     />
                   </td>
                 </tr>
-              ))}
-              {filtered.length === 0 && (
-                <tr>
-                  <td style={styles.emptyCell} colSpan={9}>
-                    Không tìm thấy lớp học phù hợp
-                  </td>
-                </tr>
-              )}
+              ))
+              }
+              {
+                filtered.length === 0 && (
+                  <tr>
+                    <td style={styles.emptyCell} colSpan={7}>
+                      Không tìm thấy lớp học phù hợp
+                    </td>
+                  </tr>
+                )
+              }
             </tbody>
           </table>
         </div>
@@ -479,26 +630,54 @@ export default function ClassManagement() {
           onClose={() => setIsAddOpen(false)}
           onSubmit={handleAddClass}
         />
-      )}
-      {editingClass && (
-        <EditClassModal
-          cls={editingClass}
-          onClose={() => setEditingClass(null)}
-          onSubmit={(payload) => handleEditClass(editingClass.id, payload)}
-        />
-      )}
-      {viewingClass && (
-        <ViewClassModal
-          cls={viewingClass}
-          onClose={() => setViewingClass(null)}
-        />
-      )}
-      {confirmDelete && (
-        <ConfirmModal
-          title="Xóa lớp học"
-          message={`Bạn có chắc muốn xóa '${confirmDelete.name}'?`}
-          onCancel={() => setConfirmDelete(null)}
-          onConfirm={handleConfirmDelete}
+      )
+      }
+      {
+        editingClass && (
+          <EditClassModal
+            cls={editingClass}
+            onClose={() => setEditingClass(null)}
+            onSubmit={(payload) => handleEditClass(editingClass.id, payload)}
+          />
+        )
+      }
+
+      {
+        confirmDelete && (
+          <ConfirmModal
+            title="Xóa lớp học"
+            message={`Bạn có chắc muốn xóa '${confirmDelete.name}'?`}
+            onCancel={() => setConfirmDelete(null)}
+            onConfirm={handleConfirmDelete}
+          />
+        )
+      }
+
+      {assigningClass && (
+        <AssignTeachersModal
+          classData={assigningClass}
+          onClose={() => setAssigningClass(null)}
+          onSubmit={async (selectedTeacherIds) => {
+            try {
+              // Assign all selected teachers to the class
+              await Promise.all(
+                selectedTeacherIds.map((teacherId) =>
+                  classTeacherService.assignTeacherToClass({
+                    classId: assigningClass.id,
+                    teacherId: teacherId,
+                    role: "INSTRUCTOR",
+                    note: `Assigned from class management`
+                  })
+                )
+              );
+              alert("Phân công giảng viên thành công!");
+              await fetchClasses(); // Reload list
+              setAssigningClass(null);
+            } catch (error) {
+              console.error("Failed to assign teachers:", error);
+              alert("Lỗi khi phân công giảng viên: " + (error.response?.data?.message || error.message));
+            }
+          }}
         />
       )}
 
@@ -507,8 +686,12 @@ export default function ClassManagement() {
         onClose={() => setModalState({ ...modalState, isOpen: false })}
         type={modalState.type}
         data={modalState.data}
+        onAttendance={(classData) => {
+          navigate(`/admin/classes/${classData.id}`, { state: { classData } });
+          setModalState({ isOpen: false, type: null, data: null });
+        }}
       />
-    </div>
+    </div >
   );
 }
 
@@ -547,6 +730,8 @@ function StatusBadge({ status }) {
   return <span style={{ ...badgeStyles.base, ...style }}>{label}</span>;
 }
 
+
+
 function ActionCell({ onView, onEdit, onDelete }) {
   const [open, setOpen] = useState(false);
   const containerRef = useRef(null);
@@ -573,59 +758,68 @@ function ActionCell({ onView, onEdit, onDelete }) {
     <div ref={containerRef} style={styles.actionWrap}>
       <button
         type="button"
-        aria-label="Xem lớp"
-        onClick={() => onView && onView()}
+        title="Chỉnh sửa"
+        onClick={(e) => {
+          e.stopPropagation();
+          onEdit && onEdit();
+        }}
         style={{
           background: "transparent",
           border: "none",
           cursor: "pointer",
-          color: "#6b7280",
-          marginRight: 8,
-          padding: 6,
+          color: "#2563eb",
+          padding: 4,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
         }}
       >
-        <IconEye />
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+        </svg>
       </button>
       <button
         type="button"
-        aria-label="Thao tác"
-        onClick={() => setOpen((v) => !v)}
-        style={{ ...styles.iconButton, marginLeft: 6 }}
+        title="Xóa"
+        onClick={(e) => {
+          e.stopPropagation();
+          onDelete && onDelete();
+        }}
+        style={{
+          background: "transparent",
+          border: "none",
+          cursor: "pointer",
+          color: "#ef4444",
+          padding: 4,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
       >
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-          <circle cx="5" cy="12" r="2" />
-          <circle cx="12" cy="12" r="2" />
-          <circle cx="19" cy="12" r="2" />
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <polyline points="3 6 5 6 21 6" />
+          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
         </svg>
       </button>
-      {open && (
-        <ul style={styles.menu}>
-          <li style={styles.menuItem}>
-            <button
-              type="button"
-              style={styles.menuBtn}
-              onClick={() => {
-                setOpen(false);
-                onEdit && onEdit();
-              }}
-            >
-              Chỉnh sửa
-            </button>
-          </li>
-          <li style={styles.menuItem}>
-            <button
-              type="button"
-              style={styles.menuBtnDanger}
-              onClick={() => {
-                setOpen(false);
-                onDelete && onDelete();
-              }}
-            >
-              Xóa
-            </button>
-          </li>
-        </ul>
-      )}
     </div>
   );
 }
@@ -635,22 +829,47 @@ function AddClassModal({ onClose, onSubmit }) {
   const [subtitle, setSubtitle] = useState("");
   const [code, setCode] = useState("");
   const [teacher, setTeacher] = useState("");
+  const [teacherId, setTeacherId] = useState(""); // Store ID
   const [students, setStudents] = useState("0");
-  const [active, setActive] = useState("0");
-  const [progress, setProgress] = useState("0");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [status, setStatus] = useState("upcoming");
-  const [schedule, setSchedule] = useState("");
   const [errors, setErrors] = useState({});
+  const [teachers, setTeachers] = useState([]);
+
+  const today = new Date().toISOString().split("T")[0];
+
+  useEffect(() => {
+    userService
+      .getAllUsers({ role: "ROLE_TEACHER", size: 100 })
+      .then((res) => {
+        let data = [];
+        if (res.data.data && res.data.data.content) {
+          data = res.data.data.content;
+        } else if (res.data.content) {
+          data = res.data.content;
+        } else if (res.data.data && Array.isArray(res.data.data)) {
+          data = res.data.data;
+        } else if (Array.isArray(res.data)) {
+          data = res.data;
+        }
+        // Filter client-side to be absolutely sure
+        const validTeachers = data.filter(u => u.role === "ROLE_TEACHER");
+        setTeachers(validTeachers);
+      })
+      .catch((err) => console.error("Failed to load teachers", err));
+  }, []);
 
   function validate() {
     const nextErrors = {};
     if (!name.trim()) nextErrors.name = "Vui lòng nhập tên lớp học";
-    if (!code.trim()) nextErrors.code = "Vui lòng nhập mã khoá học";
-    if (!teacher.trim()) nextErrors.teacher = "Vui lòng nhập tên giáo viên";
+    if (!code.trim()) nextErrors.code = "Vui lòng nhập mã lớp học";
+    if (!teacher.trim()) nextErrors.teacher = "Vui lòng chọn giảng viên";
     if (!startDate) nextErrors.startDate = "Vui lòng chọn ngày bắt đầu";
     if (!endDate) nextErrors.endDate = "Vui lòng chọn ngày kết thúc";
+    if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
+      nextErrors.endDate = "Ngày kết thúc không được nhỏ hơn ngày bắt đầu";
+    }
     setErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
   }
@@ -663,13 +882,14 @@ function AddClassModal({ onClose, onSubmit }) {
       subtitle,
       code,
       teacher,
+      teacherId,  // Add teacherId to payload
       students,
-      active,
-      progress,
+      active: 0,
+      progress: 0,
       startDate,
       endDate,
       status,
-      schedule,
+      schedule: "",
     });
   }
 
@@ -712,32 +932,53 @@ function AddClassModal({ onClose, onSubmit }) {
                 placeholder="Ví dụ: React Advanced"
               />
             </label>
-            <label style={modalStyles.label}>
-              Mã khoá học
-              <input
-                type="text"
-                value={code}
-                onChange={(e) => setCode(e.target.value)}
-                style={modalStyles.input}
-                placeholder="Ví dụ: REACT-ADV-01"
-              />
-              {errors.code && (
-                <div style={modalStyles.error}>{errors.code}</div>
-              )}
-            </label>
-            <label style={modalStyles.label}>
-              Giáo viên
-              <input
-                type="text"
-                value={teacher}
-                onChange={(e) => setTeacher(e.target.value)}
-                style={modalStyles.input}
-                placeholder="Ví dụ: Nguyễn Văn A"
-              />
-              {errors.teacher && (
-                <div style={modalStyles.error}>{errors.teacher}</div>
-              )}
-            </label>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              <label style={modalStyles.label}>
+                Mã lớp học
+                <input
+                  type="text"
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                  style={modalStyles.input}
+                  placeholder="Ví dụ: REACT-ADV-01"
+                />
+                {errors.code && (
+                  <div style={modalStyles.error}>{errors.code}</div>
+                )}
+              </label>
+              <label style={modalStyles.label}>
+                Giảng viên
+                <div style={{ position: "relative" }}>
+                  <select
+                    value={teacherId}
+                    onChange={(e) => {
+                      setTeacherId(e.target.value);
+                      const selected = teachers.find(t => String(t.id) === String(e.target.value));
+                      setTeacher(selected ? selected.fullName : "");
+                    }}
+                    style={{ ...styles.select, width: "100%", height: 40 }}
+                  >
+                    <option value="">-- Chọn giảng viên --</option>
+                    {teachers.map((t) => (
+                      <option key={t.id} value={t.id}>
+                        {t.fullName}
+                      </option>
+                    ))}
+                  </select>
+                  <span
+                    style={{ ...styles.selectChevron, top: 12 }}
+                    aria-hidden="true"
+                  >
+                    ▾
+                  </span>
+                </div>
+                {errors.teacher && (
+                  <div style={modalStyles.error}>{errors.teacher}</div>
+                )}
+              </label>
+            </div>
+
             <div
               style={{
                 display: "grid",
@@ -750,6 +991,7 @@ function AddClassModal({ onClose, onSubmit }) {
                 <input
                   type="date"
                   value={startDate}
+                  min={today}
                   onChange={(e) => setStartDate(e.target.value)}
                   style={modalStyles.input}
                 />
@@ -762,6 +1004,7 @@ function AddClassModal({ onClose, onSubmit }) {
                 <input
                   type="date"
                   value={endDate}
+                  min={startDate}
                   onChange={(e) => setEndDate(e.target.value)}
                   style={modalStyles.input}
                 />
@@ -770,67 +1013,8 @@ function AddClassModal({ onClose, onSubmit }) {
                 )}
               </label>
             </div>
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr 1fr",
-                gap: 12,
-              }}
-            >
-              <label style={modalStyles.label}>
-                Số học viên
-                <input
-                  type="number"
-                  value={students}
-                  onChange={(e) => setStudents(e.target.value)}
-                  style={modalStyles.input}
-                  min="0"
-                />
-              </label>
-              <label style={modalStyles.label}>
-                Hoạt động
-                <input
-                  type="number"
-                  value={active}
-                  onChange={(e) => setActive(e.target.value)}
-                  style={modalStyles.input}
-                  min="0"
-                />
-              </label>
-              <label style={modalStyles.label}>
-                Tiến độ (%)
-                <input
-                  type="number"
-                  value={progress}
-                  onChange={(e) => setProgress(e.target.value)}
-                  style={modalStyles.input}
-                  min="0"
-                  max="100"
-                />
-              </label>
-            </div>
-            <label style={modalStyles.label}>
-              Lịch học
-              <input
-                type="text"
-                value={schedule}
-                onChange={(e) => setSchedule(e.target.value)}
-                style={modalStyles.input}
-                placeholder="Ví dụ: Thứ 2,4,6"
-              />
-            </label>
-            <label style={modalStyles.label}>
-              Trạng thái
-              <select
-                value={status}
-                onChange={(e) => setStatus(e.target.value)}
-                style={{ ...styles.select, width: "100%" }}
-              >
-                <option value="upcoming">Sắp bắt đầu</option>
-                <option value="active">Đang hoạt động</option>
-                <option value="ended">Đã kết thúc</option>
-              </select>
-            </label>
+
+
           </div>
           <div style={modalStyles.footer}>
             <button
@@ -855,6 +1039,7 @@ function EditClassModal({ cls, onClose, onSubmit }) {
   const [subtitle, setSubtitle] = useState(cls.subtitle || "");
   const [code, setCode] = useState(cls.code || "");
   const [teacher, setTeacher] = useState(cls.teacher || "");
+  const [teacherId, setTeacherId] = useState(""); // New state for ID
   const [students, setStudents] = useState(String(cls.students) || "0");
   const [active, setActive] = useState(String(cls.active) || "0");
   const [progress, setProgress] = useState(String(cls.progress) || "0");
@@ -862,15 +1047,50 @@ function EditClassModal({ cls, onClose, onSubmit }) {
   const [endDate, setEndDate] = useState(cls.endDate || "");
   const [status, setStatus] = useState(cls.status || "upcoming");
   const [schedule, setSchedule] = useState(cls.schedule || "");
+
   const [errors, setErrors] = useState({});
+  const [teachers, setTeachers] = useState([]);
+
+  useEffect(() => {
+    userService
+      .getAllUsers({ role: "ROLE_TEACHER", size: 100 })
+      .then((res) => {
+        let data = [];
+        if (res.data.data && res.data.data.content) {
+          data = res.data.data.content;
+        } else if (res.data.content) {
+          data = res.data.content;
+        } else if (res.data.data && Array.isArray(res.data.data)) {
+          data = res.data.data;
+        } else if (Array.isArray(res.data)) {
+          data = res.data;
+        }
+        const validTeachers = data.filter(u => u.role === "ROLE_TEACHER");
+        setTeachers(validTeachers);
+
+        // Attempt to find initial teacher ID from name match if not provided
+        if (cls.teacher) {
+          const found = validTeachers.find(t => t.fullName === cls.teacher);
+          if (found) {
+            setTeacherId(found.id);
+            // Ensure 'teacher' name state is consistent just in case
+            setTeacher(found.fullName);
+          }
+        }
+      })
+      .catch((err) => console.error("Failed to load teachers", err));
+  }, [cls.teacher]); // Updated dependency to re-run if class changes
 
   function validate() {
     const nextErrors = {};
     if (!name.trim()) nextErrors.name = "Vui lòng nhập tên lớp học";
-    if (!code.trim()) nextErrors.code = "Vui lòng nhập mã khoá học";
-    if (!teacher.trim()) nextErrors.teacher = "Vui lòng nhập tên giáo viên";
+    if (!code.trim()) nextErrors.code = "Vui lòng nhập mã lớp học";
+    if (!teacher.trim()) nextErrors.teacher = "Vui lòng chọn giảng viên";
     if (!startDate) nextErrors.startDate = "Vui lòng chọn ngày bắt đầu";
     if (!endDate) nextErrors.endDate = "Vui lòng chọn ngày kết thúc";
+    if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
+      nextErrors.endDate = "Ngày kết thúc không được nhỏ hơn ngày bắt đầu";
+    }
     setErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
   }
@@ -883,6 +1103,7 @@ function EditClassModal({ cls, onClose, onSubmit }) {
       subtitle,
       code,
       teacher,
+      teacherId,
       students,
       active,
       progress,
@@ -931,7 +1152,7 @@ function EditClassModal({ cls, onClose, onSubmit }) {
               />
             </label>
             <label style={modalStyles.label}>
-              Mã khoá học
+              Mã lớp học
               <input
                 type="text"
                 value={code}
@@ -943,13 +1164,31 @@ function EditClassModal({ cls, onClose, onSubmit }) {
               )}
             </label>
             <label style={modalStyles.label}>
-              Giáo viên
-              <input
-                type="text"
-                value={teacher}
-                onChange={(e) => setTeacher(e.target.value)}
-                style={modalStyles.input}
-              />
+              Giảng viên
+              <div style={{ position: "relative" }}>
+                <select
+                  value={teacherId}
+                  onChange={(e) => {
+                    setTeacherId(e.target.value);
+                    const selected = teachers.find(t => String(t.id) === String(e.target.value));
+                    setTeacher(selected ? selected.fullName : "");
+                  }}
+                  style={{ ...styles.select, width: "100%", height: 40 }}
+                >
+                  <option value="">-- Chọn giảng viên --</option>
+                  {teachers.map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.fullName}
+                    </option>
+                  ))}
+                </select>
+                <span
+                  style={{ ...styles.selectChevron, top: 12 }}
+                  aria-hidden="true"
+                >
+                  ▾
+                </span>
+              </div>
               {errors.teacher && (
                 <div style={modalStyles.error}>{errors.teacher}</div>
               )}
@@ -978,6 +1217,7 @@ function EditClassModal({ cls, onClose, onSubmit }) {
                 <input
                   type="date"
                   value={endDate}
+                  min={startDate}
                   onChange={(e) => setEndDate(e.target.value)}
                   style={modalStyles.input}
                 />
@@ -993,16 +1233,7 @@ function EditClassModal({ cls, onClose, onSubmit }) {
                 gap: 12,
               }}
             >
-              <label style={modalStyles.label}>
-                Số học viên
-                <input
-                  type="number"
-                  value={students}
-                  onChange={(e) => setStudents(e.target.value)}
-                  style={modalStyles.input}
-                  min="0"
-                />
-              </label>
+
               <label style={modalStyles.label}>
                 Hoạt động
                 <input
@@ -1034,18 +1265,7 @@ function EditClassModal({ cls, onClose, onSubmit }) {
                 style={modalStyles.input}
               />
             </label>
-            <label style={modalStyles.label}>
-              Trạng thái
-              <select
-                value={status}
-                onChange={(e) => setStatus(e.target.value)}
-                style={{ ...styles.select, width: "100%" }}
-              >
-                <option value="upcoming">Sắp bắt đầu</option>
-                <option value="active">Đang hoạt động</option>
-                <option value="ended">Đã kết thúc</option>
-              </select>
-            </label>
+
           </div>
           <div style={modalStyles.footer}>
             <button
@@ -1060,6 +1280,196 @@ function EditClassModal({ cls, onClose, onSubmit }) {
             </button>
           </div>
         </form>
+      </div>
+    </div>
+  );
+}
+
+function AssignTeachersModal({ classData, onClose, onSubmit }) {
+  const [teachers, setTeachers] = useState([]);
+  const [selectedTeachers, setSelectedTeachers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [existingTeachers, setExistingTeachers] = useState([]);
+
+  useEffect(() => {
+    async function loadData() {
+      try {
+        setLoading(true);
+
+        // Load all teachers
+        const res = await userService.getAllUsers({ role: "ROLE_TEACHER", size: 100 });
+        let data = [];
+        if (res.data.data && res.data.data.content) {
+          data = res.data.data.content;
+        } else if (res.data.content) {
+          data = res.data.content;
+        } else if (res.data.data && Array.isArray(res.data.data)) {
+          data = res.data.data;
+        } else if (Array.isArray(res.data)) {
+          data = res.data;
+        }
+        const validTeachers = data.filter(u => u.role === "ROLE_TEACHER");
+        setTeachers(validTeachers);
+
+        // Load existing teachers for this class
+        try {
+          const tRes = await classTeacherService.getClassTeachers(classData.id);
+          let existing = [];
+          if (tRes.data?.data && Array.isArray(tRes.data.data)) {
+            existing = tRes.data.data;
+          } else if (Array.isArray(tRes.data)) {
+            existing = tRes.data;
+          }
+          const existingIds = existing.map(t => t.teacherId);
+          setExistingTeachers(existingIds);
+          setSelectedTeachers(existingIds);
+        } catch (e) {
+          console.warn("Could not load existing teachers:", e);
+        }
+      } catch (error) {
+        console.error("Failed to load teachers:", error);
+        alert("Lỗi khi tải danh sách giảng viên!");
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadData();
+  }, [classData.id]);
+
+  const handleToggle = (teacherId) => {
+    setSelectedTeachers(prev => {
+      if (prev.includes(teacherId)) {
+        return prev.filter(id => id !== teacherId);
+      } else {
+        return [...prev, teacherId];
+      }
+    });
+  };
+
+  const handleSubmit = () => {
+    onSubmit(selectedTeachers);
+  };
+
+  return (
+    <div style={modalStyles.backdrop} role="dialog" aria-modal="true">
+      <div style={{ ...modalStyles.container, maxWidth: 700 }}>
+        <div style={modalStyles.header}>
+          <h3 style={modalStyles.title}>
+            🧑‍🏫 Phân công giảng viên - {classData.name}
+          </h3>
+          <button
+            type="button"
+            onClick={onClose}
+            style={styles.iconButton}
+            aria-label="Đóng"
+          >
+            ×
+          </button>
+        </div>
+        <div style={modalStyles.body}>
+          {loading ? (
+            <div style={{ textAlign: "center", padding: "20px", color: "#6b7280" }}>
+              Đang tải danh sách giảng viên...
+            </div>
+          ) : teachers.length === 0 ? (
+            <div style={{ textAlign: "center", padding: "20px", color: "#6b7280" }}>
+              Không có giảng viên nào trong hệ thống
+            </div>
+          ) : (
+            <>
+              <div style={{ marginBottom: 16, color: "#6b7280", fontSize: 14 }}>
+                Chọn giảng viên để phân công cho lớp học này. Bạn có thể chọn nhiều giảng viên.
+              </div>
+              <div style={{
+                maxHeight: 400,
+                overflow: "auto",
+                border: "1px solid #e5e7eb",
+                borderRadius: 10,
+                padding: 12,
+              }}>
+                {teachers.map((teacher) => (
+                  <label
+                    key={teacher.id}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      padding: "12px 10px",
+                      borderBottom: "1px solid #f3f4f6",
+                      cursor: "pointer",
+                      transition: "background 0.2s",
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.background = "#f9fafb"}
+                    onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedTeachers.includes(teacher.id)}
+                      onChange={() => handleToggle(teacher.id)}
+                      style={{
+                        width: 18,
+                        height: 18,
+                        marginRight: 12,
+                        cursor: "pointer",
+                        accentColor: "#f97316",
+                      }}
+                    />
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontWeight: 600, color: "#111827", fontSize: 14 }}>
+                        {teacher.fullName}
+                      </div>
+                      <div style={{ fontSize: 12, color: "#6b7280", marginTop: 2 }}>
+                        {teacher.email}
+                      </div>
+                    </div>
+                    {existingTeachers.includes(teacher.id) && (
+                      <span style={{
+                        fontSize: 11,
+                        padding: "2px 8px",
+                        background: "#dbeafe",
+                        color: "#1e40af",
+                        borderRadius: 12,
+                        fontWeight: 600,
+                      }}>
+                        Đã phân công
+                      </span>
+                    )}
+                  </label>
+                ))}
+              </div>
+              <div style={{
+                marginTop: 12,
+                padding: 10,
+                background: "#f0fdf4",
+                borderRadius: 8,
+                border: "1px solid #bbf7d0",
+                color: "#166534",
+                fontSize: 13,
+              }}>
+                ✓ Đã chọn: <strong>{selectedTeachers.length}</strong> giảng viên
+              </div>
+            </>
+          )}
+        </div>
+        <div style={modalStyles.footer}>
+          <button
+            type="button"
+            onClick={onClose}
+            style={modalStyles.ghostBtn}
+          >
+            Hủy
+          </button>
+          <button
+            type="button"
+            onClick={handleSubmit}
+            style={{
+              ...styles.primaryButton,
+              background: "#059669",
+            }}
+            disabled={selectedTeachers.length === 0}
+          >
+            Phân công ({selectedTeachers.length})
+          </button>
+        </div>
       </div>
     </div>
   );

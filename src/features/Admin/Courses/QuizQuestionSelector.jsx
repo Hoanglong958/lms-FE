@@ -1,11 +1,24 @@
 import React, { useEffect, useState } from "react";
 import { quizQuestionService } from "@utils/quizQuestionService.js";
+
 import { questionService } from "@utils/questionService.js"; // giả sử có service lấy tất cả question
+import NotificationModal from "@components/NotificationModal/NotificationModal";
 
 export default function QuizQuestionSelector({ quiz, onChange }) {
   const [allQuestions, setAllQuestions] = useState([]);
   const [selectedIds, setSelectedIds] = useState([]);
   const [showModal, setShowModal] = useState(false);
+
+  const [notification, setNotification] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    type: "info",
+  });
+
+  const showNotification = (title, message, type = "info") => {
+    setNotification({ isOpen: true, title, message, type });
+  };
 
   useEffect(() => {
     // Load tất cả question khi modal mở
@@ -24,10 +37,11 @@ export default function QuizQuestionSelector({ quiz, onChange }) {
   };
 
   const handleAddSelected = async () => {
-    if (selectedIds.length !== quiz.questionCount) {
-      alert(`Quiz cần đúng ${quiz.questionCount} câu hỏi`);
+    if (selectedIds.length === 0) {
+      showNotification("Chưa chọn", "Chưa chọn câu hỏi nào", "warning");
       return;
     }
+    // Validation removed as per user request (auto count)
 
     const payload = selectedIds.map((questionId, index) => ({
       quizId: quiz.quizId,
@@ -35,9 +49,21 @@ export default function QuizQuestionSelector({ quiz, onChange }) {
       orderIndex: index + 1,
     }));
 
-    await quizQuestionService.addBatch(payload);
-    onChange?.();
-    setShowModal(false);
+    try {
+      for (let index = 0; index < selectedIds.length; index++) {
+        const questionId = selectedIds[index];
+        const payload = {
+          quizId: quiz.quizId,
+          questionId,
+          orderIndex: index + 1,
+        };
+        await quizQuestionService.add(payload);
+      }
+      onChange?.();
+      setShowModal(false);
+    } catch (err) {
+      showNotification("Lỗi", "Lỗi thêm câu hỏi", "error");
+    }
   };
 
   return (
@@ -67,6 +93,13 @@ export default function QuizQuestionSelector({ quiz, onChange }) {
           </div>
         </div>
       )}
+      <NotificationModal
+        isOpen={notification.isOpen}
+        onClose={() => setNotification((prev) => ({ ...prev, isOpen: false }))}
+        title={notification.title}
+        message={notification.message}
+        type={notification.type}
+      />
     </>
   );
 }

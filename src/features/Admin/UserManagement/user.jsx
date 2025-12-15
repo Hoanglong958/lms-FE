@@ -1,6 +1,7 @@
 import React, { useMemo, useState, useEffect, useRef } from "react";
 // GIẢ ĐỊNH: userService.js đã implement các API createUser, updateUser, deleteUser, toggleStatus
 import { userService } from "@utils/userService";
+import NotificationModal from "@components/NotificationModal/NotificationModal";
 
 // GIẢ ĐỊNH: Các component khác (AddUserModal, EditUserModal, ConfirmModal, 
 // RoleBadge, StatusBadge, RowActions, PageStyles, getInitials, styles, modalStyles) tồn tại
@@ -16,6 +17,17 @@ export default function UserManagement({ currentUserRole = "admin" }) {
 	const [editingUser, setEditingUser] = useState(null);
 	const [confirmDelete, setConfirmDelete] = useState(null);
 	const [confirmLock, setConfirmLock] = useState(null); // Sử dụng để xác nhận Khóa/Mở khóa
+
+	const [notification, setNotification] = useState({
+		isOpen: false,
+		title: "",
+		message: "",
+		type: "info",
+	});
+
+	const showNotification = (title, message, type = "info") => {
+		setNotification({ isOpen: true, title, message, type });
+	};
 
 	// 🔥 Gọi API lấy danh sách user
 	useEffect(() => {
@@ -61,18 +73,19 @@ export default function UserManagement({ currentUserRole = "admin" }) {
 			// Map fields: name -> fullName, email -> gmail
 			const apiPayload = {
 				fullName: payload.name,
+				username: payload.email,
 				gmail: payload.email,
 				role: payload.role,
 				password: "Password123!", // Mật khẩu mặc định
 				isActive: true,
-				phone: "" // Optional
 			};
 			await userService.createUser(apiPayload);
 			await fetchUsers();
 
 			setIsAddOpen(false);
+			showNotification("Thành công", "Tạo người dùng thành công", "success");
 		} catch (err) {
-			alert("Không thể tạo người dùng: " + (err.response?.data?.message || err.message));
+			showNotification("Lỗi", "Không thể tạo người dùng: " + (err.response?.data?.message || err.message), "error");
 		}
 	}
 
@@ -87,7 +100,9 @@ export default function UserManagement({ currentUserRole = "admin" }) {
 			await userService.updateUser(id, apiPayload);
 			await fetchUsers();
 			setEditingUser(null);
+			showNotification("Thành công", "Cập nhật người dùng thành công", "success");
 		} catch (err) {
+			showNotification("Lỗi", "Không thể cập nhật người dùng", "error");
 		}
 	}
 
@@ -100,10 +115,13 @@ export default function UserManagement({ currentUserRole = "admin" }) {
 		try {
 			// Gọi API DELETE /api/v1/users/{id}
 			await userService.deleteUser(confirmDelete.id);
-			await fetchUsers();
+			// Cập nhật UI ngay lập tức bằng cách lọc bỏ user đã xóa
+			setUsers((prev) => prev.filter((u) => u.id !== confirmDelete.id));
 			setConfirmDelete(null);
+			showNotification("Thành công", "Đã xóa người dùng thành công!", "success");
 		} catch (err) {
-			// Thêm thông báo lỗi
+			console.error("Delete Error:", err);
+			showNotification("Lỗi", "Không thể xóa người dùng: " + (err.response?.data?.message || err.message), "error");
 		}
 	}
 
@@ -113,17 +131,30 @@ export default function UserManagement({ currentUserRole = "admin" }) {
 	}
 
 	// Hàm xác nhận và gọi API Khóa/Mở khóa (sử dụng toggleStatus)
-	// Hàm xác nhận và gọi API Khóa/Mở khóa (sử dụng toggleStatus)
 	async function handleConfirmLock() {
+		console.log("Clicked Confirm Lock/Unlock", confirmLock);
 		if (!confirmLock) return;
 		try {
-			// Gọi API PATCH /api/v1/users/{id}/status?active={boolean}
-			// Nếu đang active -> active=false, ngược lại active=true
-			const newStatus = !confirmLock.isActive;
-			await userService.toggleStatus(confirmLock.id, newStatus);
+			// Gọi API UPDATE (PUT) thay vì PATCH status riêng lẻ vì PATCH bị 403
+			// Gửi đầy đủ thông tin để đảm bảo không bị mất dữ liệu
+			const apiPayload = {
+				fullName: confirmLock.fullName,
+				gmail: confirmLock.gmail,
+				role: confirmLock.role,
+				isActive: !confirmLock.isActive, // Toggle status
+				password: confirmLock.password // Nếu backend cần password, nhưng thường update không cần nếu ko đổi
+			};
+
+			// Nếu API update không cần password thì bỏ qua. Thường API update user admin sẽ không require password cũ.
+			// Nếu PUT /api/v1/users/{id} hoạt động cho Edit, nó sẽ hoạt động cho Lock.
+
+			await userService.updateUser(confirmLock.id, apiPayload);
 			await fetchUsers();
 			setConfirmLock(null);
+			showNotification("Thành công", "Cập nhật trạng thái thành công", "success");
 		} catch (err) {
+			console.error("Lock/Unlock Error:", err);
+			showNotification("Lỗi", "Có lỗi xảy ra khi thay đổi trạng thái tài khoản. " + (err.response?.data?.message || err.message), "error");
 		}
 	}
 
@@ -139,7 +170,7 @@ export default function UserManagement({ currentUserRole = "admin" }) {
 
 	function handleViewUser(user) {
 		// Logic điều hướng đến trang chi tiết người dùng
-		alert(`Xem tài khoản: ${user.fullName}`);
+		showNotification("Thông tin", `Xem tài khoản: ${user.fullName}`, "info");
 	}
 
 	// ============================================
@@ -217,6 +248,7 @@ export default function UserManagement({ currentUserRole = "admin" }) {
 					>
 						<option value="all">Tất cả vai trò</option>
 						<option value="ROLE_ADMIN">Quản trị viên</option>
+						<option value="ROLE_TEACHER">Giảng viên</option>
 						<option value="ROLE_USER">Người dùng</option>
 					</select>
 					<span style={styles.selectChevron} aria-hidden="true">▾</span>
@@ -233,7 +265,6 @@ export default function UserManagement({ currentUserRole = "admin" }) {
 								<th style={styles.th}>Email</th>
 								<th style={styles.th}>Vai trò</th>
 								<th style={styles.th}>Trạng thái</th>
-								<th style={styles.th}>Khóa học</th>
 								<th style={styles.th}>Ngày tham gia</th>
 								<th style={styles.th}>Lần đăng nhập cuối</th>
 								<th style={styles.th} />
@@ -254,7 +285,6 @@ export default function UserManagement({ currentUserRole = "admin" }) {
 									<td style={styles.td}>
 										<StatusBadge status={u.isActive ? 'active' : 'paused'} />
 									</td>
-									<td style={styles.td}>{u.courseCount || 0}</td>
 									<td style={styles.td}>{u.createdAt ? new Date(u.createdAt).toLocaleDateString('vi-VN') : "---"}</td>
 									<td style={styles.td}>{u.lastLogin ? new Date(u.lastLogin).toLocaleDateString('vi-VN') : "---"}</td>
 									<td style={styles.tdAction}>
@@ -263,6 +293,7 @@ export default function UserManagement({ currentUserRole = "admin" }) {
 											onLock={() => handleRequestLock(u)}
 											onEdit={() => setEditingUser(u)}
 											onDelete={() => handleRequestDelete(u)}
+											isActive={u.isActive}
 										/>
 									</td>
 								</tr>
@@ -280,45 +311,54 @@ export default function UserManagement({ currentUserRole = "admin" }) {
 			</div>
 
 			{/* Modals */}
-			{isAddOpen && (
-				<AddUserModal
-					onClose={() => setIsAddOpen(false)}
-					onSubmit={handleAddUser}
-					allowedRoles={["ROLE_ADMIN", "ROLE_USER"]}
-				/>
-			)}
+			{
+				isAddOpen && (
+					<AddUserModal
+						onClose={() => setIsAddOpen(false)}
+						onSubmit={handleAddUser}
+						allowedRoles={["ROLE_ADMIN", "ROLE_TEACHER", "ROLE_USER"]}
+					/>
+				)
+			}
 
-			{editingUser && (
-				<EditUserModal
-					user={editingUser}
-					onClose={() => setEditingUser(null)}
-					onSubmit={(payload) => handleEditUser(editingUser.id, payload)}
-					allowedRoles={["ROLE_ADMIN", "ROLE_USER"]}
-				/>
-			)}
+			{
+				editingUser && (
+					<EditUserModal
+						user={editingUser}
+						onClose={() => setEditingUser(null)}
+						onSubmit={(payload) => handleEditUser(editingUser.id, payload)}
+						allowedRoles={["ROLE_ADMIN", "ROLE_TEACHER", "ROLE_USER"]}
+					/>
+				)
+			}
 
-			{confirmDelete && (
-				<ConfirmModal
-					title="Xóa người dùng"
-					message={`Bạn có chắc chắn muốn xóa người dùng '${confirmDelete.fullName}'?`}
-					onCancel={() => setConfirmDelete(null)}
-					onConfirm={handleConfirmDelete}
-					confirmLabel="Xóa"
-				/>
-			)}
+			{
+				confirmDelete && (
+					<ConfirmModal
+						title="Xóa người dùng"
+						message={`Bạn có chắc chắn muốn xóa người dùng '${confirmDelete.fullName}'?`}
+						onCancel={() => setConfirmDelete(null)}
+						onConfirm={handleConfirmDelete}
+						confirmLabel="Xóa"
+					/>
+				)
+			}
 
 			{/* MODAL XÁC NHẬN KHÓA/MỞ KHÓA */}
-			{confirmLock && (
-				<ConfirmModal
-					title={`${confirmLock.isActive ? 'Khóa' : 'Mở khóa'} tài khoản`}
-					message={`Bạn có chắc chắn muốn ${confirmLock.isActive ? 'khóa' : 'mở khóa'} tài khoản '${confirmLock.fullName}'?`}
-					onCancel={() => setConfirmLock(null)}
-					onConfirm={handleConfirmLock}
-					confirmLabel={confirmLock.isActive ? 'Khóa' : 'Mở khóa'}
-					confirmStyle={confirmLock.isActive ? modalStyles.dangerBtn : modalStyles.primaryBtn}
-				/>
-			)}
-		</div>
+			{
+				confirmLock && (
+					<ConfirmModal
+						title={`${confirmLock.isActive ? 'Khóa' : 'Mở khóa'} tài khoản`}
+						message={`Bạn có chắc chắn muốn ${confirmLock.isActive ? 'khóa' : 'mở khóa'} tài khoản '${confirmLock.fullName}'?`}
+						onCancel={() => setConfirmLock(null)}
+						onConfirm={handleConfirmLock}
+						confirmLabel={confirmLock.isActive ? 'Khóa' : 'Mở khóa'}
+						// Ensure style object is valid
+						confirmStyle={confirmLock.isActive ? { ...modalStyles.dangerBtn } : { ...modalStyles.primaryBtn }}
+					/>
+				)
+			}
+		</div >
 	);
 }
 // ... (Phần còn lại của các component AddUserModal, EditUserModal, v.v.)
@@ -387,7 +427,11 @@ function AddUserModal({ onClose, onSubmit, allowedRoles }) {
 							>
 								{allowedRoles.map((r) => (
 									<option key={r} value={r}>
-										{r === "ROLE_ADMIN" ? "Quản trị viên" : "Người dùng"}
+										{r === "ROLE_ADMIN"
+											? "Quản trị viên"
+											: r === "ROLE_TEACHER"
+												? "Giảng viên"
+												: "Người dùng"}
 									</option>
 								))}
 							</select>
@@ -473,7 +517,11 @@ function EditUserModal({ user, onClose, onSubmit, allowedRoles }) {
 							>
 								{allowedRoles.map((r) => (
 									<option key={r} value={r}>
-										{r === "ROLE_ADMIN" ? "Quản trị viên" : "Người dùng"}
+										{r === "ROLE_ADMIN"
+											? "Quản trị viên"
+											: r === "ROLE_TEACHER"
+												? "Giảng viên"
+												: "Người dùng"}
 									</option>
 								))}
 							</select>
@@ -505,13 +553,13 @@ function ConfirmModal({ title, message, onCancel, onConfirm, confirmLabel = "Xó
 					<div style={{ color: "#374151", fontSize: 14 }}>{message}</div>
 				</div>
 				<div style={modalStyles.footer}>
-					<button type="button" onClick={onCancel} style={modalStyles.ghostBtn}>
+					<button type="button" onClick={onCancel} style={{ ...modalStyles.ghostBtn, cursor: "pointer" }}>
 						Hủy
 					</button>
 					<button
 						type="button"
 						onClick={onConfirm}
-						style={confirmStyle || { ...styles.primaryButton, background: "#b91c1c" }}
+						style={{ ...(confirmStyle || { ...styles.primaryButton, background: "#b91c1c" }), cursor: "pointer", zIndex: 60 }}
 					>
 						{confirmLabel}
 					</button>
@@ -522,9 +570,17 @@ function ConfirmModal({ title, message, onCancel, onConfirm, confirmLabel = "Xó
 }
 
 function RoleBadge({ role }) {
-	const label = role === "ROLE_ADMIN" ? "Quản trị viên" : "Người dùng";
-	const style =
-		role === "ROLE_ADMIN" ? badgeStyles.roleAdmin : badgeStyles.roleUser;
+	let label = "Người dùng";
+	let style = badgeStyles.roleUser;
+
+	if (role === "ROLE_ADMIN") {
+		label = "Quản trị viên";
+		style = badgeStyles.roleAdmin;
+	} else if (role === "ROLE_TEACHER") {
+		label = "Giảng viên";
+		style = badgeStyles.roleTeacher;
+	}
+
 	return <span style={{ ...badgeStyles.base, ...style }}>{label}</span>;
 }
 
@@ -537,7 +593,7 @@ function StatusBadge({ status }) {
 	return <span style={{ ...badgeStyles.base, ...style }}>{label}</span>;
 }
 
-function RowActions({ onView, onLock, onEdit, onDelete }) {
+function RowActions({ onView, onLock, onEdit, onDelete, isActive }) {
 	const [open, setOpen] = useState(false);
 	const containerRef = useRef(null);
 
@@ -573,15 +629,26 @@ function RowActions({ onView, onLock, onEdit, onDelete }) {
 			</button>
 			<button
 				type="button"
-				aria-label="Khóa/Mở khóa"
-				title="Khóa/Mở khóa"
+				aria-label={isActive ? "Khóa tài khoản" : "Mở khóa tài khoản"}
+				title={isActive ? "Khóa tài khoản" : "Mở khóa tài khoản"}
 				onClick={() => onLock && onLock()}
-				style={{ ...styles.iconButton, marginLeft: 6 }}
+				style={{ ...styles.iconButton, marginLeft: 6, color: isActive ? "#6b7280" : "#ef4444" }}
 			>
-				<svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-					<path d="M7 10V7a5 5 0 0 1 9.584-2.058" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-					<rect x="4" y="10" width="16" height="10" rx="2" stroke="currentColor" strokeWidth="1.6" />
-				</svg>
+				{isActive ? (
+					// Icon Open Lock (Đang mở -> Click để khóa)
+					// Hoặc user yêu cầu: "Icon đóng vào khi khóa" -> Tức là khi locked (isActive=false) thì icon đóng.
+					// Khi isActive=true (Active) -> Icon mở.
+					<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+						<rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+						<path d="M7 11V7a5 5 0 0 1 9.9-1"></path>
+					</svg>
+				) : (
+					// Icon Closed Lock (Đang khóa -> Click để mở)
+					<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+						<rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+						<path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+					</svg>
+				)}
 			</button>
 			<button
 				type="button"
@@ -897,6 +964,10 @@ const badgeStyles = {
 		background: "rgba(59,130,246,0.1)",
 		color: "#1d4ed8"
 	},
+	roleTeacher: {
+		background: "rgba(245, 158, 11, 0.12)",
+		color: "#b45309"
+	},
 	roleUser: {
 		background: "rgba(16,185,129,0.12)",
 		color: "#047857"
@@ -931,7 +1002,7 @@ const modalStyles = {
 		display: "flex",
 		alignItems: "center",
 		justifyContent: "center",
-		zIndex: 50,
+		zIndex: 9999,
 		padding: 16
 	},
 	container: {

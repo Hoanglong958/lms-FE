@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { CKEditor } from "@ckeditor/ckeditor5-react";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 import { lessonDocumentService } from "@utils/lessonDocumentService.js";
+import { uploadService } from "@utils/uploadService";
+import NotificationModal from "@components/NotificationModal/NotificationModal";
 import "./CoursesCSS/LessonDocumentCreate.css";
 
 // Dùng cùng toolbar
@@ -29,9 +31,51 @@ export default function LessonDocumentCreate({ lesson, onCreated }) {
     sortOrder: 0,
   });
 
+  const [uploading, setUploading] = useState(false);
+  const [notification, setNotification] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    type: "info",
+  });
+
+  const showNotification = (title, message, type = "info") => {
+    setNotification({ isOpen: true, title, message, type });
+  };
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const res = await uploadService.uploadImage(file);
+      const url = res.data.url || res.data;
+      setForm((prev) => ({ ...prev, imageUrl: url }));
+    } catch (err) {
+      showNotification("Lỗi", "Upload ảnh thất bại", "error");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleVideoUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const res = await uploadService.uploadVideo(file);
+      const url = res.data.url || res.data;
+      setForm((prev) => ({ ...prev, videoUrl: url }));
+    } catch (err) {
+      showNotification("Lỗi", "Upload video thất bại", "error");
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const handleCreate = async () => {
     if (!form.title) {
-      alert("Tiêu đề không được để trống");
+      showNotification("Thiếu thông tin", "Tiêu đề không được để trống", "warning");
       return;
     }
 
@@ -45,7 +89,7 @@ export default function LessonDocumentCreate({ lesson, onCreated }) {
       const res = await lessonDocumentService.addDocument(payload);
       onCreated(res.data);
     } catch (err) {
-      alert("Tạo tài liệu thất bại.");
+      showNotification("Lỗi", "Tạo tài liệu thất bại.", "error");
     }
   };
 
@@ -77,21 +121,39 @@ export default function LessonDocumentCreate({ lesson, onCreated }) {
       </div>
 
       <div className="ldc-form-row">
-        <label className="ldc-label">Image URL:</label>
-        <input
-          className="ldc-input"
-          value={form.imageUrl}
-          onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
-        />
+        <label className="ldc-label">Image File:</label>
+        <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleImageUpload}
+            disabled={uploading}
+            className="ldc-input"
+          />
+          {form.imageUrl && (
+            <div style={{ fontSize: "0.85rem", color: "green" }}>
+              Đã upload: {form.imageUrl}
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="ldc-form-row">
-        <label className="ldc-label">Video URL:</label>
-        <input
-          className="ldc-input"
-          value={form.videoUrl}
-          onChange={(e) => setForm({ ...form, videoUrl: e.target.value })}
-        />
+        <label className="ldc-label">Video File:</label>
+        <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+          <input
+            type="file"
+            accept="video/*"
+            onChange={handleVideoUpload}
+            disabled={uploading}
+            className="ldc-input"
+          />
+          {form.videoUrl && (
+            <div style={{ fontSize: "0.85rem", color: "green" }}>
+              Đã upload: {form.videoUrl}
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="ldc-form-row">
@@ -106,9 +168,17 @@ export default function LessonDocumentCreate({ lesson, onCreated }) {
         />
       </div>
 
-      <button className="ldc-btn" onClick={handleCreate}>
-        Tạo Tài liệu
+      <button className="ldc-btn" onClick={handleCreate} disabled={uploading}>
+        {uploading ? "Đang xử lý..." : "Tạo Tài liệu"}
       </button>
+
+      <NotificationModal
+        isOpen={notification.isOpen}
+        onClose={() => setNotification((prev) => ({ ...prev, isOpen: false }))}
+        title={notification.title}
+        message={notification.message}
+        type={notification.type}
+      />
     </div>
   );
 }

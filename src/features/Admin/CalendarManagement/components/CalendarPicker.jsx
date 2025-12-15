@@ -1,7 +1,12 @@
 import React, { useState } from "react";
 import "../css/CalendarPicker.css";
 
-export default function CalendarPicker({ onDateRangeSelect, initialStartDate, initialEndDate }) {
+export default function CalendarPicker({
+  onDateRangeSelect,
+  initialStartDate,
+  initialEndDate,
+  onOpenPeriodModal,
+}) {
   const [isOpen, setIsOpen] = useState(false);
   const [startDate, setStartDate] = useState(initialStartDate || null);
   const [endDate, setEndDate] = useState(initialEndDate || null);
@@ -11,38 +16,29 @@ export default function CalendarPicker({ onDateRangeSelect, initialStartDate, in
   const year = currentMonth.getFullYear();
   const month = currentMonth.getMonth();
 
-  // Get first day of month and number of days
   const firstDay = new Date(year, month, 1);
   const lastDay = new Date(year, month + 1, 0);
   const daysInMonth = lastDay.getDate();
-  const startingDayOfWeek = firstDay.getDay(); // 0 = Sunday
+  const startingDayOfWeek = firstDay.getDay();
 
   const days = [];
-  // Add empty cells for days before month starts
-  for (let i = 0; i < startingDayOfWeek; i++) {
-    days.push(null);
-  }
-  // Add days of month
-  for (let day = 1; day <= daysInMonth; day++) {
+  for (let i = 0; i < startingDayOfWeek; i++) days.push(null);
+  for (let day = 1; day <= daysInMonth; day++)
     days.push(new Date(year, month, day));
-  }
 
   const handleDateClick = (date) => {
     if (!date) return;
 
     if (!startDate || (startDate && endDate)) {
-      // Start new selection
       setStartDate(date);
       setEndDate(null);
     } else if (startDate && !endDate) {
-      // Complete selection
       if (date < startDate) {
         setEndDate(startDate);
         setStartDate(date);
       } else {
         setEndDate(date);
       }
-      // Notify parent
       if (onDateRangeSelect) {
         const finalStart = date < startDate ? date : startDate;
         const finalEnd = date < startDate ? startDate : date;
@@ -67,7 +63,10 @@ export default function CalendarPicker({ onDateRangeSelect, initialStartDate, in
 
   const formatDate = (date) => {
     if (!date) return "";
-    return date.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit" });
+    return date.toLocaleDateString("vi-VN", {
+      day: "2-digit",
+      month: "2-digit",
+    });
   };
 
   const monthNames = [
@@ -97,19 +96,31 @@ export default function CalendarPicker({ onDateRangeSelect, initialStartDate, in
 
   return (
     <div className="calendarPickerContainer">
-      <button
-        type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        className="triggerButton"
-        title="Chọn khoảng thời gian"
-      >
-        📅
-        {(startDate || endDate) && (
-          <span className="dateText">
-            {formatDate(startDate)} - {endDate ? formatDate(endDate) : "..."}
-          </span>
-        )}
-      </button>
+      <span>
+        <button
+          type="button"
+          onClick={() => setIsOpen(!isOpen)}
+          className="triggerButton"
+          title="Chọn khoảng thời gian"
+        >
+          📅
+          {(startDate || endDate) && (
+            <span className="dateText">
+              {formatDate(startDate)} - {endDate ? formatDate(endDate) : "..."}
+            </span>
+          )}
+        </button>
+
+        {/* 🔥 Nút quản lý ca học */}
+        <button
+          type="button"
+          className="triggerButton managePeriodBtn"
+          onClick={onOpenPeriodModal}
+          title="Quản lý ca học"
+        >
+          ⏰ Quản lý ca học
+        </button>
+      </span>
 
       {isOpen && (
         <>
@@ -151,8 +162,7 @@ export default function CalendarPicker({ onDateRangeSelect, initialStartDate, in
                   return <div key={idx} className="emptyDay" />;
                 }
 
-                const isToday =
-                  date.toDateString() === today.toDateString();
+                const isToday = date.toDateString() === today.toDateString();
                 const inRange = isDateInRange(date);
                 const selected = isDateSelected(date);
 
@@ -161,7 +171,9 @@ export default function CalendarPicker({ onDateRangeSelect, initialStartDate, in
                     key={idx}
                     type="button"
                     onClick={() => handleDateClick(date)}
-                    className={`day ${isToday ? "today" : ""} ${inRange ? "inRange" : ""} ${selected ? "selected" : ""}`}
+                    className={`day ${isToday ? "today" : ""} ${
+                      inRange ? "inRange" : ""
+                    } ${selected ? "selected" : ""}`}
                   >
                     {date.getDate()}
                   </button>
@@ -175,9 +187,7 @@ export default function CalendarPicker({ onDateRangeSelect, initialStartDate, in
                 onClick={() => {
                   setStartDate(null);
                   setEndDate(null);
-                  if (onDateRangeSelect) {
-                    onDateRangeSelect(null, null);
-                  }
+                  if (onDateRangeSelect) onDateRangeSelect(null, null);
                 }}
                 className="clearButton"
               >
@@ -197,5 +207,3 @@ export default function CalendarPicker({ onDateRangeSelect, initialStartDate, in
     </div>
   );
 }
-
-

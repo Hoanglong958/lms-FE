@@ -10,6 +10,7 @@ import AdminLayout from "@layouts/AdminLayout";
 // User Pages
 import HomePage from "@pages/HomePage";
 import DashboardUser from "@pages/DashboardUser";
+import ProfileEdit from "@features/userProfile/ProfileEdit";
 import BlogList from "@features/baiviet/pages/BlogList";
 import BlogDetail from "@features/baiviet/pages/BlogDetail";
 import Posts from "@features/baiviet/pages/Posts";
@@ -26,6 +27,7 @@ import ClassDetailPage from "@pages/ClassDetailPage";
 // ⭐⭐ THÊM ROUTE MỚI
 import JavaExamPage from "@pages/JavaExamPage";
 import JavaExamResult from "@pages/JavaExamResult";
+import JavaExamCard from "@pages/JavaExamCard";
 
 // ================= ADMIN =================
 import DashboardPage from "@features/Admin/Dashboard/DashboardPage";
@@ -47,9 +49,13 @@ import QuestionBankCreate from "@features/Admin/ExamManagement/QuestionBankCreat
 
 import UserManagement from "@features/Admin/UserManagement/user";
 import ClassManagement from "@features/Admin/ClassManagement/class";
+import ClassDetail from "@features/Admin/ClassManagement/ClassDetail";
 
 // Quản lý thời khóa biểu
 import CalendarManagement from "@features/Admin/CalendarManagement/Calendar";
+
+// Quản lý lộ trình
+import Roadmap from "@features/Admin/Roadmap/Roadmap";
 
 export default function AppRouter() {
   return (
@@ -87,6 +93,11 @@ export default function AppRouter() {
             <Route path="/exam" element={<JavaExamPage />} />
             <Route path="/exam/:examId" element={<JavaExamPage />} />
             <Route path="/exam/result" element={<JavaExamResult />} />
+            {/* ⭐⭐ JAVA EXAM PAGE */}
+            <Route path="/java-exam" element={<JavaExamCard />} />
+            <Route path="/java-exam/start" element={<JavaExamPage />} />
+            <Route path="/java-exam/result" element={<JavaExamResult />} />
+            <Route path="/profile/edit" element={<ProfileEdit />} />
           </Route>
 
           {/* COURSE LESSONS */}
@@ -111,6 +122,9 @@ export default function AppRouter() {
 
             <Route path="users" element={<UserManagement />} />
             <Route path="classes" element={<ClassManagement />} />
+            <Route path="classes/:id" element={<ClassDetail />} />
+
+            {/* Admin Home */}
             <Route path="home" element={<AdminHomePage />} />
 
             {/* EXAM MANAGEMENT */}
@@ -132,6 +146,9 @@ export default function AppRouter() {
 
             {/* Quản lý thời khóa biểu */}
             <Route path="calendar" element={<CalendarManagement />} />
+
+            {/* Quản lý lộ trình */}
+            <Route path="roadmap" element={<Roadmap />} />
           </Route>
 
           {/* ADMIN MANAGE LESSONS FROM OUTSIDE */}

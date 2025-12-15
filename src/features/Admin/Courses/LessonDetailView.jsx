@@ -15,6 +15,7 @@ import LessonDocumentEditor from "./LessonDocumentEditor.jsx";
 import LessonDocumentCreate from "./LessonDocumentCreate.jsx";
 
 import "../Courses/CoursesCSS/LessonDetailView.css";
+import NotificationModal from "@components/NotificationModal/NotificationModal";
 
 export default function LessonDetailView({ lesson }) {
   const [videos, setVideos] = useState([]);
@@ -30,6 +31,21 @@ export default function LessonDetailView({ lesson }) {
   const [documents, setDocuments] = useState([]);
   const [selectedDocument, setSelectedDocument] = useState(null);
 
+  const [notification, setNotification] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    type: "info",
+  });
+
+  const showNotification = (title, message, type = "info") => {
+    setNotification({ isOpen: true, title, message, type });
+  };
+
+  const closeNotification = () => {
+    setNotification((prev) => ({ ...prev, isOpen: false }));
+  };
+
   // Load tất cả câu hỏi
   async function loadAllQuestions() {
     try {
@@ -40,7 +56,7 @@ export default function LessonDetailView({ lesson }) {
         type: q.type ?? "N/A",
       }));
       setAllQuestions(processed);
-    } catch (err) {}
+    } catch (err) { }
   }
 
   useEffect(() => {
@@ -165,24 +181,28 @@ export default function LessonDetailView({ lesson }) {
               <div style={{ marginTop: 12 }}>
                 <button
                   onClick={async () => {
-                    if (
-                      selectedQuestions.length !== selectedQuiz.questionCount
-                    ) {
-                      alert(
-                        `Cần chọn đúng ${selectedQuiz.questionCount} câu hỏi. Hiện tại: ${selectedQuestions.length}`
-                      );
+                    if (selectedQuestions.length === 0) {
+                      showNotification("Cảnh báo", "Chưa chọn câu hỏi nào", "info");
                       return;
                     }
-                    const payload = selectedQuestions.map(
-                      (questionId, index) => ({
-                        quizId: selectedQuiz.quizId,
-                        questionId,
-                        orderIndex: index + 1,
-                      })
-                    );
-                    await quizQuestionService.addBatch(payload);
-                    alert("Đã gắn câu hỏi vào quiz");
-                    setSelectingQuestions(false);
+                    // Validation removed (auto count)
+                    try {
+                      for (let index = 0; index < selectedQuestions.length; index++) {
+                        const questionId = selectedQuestions[index];
+                        const payload = {
+                          quizId: selectedQuiz.quizId,
+                          questionId,
+                          orderIndex: index + 1,
+                        };
+                        await quizQuestionService.add(payload);
+                      }
+                      showNotification("Thành công", "Đã gắn câu hỏi vào quiz", "success");
+                      setSelectingQuestions(false);
+                      // Trigger a refresh/reload
+                      window.location.reload();
+                    } catch (err) {
+                      showNotification("Lỗi", "Gắn câu hỏi thất bại", "error");
+                    }
                   }}
                 >
                   Lưu danh sách câu hỏi
@@ -225,6 +245,14 @@ export default function LessonDetailView({ lesson }) {
           )}
         </div>
       )}
+
+      <NotificationModal
+        isOpen={notification.isOpen}
+        onClose={closeNotification}
+        title={notification.title}
+        message={notification.message}
+        type={notification.type}
+      />
     </div>
   );
 }

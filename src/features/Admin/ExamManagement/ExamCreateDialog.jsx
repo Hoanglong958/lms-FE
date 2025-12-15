@@ -3,6 +3,7 @@ import "./ExamCreateDialog.css";
 import { examService } from "@utils/examService";
 import QuestionSelector from "./QuestionSelector";
 import { courseService } from "@utils/courseService.js";
+import NotificationModal from "@components/NotificationModal/NotificationModal";
 
 export default function ExamCreateDialog({ open, onOpenChange, onSuccess }) {
   const [submitting, setSubmitting] = useState(false);
@@ -22,6 +23,17 @@ export default function ExamCreateDialog({ open, onOpenChange, onSuccess }) {
     questionIds: [],
     courseId: "",
   });
+
+  const [notification, setNotification] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    type: "info",
+  });
+
+  const showNotification = (title, message, type = "info") => {
+    setNotification({ isOpen: true, title, message, type });
+  };
 
   useEffect(() => {
     if (!open) {
@@ -53,12 +65,12 @@ export default function ExamCreateDialog({ open, onOpenChange, onSuccess }) {
         const arr = Array.isArray(raw)
           ? raw
           : Array.isArray(raw.data)
-          ? raw.data
-          : Array.isArray(raw.content)
-          ? raw.content
-          : Array.isArray(raw.items)
-          ? raw.items
-          : [];
+            ? raw.data
+            : Array.isArray(raw.content)
+              ? raw.content
+              : Array.isArray(raw.items)
+                ? raw.items
+                : [];
         setCourses(arr);
       })
       .catch(() => setCourses([]))
@@ -87,7 +99,7 @@ export default function ExamCreateDialog({ open, onOpenChange, onSuccess }) {
     }));
   };
 
-  
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -113,7 +125,7 @@ export default function ExamCreateDialog({ open, onOpenChange, onSuccess }) {
         return;
       }
 
-      
+
 
       const qids = Array.isArray(form.questionIds) ? form.questionIds.map((id) => Number(id)).filter((n) => Number.isFinite(n)) : [];
       const tq = form.autoAddQuestions ? Number(form.totalQuestions) || 0 : qids.length;
@@ -145,7 +157,7 @@ export default function ExamCreateDialog({ open, onOpenChange, onSuccess }) {
       const data = err?.response?.data;
       const message = data?.message || data?.error || err.message || "Lỗi không xác định";
       try { console.error("Create exam error", data || err, { form }); } catch { void 0; }
-      alert(`Tạo bài kiểm tra thất bại! Status: ${status || "n/a"}. Message: ${message}`);
+      showNotification("Lỗi", `Tạo bài kiểm tra thất bại! Status: ${status || "n/a"}. Message: ${message}`, "error");
     } finally {
       setSubmitting(false);
     }
@@ -266,7 +278,15 @@ export default function ExamCreateDialog({ open, onOpenChange, onSuccess }) {
             onSelectQuestions={(ids) => setForm((prev) => ({ ...prev, questionIds: ids }))}
           />
         )}
+
       </div>
+      <NotificationModal
+        isOpen={notification.isOpen}
+        onClose={() => setNotification((prev) => ({ ...prev, isOpen: false }))}
+        title={notification.title}
+        message={notification.message}
+        type={notification.type}
+      />
     </div>
   );
 }

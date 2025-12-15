@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import NotificationModal from "@components/NotificationModal/NotificationModal";
 import "./ExamManagement.css";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import AdminHeader from "@components/Admin/AdminHeader";
@@ -19,6 +20,16 @@ export default function ExamManagement() {
   const [page, setPage] = useState(1);
   const pageSize = 10;
   const [loading, setLoading] = useState(false);
+  const [notification, setNotification] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    type: "info",
+  });
+
+  const showNotification = (title, message, type = "info") => {
+    setNotification({ isOpen: true, title, message, type });
+  };
 
   const loadExams = async () => {
     try {
@@ -29,16 +40,16 @@ export default function ExamManagement() {
       const apiArr = Array.isArray(raw)
         ? raw
         : Array.isArray(raw.data)
-        ? raw.data
-        : Array.isArray(raw.content)
-        ? raw.content
-        : Array.isArray(raw.items)
-        ? raw.items
-        : Array.isArray(raw.data?.content)
-        ? raw.data.content
-        : Array.isArray(raw.data?.items)
-        ? raw.data.items
-        : [];
+          ? raw.data
+          : Array.isArray(raw.content)
+            ? raw.content
+            : Array.isArray(raw.items)
+              ? raw.items
+              : Array.isArray(raw.data?.content)
+                ? raw.data.content
+                : Array.isArray(raw.data?.items)
+                  ? raw.data.items
+                  : [];
 
       const mapped = apiArr.map((e) => ({
         id: e.id,
@@ -113,7 +124,7 @@ export default function ExamManagement() {
     loadExams();
   };
 
-  
+
 
   const handleEdit = (exam) => {
     setEditingExam(exam);
@@ -245,11 +256,11 @@ export default function ExamManagement() {
           const filtered = exams.filter((e) => {
             const matchText = q
               ? String(e.title || e.name || "")
-                  .toLowerCase()
-                  .includes(q) ||
-                String(e.description || "")
-                  .toLowerCase()
-                  .includes(q)
+                .toLowerCase()
+                .includes(q) ||
+              String(e.description || "")
+                .toLowerCase()
+                .includes(q)
               : true;
             const matchStatus =
               statusFilter === "ALL" ? true : String(e.status) === statusFilter;
@@ -310,6 +321,13 @@ export default function ExamManagement() {
           }}
         />
       </div>
+      <NotificationModal
+        isOpen={notification.isOpen}
+        onClose={() => setNotification((prev) => ({ ...prev, isOpen: false }))}
+        title={notification.title}
+        message={notification.message}
+        type={notification.type}
+      />
     </div>
   );
 }
