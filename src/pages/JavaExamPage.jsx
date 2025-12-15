@@ -215,12 +215,12 @@
     if (!examId || attemptStartedRef.current || !examLoaded || notFound) return;
     const user = (() => { try { return JSON.parse(localStorage.getItem("loggedInUser") || "{}"); } catch { return {}; } })();
     const userId = Number(user?.id);
-    if (!Number.isFinite(userId)) return;
+    if (!Number.isFinite(userId)) { showNotif("Bạn cần đăng nhập để bắt đầu bài thi", "error"); navigate("/login"); return; }
     attemptStartedRef.current = true;
     examService
       .startAttempt(Number(examId), userId)
       .then((res) => { attemptIdRef.current = res?.data?.id || null; })
-      .catch(() => {});
+      .catch((err) => { const status = err?.response?.status; const msg = err?.response?.data?.message || err?.message || "Không thể bắt đầu lượt làm"; showNotif(`Lỗi ${status || ""}: ${msg}`, "error"); });
   }, [examId, examLoaded, notFound]);
 
     useEffect(() => {
@@ -345,12 +345,24 @@
         });
         let attemptId = attemptIdRef.current;
         if (!Number.isFinite(Number(attemptId))) {
-          const resStart = await examService.startAttempt(Number(examId), Number(user?.id));
-          attemptId = resStart?.data?.id;
-          attemptIdRef.current = attemptId || null;
+          try {
+            const resStart = await examService.startAttempt(Number(examId), Number(user?.id));
+            attemptId = resStart?.data?.id;
+            attemptIdRef.current = attemptId || null;
+          } catch (err) {
+            const status = err?.response?.status;
+            const msg = err?.response?.data?.message || err?.message || "Không thể bắt đầu lượt làm";
+            showNotif(`Lỗi ${status || ""}: ${msg}`, "error");
+          }
         }
         if (Number.isFinite(Number(attemptId))) {
-          await examService.submitAttempt(Number(attemptId), answersArr);
+          try {
+            await examService.submitAttempt(Number(attemptId), answersArr);
+          } catch (err) {
+            const status = err?.response?.status;
+            const msg = err?.response?.data?.message || err?.message || "Không thể nộp bài";
+            showNotif(`Lỗi ${status || ""}: ${msg}`, "error");
+          }
         }
         const submitMessage = {
           type: "SUBMIT_EXAM",
