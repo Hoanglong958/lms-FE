@@ -27,16 +27,8 @@ export default function ExamDetailDialog({ open, onOpenChange, exam, examId }) {
         (raw && (raw.data || raw.item || raw.content)) ?? raw ?? null;
       setExamState(data || null);
     } catch (error) {
-      // Fallback: thử lấy từ localStorage nếu có cache
-      try {
-        const local = JSON.parse(localStorage.getItem("exams") || "[]");
-        const found = (Array.isArray(local) ? local : []).find((e) => String(e.id) === String(id));
-        if (found) {
-          setExamState(found);
-          return;
-        }
-      } catch {}
       alert("Không thể tải chi tiết kỳ thi");
+      setExamState(null);
     } finally {
       setLoading(false);
     }

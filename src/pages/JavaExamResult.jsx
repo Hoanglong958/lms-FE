@@ -8,7 +8,7 @@ export default function JavaExamResult() {
   const [attempt, setAttempt] = useState(null);
 
   useEffect(() => {
-    let id = location.state && location.state.id;
+    const id = location.state && location.state.id;
     try {
       const raw = localStorage.getItem("javaExamPracticeHistory") || "[]";
       const arr = JSON.parse(raw);
@@ -32,7 +32,7 @@ export default function JavaExamResult() {
         <div className="jexr-card">
           <p className="jexr-desc">Không tìm thấy kết quả. Đang quay về trang thi thử...</p>
           <div className="jexr-actions">
-            <button className="jexr-btn" onClick={() => navigate("/java-exam")}>Quay về ngay</button>
+            <button className="jexr-btn" onClick={() => navigate("/exam")}>Quay về danh sách bài thi</button>
           </div>
         </div>
       </div>
@@ -82,9 +82,11 @@ export default function JavaExamResult() {
         </div>
 
         <div className="jexr-actions">
-          <button className="jexr-btn" onClick={() => navigate("/java-exam")}>Quay về trang thi thử</button>
+          <button className="jexr-btn" onClick={() => navigate("/exam")}>Quay về danh sách bài thi</button>
         </div>
       </div>
+
+      
     </div>
   );
 }

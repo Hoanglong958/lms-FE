@@ -24,7 +24,6 @@ import ClassesPage from "@pages/ClassesPage";
 import ClassDetailPage from "@pages/ClassDetailPage";
 
 // ⭐⭐ THÊM ROUTE MỚI
-import JavaExamCard from "@pages/JavaExamCard";
 import JavaExamPage from "@pages/JavaExamPage";
 import JavaExamResult from "@pages/JavaExamResult";
 
@@ -84,10 +83,10 @@ export default function AppRouter() {
 
             <Route path="/search" element={<SearchPage />} />
 
-            {/* ⭐⭐ JAVA EXAM PAGE */}
-            <Route path="/java-exam" element={<JavaExamCard />} />
-            <Route path="/java-exam/start" element={<JavaExamPage />} />
-            <Route path="/java-exam/result" element={<JavaExamResult />} />
+            {/* ⭐ BÀI KIỂM TRA (đưa nội dung thi thử vào đây) */}
+            <Route path="/exam" element={<JavaExamPage />} />
+            <Route path="/exam/:examId" element={<JavaExamPage />} />
+            <Route path="/exam/result" element={<JavaExamResult />} />
           </Route>
 
           {/* COURSE LESSONS */}

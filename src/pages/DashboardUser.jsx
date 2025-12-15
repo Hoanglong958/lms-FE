@@ -41,7 +41,7 @@ export default function DashboardUser() {
       ),
       title: "Bài kiểm tra",
       description: "Các bài kiểm tra được thiết kế để đánh giá trình độ và hiệu biết của người học trong một lĩnh vực cụ thể",
-      path: "/home"
+      path: "/exam"
     },
     {
       id: 4,
@@ -89,27 +89,7 @@ export default function DashboardUser() {
       path: "/home"
     },
 
-    /* ⭐ THẺ MỚI – Bài kiểm tra thử */
-    {
-      id: 6,
-      icon: (
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="48"
-          height="48"
-          viewBox="0 0 24 24"
-          fill="#DD673C"
-        >
-          <path d="M12 2a10 10 0 100 20 10 10 0 000-20zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
-        </svg>
-      ),
-      title: "Bài kiểm tra thử",
-      description:
-        "Làm bài kiểm tra thử để đánh giá năng lực và chuẩn bị tốt hơn cho các bài thi chính thức",
-
-      /* ⭐ Chỉ sửa path đúng yêu cầu */
-      path: "/java-exam",
-    },
+    
   ];
 
   return (
