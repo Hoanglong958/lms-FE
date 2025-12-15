@@ -8,7 +8,17 @@ const BASE_PATH = "/api/v1/classes/students";
  * @param {number} classId - ID của lớp học
  * @returns {Promise} Response containing array of students in class
  */
-const getClassStudents = (classId) => api.get(BASE_PATH, { params: { classId: parseInt(classId) } });
+const getClassStudents = (classId) =>
+  api.get(BASE_PATH, { params: { classId: parseInt(classId) } });
+
+/**
+ * GET /api/v1/classes/students?studentId={studentId}
+ * Lấy danh sách lớp học của học viên
+ * @param {number} studentId - ID của học viên
+ * @returns {Promise} Response containing list of classes
+ */
+const getStudentClasses = (studentId) =>
+  api.get(BASE_PATH, { params: { studentId: parseInt(studentId) } });
 
 /**
  * POST /api/v1/classes/students
@@ -32,12 +42,13 @@ const addStudentToClass = (data) => api.post(BASE_PATH, data);
  * @returns {Promise} Response confirming deletion
  */
 const removeStudentFromClass = (classId, studentId) =>
-    api.delete(`/api/v1/classes/${classId}/students/${studentId}`);
+  api.delete(`/api/v1/classes/${classId}/students/${studentId}`);
 
 export const classStudentService = {
-    getClassStudents,
-    addStudentToClass,
-    removeStudentFromClass
+  getClassStudents,
+  addStudentToClass,
+  removeStudentFromClass,
+  getStudentClasses,
 };
 
 export default classStudentService;
