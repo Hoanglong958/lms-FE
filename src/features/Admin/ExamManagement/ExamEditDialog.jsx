@@ -118,7 +118,8 @@ export default function ExamEditDialog({ open, onOpenChange, exam, onSuccess }) 
         durationMinutes: form.durationMinutes,
         startTime: form.startTime ? new Date(form.startTime).toISOString() : null,
         endTime: form.endTime ? new Date(form.endTime).toISOString() : null,
-        questionIds: form.questionIds,
+        autoAddQuestions: !!form.autoAddQuestions,
+        questionIds: Array.isArray(form.questionIds) ? form.questionIds.map((n) => Number(n)) : [],
       };
 
       const res = await examService.updateExam(exam.id, payload);

@@ -6,11 +6,12 @@ import AdminHeader from "@components/Admin/AdminHeader";
 import { examService } from "@utils/examService.js";
 import ExamCreateDialog from "./ExamCreateDialog";
 import ExamEditDialog from "./ExamEditDialog";
-import ExamDetailDialog from "./ExamDetailDialog";
 import ExamTable from "./ExamTable";
 
 export default function ExamManagement() {
   const navigate = useNavigate();
+  const user = (() => { try { return JSON.parse(localStorage.getItem("loggedInUser") || "{}"); } catch { return {}; } })();
+  const isAdmin = String(user?.role || "").toUpperCase() === "ROLE_ADMIN";
 
   // ✅ Thêm state để chứa danh sách bài kiểm tra
   const [exams, setExams] = useState([]);
@@ -67,51 +68,14 @@ export default function ExamManagement() {
         endTime: e.endTime || e.endAt,
         status: e.status || "Đang mở",
       }));
-      let local = [];
-      try {
-        local = JSON.parse(localStorage.getItem("exams") || "[]");
-      } catch { }
-      const localMapped = (Array.isArray(local) ? local : []).map((e) => ({
-        id: e.id,
-        name: e.title || e.name,
-        description: e.description,
-        course: String(e.course || e.courseId || ""),
-        students: e.students,
-        avgScore: e.avgScore,
-        passRate: e.passRate,
-        totalQuestions:
-          e.totalQuestions ??
-          (Array.isArray(e.questions) ? e.questions.length : undefined),
-        maxScore: e.maxScore,
-        passingScore: e.passingScore,
-        durationMinutes:
-          typeof e.durationMinutes === "number"
-            ? e.durationMinutes
-            : typeof e.duration === "string"
-              ? parseInt(String(e.duration).replace(/[^0-9]/g, "")) || undefined
-              : undefined,
-        duration:
-          e.duration || (e.durationMinutes ? `${e.durationMinutes} phút` : "-"),
-        startTime: e.startTime || e.startAt,
-        endTime: e.endTime || e.endAt,
-        status: e.status || "Đang mở",
-      }));
-      const merged = [...mapped, ...localMapped].reduce((acc, cur) => {
-        if (!acc.find((x) => x.id === cur.id)) acc.push(cur);
-        return acc;
-      }, []);
-      setExams(merged);
-      try {
-        localStorage.setItem("exams", JSON.stringify(merged));
-      } catch { }
+      setExams(mapped);
     } catch (err) {
-      // Fallback: nếu API lỗi, cố gắng lấy từ localStorage để tránh mất dữ liệu trên UI
-      try {
-        const local = JSON.parse(localStorage.getItem("exams") || "[]");
-        setExams(Array.isArray(local) ? local : []);
-      } catch {
-        setExams([]);
+      const status = err?.response?.status;
+      const msg = err?.response?.data?.message || err?.message || "Không thể tải danh sách kỳ thi";
+      if (status === 400) {
+        alert(`Lỗi 400: ${msg}`);
       }
+      setExams([]);
     } finally {
       setLoading(false);
     }
@@ -142,8 +106,6 @@ export default function ExamManagement() {
   const [openCreate, setOpenCreate] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
   const [editingExam, setEditingExam] = useState(null);
-  const [openDetail, setOpenDetail] = useState(false);
-  const [detailExam, setDetailExam] = useState(null);
 
   // ✅ Khi bấm nút "Tạo bài kiểm tra"
   const handleAddExam = () => {
@@ -162,15 +124,7 @@ export default function ExamManagement() {
     loadExams();
   };
 
-  // ✅ Khi bấm 📄 => mở dialog chi tiết bài kiểm tra
-  const handleReport = (exam) => {
-    setDetailExam(exam);
-    setOpenDetail(true);
-  };
-
-  const handleView = (exam) => {
-    navigate(`/admin/exam/${exam.id}/preview`);
-  };
+  
 
   const handleEdit = (exam) => {
     setEditingExam(exam);
@@ -178,12 +132,26 @@ export default function ExamManagement() {
   };
 
   const handleDelete = (exam) => {
-    if (window.confirm(`Bạn có chắc muốn xóa "${exam.name}" không?`)) {
-      showNotification("Đã xóa", `🗑️ Đã xóa kỳ thi: ${exam.name}`, "success");
-      const updated = exams.filter((e) => e.id !== exam.id);
-      setExams(updated);
-      localStorage.setItem("exams", JSON.stringify(updated));
-    }
+    (async () => {
+      if (!isAdmin) {
+        alert("Bạn không có quyền xóa kỳ thi. Vui lòng đăng nhập tài khoản ADMIN.");
+        return;
+      }
+      const ok = window.confirm(`Bạn có chắc muốn xóa "${exam.name}" không?`);
+      if (!ok) return;
+      try {
+        await examService.deleteExam(exam.id);
+        await loadExams();
+      } catch (err) {
+        const status = err?.response?.status;
+        const msg = err?.response?.data?.message || err?.message || "Xóa kỳ thi thất bại";
+        if (status === 401 || status === 403) {
+          alert("Bạn không có quyền xóa kỳ thi. Vui lòng đăng nhập tài khoản ADMIN.");
+        } else {
+          alert(msg);
+        }
+      }
+    })();
   };
 
   const handleDeleteById = (id) => {
@@ -310,10 +278,9 @@ export default function ExamManagement() {
                 loading={loading}
                 onEdit={handleEdit}
                 onDelete={handleDeleteById}
+                canDelete={isAdmin}
                 onViewDetail={(id) => {
-                  const ex = exams.find((e) => String(e.id) === String(id));
-                  setDetailExam(ex || { id });
-                  setOpenDetail(true);
+                  navigate(`/admin/exam/${id}/detail`);
                 }}
               />
               <div className="exam-pagination">
@@ -342,23 +309,7 @@ export default function ExamManagement() {
           open={openCreate}
           onOpenChange={setOpenCreate}
           onSuccess={(created) => {
-            if (created && created.id) {
-              setExams((prev) => {
-                const next = [mapExam(created), ...prev];
-                // dedupe theo id
-                const seen = new Set();
-                const deduped = next.filter((x) =>
-                  seen.has(x.id) ? false : (seen.add(x.id), true)
-                );
-                try {
-                  localStorage.setItem("exams", JSON.stringify(deduped));
-                } catch { }
-                return deduped;
-              });
-            } else {
-              // Fallback: refetch danh sách từ API
-              loadExams();
-            }
+            loadExams();
           }}
         />
         <ExamEditDialog
@@ -366,29 +317,9 @@ export default function ExamManagement() {
           onOpenChange={setOpenEdit}
           exam={editingExam}
           onSuccess={(updated) => {
-            if (updated && updated.id) {
-              const mapped = mapExam(updated);
-              setExams((prev) => {
-                const next = prev.map((e) =>
-                  String(e.id) === String(mapped.id) ? { ...e, ...mapped } : e
-                );
-                try {
-                  localStorage.setItem("exams", JSON.stringify(next));
-                } catch { }
-                return next;
-              });
-            } else {
-              // fallback: refetch nếu server không trả về object
-              loadExams();
-            }
+            loadExams();
           }}
         />
-        <ExamDetailDialog
-          open={openDetail}
-          onOpenChange={setOpenDetail}
-          exam={detailExam}
-        />
-
       </div>
       <NotificationModal
         isOpen={notification.isOpen}
