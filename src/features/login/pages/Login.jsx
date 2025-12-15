@@ -3,7 +3,6 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { authService } from "@utils/authService"; // import service
 import NotificationModal from "@components/NotificationModal/NotificationModal";
-import NotificationModal from "@components/NotificationModal/NotificationModal";
 import ForgotPasswordModal from "../components/ForgotPasswordModal";
 import "./login.css";
 
@@ -14,7 +13,6 @@ export default function Login() {
   const [notification, setNotification] = useState({
     isOpen: false,
     title: "",
-    message: "",
     message: "",
     type: "info",
   });

@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { lessonQuizService } from "@utils/lessonQuizService.js";
 import { quizQuestionService } from "@utils/quizQuestionService.js";
 import { questionService } from "@utils/questionService.js";
+import { quizResultService } from "@utils/quizResultService.js";
 
 import "./QuizExamPage.css";
 
@@ -108,39 +109,102 @@ export default function QuizExamPage({ quizId }) {
     setCurrentQuestionIndex(idx);
   };
 
-  const finishQuiz = () => {
+
+  const [submissionResult, setSubmissionResult] = useState(null);
+
+  // ... (existing code for render)
+
+  const finishQuiz = async () => {
     if (!quizInfo) return;
 
-    const perQuestionScore = quizInfo.maxScore / quizQuestions.length;
-    let totalScore = 0;
+    // Get Logged In User
+    const userStr = localStorage.getItem("loggedInUser");
+    let userId = 0;
+    if (userStr) {
+      try {
+        const u = JSON.parse(userStr);
+        userId = u.id;
+      } catch (e) {
+        console.error("Error parsing loggedInUser", e);
+      }
+    }
+
+    // Map answers
+    // Question options map to 1, 2, 3, 4 -> A, B, C, D
+    const answers = [];
+    const optionMap = ["A", "B", "C", "D"];
 
     quizQuestions.forEach((q, idx) => {
-      const selected = userSelections[idx];
-      const correct = q.options.find((o) => o.isCorrect);
-      if (selected === correct?.id) totalScore += perQuestionScore;
+      const selectedOptionId = userSelections[idx];
+      if (selectedOptionId) {
+        // optionId is 1-based index (1,2,3,4) from previous logic
+        const answerChar = optionMap[selectedOptionId - 1];
+        if (answerChar) {
+          answers.push({
+            questionId: q.id,
+            answer: answerChar,
+          });
+        }
+      }
     });
 
-    setScore(totalScore);
-    setIsQuizCompleted(true);
-    clearInterval(timerRef.current);
+    const payload = {
+      quizId: parseInt(quizIdFromParams),
+      userId: userId,
+      answers: answers,
+    };
+
+    console.log("Logged In User Raw:", userStr);
+    console.log("Parsed User ID:", userId);
+    console.log("Submission Payload:", JSON.stringify(payload, null, 2));
+
+    try {
+      const res = await quizResultService.submitQuiz(payload);
+      // res.data format: { id, quizId, userId, correctCount, totalCount, score, isPassed, submittedAt }
+      setSubmissionResult(res.data);
+      setScore(res.data.score); // Keep using score state for compatibility or just use submissionResult
+      setIsQuizCompleted(true);
+      if (timerRef.current) clearInterval(timerRef.current);
+    } catch (error) {
+      console.error("Submit quiz error:", error);
+      console.log("Error Response Data:", error.response?.data);
+      let errorMessage = error.message;
+      if (error.response && error.response.data) {
+        if (typeof error.response.data === 'object') {
+          errorMessage = JSON.stringify(error.response.data, null, 2);
+        } else {
+          errorMessage = error.response.data;
+        }
+      }
+      alert(`Nộp bài thất bại: ${errorMessage}`);
+    }
   };
 
   // ================== RENDER ==================
   if (!quizInfo || quizQuestions.length === 0) return <p>Đang tải quiz...</p>;
 
-  if (isQuizCompleted) {
-    const isPassed = score >= quizInfo.passingScore;
+  if (isQuizCompleted && submissionResult) {
     return (
       <div className="quiz-exam-wrapper">
         <div className="quiz-exam-main quiz-result">
           <h2>
-            Kết quả: {score}/{quizInfo.maxScore}
+            Kết quả: {submissionResult.score}/{quizInfo.maxScore}
           </h2>
-          <p>{isPassed ? "Bạn đã vượt qua!" : "Bạn chưa đạt yêu cầu."}</p>
+          <p>
+            Số câu đúng: {submissionResult.correctCount}/{submissionResult.totalCount}
+          </p>
+          <p>
+            {submissionResult.isPassed
+              ? "Chúc mừng! Bạn đã vượt qua bài kiểm tra."
+              : "Rất tiếc, bạn chưa đạt yêu cầu."}
+          </p>
           <button onClick={() => window.location.reload()}>Làm lại</button>
         </div>
       </div>
     );
+  } else if (isQuizCompleted) {
+    // Fallback if completed but no result yet (shouldn't happen with await, but safety)
+    return <p>Đang xử lý kết quả...</p>;
   }
 
   return (
