@@ -313,53 +313,54 @@ export default function UserManagement({ currentUserRole = "admin" }) {
 			</div>
 
 			{/* Modals */}
-			{isAddOpen && (
-				<AddUserModal
-					onClose={() => setIsAddOpen(false)}
-					onSubmit={handleAddUser}
-					allowedRoles={["ROLE_ADMIN", "ROLE_TEACHER", "ROLE_USER"]}
-				/>
-			)}
+			{
+				isAddOpen && (
+					<AddUserModal
+						onClose={() => setIsAddOpen(false)}
+						onSubmit={handleAddUser}
+						allowedRoles={["ROLE_ADMIN", "ROLE_TEACHER", "ROLE_USER"]}
+					/>
+				)
+			}
 
-			{editingUser && (
-				<EditUserModal
-					user={editingUser}
-					onClose={() => setEditingUser(null)}
-					onSubmit={(payload) => handleEditUser(editingUser.id, payload)}
-					allowedRoles={["ROLE_ADMIN", "ROLE_TEACHER", "ROLE_USER"]}
-				/>
-			)}
+			{
+				editingUser && (
+					<EditUserModal
+						user={editingUser}
+						onClose={() => setEditingUser(null)}
+						onSubmit={(payload) => handleEditUser(editingUser.id, payload)}
+						allowedRoles={["ROLE_ADMIN", "ROLE_TEACHER", "ROLE_USER"]}
+					/>
+				)
+			}
 
-			{confirmDelete && (
-				<ConfirmModal
-					title="Xóa người dùng"
-					message={`Bạn có chắc chắn muốn xóa người dùng '${confirmDelete.fullName}'?`}
-					onCancel={() => setConfirmDelete(null)}
-					onConfirm={handleConfirmDelete}
-					confirmLabel="Xóa"
-				/>
-			)}
+			{
+				confirmDelete && (
+					<ConfirmModal
+						title="Xóa người dùng"
+						message={`Bạn có chắc chắn muốn xóa người dùng '${confirmDelete.fullName}'?`}
+						onCancel={() => setConfirmDelete(null)}
+						onConfirm={handleConfirmDelete}
+						confirmLabel="Xóa"
+					/>
+				)
+			}
 
 			{/* MODAL XÁC NHẬN KHÓA/MỞ KHÓA */}
-			{confirmLock && (
-				<ConfirmModal
-					title={`${confirmLock.isActive ? 'Khóa' : 'Mở khóa'} tài khoản`}
-					message={`Bạn có chắc chắn muốn ${confirmLock.isActive ? 'khóa' : 'mở khóa'} tài khoản '${confirmLock.fullName}'?`}
-					onCancel={() => setConfirmLock(null)}
-					onConfirm={handleConfirmLock}
-					confirmLabel={confirmLock.isActive ? 'Khóa' : 'Mở khóa'}
-					// Ensure style object is valid
-					confirmStyle={confirmLock.isActive ? { ...modalStyles.dangerBtn } : { ...modalStyles.primaryBtn }}
-				/>
-			)}
-			<NotificationModal
-				isOpen={notification.isOpen}
-				onClose={() => setNotification((prev) => ({ ...prev, isOpen: false }))}
-				title={notification.title}
-				message={notification.message}
-				type={notification.type}
-			/>
-		</div>
+			{
+				confirmLock && (
+					<ConfirmModal
+						title={`${confirmLock.isActive ? 'Khóa' : 'Mở khóa'} tài khoản`}
+						message={`Bạn có chắc chắn muốn ${confirmLock.isActive ? 'khóa' : 'mở khóa'} tài khoản '${confirmLock.fullName}'?`}
+						onCancel={() => setConfirmLock(null)}
+						onConfirm={handleConfirmLock}
+						confirmLabel={confirmLock.isActive ? 'Khóa' : 'Mở khóa'}
+						// Ensure style object is valid
+						confirmStyle={confirmLock.isActive ? { ...modalStyles.dangerBtn } : { ...modalStyles.primaryBtn }}
+					/>
+				)
+			}
+		</div >
 	);
 }
 // ... (Phần còn lại của các component AddUserModal, EditUserModal, v.v.)

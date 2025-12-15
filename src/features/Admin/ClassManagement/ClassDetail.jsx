@@ -584,21 +584,45 @@ export default function ClassDetail({ classData: propClassData, onBack }) {
                     onSubmit={async (selectedStudentIds) => {
                         try {
                             // Add all selected students to the class
-                            await Promise.all(
-                                selectedStudentIds.map((studentId) =>
-                                    classStudentService.addStudentToClass({
-                                        classId: addingStudents.id,
-                                        studentId: studentId,
+                            // Add all selected students to the class
+                            const successes = [];
+                            const failures = [];
+
+                            for (const studentId of selectedStudentIds) {
+                                try {
+                                    console.log(`Adding student ${studentId} to class ${addingStudents.id}...`);
+                                    await classStudentService.addStudentToClass({
+                                        classId: parseInt(addingStudents.id),
+                                        studentId: parseInt(studentId),
                                         status: "ACTIVE",
                                         note: `Added from class detail`
-                                    })
-                                )
-                            );
-                            alert("Thêm sinh viên thành công!");
-                            setAddingStudents(null);
-                        } catch (error) {
-                            console.error("Failed to add students:", error);
-                            alert("Lỗi khi thêm sinh viên: " + (error.response?.data?.message || error.message));
+                                    });
+                                    successes.push(studentId);
+                                } catch (error) {
+                                    console.error(`Failed to add student ${studentId}:`, error);
+                                    const msg = error.response?.data?.message ||
+                                        (typeof error.response?.data === 'string' ? error.response.data : null) ||
+                                        JSON.stringify(error.response?.data) ||
+                                        error.message;
+                                    failures.push(`Student ID ${studentId}: ${msg}`);
+                                }
+                            }
+
+                            if (successes.length > 0) {
+                                alert(`Đã thêm thành công ${successes.length} sinh viên!`);
+                            }
+
+                            if (failures.length > 0) {
+                                alert(`Lỗi khi thêm ${failures.length} sinh viên:\n` + failures.join("\n"));
+                            }
+
+                            if (successes.length > 0) {
+                                setAddingStudents(null);
+                                // Trigger refresh if needed
+                                setClassData(prev => ({ ...prev }));
+                            }
+                        } catch (e) {
+                            console.error("Unexpected error:", e);
                         }
                     }}
                 />
@@ -1356,56 +1380,64 @@ function AddStudentsModal({ classData, onClose, onSubmit }) {
                                 borderRadius: 10,
                                 padding: 12,
                             }}>
-                                {students.map((student) => (
-                                    <label
-                                        key={student.id}
-                                        style={{
-                                            display: "flex",
-                                            alignItems: "center",
-                                            padding: "12px 10px",
-                                            borderBottom: "1px solid #f3f4f6",
-                                            cursor: existingStudents.includes(student.id) ? "not-allowed" : "pointer",
-                                            transition: "background 0.2s",
-                                            opacity: existingStudents.includes(student.id) ? 0.6 : 1,
-                                        }}
-                                        onMouseEnter={(e) => !existingStudents.includes(student.id) && (e.currentTarget.style.background = "#f9fafb")}
-                                        onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
-                                    >
-                                        <input
-                                            type="checkbox"
-                                            checked={selectedStudents.includes(student.id)}
-                                            onChange={() => handleToggle(student.id)}
-                                            disabled={existingStudents.includes(student.id)}
+                                {students
+                                    .sort((a, b) => {
+                                        const isAExisting = existingStudents.includes(a.id);
+                                        const isBExisting = existingStudents.includes(b.id);
+                                        if (isAExisting && !isBExisting) return 1;
+                                        if (!isAExisting && isBExisting) return -1;
+                                        return 0;
+                                    })
+                                    .map((student) => (
+                                        <label
+                                            key={student.id}
                                             style={{
-                                                width: 18,
-                                                height: 18,
-                                                marginRight: 12,
+                                                display: "flex",
+                                                alignItems: "center",
+                                                padding: "12px 10px",
+                                                borderBottom: "1px solid #f3f4f6",
                                                 cursor: existingStudents.includes(student.id) ? "not-allowed" : "pointer",
-                                                accentColor: "#0ea5e9",
+                                                transition: "background 0.2s",
+                                                opacity: existingStudents.includes(student.id) ? 0.6 : 1,
                                             }}
-                                        />
-                                        <div style={{ flex: 1 }}>
-                                            <div style={{ fontWeight: 600, color: "#111827", fontSize: 14 }}>
-                                                {student.fullName}
+                                            onMouseEnter={(e) => !existingStudents.includes(student.id) && (e.currentTarget.style.background = "#f9fafb")}
+                                            onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
+                                        >
+                                            <input
+                                                type="checkbox"
+                                                checked={selectedStudents.includes(student.id)}
+                                                onChange={() => handleToggle(student.id)}
+                                                disabled={existingStudents.includes(student.id)}
+                                                style={{
+                                                    width: 18,
+                                                    height: 18,
+                                                    marginRight: 12,
+                                                    cursor: existingStudents.includes(student.id) ? "not-allowed" : "pointer",
+                                                    accentColor: "#0ea5e9",
+                                                }}
+                                            />
+                                            <div style={{ flex: 1 }}>
+                                                <div style={{ fontWeight: 600, color: "#111827", fontSize: 14 }}>
+                                                    {student.fullName}
+                                                </div>
+                                                <div style={{ fontSize: 12, color: "#6b7280", marginTop: 2 }}>
+                                                    {student.email}
+                                                </div>
                                             </div>
-                                            <div style={{ fontSize: 12, color: "#6b7280", marginTop: 2 }}>
-                                                {student.email}
-                                            </div>
-                                        </div>
-                                        {existingStudents.includes(student.id) && (
-                                            <span style={{
-                                                fontSize: 11,
-                                                padding: "2px 8px",
-                                                background: "#dbeafe",
-                                                color: "#1e40af",
-                                                borderRadius: 12,
-                                                fontWeight: 600,
-                                            }}>
-                                                Đã trong lớp
-                                            </span>
-                                        )}
-                                    </label>
-                                ))}
+                                            {existingStudents.includes(student.id) && (
+                                                <span style={{
+                                                    fontSize: 11,
+                                                    padding: "2px 8px",
+                                                    background: "#dbeafe",
+                                                    color: "#1e40af",
+                                                    borderRadius: 12,
+                                                    fontWeight: 600,
+                                                }}>
+                                                    Đã trong lớp
+                                                </span>
+                                            )}
+                                        </label>
+                                    ))}
                             </div>
                             <div style={{
                                 marginTop: 12,

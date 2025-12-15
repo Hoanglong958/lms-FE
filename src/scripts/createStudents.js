@@ -1,5 +1,5 @@
 /**
- * Script to create 45 students in the system
+ * Script to create 50 students in the system
  * Run this script from the browser console or use it as a utility
  */
 
@@ -49,44 +49,43 @@ function generatePhoneNumber() {
     return `${prefix}${suffix}`;
 }
 
-async function createStudents() {
+async function createStudents(count = 100) {
     const students = [];
 
-    console.log('🚀 Starting to create 45 students...\n');
+    console.log(`🚀 Starting to create ${count} students...\n`);
 
-    for (let i = 1; i <= 45; i++) {
+    for (let i = 1; i <= count; i++) {
         const fullName = generateRandomName();
         const email = generateEmail(fullName, i);
         const phone = generatePhoneNumber();
+        const username = `student${String(i).padStart(3, '0')}`;
 
         const studentData = {
-            username: `student${String(i).padStart(3, '0')}`,
+            username: username,
             password: 'Student@123',
             fullName: fullName,
-            email: email,
+            gmail: email, // Changed from email to gmail to match user.jsx
             phone: phone,
-            role: 'ROLE_STUDENT',
-            active: true
+            role: 'ROLE_USER',
+            isActive: true
         };
 
         try {
             const response = await userService.createUser(studentData);
             students.push(response.data);
-            console.log(`✅ [${i}/45] Created: ${fullName} (${email})`);
+            console.log(`✅ [${i}/${count}] Created: ${fullName} (${username})`);
         } catch (error) {
-            console.error(`❌ [${i}/45] Failed to create ${fullName}:`, error.response?.data?.message || error.message);
+            console.error(`❌ [${i}/${count}] Failed to create ${username}:`, error.response?.data?.message || error.message);
         }
 
         // Small delay to avoid overwhelming the server
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise(resolve => setTimeout(resolve, 50));
     }
 
-    console.log(`\n🎉 Completed! Created ${students.length} out of 45 students.`);
+    console.log(`\n🎉 Completed! Created ${students.length} out of ${count} students.`);
     return students;
 }
 
 // Export for use in other scripts
 export { createStudents };
 
-// If running directly in browser console, you can call:
-// createStudents().then(students => console.log('All students:', students));

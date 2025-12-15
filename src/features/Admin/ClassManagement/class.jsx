@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { classService } from "@utils/classService";
 import { userService } from "@utils/userService";
 import { classTeacherService } from "@utils/classTeacherService";
+import { classStudentService } from "@utils/classStudentService";
 import ClassDetail from "./ClassDetail";
 import ClassDetailModal from "./ClassDetailModal";
 import NotificationModal from "@components/NotificationModal/NotificationModal";
@@ -115,50 +116,59 @@ export default function ClassManagement() {
         };
       });
 
-      // Only fetch teachers from relational API if not already present in class data
-      const classesWithTeachers = await Promise.all(mappedClasses.map(async (cls) => {
-        // If we already have a teacher name from the main API, use it
-        if (cls.teacher && cls.teacher !== "Chưa phân công") {
-          console.log(`✅ Using existing teacher "${cls.teacher}" from main API for class ${cls.id}`);
-          return cls;
-        }
 
-        // Otherwise, try to fetch from teacher API
+
+      // Fetch teachers and students for each class
+      const classesWithDetails = await Promise.all(mappedClasses.map(async (cls) => {
+        if (!cls.id) return cls;
+
+        let updatedCls = { ...cls };
+
+        // 1. Fetch Teachers
         try {
-          if (!cls.id) return cls;
+          // If we already have a teacher name from the main API, skip unless we want to verify
+          // But user might want relational data prioritised? Currently code prioritizes relational if main API missed it?
+          // Actually existing code prioritised main API if it existed.
+          // Let's stick to existing logic: if teacher is missing or placeholder, try fetching.
+          // Or just fetch to be safe if 'Chưa phân công'.
 
-          console.log(`🔍 Fetching teachers for class ${cls.id} (${cls.name})`);
-          const tRes = await classTeacherService.getClassTeachers(cls.id);
-          console.log(`📥 Teacher API response for class ${cls.id}:`, tRes);
+          if (updatedCls.teacher === "Chưa phân công") {
+            const tRes = await classTeacherService.getClassTeachers(cls.id);
+            let teachers = [];
+            if (tRes.data?.data && Array.isArray(tRes.data.data)) teachers = tRes.data.data;
+            else if (Array.isArray(tRes.data)) teachers = tRes.data;
 
-          let teachers = [];
-          if (tRes.data?.data && Array.isArray(tRes.data.data)) {
-            teachers = tRes.data.data;
-          } else if (Array.isArray(tRes.data)) {
-            teachers = tRes.data;
-          }
-
-          console.log(`👥 Parsed teachers for class ${cls.id}:`, teachers);
-
-          if (teachers.length > 0) {
-            // Prioritize INSTRUCTOR
-            const instructor = teachers.find(t => t.role === "INSTRUCTOR") || teachers[0];
-            console.log(`👨‍🏫 Selected instructor for class ${cls.id}:`, instructor);
-            if (instructor && instructor.teacherName) {
-              console.log(`✅ Setting teacher "${instructor.teacherName}" for class ${cls.id}`);
-              return { ...cls, teacher: instructor.teacherName };
+            if (teachers.length > 0) {
+              const instructor = teachers.find(t => t.role === "INSTRUCTOR") || teachers[0];
+              if (instructor && instructor.teacherName) {
+                updatedCls.teacher = instructor.teacherName;
+              }
             }
-          } else {
-            console.log(`⚠️ No teachers found for class ${cls.id}`);
           }
         } catch (e) {
-          console.warn(`❌ Failed to fetch teacher for class ${cls.id}:`, e);
-          // Keep existing teacher value instead of resetting
+          // console.warn(`Failed to fetch teacher for class ${cls.id}`, e);
         }
-        return cls;
+
+        // 2. Fetch Students (To sync count with Detail View)
+        try {
+          const sRes = await classStudentService.getClassStudents(cls.id);
+          let studentsData = [];
+          if (sRes.data?.data && Array.isArray(sRes.data.data)) studentsData = sRes.data.data;
+          else if (Array.isArray(sRes.data)) studentsData = sRes.data;
+
+          // Update count
+          updatedCls.students = studentsData.length;
+
+          // Optional: Update active count if needed
+          // updatedCls.active = studentsData.filter(s => s.status === 'ACTIVE').length;
+        } catch (e) {
+          // console.warn(`Failed to fetch students for class ${cls.id}`, e);
+        }
+
+        return updatedCls;
       }));
 
-      setClasses(classesWithTeachers);
+      setClasses(classesWithDetails);
     } catch (err) {
       console.error("Failed to fetch classes", err);
       alert("Không thể tải danh sách lớp học!");
@@ -340,14 +350,68 @@ export default function ClassManagement() {
 
 
 
-  // --- Thống kê ---
+  // --- Statistics ---
+  const [totalPlatformStudents, setTotalPlatformStudents] = useState(0);
+
+  useEffect(() => {
+    // Fetch total students (ROLE_USER + ROLE_STUDENT if applicable)
+    // trying both common roles for students
+    const fetchStudentCount = async () => {
+      try {
+        // Try fetching ROLE_USER first as requested by user
+        const res = await userService.getAllUsers({ role: "ROLE_USER", size: 1, page: 0 });
+        let count = 0;
+
+        // Handle different response structures to find totalElements
+        if (res.data?.data?.totalElements !== undefined) count = res.data.data.totalElements;
+        else if (res.data?.totalElements !== undefined) count = res.data.totalElements;
+        else if (res.data?.data && Array.isArray(res.data.data)) count = res.data.data.length;
+        else if (Array.isArray(res.data)) count = res.data.length;
+
+        // If count is suspiciously low (e.g. 0) maybe they are ROLE_STUDENT? 
+        // But user explicitly asked for ROLE_USER in creation tool.
+        // Let's stick to ROLE_USER or maybe add ROLE_STUDENT if ROLE_USER is 0?
+        // logic: if res returns list, use list length (if size=1000 passed, but we passed 1).
+        // Actually best to assume totalElements is available if it's paginated.
+        // If not paginated, we might have to fetch all? user.jsx fetches size=1000.
+
+        // Let's try fetching with size 1 just for count, assuming API returns totalElements.
+        // If the API is simple list, this might return 1 item.
+        // Safest approach without knowing API details: Fetch a large size users like user.jsx does, 
+        // filter by role, and count. It matches user.jsx logic.
+
+        const resAll = await userService.getAllUsers({ role: "ROLE_USER", size: 2000, page: 0 });
+        let allUsers = [];
+        if (resAll.data?.data?.content) allUsers = resAll.data.data.content;
+        else if (resAll.data?.content) allUsers = resAll.data.content;
+        else if (resAll.data?.data && Array.isArray(resAll.data.data)) allUsers = resAll.data.data;
+        else if (Array.isArray(resAll.data)) allUsers = resAll.data;
+
+        // Also fetch ROLE_STUDENT just in case
+        // But for now let's trust user request used ROLE_USER.
+
+        setTotalPlatformStudents(allUsers.length);
+      } catch (e) {
+        console.error("Failed to fetch student count", e);
+      }
+    };
+
+    fetchStudentCount();
+  }, []); // Run once on mount
+
   const stats = useMemo(() => {
     const totalClasses = classes.length;
     const activeClasses = classes.filter((c) => c.status === "active" || c.status === "ongoing").length;
-    const totalStudents = classes.reduce(
-      (s, c) => s + (parseInt(c.students) || 0),
-      0
-    );
+
+    // Calculate enrolled students (sum of class.students)
+    // const totalEnrolledStudents = classes.reduce((s, c) => s + (parseInt(c.students) || 0), 0);
+
+    // User wants "New Student Number" -> Total Platform Students
+    // If totalPlatformStudents is 0 (API fail or clean DB), fallback to enrolled count logic?
+    // Or just show totalPlatformStudents.
+
+    // NOTE: If the user just created 100 students, totalPlatformStudents should be >= 100.
+
     const avgProgress =
       classes.length === 0
         ? 0
@@ -358,10 +422,10 @@ export default function ClassManagement() {
     return {
       totalClasses,
       totalActiveClasses: activeClasses,
-      totalStudents,
+      totalStudents: totalPlatformStudents, // Use the fetched count
       avgProgress,
     };
-  }, [classes]);
+  }, [classes, totalPlatformStudents]);
 
   // --- Lọc và tìm kiếm ---
   const filtered = useMemo(() => {
@@ -950,18 +1014,7 @@ function AddClassModal({ onClose, onSubmit }) {
               </label>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-              <label style={modalStyles.label}>
-                Số học viên
-                <input
-                  type="number"
-                  value={students}
-                  onChange={(e) => setStudents(e.target.value)}
-                  style={modalStyles.input}
-                  min="0"
-                />
-              </label>
-            </div>
+
           </div>
           <div style={modalStyles.footer}>
             <button
@@ -1180,16 +1233,7 @@ function EditClassModal({ cls, onClose, onSubmit }) {
                 gap: 12,
               }}
             >
-              <label style={modalStyles.label}>
-                Số học viên
-                <input
-                  type="number"
-                  value={students}
-                  onChange={(e) => setStudents(e.target.value)}
-                  style={modalStyles.input}
-                  min="0"
-                />
-              </label>
+
               <label style={modalStyles.label}>
                 Hoạt động
                 <input
