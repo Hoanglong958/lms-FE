@@ -27,6 +27,7 @@ import ClassDetailPage from "@pages/ClassDetailPage";
 // ⭐⭐ THÊM ROUTE MỚI
 import JavaExamPage from "@pages/JavaExamPage";
 import JavaExamResult from "@pages/JavaExamResult";
+import JavaExamCard from "@pages/JavaExamCard";
 
 // ================= ADMIN =================
 import DashboardPage from "@features/Admin/Dashboard/DashboardPage";
