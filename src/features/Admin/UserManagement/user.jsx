@@ -265,7 +265,6 @@ export default function UserManagement({ currentUserRole = "admin" }) {
 								<th style={styles.th}>Email</th>
 								<th style={styles.th}>Vai trò</th>
 								<th style={styles.th}>Trạng thái</th>
-								<th style={styles.th}>Khóa học</th>
 								<th style={styles.th}>Ngày tham gia</th>
 								<th style={styles.th}>Lần đăng nhập cuối</th>
 								<th style={styles.th} />
@@ -286,7 +285,6 @@ export default function UserManagement({ currentUserRole = "admin" }) {
 									<td style={styles.td}>
 										<StatusBadge status={u.isActive ? 'active' : 'paused'} />
 									</td>
-									<td style={styles.td}>{u.courseCount || 0}</td>
 									<td style={styles.td}>{u.createdAt ? new Date(u.createdAt).toLocaleDateString('vi-VN') : "---"}</td>
 									<td style={styles.td}>{u.lastLogin ? new Date(u.lastLogin).toLocaleDateString('vi-VN') : "---"}</td>
 									<td style={styles.tdAction}>
