@@ -133,7 +133,7 @@ export default function ClassDetailModal({ isOpen, onClose, type, data, onAttend
                                         <path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2" stroke="currentColor" strokeWidth="2" />
                                     </svg>
                                 </span>
-                                Thông tin giảng viên: {data.teacher}
+                                Danh sách giảng viên lớp: {data.name}
                             </h2>
                             <div style={{ display: 'flex', gap: '12px' }}>
                                 {data.onAssignTeachers && (
@@ -176,71 +176,57 @@ export default function ClassDetailModal({ isOpen, onClose, type, data, onAttend
                         </div>
 
                         <div className="cm-modal-body">
-                            <div className="cm-teacher-profile">
-                                <div className="cm-teacher-avatar">
-                                    <svg width="80" height="80" viewBox="0 0 24 24" fill="none">
-                                        <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="1.5" />
-                                        <path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2" stroke="currentColor" strokeWidth="1.5" />
-                                    </svg>
+                            <h3 className="cm-section-subtitle">Danh sách giảng viên ({data.enrolledTeachers?.length || 0})</h3>
+                            <div className="cm-students-table">
+                                <div className="cm-student-row cm-student-header" style={{ gridTemplateColumns: "50px 1fr 120px 100px", marginRight: "6px" }}>
+                                    <div>STT</div>
+                                    <div>Giảng viên</div>
+                                    <div>Vai trò</div>
+                                    <div style={{ textAlign: "right" }}>Thao tác</div>
                                 </div>
-                                <div className="cm-teacher-info">
-                                    <h3 className="cm-teacher-name">{data.teacher}</h3>
-                                    <p className="cm-teacher-title">Giảng viên React & JavaScript</p>
-                                    <p className="cm-teacher-email">teacher@mankai.edu.vn</p>
-                                </div>
-                            </div>
-
-                            <div className="cm-section-divider"></div>
-
-                            <h3 className="cm-section-subtitle">Lớp phụ trách</h3>
-                            <div className="cm-info-grid">
-                                <div className="cm-info-card">
-                                    <div className="cm-info-label">Tên lớp</div>
-                                    <div className="cm-info-value">{data.name}</div>
-                                </div>
-                                <div className="cm-info-card">
-                                    <div className="cm-info-label">Mã lớp</div>
-                                    <div className="cm-info-value">{data.code}</div>
-                                </div>
-                                <div className="cm-info-card">
-                                    <div className="cm-info-label">Số học viên</div>
-                                    <div className="cm-info-value">{data.students} học viên</div>
-                                </div>
-                                <div className="cm-info-card">
-                                    <div className="cm-info-label">Đang hoạt động</div>
-                                    <div className="cm-info-value">{data.active} học viên</div>
-                                </div>
-                            </div>
-
-                            <div className="cm-section-divider"></div>
-
-                            <h3 className="cm-section-subtitle">Lịch dạy</h3>
-                            <div className="cm-info-card cm-highlight">
-                                <div className="cm-info-value cm-large">{data.schedule || "Chưa cập nhật"}</div>
-                                <div className="cm-info-label">Địa điểm: Tòa nhà A, Phòng 101</div>
-                            </div>
-
-                            <div className="cm-section-divider"></div>
-
-                            <h3 className="cm-section-subtitle">Kinh nghiệm & Chứng chỉ</h3>
-                            <div className="cm-experience-list">
-                                <div className="cm-experience-item">
-                                    <div className="cm-experience-dot"></div>
-                                    <div>
-                                        <strong>5+ năm</strong> kinh nghiệm giảng dạy React & JavaScript
-                                    </div>
-                                </div>
-                                <div className="cm-experience-item">
-                                    <div className="cm-experience-dot"></div>
-                                    <div>
-                                        <strong>Chứng chỉ</strong> React Developer Professional
-                                    </div>
-                                </div>
-                                <div className="cm-experience-item">
-                                    <div className="cm-experience-dot"></div>
-                                    <div>
-                                        <strong>Dự án</strong> đã tham gia 20+ dự án thực tế
-                                    </div>
+                                <div style={{ maxHeight: "60vh", overflowY: "auto", paddingBottom: "20px" }}>
+                                    {data.enrolledTeachers && data.enrolledTeachers.length > 0 ? (
+                                        data.enrolledTeachers.map((t, index) => (
+                                            <div className="cm-student-row" key={t.id || index} style={{ gridTemplateColumns: "50px 1fr 120px 100px" }}>
+                                                <div>{index + 1}</div>
+                                                <div>
+                                                    <div style={{ fontWeight: 600 }}>{t.teacherName || t.fullName || t.name || "N/A"}</div>
+                                                    {t.email && <div style={{ fontSize: 11, color: "#9ca3af" }}>{t.email}</div>}
+                                                </div>
+                                                <div>
+                                                    <span className="cm-badge-mini cm-badge-success">
+                                                        {t.role === 'INSTRUCTOR' ? 'Giảng viên' : (t.role === 'ASSISTANT' ? 'Trợ giảng' : (t.role || 'Giảng viên'))}
+                                                    </span>
+                                                </div>
+                                                <div style={{ textAlign: "right" }}>
+                                                    <button
+                                                        onClick={() => data.onRemoveTeacher && data.onRemoveTeacher(t.teacherId || t.id)}
+                                                        title="Xóa khỏi lớp"
+                                                        style={{
+                                                            color: "#ef4444",
+                                                            background: "#fee2e2",
+                                                            border: "none",
+                                                            borderRadius: "6px",
+                                                            width: "32px",
+                                                            height: "32px",
+                                                            cursor: "pointer",
+                                                            display: "inline-flex",
+                                                            alignItems: "center",
+                                                            justifyContent: "center"
+                                                        }}
+                                                    >
+                                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                            <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" strokeLinecap="round" strokeLinejoin="round" />
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div style={{ padding: "30px", textAlign: "center", color: "#6b7280", fontStyle: "italic" }}>
+                                            Chưa có giảng viên nào được phân công
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -317,126 +303,59 @@ export default function ClassDetailModal({ isOpen, onClose, type, data, onAttend
                         </div>
 
                         <div className="cm-modal-body">
-                            <div className="cm-stats-grid">
-                                <div className="cm-stat-card cm-stat-card-primary">
-                                    <div className="cm-stat-icon">
-                                        <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
-                                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" opacity="0.3" />
-                                            <circle cx="9" cy="7" r="4" />
-                                        </svg>
-                                    </div>
-                                    <div className="cm-stat-value">{data.students}</div>
-                                    <div className="cm-stat-label">Tổng học viên</div>
-                                </div>
 
-                                <div className="cm-stat-card cm-stat-card-success">
-                                    <div className="cm-stat-icon">
-                                        <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
-                                            <circle cx="12" cy="12" r="10" opacity="0.3" />
-                                            <path d="M8 12l3 3 5-6" stroke="white" strokeWidth="2" fill="none" />
-                                        </svg>
-                                    </div>
-                                    <div className="cm-stat-value">{data.active}</div>
-                                    <div className="cm-stat-label">Đang hoạt động</div>
-                                </div>
 
-                                <div className="cm-stat-card cm-stat-card-warning">
-                                    <div className="cm-stat-icon">
-                                        <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
-                                            <path d="M12 2L2 7l10 5 10-5-10-5z" opacity="0.3" />
-                                            <path d="M2 17l10 5 10-5M2 12l10 5 10-5" />
-                                        </svg>
-                                    </div>
-                                    <div className="cm-stat-value">
-                                        {data.students ? Math.round((data.active / data.students) * 100) : 0}%
-                                    </div>
-                                    <div className="cm-stat-label">Tỉ lệ hoạt động</div>
-                                </div>
-
-                                <div className="cm-stat-card cm-stat-card-info">
-                                    <div className="cm-stat-icon">
-                                        <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
-                                            <rect x="4" y="4" width="16" height="16" rx="2" opacity="0.3" />
-                                            <path d="M9 11h6M9 15h6" stroke="white" strokeWidth="2" />
-                                        </svg>
-                                    </div>
-                                    <div className="cm-stat-value">{data.progress}%</div>
-                                    <div className="cm-stat-label">Tiến độ trung bình</div>
-                                </div>
-                            </div>
-
-                            <div className="cm-section-divider"></div>
-
-                            <h3 className="cm-section-subtitle">Phân tích chi tiết</h3>
-                            <div className="cm-progress-bars">
-                                <div className="cm-progress-item">
-                                    <div className="cm-progress-label">
-                                        <span>Có mặt thường xuyên</span>
-                                        <span className="cm-progress-value">85%</span>
-                                    </div>
-                                    <div className="cm-progress-bar">
-                                        <div className="cm-progress-fill" style={{ width: "85%", background: "#10b981" }}></div>
-                                    </div>
-                                </div>
-
-                                <div className="cm-progress-item">
-                                    <div className="cm-progress-label">
-                                        <span>Hoàn thành bài tập</span>
-                                        <span className="cm-progress-value">75%</span>
-                                    </div>
-                                    <div className="cm-progress-bar">
-                                        <div className="cm-progress-fill" style={{ width: "75%", background: "#6366f1" }}></div>
-                                    </div>
-                                </div>
-
-                                <div className="cm-progress-item">
-                                    <div className="cm-progress-label">
-                                        <span>Tham gia thảo luận</span>
-                                        <span className="cm-progress-value">65%</span>
-                                    </div>
-                                    <div className="cm-progress-bar">
-                                        <div className="cm-progress-fill" style={{ width: "65%", background: "#f59e0b" }}></div>
-                                    </div>
-                                </div>
-
-                                <div className="cm-progress-item">
-                                    <div className="cm-progress-label">
-                                        <span>Điểm kiểm tra trung bình</span>
-                                        <span className="cm-progress-value">8.2/10</span>
-                                    </div>
-                                    <div className="cm-progress-bar">
-                                        <div className="cm-progress-fill" style={{ width: "82%", background: "#ec4899" }}></div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="cm-section-divider"></div>
-
-                            <h3 className="cm-section-subtitle">Danh sách học viên tiêu biểu</h3>
+                            <h3 className="cm-section-subtitle">Danh sách học viên ({data.enrolledStudents?.length || 0})</h3>
                             <div className="cm-students-table">
-                                <div className="cm-student-row cm-student-header">
+                                <div className="cm-student-row cm-student-header" style={{ gridTemplateColumns: "50px 1fr 120px 100px", marginRight: "6px" }}>
                                     <div>STT</div>
                                     <div>Họ tên</div>
-                                    <div>Điểm TB</div>
-                                    <div>Hoàn thành</div>
+                                    <div>Trạng thái</div>
+                                    <div style={{ textAlign: "right" }}>Thao tác</div>
                                 </div>
-                                <div className="cm-student-row">
-                                    <div>1</div>
-                                    <div>Nguyễn Văn B</div>
-                                    <div>9.2</div>
-                                    <div><span className="cm-badge-mini cm-badge-success">95%</span></div>
-                                </div>
-                                <div className="cm-student-row">
-                                    <div>2</div>
-                                    <div>Trần Thị C</div>
-                                    <div>8.8</div>
-                                    <div><span className="cm-badge-mini cm-badge-success">90%</span></div>
-                                </div>
-                                <div className="cm-student-row">
-                                    <div>3</div>
-                                    <div>Lê Văn D</div>
-                                    <div>8.5</div>
-                                    <div><span className="cm-badge-mini cm-badge-success">85%</span></div>
+                                <div style={{ maxHeight: "60vh", overflowY: "auto", paddingBottom: "20px" }}>
+                                    {data.enrolledStudents && data.enrolledStudents.length > 0 ? (
+                                        data.enrolledStudents.map((student, index) => (
+                                            <div className="cm-student-row" key={index} style={{ gridTemplateColumns: "50px 1fr 120px 100px" }}>
+                                                <div>{index + 1}</div>
+                                                <div>
+                                                    <div style={{ fontWeight: 600 }}>{student.studentName || student.fullName || student.name || "N/A"}</div>
+                                                    {student.email && <div style={{ fontSize: 11, color: "#9ca3af" }}>{student.email}</div>}
+                                                </div>
+                                                <div>
+                                                    <span className={`cm-badge-mini ${student.status === 'ACTIVE' ? 'cm-badge-success' : 'cm-badge-warning'}`}>
+                                                        {student.status || 'ACTIVE'}
+                                                    </span>
+                                                </div>
+                                                <div style={{ textAlign: "right" }}>
+                                                    <button
+                                                        onClick={() => data.onRemoveStudent && data.onRemoveStudent(student.studentId || student.id)}
+                                                        title="Xóa khỏi lớp"
+                                                        style={{
+                                                            color: "#ef4444",
+                                                            background: "#fee2e2",
+                                                            border: "none",
+                                                            borderRadius: "6px",
+                                                            width: "32px",
+                                                            height: "32px",
+                                                            cursor: "pointer",
+                                                            display: "inline-flex",
+                                                            alignItems: "center",
+                                                            justifyContent: "center"
+                                                        }}
+                                                    >
+                                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                            <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" strokeLinecap="round" strokeLinejoin="round" />
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div style={{ padding: "30px", textAlign: "center", color: "#6b7280", fontStyle: "italic" }}>
+                                            Chưa có học viên nào trong lớp
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>
