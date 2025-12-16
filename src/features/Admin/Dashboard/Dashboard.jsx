@@ -1,6 +1,6 @@
 // Đường dẫn: src/features/Admin/Dashboard/components/DashboardOverview.jsx
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import AdminHeader from "@components/Admin/AdminHeader";
 // Đảm bảo bạn đã import file CSS này
 import "./Dashboard.css";
@@ -12,8 +12,7 @@ import {
   newUsersData,
   newCoursesData,
   recentQuizzesData,
-  topStudentsData,
-} from "./mock/dashboardMock"; // Đường dẫn đến mock
+} from "./mock/dashboardMock";
 
 // 2. IMPORT TẤT CẢ CÁC COMPONENT CON
 import StatCard from "./components/StatCard";
@@ -25,9 +24,60 @@ import NewUsersTable from "./components/NewUsersTable";
 import NewCoursesTable from "./components/NewCoursesTable";
 import RecentQuizzesTable from "./components/RecentQuizzesTable";
 import RankingList from "./components/RankingList";
+import { dashboardService } from "@utils/dashboardService";
 
 // 3. XÂY DỰNG LAYOUT
 const DashboardOverview = () => {
+  const [userGrowthData, setUserGrowthData] = useState([]);
+  const [topStudents, setTopStudents] = useState([]);
+
+  useEffect(() => {
+    let alive = true;
+    dashboardService
+      .getUserGrowthByMonth(12)
+      .then((res) => {
+        const raw = res?.data;
+        const arr = Array.isArray(raw)
+          ? raw
+          : Array.isArray(raw?.data)
+          ? raw.data
+          : [];
+        const mapped = arr.map((item, idx) => {
+          const month = item?.month || item?.label || `T${idx + 1}`;
+          const count =
+            item?.count ??
+            item?.userCount ??
+            item?.value ??
+            item?.users ??
+            item?.total ??
+            0;
+          return { month: String(month), "Người dùng": Number(count) || 0 };
+        });
+        if (alive) setUserGrowthData(mapped);
+      })
+      .catch(() => { if (alive) setUserGrowthData([]); });
+
+    dashboardService
+      .getTopStudents()
+      .then((res) => {
+        const raw = res?.data;
+        const arr = Array.isArray(raw)
+          ? raw
+          : Array.isArray(raw?.data)
+          ? raw.data
+          : [];
+        const mapped = arr.map((s, i) => ({
+          id: s?.id ?? s?.userId ?? i + 1,
+          name: s?.name ?? s?.fullName ?? s?.gmail ?? `#${s?.id ?? i + 1}`,
+          score: Number(s?.score ?? s?.avgScore ?? s?.totalScore ?? 0),
+          courses: Number(s?.courses ?? s?.courseCount ?? s?.completed ?? 0),
+        }));
+        if (alive) setTopStudents(mapped);
+      })
+      .catch(() => { if (alive) setTopStudents([]); });
+
+    return () => { alive = false; };
+  }, []);
   return (
     <div className="dashboard-main">
       {/* <AdminHeader
@@ -58,8 +108,7 @@ const DashboardOverview = () => {
         <section className="dashboard-card col-span-12 lg-col-span-7">
           <h3 className="dashboard-card-title">Tăng trưởng người dùng</h3>
           <div className="chart-container">
-            {/* Cần set chiều cao cho biểu đồ */}
-            <UserGrowthChart />
+            <UserGrowthChart data={userGrowthData} />
           </div>
         </section>
         <section className="dashboard-card col-span-12 lg-col-span-5">
@@ -75,7 +124,7 @@ const DashboardOverview = () => {
           <NewUsersTable users={newUsersData} />
         </section>
         <section className="dashboard-card col-span-12 lg-col-span-5">
-          <RankingList students={topStudentsData} />
+          <RankingList students={topStudents} />
         </section>
 
         {/* === HÀNG 6: BẢNG  === */}

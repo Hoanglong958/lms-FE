@@ -59,6 +59,22 @@
   const attemptIdRef = useRef(null);
   const attemptStartedRef = useRef(false);
 
+  const startExam = async (id) => {
+    const user = (() => { try { return JSON.parse(localStorage.getItem("loggedInUser") || "{}"); } catch { return {}; } })();
+    const uid = Number(user?.id);
+    if (!Number.isFinite(uid)) { showNotif("Bạn cần đăng nhập để bắt đầu bài thi", "error"); navigate("/login"); return; }
+    try {
+      const res = await examService.startAttempt(Number(id), uid);
+      const attId = res?.data?.id;
+      try { localStorage.setItem(`attemptId:${id}`, String(attId || "")); } catch (e) { void e; }
+      navigate(`/exam/${id}`);
+    } catch (err) {
+      const status = err?.response?.status;
+      const msg = err?.response?.data?.message || err?.message || "Không thể bắt đầu lượt làm";
+      showNotif(`Lỗi ${status || ""}: ${msg}`, "error");
+    }
+  };
+
     const showNotif = (message, type = "info") => {
       const id = Date.now() + Math.random();
       setNotifs((prev) => [...prev, { id, message, type }]);
@@ -216,6 +232,11 @@
     const user = (() => { try { return JSON.parse(localStorage.getItem("loggedInUser") || "{}"); } catch { return {}; } })();
     const userId = Number(user?.id);
     if (!Number.isFinite(userId)) { showNotif("Bạn cần đăng nhập để bắt đầu bài thi", "error"); navigate("/login"); return; }
+    try {
+      const raw = localStorage.getItem(`attemptId:${examId}`);
+      const stored = Number(raw);
+      if (Number.isFinite(stored) && stored > 0) { attemptIdRef.current = stored; attemptStartedRef.current = true; return; }
+    } catch (e) { void e; }
     attemptStartedRef.current = true;
     examService
       .startAttempt(Number(examId), userId)
@@ -346,9 +367,17 @@
         let attemptId = attemptIdRef.current;
         if (!Number.isFinite(Number(attemptId))) {
           try {
-            const resStart = await examService.startAttempt(Number(examId), Number(user?.id));
-            attemptId = resStart?.data?.id;
-            attemptIdRef.current = attemptId || null;
+            const rawStored = localStorage.getItem(`attemptId:${examId}`);
+            const storedAttempt = Number(rawStored);
+            if (Number.isFinite(storedAttempt) && storedAttempt > 0) {
+              attemptId = storedAttempt;
+              attemptIdRef.current = attemptId;
+            } else {
+              const resStart = await examService.startAttempt(Number(examId), Number(user?.id));
+              attemptId = resStart?.data?.id;
+              attemptIdRef.current = attemptId || null;
+              try { localStorage.setItem(`attemptId:${examId}`, String(attemptId || "")); } catch (e) { void e; }
+            }
           } catch (err) {
             const status = err?.response?.status;
             const msg = err?.response?.data?.message || err?.message || "Không thể bắt đầu lượt làm";
@@ -489,7 +518,7 @@
                   </div>
                 </div>
                 <div className="exam-select-actions">
-                  <button className="exam-start-btn" onClick={() => navigate(`/exam/${e.id}`)}>Bắt đầu thi</button>
+          <button className="exam-start-btn" onClick={() => startExam(e.id)}>Bắt đầu thi</button>
                 </div>
               </div>
             ))

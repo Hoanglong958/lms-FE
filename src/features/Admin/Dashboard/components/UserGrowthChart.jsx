@@ -12,14 +12,13 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import { userGrowthData } from "../mock/dashboardMock.js";
-
-const UserGrowthChart = () => {
+ 
+const UserGrowthChart = ({ data = [] }) => {
   return (
     <ResponsiveContainer width="100%" height="100%">
       {" "}
       <LineChart
-        data={userGrowthData}
+        data={data}
         margin={{
           top: 5,
           right: 30,
