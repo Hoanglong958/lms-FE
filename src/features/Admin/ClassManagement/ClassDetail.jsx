@@ -77,6 +77,7 @@ export default function ClassDetail({ classData: propClassData, onBack }) {
 
     // Real students data from API (must be declared before studentsList)
     const [realStudents, setRealStudents] = useState([]);
+    const [realTeachers, setRealTeachers] = useState([]); // New state for teachers
     const [loadingStudents, setLoadingStudents] = useState(false);
 
     // Use real students instead of mock data
@@ -131,26 +132,28 @@ export default function ClassDetail({ classData: propClassData, onBack }) {
 
     // Student Assignment Modal State
     const [addingStudents, setAddingStudents] = useState(null);
+    const [refreshKey, setRefreshKey] = useState(0);
 
-    // Fetch real students for this class
+    // Fetch real students and teachers for this class
     useEffect(() => {
         if (classData?.id) {
-            async function fetchClassStudents() {
+            async function loadClassData() {
+                // 1. Fetch Students
                 try {
                     setLoadingStudents(true);
                     const res = await classStudentService.getClassStudents(classData.id);
-
                     let students = [];
                     if (res.data?.data && Array.isArray(res.data.data)) {
                         students = res.data.data;
                     } else if (Array.isArray(res.data)) {
                         students = res.data;
                     }
-
-                    console.log('✅ Class students loaded:', students);
+                    students.sort((a, b) => {
+                        const nameA = a.studentName || a.fullName || a.name || "";
+                        const nameB = b.studentName || b.fullName || b.name || "";
+                        return nameA.localeCompare(nameB, 'vi');
+                    });
                     setRealStudents(students);
-
-                    // Update classData.students count with real number
                     setClassData(prev => ({
                         ...prev,
                         students: students.length,
@@ -158,9 +161,7 @@ export default function ClassDetail({ classData: propClassData, onBack }) {
                     }));
                 } catch (error) {
                     console.error('Failed to load class students:', error);
-                    console.warn('⚠️ Fallback to mock data based on classData.students count');
-
-                    // Fallback: Create mock students based on count
+                    // Fallback to mock if needed, but handled silently or reuse previous logic
                     const count = parseInt(classData.students) || 0;
                     const mockStudents = Array.from({ length: count }, (_, i) => ({
                         studentId: i + 1,
@@ -169,15 +170,48 @@ export default function ClassDetail({ classData: propClassData, onBack }) {
                         status: 'ACTIVE',
                         enrolledAt: new Date().toISOString(),
                     }));
-
                     setRealStudents(mockStudents);
                 } finally {
                     setLoadingStudents(false);
                 }
+
+                // 2. Fetch Teachers
+                try {
+                    const tRes = await classTeacherService.getClassTeachers(classData.id);
+                    let teachers = [];
+                    if (tRes.data?.data && Array.isArray(tRes.data.data)) {
+                        teachers = tRes.data.data;
+                    } else if (Array.isArray(tRes.data)) {
+                        teachers = tRes.data;
+                    }
+                    setRealTeachers(teachers);
+
+                    // Update classData.teacher display
+                    let teacherDisplay = "Chưa phân công";
+                    if (teachers.length > 0) {
+                        // Prioritize INSTRUCTOR
+                        const instructors = teachers.filter(t => t.role === 'INSTRUCTOR');
+                        const listToUse = instructors.length > 0 ? instructors : teachers;
+                        // Limit to maybe 2 names to avoid long string? Or show all?
+                        // Let's show all for now, or just first + count?
+                        // User requested list, but header usually short.
+                        // Let's just join ', '
+                        teacherDisplay = listToUse.map(t => t.teacherName || t.fullName).join(", ");
+                    }
+
+                    setClassData(prev => ({
+                        ...prev,
+                        teacher: teacherDisplay
+                    }));
+
+                } catch (error) {
+                    console.error('Failed to load class teachers:', error);
+                    setRealTeachers([]);
+                }
             }
-            fetchClassStudents();
+            loadClassData();
         }
-    }, [classData?.id]);
+    }, [classData?.id, refreshKey]);
 
 
     // Fetch assigned courses when opening the modal
@@ -545,13 +579,41 @@ export default function ClassDetail({ classData: propClassData, onBack }) {
                 type={modalContent?.type}
                 data={{
                     ...classData,
+                    enrolledStudents: realStudents,
+                    enrolledTeachers: realTeachers,
                     onAssignTeachers: () => {
                         setAssigningClass(classData);
                         setShowDetailModal(false);
                     },
+                    onRemoveTeacher: async (teacherId) => {
+                        if (!window.confirm("Bạn có chắc chắn muốn xóa giảng viên này khỏi lớp?")) return;
+                        try {
+                            // Assuming backend has an endpoint or logic to remove teacher from class
+                            // Since standard API might not have explicit remove, we use classTeacherService
+                            // If API is missing, we might need to verify available endpoints. 
+                            // Common pattern: classTeacherService.removeTeacherFromClass(classId, teacherId)
+                            await classTeacherService.removeTeacherFromClass(classData.id, teacherId);
+                            setRefreshKey(prev => prev + 1);
+                            alert("Đã xóa giảng viên khỏi lớp");
+                        } catch (e) {
+                            console.error("Failed to remove teacher", e);
+                            alert("Lỗi khi xóa giảng viên: " + (e.response?.data?.message || e.message));
+                        }
+                    },
                     onAddStudents: () => {
                         setAddingStudents(classData);
                         setShowDetailModal(false);
+                    },
+                    onRemoveStudent: async (studentId) => {
+                        if (!window.confirm("Bạn có chắc chắn muốn xóa học viên này khỏi lớp?")) return;
+                        try {
+                            await classStudentService.removeStudentFromClass(classData.id, studentId);
+                            setRefreshKey(prev => prev + 1); // Trigger refresh
+                            alert("Đã xóa học viên khỏi lớp");
+                        } catch (e) {
+                            console.error("Failed to remove student", e);
+                            alert("Lỗi khi xóa học viên: " + (e.response?.data?.message || e.message));
+                        }
                     }
                 }}
             />
@@ -618,8 +680,11 @@ export default function ClassDetail({ classData: propClassData, onBack }) {
 
                             if (successes.length > 0) {
                                 setAddingStudents(null);
-                                // Trigger refresh if needed
-                                setClassData(prev => ({ ...prev }));
+                                // Trigger refresh locally
+                                setRefreshKey(prev => prev + 1);
+
+                                // Also update the list in the modal if we were to keep it open, 
+                                // but we close it.
                             }
                         } catch (e) {
                             console.error("Unexpected error:", e);
@@ -636,18 +701,37 @@ export default function ClassDetail({ classData: propClassData, onBack }) {
                     onSubmit={async (selectedTeacherIds) => {
                         try {
                             // Assign all selected teachers to the class
-                            await Promise.all(
-                                selectedTeacherIds.map((teacherId) =>
-                                    classTeacherService.assignTeacherToClass({
+                            // Use map + Promise.all to run in parallel
+                            // and catch individual errors to prevent one failure from stopping others
+                            const promises = selectedTeacherIds.map(async (teacherId) => {
+                                try {
+                                    await classTeacherService.assignTeacherToClass({
                                         classId: assigningClass.id,
                                         teacherId: teacherId,
                                         role: "INSTRUCTOR",
                                         note: `Assigned from class detail`
-                                    })
-                                )
-                            );
+                                    });
+                                } catch (err) {
+                                    // If error is 400 (likely duplicate/already assigned), ignore it
+                                    if (err.response && err.response.status === 400) {
+                                        console.warn(`Teacher ${teacherId} already assigned or invalid (400 ignored).`);
+                                        return;
+                                    }
+                                    throw err; // Rethrow other errors
+                                }
+                            });
+
+                            await Promise.all(promises);
+
                             alert("Phân công giảng viên thành công!");
+                            setRefreshKey(prev => prev + 1); // Refresh the list
                             setAssigningClass(null);
+
+                            // Re-open the teacher list to show the result
+                            setTimeout(() => {
+                                setModalContent({ type: 'teacher' });
+                                setShowDetailModal(true);
+                            }, 100);
                         } catch (error) {
                             console.error("Failed to assign teachers:", error);
                             alert("Lỗi khi phân công giảng viên: " + (error.response?.data?.message || error.message));

@@ -1128,48 +1128,52 @@ function EditClassModal({ cls, onClose, onSubmit }) {
                 style={modalStyles.input}
               />
             </label>
-            <label style={modalStyles.label}>
-              Mã lớp học
-              <input
-                type="text"
-                value={code}
-                onChange={(e) => setCode(e.target.value)}
-                style={modalStyles.input}
-              />
-              {errors.code && (
-                <div style={modalStyles.error}>{errors.code}</div>
-              )}
-            </label>
-            <label style={modalStyles.label}>
-              Giảng viên
-              <div style={{ position: "relative" }}>
-                <select
-                  value={teacherId}
-                  onChange={(e) => {
-                    setTeacherId(e.target.value);
-                    const selected = teachers.find(t => String(t.id) === String(e.target.value));
-                    setTeacher(selected ? selected.fullName : "");
-                  }}
-                  style={{ ...styles.select, width: "100%", height: 40 }}
-                >
-                  <option value="">-- Chọn giảng viên --</option>
-                  {teachers.map((t) => (
-                    <option key={t.id} value={t.id}>
-                      {t.fullName}
-                    </option>
-                  ))}
-                </select>
-                <span
-                  style={{ ...styles.selectChevron, top: 12 }}
-                  aria-hidden="true"
-                >
-                  ▾
-                </span>
-              </div>
-              {errors.teacher && (
-                <div style={modalStyles.error}>{errors.teacher}</div>
-              )}
-            </label>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              <label style={modalStyles.label}>
+                Mã lớp học
+                <input
+                  type="text"
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                  style={modalStyles.input}
+                />
+                {errors.code && (
+                  <div style={modalStyles.error}>{errors.code}</div>
+                )}
+              </label>
+              <label style={modalStyles.label}>
+                Giảng viên
+                <div style={{ position: "relative" }}>
+                  <select
+                    value={teacherId}
+                    onChange={(e) => {
+                      setTeacherId(e.target.value);
+                      const selected = teachers.find(t => String(t.id) === String(e.target.value));
+                      setTeacher(selected ? selected.fullName : "");
+                    }}
+                    style={{ ...styles.select, width: "100%", height: 40 }}
+                  >
+                    <option value="">-- Chọn giảng viên --</option>
+                    {teachers.map((t) => (
+                      <option key={t.id} value={t.id}>
+                        {t.fullName}
+                      </option>
+                    ))}
+                  </select>
+                  <span
+                    style={{ ...styles.selectChevron, top: 12 }}
+                    aria-hidden="true"
+                  >
+                    ▾
+                  </span>
+                </div>
+                {errors.teacher && (
+                  <div style={modalStyles.error}>{errors.teacher}</div>
+                )}
+              </label>
+            </div>
+
             <div
               style={{
                 display: "grid",
@@ -1203,36 +1207,7 @@ function EditClassModal({ cls, onClose, onSubmit }) {
                 )}
               </label>
             </div>
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr 1fr",
-                gap: 12,
-              }}
-            >
 
-              <label style={modalStyles.label}>
-                Hoạt động
-                <input
-                  type="number"
-                  value={active}
-                  onChange={(e) => setActive(e.target.value)}
-                  style={modalStyles.input}
-                  min="0"
-                />
-              </label>
-              <label style={modalStyles.label}>
-                Tiến độ (%)
-                <input
-                  type="number"
-                  value={progress}
-                  onChange={(e) => setProgress(e.target.value)}
-                  style={modalStyles.input}
-                  min="0"
-                  max="100"
-                />
-              </label>
-            </div>
             <label style={modalStyles.label}>
               Lịch học
               <input
@@ -1313,6 +1288,19 @@ function AssignTeachersModal({ classData, onClose, onSubmit }) {
     loadData();
   }, [classData.id]);
 
+  const sortedTeachers = useMemo(() => {
+    const unassigned = [];
+    const assigned = [];
+    teachers.forEach(t => {
+      if (existingTeachers.includes(t.id)) {
+        assigned.push(t);
+      } else {
+        unassigned.push(t);
+      }
+    });
+    return [...unassigned, ...assigned];
+  }, [teachers, existingTeachers]);
+
   const handleToggle = (teacherId) => {
     setSelectedTeachers(prev => {
       if (prev.includes(teacherId)) {
@@ -1364,7 +1352,7 @@ function AssignTeachersModal({ classData, onClose, onSubmit }) {
                 borderRadius: 10,
                 padding: 12,
               }}>
-                {teachers.map((teacher) => (
+                {sortedTeachers.map((teacher) => (
                   <label
                     key={teacher.id}
                     style={{
