@@ -270,9 +270,13 @@
           }
           setExamDetail(data);
           const qs = data.questions.map((q, idx) => {
-            const correctIndex = Array.isArray(q.options)
-              ? q.options.findIndex((opt) => String(opt) === String(q.correctAnswer))
-              : -1;
+            let correctIndex = -1;
+            const ca = q.correctAnswer;
+            if (typeof ca === "string" && /^[A-D]$/i.test(ca)) {
+              correctIndex = ca.toUpperCase().charCodeAt(0) - 65;
+            } else if (Array.isArray(q.options)) {
+              correctIndex = q.options.findIndex((opt) => String(opt) === String(ca));
+            }
             return {
               id: q.id || idx + 1,
               question: q.questionText || q.question || "",
