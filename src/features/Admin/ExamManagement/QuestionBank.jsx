@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import "./QuestionBank.css";
 import { useNavigate } from "react-router-dom";
 import NotificationModal from "@components/NotificationModal/NotificationModal";
+import { questionService } from "@utils/questionService.js";
 
 export default function QuestionBank() {
   const navigate = useNavigate();
@@ -16,26 +17,63 @@ export default function QuestionBank() {
     setNotification({ isOpen: true, title, message, type });
   };
 
-  // ================================
-  // MOCK DATA
-  // ================================
-  const questions = [
-    { id: 1, question: "React là thư viện hay framework?", course: "Frontend React", type: "Trắc nghiệm" },
-    { id: 2, question: "Hook useEffect dùng để làm gì?", course: "Frontend React", type: "Tự luận" },
-    { id: 3, question: "Props khác State như thế nào?", course: "Lập trình Web", type: "Trắc nghiệm" },
-  ];
+  const [questions, setQuestions] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [searchText, setSearchText] = useState("");
+  const user = (() => { try { return JSON.parse(localStorage.getItem("loggedInUser") || "{}"); } catch { return {}; } })();
+  const isAdmin = String(user?.role || "").toUpperCase() === "ROLE_ADMIN";
 
-  // Dùng để lấy danh sách khóa học duy nhất
-  const uniqueCourses = ["Tất cả", ...new Set(questions.map((q) => q.course))];
+  useEffect(() => {
+    let alive = true;
+    setLoading(true);
+    questionService
+      .getAll()
+      .then((res) => {
+        const raw = res?.data;
+        const arr = Array.isArray(raw)
+          ? raw
+          : Array.isArray(raw?.data)
+          ? raw.data
+          : Array.isArray(raw?.content)
+          ? raw.content
+          : [];
+        const mapped = arr.map((q) => ({
+          id: q?.id ?? q?.questionId ?? q?.id,
+          question: q?.questionText ?? q?.title ?? "",
+          course: q?.course ?? q?.category ?? "",
+          type: Array.isArray(q?.options) && q.options.length > 0 ? "Trắc nghiệm" : "Tự luận",
+          raw: q,
+        }));
+        if (alive) setQuestions(mapped);
+      })
+      .catch(() => { if (alive) setQuestions([]); })
+      .finally(() => { if (alive) setLoading(false); });
+    return () => { alive = false; };
+  }, []);
+
 
   // ================================
   // FILTER STATE
   // ================================
   const [filterType, setFilterType] = useState("Tất cả");
-  const [filterCourse, setFilterCourse] = useState("Tất cả");
 
   const handleView = (q) => {
     navigate(`/admin/quiz/question/${q.id}`);
+  };
+
+  const handleDelete = async (q) => {
+    if (!isAdmin) { showNotification("Không có quyền", "Chỉ ADMIN được phép xóa câu hỏi", "error"); return; }
+    const ok = window.confirm(`Bạn có chắc muốn xóa câu hỏi này?`);
+    if (!ok) return;
+    try {
+      await questionService.delete(q.id);
+      setQuestions((prev) => prev.filter((x) => x.id !== q.id));
+      showNotification("Thành công", "Đã xóa câu hỏi", "success");
+    } catch (err) {
+      const status = err?.response?.status;
+      const msg = err?.response?.data?.message || err?.message || "Xóa câu hỏi thất bại";
+      showNotification(`Lỗi ${status || ""}`, msg, "error");
+    }
   };
 
   // ================================
@@ -43,8 +81,9 @@ export default function QuestionBank() {
   // ================================
   const filteredQuestions = questions.filter((q) => {
     const matchType = filterType === "Tất cả" ? true : q.type === filterType;
-    const matchCourse = filterCourse === "Tất cả" ? true : q.course === filterCourse;
-    return matchType && matchCourse;
+    const s = searchText.trim().toLowerCase();
+    const matchSearch = !s ? true : String(q.question || "").toLowerCase().includes(s);
+    return matchType && matchSearch;
   });
 
   return (
@@ -70,6 +109,8 @@ export default function QuestionBank() {
           type="text"
           placeholder="🔍 Tìm kiếm câu hỏi..."
           className="question-search"
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
         />
 
         {/* FILTER ROW */}
@@ -86,34 +127,27 @@ export default function QuestionBank() {
             <option value="Tự luận">Tự luận</option>
           </select>
 
-          {/* FILTER BY COURSE */}
-          <select
-            className="question-filter"
-            value={filterCourse}
-            onChange={(e) => setFilterCourse(e.target.value)}
-          >
-            {uniqueCourses.map((course, idx) => (
-              <option key={idx} value={course}>{course}</option>
-            ))}
-          </select>
+          
 
         </div>
 
-        {/* TABLE */}
-        <table className="question-bank-table">
-          <thead>
-            <tr>
-              <th>Câu hỏi</th>
-              <th>Khóa học</th>
-              <th>Loại</th>
-              <th>Thao tác</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredQuestions.map((q) => (
+          {/* TABLE */}
+          <table className="question-bank-table">
+            <thead>
+              <tr>
+                <th>Câu hỏi</th>
+                <th>Loại</th>
+                <th>Thao tác</th>
+              </tr>
+            </thead>
+            <tbody>
+            {loading ? (
+              <tr><td colSpan={3}>Đang tải dữ liệu...</td></tr>
+            ) : filteredQuestions.length === 0 ? (
+              <tr><td colSpan={3}>Không có câu hỏi phù hợp</td></tr>
+            ) : filteredQuestions.map((q) => (
               <tr key={q.id}>
                 <td>{q.question}</td>
-                <td>{q.course}</td>
                 <td>{q.type}</td>
                 <td>
                   <button className="btn-icon" onClick={() => handleView(q)}>
@@ -127,9 +161,7 @@ export default function QuestionBank() {
                   </button>
                   <button
                     className="btn-icon delete"
-                    onClick={() =>
-                      window.confirm("Bạn có chắc muốn xóa câu hỏi này?")
-                    }
+                    onClick={() => handleDelete(q)}
                   >
                     🗑️
                   </button>

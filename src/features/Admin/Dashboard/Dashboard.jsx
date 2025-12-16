@@ -6,13 +6,7 @@ import AdminHeader from "@components/Admin/AdminHeader";
 import "./Dashboard.css";
 
 // 1. IMPORT DATA TỪ MOCK
-import {
-  overviewStatCardsRow1,
-  overviewStatCardsRow2,
-  newUsersData,
-  newCoursesData,
-  recentQuizzesData,
-} from "./mock/dashboardMock";
+import { newUsersData, newCoursesData, recentQuizzesData } from "./mock/dashboardMock";
 
 // 2. IMPORT TẤT CẢ CÁC COMPONENT CON
 import StatCard from "./components/StatCard";
@@ -30,9 +24,128 @@ import { dashboardService } from "@utils/dashboardService";
 const DashboardOverview = () => {
   const [userGrowthData, setUserGrowthData] = useState([]);
   const [topStudents, setTopStudents] = useState([]);
+  const [cardsRow1, setCardsRow1] = useState([]);
+  const [cardsRow2, setCardsRow2] = useState([]);
 
   useEffect(() => {
     let alive = true;
+    const toNumber = (val) => {
+      if (val === undefined || val === null) return 0;
+      if (typeof val === "number" && Number.isFinite(val)) return val;
+      if (typeof val === "string") {
+        const num = Number(val.replace(/[,\s]/g, ""));
+        return Number.isFinite(num) ? num : 0;
+      }
+      if (Array.isArray(val)) return val.length;
+      if (typeof val === "object") {
+        const candidates = [
+          val.value,
+          val.count,
+          val.total,
+          val.number,
+          val.amount,
+          val.len,
+        ];
+        for (const c of candidates) {
+          const n = toNumber(c);
+          if (Number.isFinite(n) && n !== 0) return n;
+        }
+        return 0;
+      }
+      return 0;
+    };
+    const formatNumber = (n) => toNumber(n).toLocaleString("vi-VN");
+    const formatChange = (val, hint = "") => {
+      if (val === undefined || val === null) return undefined;
+      if (typeof val === "object") {
+        const str = val.change ?? val.delta ?? val.text ?? val.label;
+        if (typeof str === "string" && str.trim()) return str.trim();
+        const num = val.rate ?? val.percent ?? val.percentage ?? val.value ?? val.count;
+        if (num !== undefined) {
+          const nn = toNumber(num);
+          const sign = nn >= 0 ? "+" : "";
+          const isPercent = /rate|percent|percentage/i.test(hint);
+          return isPercent ? `${sign}${nn}%` : `${sign}${nn}`;
+        }
+      }
+      if (typeof val === "string") {
+        const s = val.trim();
+        if (!s) return undefined;
+        return s.startsWith("+") || s.startsWith("-") ? s : `+${s}`;
+      }
+      const num = toNumber(val);
+      const sign = num >= 0 ? "+" : "";
+      const isPercent = /rate|percent|percentage/i.test(hint);
+      return isPercent ? `${sign}${num}%` : `${sign}${num}`;
+    };
+
+    dashboardService
+      .getOverview()
+      .then((res) => {
+        const raw = res?.data;
+        const o = raw && typeof raw === "object" && !Array.isArray(raw) ? raw : {};
+        const totalUsers = toNumber(o?.totalUsers ?? o?.usersCount ?? o?.studentsCount ?? o?.students);
+        const courses = toNumber(o?.coursesCount ?? o?.totalCourses ?? o?.courses);
+        const completedExams = toNumber(o?.completedExams ?? o?.examsCompleted ?? o?.quizCompleted ?? o?.attemptsCompleted);
+        const avgScore = toNumber(o?.averageScore ?? o?.avgScore);
+        const completionRate = toNumber(o?.courseCompletionRate ?? o?.completionRate);
+        const classes = toNumber(o?.classesCount ?? o?.totalClasses);
+
+        const usersChange = o?.usersChange ?? o?.usersChangeRate ?? o?.usersDelta ?? o?.totalUsers?.change;
+        const coursesChange = o?.coursesChange ?? o?.coursesDelta ?? o?.coursesCount?.change;
+        const examsChange = o?.examsChange ?? o?.examsDelta ?? o?.completedExams?.change;
+        const avgScoreChange = o?.avgScoreChange ?? o?.averageScoreDelta ?? o?.averageScore?.change;
+        const completionChange = o?.completionRateChange ?? o?.courseCompletionDelta ?? o?.courseCompletionRate?.change;
+        const classesChange = o?.classesChange ?? o?.classesDelta ?? o?.classesCount?.change;
+
+        const row1 = [
+          {
+            title: "Tổng số học viên",
+            value: formatNumber(totalUsers),
+            change: formatChange(usersChange, "percent"),
+          },
+          {
+            title: "Khóa học",
+            value: formatNumber(courses),
+            change: formatChange(coursesChange),
+            description: (toNumber(o?.newCourses) || 0) > 0 ? `${toNumber(o?.newCourses)} khóa học mới` : undefined,
+          },
+          {
+            title: "Bài thi hoàn thành",
+            value: formatNumber(completedExams),
+            change: formatChange(examsChange),
+          },
+        ];
+
+        const row2 = [
+          {
+            title: "Điểm trung bình",
+            value: `${toNumber(avgScore).toFixed(1)}/10`,
+            change: formatChange(avgScoreChange),
+          },
+          {
+            title: "Tỷ lệ hoàn thành khóa học",
+            value: `${toNumber(completionRate)}%`,
+            change: formatChange(completionChange, "percent"),
+          },
+          {
+            title: "Tổng số lớp học",
+            value: formatNumber(classes),
+            change: formatChange(classesChange),
+          },
+        ];
+
+        if (alive) {
+          setCardsRow1(row1);
+          setCardsRow2(row2);
+        }
+      })
+      .catch(() => {
+        if (alive) {
+          setCardsRow1([]);
+          setCardsRow2([]);
+        }
+      });
     dashboardService
       .getUserGrowthByMonth(12)
       .then((res) => {
@@ -91,7 +204,7 @@ const DashboardOverview = () => {
         <section className="col-span-12">
           {/* Thay thế 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5' */}
           <div className="stat-card-grid">
-            {overviewStatCardsRow1.map((card, index) => (
+            {cardsRow1.map((card, index) => (
               <StatCard key={index} {...card} />
             ))}
           </div>
@@ -99,7 +212,7 @@ const DashboardOverview = () => {
         {/* === HÀNG 2: 4 THẺ STATS (biến thể) === */}
         <section className="col-span-12">
           <div className="stat-card-grid">
-            {overviewStatCardsRow2.map((card, index) => (
+            {cardsRow2.map((card, index) => (
               <StatCard key={index} {...card} />
             ))}
           </div>

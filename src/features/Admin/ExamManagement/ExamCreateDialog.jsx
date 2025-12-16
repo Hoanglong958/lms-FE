@@ -2,14 +2,11 @@ import React, { useEffect, useMemo, useState } from "react";
 import "./ExamCreateDialog.css";
 import { examService } from "@utils/examService";
 import QuestionSelector from "./QuestionSelector";
-import { courseService } from "@utils/courseService.js";
 import NotificationModal from "@components/NotificationModal/NotificationModal";
 
 export default function ExamCreateDialog({ open, onOpenChange, onSuccess }) {
   const [submitting, setSubmitting] = useState(false);
   const [showQuestionSelector, setShowQuestionSelector] = useState(false);
-  const [courses, setCourses] = useState([]);
-  const [loadingCourses, setLoadingCourses] = useState(false);
   const [form, setForm] = useState({
     title: "",
     description: "",
@@ -21,7 +18,6 @@ export default function ExamCreateDialog({ open, onOpenChange, onSuccess }) {
     endTime: "",
     autoAddQuestions: false,
     questionIds: [],
-    courseId: "",
   });
 
   const [notification, setNotification] = useState({
@@ -48,34 +44,13 @@ export default function ExamCreateDialog({ open, onOpenChange, onSuccess }) {
         endTime: "",
         autoAddQuestions: false,
         questionIds: [],
-        courseId: "",
       });
       setSubmitting(false);
       setShowQuestionSelector(false);
     }
   }, [open]);
 
-  useEffect(() => {
-    if (!open) return;
-    setLoadingCourses(true);
-    courseService
-      .getCourses()
-      .then((res) => {
-        const raw = res?.data ?? {};
-        const arr = Array.isArray(raw)
-          ? raw
-          : Array.isArray(raw.data)
-            ? raw.data
-            : Array.isArray(raw.content)
-              ? raw.content
-              : Array.isArray(raw.items)
-                ? raw.items
-                : [];
-        setCourses(arr);
-      })
-      .catch(() => setCourses([]))
-      .finally(() => setLoadingCourses(false));
-  }, [open]);
+  
 
   const canSubmit = useMemo(() => {
     const baseOk =
@@ -189,23 +164,7 @@ export default function ExamCreateDialog({ open, onOpenChange, onSuccess }) {
           <section className="examdlg-section">
             <h3 className="examdlg-section-title">Cấu hình bài thi</h3>
             <div className="examdlg-grid2">
-              <div className="examdlg-field">
-                <label htmlFor="courseId">Khóa học <span className="req">*</span></label>
-                <select
-                  id="courseId"
-                  name="courseId"
-                  value={form.courseId}
-                  onChange={handleChange}
-                >
-                  <option value="">-- Chọn khóa học --</option>
-                  {(courses || []).map((c) => (
-                    <option key={c.id} value={c.id}>{c.name || c.title || `Khóa ${c.id}`}</option>
-                  ))}
-                </select>
-                {loadingCourses && (
-                  <div className="examdlg-info">Đang tải danh sách khóa học...</div>
-                )}
-              </div>
+
               <div className="examdlg-field">
                 <label htmlFor="totalQuestions">Số câu hỏi <span className="req">*</span></label>
                 <input id="totalQuestions" name="totalQuestions" type="number" min={1} value={form.totalQuestions} onChange={handleChange} />

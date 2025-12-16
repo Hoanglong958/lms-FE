@@ -25,7 +25,19 @@ export default function QuizQuestionSelector({ quiz, onChange }) {
     if (!showModal) return;
     async function loadQuestions() {
       const res = await questionService.getAll();
-      setAllQuestions(res.data || []);
+      const raw = res?.data;
+      const arr = Array.isArray(raw)
+        ? raw
+        : Array.isArray(raw?.data)
+        ? raw.data
+        : Array.isArray(raw?.content)
+        ? raw.content
+        : [];
+      const mapped = arr.map((q) => ({
+        id: q?.id ?? q?.questionId ?? q?.id,
+        title: q?.questionText ?? q?.title ?? "",
+      }));
+      setAllQuestions(mapped);
     }
     loadQuestions();
   }, [showModal]);
@@ -76,12 +88,12 @@ export default function QuizQuestionSelector({ quiz, onChange }) {
             <h3>Chọn câu hỏi cho Quiz: {quiz.title}</h3>
             <ul style={{ maxHeight: "300px", overflowY: "auto" }}>
               {allQuestions.map((q) => (
-                <li key={q.questionId}>
+                <li key={q.id}>
                   <label>
                     <input
                       type="checkbox"
-                      checked={selectedIds.includes(q.questionId)}
-                      onChange={() => handleToggle(q.questionId)}
+                      checked={selectedIds.includes(q.id)}
+                      onChange={() => handleToggle(q.id)}
                     />
                     {q.title}
                   </label>
