@@ -13,9 +13,265 @@
     margin-right: auto;
 }
 
+.roadmap-loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    padding: 40px;
+    color: #6b7280;
+    font-weight: 500;
+}
+
+.spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #e5e7eb;
+    border-top-color: #4f46e5;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
 /* Container */
 .roadmap-timeline-container {
     background: transparent;
+}
+
+/* Header Info */
+.roadmap-header-info {
+    display: flex;
+    align-items: center;
+    background: white;
+    padding: 24px 32px;
+    border-radius: 16px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    margin-bottom: 40px;
+    border: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.header-icon-wrapper {
+    width: 48px;
+    height: 48px;
+    background: #e0e7ff;
+    color: #4f46e5;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 20px;
+}
+
+.header-text h3 {
+    margin: 0 0 6px 0;
+    font-size: 20px;
+    font-weight: 700;
+    color: #111827;
+}
+
+.header-text p {
+    margin: 0;
+    color: #6b7280;
+    font-size: 14px;
+}
+
+/* Timeline Wrapper */
+.roadmap-timeline-wrapper {
+    position: relative;
+    padding-left: 20px;
+}
+
+/* Timeline Item */
+.timeline-item {
+    display: flex;
+    margin-bottom: 32px;
+    position: relative;
+}
+
+.timeline-item:last-child {
+    margin-bottom: 0;
+}
+
+/* Left Column (Index & Line) */
+.timeline-left {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 60px;
+    position: relative;
+    margin-right: 24px;
+    flex-shrink: 0;
+}
+
+.timeline-circle {
+    width: 32px;
+    height: 32px;
+    background: white;
+    border: 2px solid #4f46e5;
+    border-radius: 50%;
+    color: #4f46e5;
+    font-weight: 700;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+    box-shadow: 0 0 0 4px #f7f9fc;
+    /* Match bg color to create spacing */
+}
+
+.timeline-line {
+    width: 2px;
+    background-color: #e5e7eb;
+    flex-grow: 1;
+    position: absolute;
+    top: 32px;
+    bottom: -32px;
+    /* Extend to next item */
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1;
+}
+
+.timeline-item:last-child .timeline-line {
+    display: none;
+}
+
+/* Timeline Content Card */
+.timeline-content-card {
+    flex: 1;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    padding: 24px;
+    border: 1px solid rgba(0, 0, 0, 0.03);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.timeline-content-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.session-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.session-number {
+    font-size: 16px;
+    font-weight: 700;
+    color: #111827;
+}
+
+/* Card Body - Controls */
+.card-body {
+    /* No grid here, handled by row */
+}
+
+.roadmap-controls-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+}
+
+.control-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.control-group label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #4b5563;
+}
+
+.modern-select {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    font-size: 14px;
+    color: #111827;
+    background-color: #f9fafb;
+    outline: none;
+    transition: all 0.2s;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236B7280' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    background-size: 16px;
+}
+
+.modern-select:focus {
+    background-color: white;
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.modern-select:disabled {
+    background-color: #f3f4f6;
+    color: #9ca3af;
+    cursor: not-allowed;
+    background-image: none;
+}
+
+/* Save Button (Header) */
+.roadmap-btn-save {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #4f46e5;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.3);
+}
+
+.roadmap-btn-save:hover {
+    background: #4338ca;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 8px -1px rgba(79, 70, 229, 0.4);
+}
+
+.roadmap-btn-save:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .roadmap-controls-row {
+        grid-template-columns: 1fr;
+    }
+
+    .timeline-left {
+        width: 48px;
+        margin-right: 16px;
+    }
 }
 
 /* Header Info */
