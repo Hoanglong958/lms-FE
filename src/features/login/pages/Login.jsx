@@ -22,9 +22,22 @@ export default function Login() {
   const navigate = useNavigate();
 
   const slides = [
-    { src: "/students.jpg", caption: "Kho học liệu miễn phí giúp bạn phát triển bản thân và tìm được việc làm nhanh chóng!" },
-    { src: "/ảnh 6.png", caption: "Học chủ động – nội dung cập nhật liên tục theo lộ trình rõ ràng." },
-    { src: "/ảnh 7.png", caption: "Cộng đồng học tập sôi động, mentor hỗ trợ tận tâm." },
+    {
+      src: "/students.jpg",
+      title: "Kho học liệu miễn phí",
+      description:
+        "Miễn phí truy cập kho tài liệu khổng lồ, bao gồm bài giảng, video và tài liệu đọc phù hợp với mọi đối tượng.",
+    },
+    {
+      src: "/ảnh 6.png",
+      title: "Học chủ động",
+      description: "Nội dung cập nhật liên tục theo lộ trình rõ ràng.",
+    },
+    {
+      src: "/ảnh 7.png",
+      title: "Cộng đồng sôi động",
+      description: "Mentor hỗ trợ tận tâm.",
+    },
   ];
   const [slideIndex, setSlideIndex] = useState(0);
   const dragStartXRef = useRef(0);
@@ -203,7 +216,8 @@ export default function Login() {
             ))}
           </div>
           <div className="image-caption">
-            <p>{slides[slideIndex]?.caption}</p>
+            <h3 className="image-caption-title">{slides[slideIndex]?.title}</h3>
+            <p className="image-caption-desc">{slides[slideIndex]?.description}</p>
           </div>
           <div className="login-image-dots">
             {slides.map((_, i) => (
