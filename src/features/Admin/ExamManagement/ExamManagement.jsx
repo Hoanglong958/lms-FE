@@ -26,10 +26,8 @@ export default function ExamManagement() {
     message: "",
     type: "info",
   });
-
-  const showNotification = (title, message, type = "info") => {
-    setNotification({ isOpen: true, title, message, type });
-  };
+  const [studentsTotal, setStudentsTotal] = useState(0);
+  const [avgScoreGlobal, setAvgScoreGlobal] = useState(0);
 
   const loadExams = async () => {
     try {
@@ -51,24 +49,94 @@ export default function ExamManagement() {
                   ? raw.data.items
                   : [];
 
+      const toNumber = (val) => {
+        if (val === undefined || val === null) return 0;
+        if (typeof val === "number" && Number.isFinite(val)) return val;
+        if (typeof val === "string") {
+          const num = Number(val.replace(/[\s,]/g, ""));
+          return Number.isFinite(num) ? num : 0;
+        }
+        if (Array.isArray(val)) return val.length;
+        if (typeof val === "object") {
+          const candidates = [val.value, val.count, val.total, val.number];
+          for (const c of candidates) {
+            const n = toNumber(c);
+            if (Number.isFinite(n) && n !== 0) return n;
+          }
+        }
+        return 0;
+      };
+
       const mapped = apiArr.map((e) => ({
         id: e.id,
-        name: e.title,
+        name: e.title || e.name,
         description: e.description,
-        course: String(e.courseId ?? ""),
-        students: e.students,
-        avgScore: e.avgScore,
-        passRate: e.passRate,
-        totalQuestions: e.totalQuestions,
-        maxScore: e.maxScore,
-        passingScore: e.passingScore,
-        durationMinutes: e.durationMinutes,
-        duration: e.durationMinutes ? `${e.durationMinutes} phút` : "-",
+        course: String(e.courseId ?? e.course ?? ""),
+        students:
+          toNumber(
+            e.students ??
+              e.participants ??
+              e.participantCount ??
+              e.attempts ??
+              e.totalAttempts ??
+              e.submissions
+          ),
+        avgScore: toNumber(
+          e.avgScore ?? e.averageScore ?? e.avg ?? e.meanScore ?? e.scoreAvg ?? e?.stats?.avgScore
+        ),
+        passRate: toNumber(
+          e.passRate ?? e.passRatio ?? e.passPercentage ?? e.passPercent ?? e?.stats?.passRate
+        ),
+        totalQuestions: toNumber(
+          e.totalQuestions ?? e.questionCount ?? e.questions
+        ),
+        maxScore: toNumber(e.maxScore),
+        passingScore: toNumber(e.passingScore),
+        durationMinutes: toNumber(e.durationMinutes ?? e.duration),
+        duration: (e.durationMinutes ?? e.duration)
+          ? `${toNumber(e.durationMinutes ?? e.duration)} phút`
+          : "-",
         startTime: e.startTime || e.startAt,
         endTime: e.endTime || e.endAt,
         status: e.status || "Đang mở",
       }));
       setExams(mapped);
+      const sumFromList = mapped.reduce((s, e) => s + (Number(e.students) || 0), 0);
+      const avgFromList = (() => {
+        const total = mapped.reduce((s, e) => s + (Number(e.avgScore) || 0), 0);
+        const count = mapped.length;
+        return count > 0 ? total / count : 0;
+      })();
+      setStudentsTotal(sumFromList);
+      setAvgScoreGlobal(avgFromList);
+      const needFetch = sumFromList === 0 || avgFromList === 0;
+      if (needFetch) {
+        const limited = mapped.slice(0, 10);
+        Promise.all(
+          limited.map((ex) =>
+            examService
+              .listAttempts(Number(ex.id))
+              .then((res) => {
+                const arr = Array.isArray(res?.data) ? res.data : [];
+                const count = arr.length;
+                const avg = arr.length > 0
+                  ? arr.reduce((s, a) => s + (Number(a?.score) || 0), 0) / arr.length
+                  : 0;
+                return { id: ex.id, count, avg };
+              })
+              .catch(() => ({ id: ex.id, count: 0, avg: 0 }))
+          )
+        ).then((stats) => {
+          const totalCount = stats.reduce((s, x) => s + x.count, 0);
+          const avgAll = (() => {
+            const totalAvg = stats.reduce((s, x) => s + x.avg, 0);
+            const n = stats.length;
+            return n > 0 ? totalAvg / n : 0;
+          })();
+          setStudentsTotal(totalCount);
+          setAvgScoreGlobal(avgAll);
+        });
+      }
     } catch (err) {
       const status = err?.response?.status;
       const msg = err?.response?.data?.message || err?.message || "Không thể tải danh sách kỳ thi";
@@ -81,23 +149,6 @@ export default function ExamManagement() {
     }
   };
 
-  const mapExam = (e) => ({
-    id: e.id,
-    name: e.title || e.name,
-    description: e.description,
-    course: String(e.courseId ?? e.course ?? ""),
-    students: e.students,
-    avgScore: e.avgScore,
-    passRate: e.passRate,
-    duration:
-      e.duration || (e.durationMinutes ? `${e.durationMinutes} phút` : "-"),
-    status: e.status || "Đang mở",
-    totalQuestions: e.totalQuestions,
-    maxScore: e.maxScore,
-    passingScore: e.passingScore,
-    startTime: e.startTime || e.startAt,
-    endTime: e.endTime || e.endAt,
-  });
 
   useEffect(() => {
     loadExams();
@@ -112,13 +163,7 @@ export default function ExamManagement() {
     setOpenCreate(true);
   };
 
-
-  const handleRefresh = () => {
-    setSearch("");
-    setStatusFilter("ALL");
-    setPage(1);
-    loadExams();
-  };
+  
 
 
 
@@ -169,15 +214,6 @@ export default function ExamManagement() {
         onMenuToggle={toggleSidebar}
         actions={
           <div className="exam-header-buttons">
-            <button
-              className="exam-btn refresh"
-              onClick={handleRefresh}
-              title="Làm mới danh sách"
-              disabled={loading}
-            >
-              {loading ? "⟳ Đang làm mới..." : "⟳ Làm mới"}
-            </button>
-
             <button className="exam-btn add" onClick={handleAddExam}>
               + Tạo bài kiểm tra
             </button>
@@ -194,20 +230,12 @@ export default function ExamManagement() {
           </div>
           <div className="exam-card">
             <p className="exam-card-title">Số thí sinh</p>
-            <h3>{exams.reduce((sum, e) => sum + (e.students || 0), 0)}</h3>
+            <h3>{studentsTotal}</h3>
           </div>
           <div className="exam-card">
             <p className="exam-card-title">Điểm trung bình</p>
             <h3>
-              {(() => {
-                const total = exams.reduce(
-                  (sum, e) => sum + (e.avgScore || 0),
-                  0
-                );
-                const avg = exams.length > 0 ? total / exams.length : 0;
-                return avg.toFixed(1);
-              })()}
-              %
+              {avgScoreGlobal.toFixed(1)}
             </h3>
           </div>
         </div>
@@ -215,17 +243,25 @@ export default function ExamManagement() {
         {/* --- THANH TÌM KIẾM --- */}
         <div className="exam-searchbar">
           <div className="exam-search-row">
-            <input
-              type="text"
-              placeholder="Tìm kiếm bài kiểm tra..."
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setPage(1);
-              }}
-              className="exam-search-input"
-              aria-label="Tìm kiếm bài kiểm tra"
-            />
+            <div className="exam-search-input-wrap">
+              <div className="exam-search-icon-wrap">
+                <svg className="exam-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <circle cx="11" cy="11" r="8" />
+                  <path d="M21 21l-4.3-4.3" />
+                </svg>
+              </div>
+              <input
+                type="text"
+                placeholder="Tìm kiếm bài kiểm tra..."
+                value={search}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setPage(1);
+                }}
+                className="exam-search-input"
+                aria-label="Tìm kiếm bài kiểm tra"
+              />
+            </div>
             <select
               className="exam-status-filter"
               value={statusFilter}
@@ -302,7 +338,7 @@ export default function ExamManagement() {
         <ExamCreateDialog
           open={openCreate}
           onOpenChange={setOpenCreate}
-          onSuccess={(created) => {
+          onSuccess={() => {
             loadExams();
           }}
         />
@@ -310,7 +346,7 @@ export default function ExamManagement() {
           open={openEdit}
           onOpenChange={setOpenEdit}
           exam={editingExam}
-          onSuccess={(updated) => {
+          onSuccess={() => {
             loadExams();
           }}
         />

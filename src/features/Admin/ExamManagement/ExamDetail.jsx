@@ -11,13 +11,12 @@ export default function ExamDetail() {
   const examId = params.examId;
   const [exam, setExam] = useState(null);
   const [attempts, setAttempts] = useState([]);
-  const [users, setUsers] = useState([]);
   const [rows, setRows] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [selectedAttempt, setSelectedAttempt] = useState(null);
   const [attemptAnswers, setAttemptAnswers] = useState([]);
-  const [reloading, setReloading] = useState(false);
+  const [, setReloading] = useState(false);
   const stompRef = useRef(null);
   const wsAttemptedRef = useRef(false);
   const [wsSubmitted, setWsSubmitted] = useState(new Map());
@@ -47,12 +46,10 @@ export default function ExamDetail() {
         });
         setExam(e);
         setAttempts(attemptsWithUsers);
-        setUsers(userList);
       })
       .catch(() => {
         setExam(null);
         setAttempts([]);
-        setUsers([]);
       })
       .finally(() => setReloading(false));
   };
@@ -166,7 +163,6 @@ export default function ExamDetail() {
     return () => {
       try { stompRef.current?.deactivate(); } catch (e) { void e; }
       stompRef.current = null;
-      try { bc?.close(); } catch { void 0; }
     };
   }, [examId]);
 
@@ -312,16 +308,7 @@ export default function ExamDetail() {
       <div className="exam-detail-header">
         <h2>{exam?.title || "Chi tiết kỳ thi"}</h2>
         <p>Chấm điểm và quản lý bài nộp</p>
-        <div>
-          <button
-            className="exam-export-btn"
-            onClick={loadData}
-            disabled={reloading}
-            title="Làm mới dữ liệu"
-          >
-            {reloading ? "Đang làm mới..." : "Làm mới"}
-          </button>
-        </div>
+        
       </div>
 
       {/* Stats section */}
@@ -366,6 +353,32 @@ export default function ExamDetail() {
           </div>
         </div>
       </div>
+
+      {(() => {
+        const inProgress = rows.filter((r) => String(r.status).toUpperCase() === "IN_PROGRESS");
+        if (inProgress.length === 0) return null;
+        return (
+          <div className="exam-inprogress">
+            <div className="exam-inprogress-header">
+              <h3>Đang làm ({inProgress.length})</h3>
+            </div>
+            <div className="exam-inprogress-list">
+              {inProgress.map((p) => (
+                <div key={p.attemptId || p.userId} className="exam-inprogress-item">
+                  <div className="inprog-main">
+                    <span className="inprog-name">{p.user?.fullName || `#${p.userId}`}</span>
+                    <span className="inprog-email">{p.user?.gmail || "—"}</span>
+                  </div>
+                  <div className="inprog-meta">
+                    <span>Bắt đầu: {p.startTime ? fmt(p.startTime) : "—"}</span>
+                    <span>Thời gian: {durationText(p)}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Submissions Table */}
       <div className="exam-submission-list">

@@ -17,7 +17,6 @@ export default function QuizExamPage({ quizId }) {
   const [userSelections, setUserSelections] = useState({});
   const [timeRemaining, setTimeRemaining] = useState(0);
   const [isQuizCompleted, setIsQuizCompleted] = useState(false);
-  const [score, setScore] = useState(0);
   const timerRef = useRef(null);
 
   // ================== LOAD QUIZ DATA ==================
@@ -48,14 +47,14 @@ export default function QuizExamPage({ quizId }) {
               timeLimit: detail.data.timeLimit || "00:01:00",
               options,
             });
-          } catch (err) { }
+          } catch (err) { console.error(err); }
         }
         setQuizQuestions(detailedQuestions);
         if (detailedQuestions[0])
           setTimeRemaining(
             convertTimeToSeconds(detailedQuestions[0].timeLimit)
           );
-      } catch (err) { }
+      } catch (err) { console.error(err); }
     })();
   }, [quizIdFromParams]);
 
@@ -128,23 +127,24 @@ export default function QuizExamPage({ quizId }) {
         console.error("Error parsing loggedInUser", e);
       }
     }
+    if (!Number.isFinite(Number(userId)) || Number(userId) <= 0) {
+      alert("Bạn cần đăng nhập để nộp bài");
+      return;
+    }
 
     // Map answers
     // Question options map to 1, 2, 3, 4 -> A, B, C, D
     const answers = [];
     const optionMap = ["A", "B", "C", "D"];
-
     quizQuestions.forEach((q, idx) => {
-      const selectedOptionId = userSelections[idx];
-      if (selectedOptionId) {
-        // optionId is 1-based index (1,2,3,4) from previous logic
-        const answerChar = optionMap[selectedOptionId - 1];
-        if (answerChar) {
-          answers.push({
-            questionId: q.id,
-            answer: answerChar,
-          });
-        }
+      const selectedOptionId = Number(userSelections[idx]);
+      if (Number.isFinite(selectedOptionId) && selectedOptionId > 0) {
+        const answerChar = optionMap[selectedOptionId - 1] || "";
+        answers.push({
+          questionId: q.id,
+          answer: answerChar,
+          answerIndex: selectedOptionId - 1,
+        });
       }
     });
 
@@ -160,9 +160,34 @@ export default function QuizExamPage({ quizId }) {
 
     try {
       const res = await quizResultService.submitQuiz(payload);
-      // res.data format: { id, quizId, userId, correctCount, totalCount, score, isPassed, submittedAt }
-      setSubmissionResult(res.data);
-      setScore(res.data.score); // Keep using score state for compatibility or just use submissionResult
+      const serverResult = res?.data || {};
+      let finalResult = serverResult;
+
+      const optionIsCorrect = (idx, selId) => {
+        const q = quizQuestions[idx];
+        const opt = q && Array.isArray(q.options) ? q.options[Number(selId) - 1] : undefined;
+        return !!(opt && opt.isCorrect);
+      };
+      const localCorrect = quizQuestions.reduce((acc, _q, idx) => {
+        const sel = Number(userSelections[idx]);
+        return acc + (Number.isFinite(sel) && sel > 0 && optionIsCorrect(idx, sel) ? 1 : 0);
+      }, 0);
+      const localTotal = quizQuestions.length;
+      const max = Number(quizInfo?.maxScore) || localTotal || 0;
+      const localScore = max > 0 ? Math.round((localCorrect / (localTotal || 1)) * max) : localCorrect;
+
+      const needFallback = (!Number.isFinite(Number(serverResult?.score)) || Number(serverResult?.score) === 0) && localCorrect > 0;
+      if (needFallback) {
+        finalResult = {
+          ...serverResult,
+          correctCount: localCorrect,
+          totalCount: localTotal,
+          score: localScore,
+          isPassed: Number.isFinite(Number(quizInfo?.passingScore)) ? localScore >= Number(quizInfo.passingScore) : undefined,
+        };
+      }
+
+      setSubmissionResult(finalResult);
       setIsQuizCompleted(true);
       if (timerRef.current) clearInterval(timerRef.current);
     } catch (error) {
