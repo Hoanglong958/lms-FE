@@ -4,11 +4,13 @@ import { useNavigate, Link } from "react-router-dom";
 import { authService } from "@utils/authService"; // import service
 import NotificationModal from "@components/NotificationModal/NotificationModal";
 import ForgotPasswordModal from "../components/ForgotPasswordModal";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 import "./login.css";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [notification, setNotification] = useState({
     isOpen: false,
@@ -161,13 +163,22 @@ export default function Login() {
 
             <div className="form-group">
               <label>Mật khẩu</label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                required
-              />
+              <div className="password-input-container">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  required
+                />
+                <button
+                  type="button"
+                  className="password-toggle-btn"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <FaEyeSlash /> : <FaEye />}
+                </button>
+              </div>
             </div>
 
             <button type="submit" disabled={loading}>
