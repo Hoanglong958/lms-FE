@@ -4,8 +4,11 @@ import { uploadService } from "@utils/uploadService";
 import "../Courses/CoursesCSS/LessonVideoEditor.css";
 import VideoProgress from "@components/VideoPlayer/VideoProgress";
 import NotificationModal from "@components/NotificationModal/NotificationModal";
+import { SERVER_URL } from "@config";
 
 function isValidUrl(url) {
+  if (!url) return false;
+  if (url.startsWith("/")) return true; // Accept relative paths
   try {
     new URL(url);
     return true;
@@ -111,7 +114,9 @@ export default function LessonVideoEditor({ video, onUpdated }) {
   const renderVideo = () => {
     if (!video.videoUrl) return <p className="info-text">Chưa có video</p>;
 
-    const url = video.videoUrl;
+    const url = video.videoUrl.startsWith("/")
+      ? `${SERVER_URL}${video.videoUrl}`
+      : video.videoUrl;
 
     // Nếu là YouTube thì convert sang embed link
     const youtubeRegex = /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&]+)/;

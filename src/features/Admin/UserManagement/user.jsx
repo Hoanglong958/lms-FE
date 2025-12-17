@@ -266,7 +266,6 @@ export default function UserManagement({ currentUserRole = "admin" }) {
 								<th style={styles.th}>Vai trò</th>
 								<th style={styles.th}>Trạng thái</th>
 								<th style={styles.th}>Ngày tham gia</th>
-								<th style={styles.th}>Lần đăng nhập cuối</th>
 								<th style={styles.th} />
 							</tr>
 						</thead>
@@ -286,7 +285,6 @@ export default function UserManagement({ currentUserRole = "admin" }) {
 										<StatusBadge status={u.isActive ? 'active' : 'paused'} />
 									</td>
 									<td style={styles.td}>{u.createdAt ? new Date(u.createdAt).toLocaleDateString('vi-VN') : "---"}</td>
-									<td style={styles.td}>{u.lastLogin ? new Date(u.lastLogin).toLocaleDateString('vi-VN') : "---"}</td>
 									<td style={styles.tdAction}>
 										<RowActions
 											onView={() => handleViewUser(u)}
@@ -294,6 +292,7 @@ export default function UserManagement({ currentUserRole = "admin" }) {
 											onEdit={() => setEditingUser(u)}
 											onDelete={() => handleRequestDelete(u)}
 											isActive={u.isActive}
+											role={u.role}
 										/>
 									</td>
 								</tr>
@@ -593,84 +592,74 @@ function StatusBadge({ status }) {
 	return <span style={{ ...badgeStyles.base, ...style }}>{label}</span>;
 }
 
-function RowActions({ onView, onLock, onEdit, onDelete, isActive }) {
-	const [open, setOpen] = useState(false);
-	const containerRef = useRef(null);
-
-	useEffect(() => {
-		if (!open) return;
-		function handleGlobalPointerDown(e) {
-			if (!containerRef.current) return;
-			if (!containerRef.current.contains(e.target)) {
-				setOpen(false);
-			}
-		}
-		document.addEventListener("mousedown", handleGlobalPointerDown);
-		document.addEventListener("touchstart", handleGlobalPointerDown, { passive: true });
-		return () => {
-			document.removeEventListener("mousedown", handleGlobalPointerDown);
-			document.removeEventListener("touchstart", handleGlobalPointerDown);
-		};
-	}, [open]);
+function RowActions({ onView, onLock, onEdit, onDelete, isActive, role }) {
+	// Kiểm tra nếu là Admin thì không cho phép chỉnh sửa/xóa (theo yêu cầu)
+	const isAdmin = role === "ROLE_ADMIN";
 
 	return (
-		<div ref={containerRef} style={styles.actionWrap}>
-			<button
-				type="button"
-				aria-label="Xem tài khoản"
-				title="Xem tài khoản"
-				onClick={() => onView && onView()}
-				style={styles.iconButton}
-			>
-				<svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-					<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12Z" stroke="currentColor" strokeWidth="1.6" />
-					<circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.6" />
-				</svg>
-			</button>
-			<button
-				type="button"
-				aria-label={isActive ? "Khóa tài khoản" : "Mở khóa tài khoản"}
-				title={isActive ? "Khóa tài khoản" : "Mở khóa tài khoản"}
-				onClick={() => onLock && onLock()}
-				style={{ ...styles.iconButton, marginLeft: 6, color: isActive ? "#6b7280" : "#ef4444" }}
-			>
-				{isActive ? (
-					// Icon Open Lock (Đang mở -> Click để khóa)
-					// Hoặc user yêu cầu: "Icon đóng vào khi khóa" -> Tức là khi locked (isActive=false) thì icon đóng.
-					// Khi isActive=true (Active) -> Icon mở.
+		<div style={styles.actionWrap}>
+
+			{/* Nút Khóa / Mở khóa */}
+			{!isAdmin && (
+				<button
+					type="button"
+					aria-label={isActive ? "Khóa tài khoản" : "Mở khóa tài khoản"}
+					title={isActive ? "Khóa tài khoản" : "Mở khóa tài khoản"}
+					onClick={() => onLock && onLock()}
+					style={{ ...styles.iconButton, marginLeft: 6, color: isActive ? "#6b7280" : "#ef4444" }}
+				>
+					{isActive ? (
+						<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+							<rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+							<path d="M7 11V7a5 5 0 0 1 9.9-1"></path>
+						</svg>
+					) : (
+						<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+							<rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+							<path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+						</svg>
+					)}
+				</button>
+			)}
+
+			{/* Nút Chỉnh sửa (Trực tiếp) */}
+			{!isAdmin && (
+				<button
+					type="button"
+					aria-label="Chỉnh sửa"
+					title="Chỉnh sửa"
+					onClick={() => onEdit && onEdit()}
+					style={{ ...styles.iconButton, marginLeft: 6, color: "#3b82f6" }}
+				>
 					<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-						<rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-						<path d="M7 11V7a5 5 0 0 1 9.9-1"></path>
+						<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+						<path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
 					</svg>
-				) : (
-					// Icon Closed Lock (Đang khóa -> Click để mở)
+				</button>
+			)}
+
+			{/* Nút Xóa (Trực tiếp) */}
+			{!isAdmin && (
+				<button
+					type="button"
+					aria-label="Xóa"
+					title="Xóa"
+					onClick={() => onDelete && onDelete()}
+					style={{ ...styles.iconButton, marginLeft: 6, color: "#ef4444" }}
+				>
 					<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-						<rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-						<path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+						<polyline points="3 6 5 6 21 6"></polyline>
+						<path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+						<line x1="10" y1="11" x2="10" y2="17"></line>
+						<line x1="14" y1="11" x2="14" y2="17"></line>
 					</svg>
-				)}
-			</button>
-			<button
-				type="button"
-				aria-label="Thao tác"
-				onClick={() => setOpen((v) => !v)}
-				style={{ ...styles.iconButton, marginLeft: 6 }}
-			>
-				<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-					<circle cx="5" cy="12" r="2" />
-					<circle cx="12" cy="12" r="2" />
-					<circle cx="19" cy="12" r="2" />
-				</svg>
-			</button>
-			{open && (
-				<ul style={styles.menu}>
-					<li style={styles.menuItem}>
-						<button type="button" style={styles.menuBtn} onClick={() => { setOpen(false); onEdit && onEdit(); }}>Chỉnh sửa</button>
-					</li>
-					<li style={styles.menuItem}>
-						<button type="button" style={styles.menuBtnDanger} onClick={() => { setOpen(false); onDelete && onDelete(); }}>Xóa</button>
-					</li>
-				</ul>
+				</button>
+			)}
+
+			{isAdmin && (
+				<span style={{ fontSize: 12, color: "#9ca3af", fontStyle: "italic", padding: "0 8px" }}>
+					(Admin)
+				</span>
 			)}
 		</div>
 	);

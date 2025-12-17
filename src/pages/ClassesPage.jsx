@@ -70,7 +70,7 @@ const ClassesPage = () => {
           if (mounted) mapClassesToState(myClasses);
         } else {
           // No user logged in, maybe show empty or all? 
-          // Request implies "Your classes", so likely empty if not logged in.
+          // Request implies "YX`our classes", so likely empty if not logged in.
           // But to be safe/friendly, let's just show all or empty. 
           // "Danh sách lớp học của bạn" implies ownership.
           if (mounted) setClasses([]);
@@ -95,43 +95,52 @@ const ClassesPage = () => {
       <div className="classes-grid">
         {loading && <p>Đang tải lớp học...</p>}
         {!loading && grid.length === 0 && (
-          <p>Chưa có lớp học nào.</p>
+          <div className="empty-state">
+            <p>Chưa có lớp học nào.</p>
+          </div>
         )}
         {!loading &&
-          grid.map((cls) => (
-            <Link
-              to={`/classes/${cls.id}`}
-              key={cls.id}
-              className="class-card"
-            >
-              <img src={cls.image} alt="" className="class-image" />
+          grid.map((cls) => {
+            // Determine status helper for class
+            let statusClass = "status-upcoming";
+            if (cls.status === "Đang học") statusClass = "status-active";
+            if (cls.status === "Đã kết thúc") statusClass = "status-finished";
 
-              <div className="class-content">
-                <h3 className="class-name">{cls.title}</h3>
+            return (
+              <Link
+                to={`/classes/${cls.id}`}
+                key={cls.id}
+                className="class-card"
+              >
+                <div className="class-image-wrapper">
+                  <img src={cls.image} alt={cls.title} className="class-image" />
+                  <div className="card-overlay-tags">
+                    <span className={`status-badge ${statusClass}`}>
+                      {cls.status}
+                    </span>
+                  </div>
+                </div>
 
-                <p className="class-info">
-                  <FaUserTie className="icon" />
-                  <span className="class-label">Giảng viên:</span>{" "}
-                  {cls.teacher}
-                </p>
+                <div className="class-content">
+                  <h3 className="class-name">{cls.title}</h3>
 
-                <p className="class-info">
-                  <FaRegClock className="icon" />
-                  <span className="class-label">Lịch học:</span>{" "}
-                  {cls.schedule}
-                </p>
+                  <div className="class-info-row">
+                    <FaRegClock className="info-icon" />
+                    <span>{cls.schedule}</span>
+                  </div>
 
-                <span
-                  className={`status-badge ${cls.status === "Đang học"
-                    ? "status-active"
-                    : "status-finished"
-                    }`}
-                >
-                  {cls.status}
-                </span>
-              </div>
-            </Link>
-          ))}
+                  <div className="divider-line"></div>
+
+                  <div className="teacher-meta">
+                    <div className="teacher-avatar">
+                      {String(cls.teacher).charAt(0).toUpperCase()}
+                    </div>
+                    <span className="teacher-name">{cls.teacher}</span>
+                  </div>
+                </div>
+              </Link>
+            )
+          })}
       </div>
     </div>
   );

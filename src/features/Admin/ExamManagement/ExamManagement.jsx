@@ -112,10 +112,6 @@ export default function ExamManagement() {
     setOpenCreate(true);
   };
 
-  // ✅ Khi bấm nút "Ngân hàng câu hỏi"
-  const handleQuestionBank = () => {
-    navigate("/admin/question-bank");
-  };
 
   const handleRefresh = () => {
     setSearch("");
@@ -181,9 +177,7 @@ export default function ExamManagement() {
             >
               {loading ? "⟳ Đang làm mới..." : "⟳ Làm mới"}
             </button>
-            <button className="exam-btn bank" onClick={handleQuestionBank}>
-              📚 Ngân hàng câu hỏi
-            </button>
+
             <button className="exam-btn add" onClick={handleAddExam}>
               + Tạo bài kiểm tra
             </button>
