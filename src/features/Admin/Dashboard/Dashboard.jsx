@@ -6,7 +6,7 @@ import AdminHeader from "@components/Admin/AdminHeader";
 import "./Dashboard.css";
 
 // 1. IMPORT DATA TỪ MOCK
-import { newUsersData, newCoursesData, recentQuizzesData } from "./mock/dashboardMock";
+import { newUsersData, newCoursesData } from "./mock/dashboardMock";
 
 // 2. IMPORT TẤT CẢ CÁC COMPONENT CON
 import StatCard from "./components/StatCard";
@@ -19,6 +19,7 @@ import NewCoursesTable from "./components/NewCoursesTable";
 import RecentQuizzesTable from "./components/RecentQuizzesTable";
 import RankingList from "./components/RankingList";
 import { dashboardService } from "@utils/dashboardService";
+import { quizResultService } from "@utils/quizResultService.js";
 
 // 3. XÂY DỰNG LAYOUT
 const DashboardOverview = () => {
@@ -26,6 +27,7 @@ const DashboardOverview = () => {
   const [topStudents, setTopStudents] = useState([]);
   const [cardsRow1, setCardsRow1] = useState([]);
   const [cardsRow2, setCardsRow2] = useState([]);
+  const [recentQuizzes, setRecentQuizzes] = useState([]);
 
   useEffect(() => {
     let alive = true;
@@ -189,6 +191,33 @@ const DashboardOverview = () => {
       })
       .catch(() => { if (alive) setTopStudents([]); });
 
+    dashboardService
+      .getRecentQuizzes()
+      .then((res) => {
+        const arr = Array.isArray(res?.data) ? res.data : [];
+        if (alive) setRecentQuizzes(arr);
+      })
+      .catch(() => { if (alive) setRecentQuizzes([]); });
+
+    quizResultService
+      .getResults()
+      .then((res) => {
+        const arr = Array.isArray(res?.data) ? res.data : [];
+        const completed = arr.length;
+        const scores = arr.map((r) => {
+          const cc = Number(r?.correctCount) || 0;
+          const tc = Number(r?.totalCount) || 0;
+          if (tc <= 0) return 0;
+          return (cc / tc) * 10;
+        });
+        const avg10 = scores.length > 0 ? scores.reduce((a, b) => a + b, 0) / scores.length : 0;
+        if (alive) {
+          setCardsRow1((prev) => prev.map((c) => c?.title === "Bài thi hoàn thành" ? { ...c, value: formatNumber(completed) } : c));
+          setCardsRow2((prev) => prev.map((c) => c?.title === "Điểm trung bình" ? { ...c, value: `${Number(avg10).toFixed(1)}/10` } : c));
+        }
+      })
+      .catch(() => { /* ignore */ });
+
     return () => { alive = false; };
   }, []);
   return (
@@ -247,7 +276,7 @@ const DashboardOverview = () => {
         </section>
         <section className="dashboard-card col-span-12 lg-col-span-6">
           <h3 className="dashboard-card-title">Bài thi / Quiz gần đây</h3>
-          <RecentQuizzesTable quizzes={recentQuizzesData} />
+          <RecentQuizzesTable quizzes={recentQuizzes} />
         </section>
       </div>
     </div>

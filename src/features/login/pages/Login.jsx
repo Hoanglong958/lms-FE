@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 // start
 import { useNavigate, Link } from "react-router-dom";
 import { authService } from "@utils/authService"; // import service
@@ -20,6 +20,43 @@ export default function Login() {
   });
   const [showForgotModal, setShowForgotModal] = useState(false);
   const navigate = useNavigate();
+
+  const slides = [
+    { src: "/students.jpg", caption: "Kho học liệu miễn phí giúp bạn phát triển bản thân và tìm được việc làm nhanh chóng!" },
+    { src: "/ảnh 6.png", caption: "Học chủ động – nội dung cập nhật liên tục theo lộ trình rõ ràng." },
+    { src: "/ảnh 7.png", caption: "Cộng đồng học tập sôi động, mentor hỗ trợ tận tâm." },
+  ];
+  const [slideIndex, setSlideIndex] = useState(0);
+  const dragStartXRef = useRef(0);
+  const draggingRef = useRef(false);
+  const handleTouchStart = (e) => {
+    dragStartXRef.current = e.touches?.[0]?.clientX || 0;
+    draggingRef.current = true;
+  };
+  const handleTouchEnd = (e) => {
+    if (!draggingRef.current) return;
+    const endX = e.changedTouches?.[0]?.clientX || 0;
+    const dx = endX - dragStartXRef.current;
+    draggingRef.current = false;
+    if (dx > 50) setSlideIndex((i) => Math.max(0, i - 1));
+    else if (dx < -50) setSlideIndex((i) => Math.min(slides.length - 1, i + 1));
+  };
+  const mouseDownRef = useRef(0);
+  const handleMouseDown = (e) => { mouseDownRef.current = e.clientX || 0; draggingRef.current = true; };
+  const handleMouseUp = (e) => {
+    if (!draggingRef.current) return;
+    const dx = (e.clientX || 0) - mouseDownRef.current;
+    draggingRef.current = false;
+    if (dx > 50) setSlideIndex((i) => Math.max(0, i - 1));
+    else if (dx < -50) setSlideIndex((i) => Math.min(slides.length - 1, i + 1));
+  };
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      setSlideIndex((i) => (i + 1) % slides.length);
+    }, 5000);
+    return () => clearInterval(id);
+  }, [slides.length]);
 
   const showNotification = (title, message, type = "info") => {
     setNotification({ isOpen: true, title, message, type });
@@ -152,17 +189,31 @@ export default function Login() {
           </form>
         </div>
 
-        <div className="login-image">
-          <img
-            src="/students.jpg"
-            alt="Mankai Students"
-            className="login-image-photo"
-          />
+        <div className="login-image"
+             onTouchStart={handleTouchStart}
+             onTouchEnd={handleTouchEnd}
+             onMouseDown={handleMouseDown}
+             onMouseUp={handleMouseUp}
+        >
+          <div className="login-image-slider" style={{ transform: `translateX(-${slideIndex * 100}%)` }}>
+            {slides.map((s, idx) => (
+              <div className="login-slide" key={idx}>
+                <img src={s.src} alt={`Slide ${idx + 1}`} className="login-image-photo" />
+              </div>
+            ))}
+          </div>
           <div className="image-caption">
-            <p>
-              Kho học liệu miễn phí giúp bạn phát triển bản thân và tìm được
-              việc làm nhanh chóng!
-            </p>
+            <p>{slides[slideIndex]?.caption}</p>
+          </div>
+          <div className="login-image-dots">
+            {slides.map((_, i) => (
+              <button
+                key={i}
+                className={"login-dot" + (i === slideIndex ? " active" : "")}
+                onClick={() => setSlideIndex(i)}
+                aria-label={`Chuyển ảnh ${i + 1}`}
+              />
+            ))}
           </div>
         </div>
       </div>
