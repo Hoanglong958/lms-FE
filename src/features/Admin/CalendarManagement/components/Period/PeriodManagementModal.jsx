@@ -1,6 +1,7 @@
 // src/features/periods/PeriodManagementModal.jsx
 import React, { useEffect, useState } from "react";
 import { periodService } from "@utils/periodService";
+import NotificationModal from "@components/NotificationModal/NotificationModal";
 import "./PeriodManagementModal.css";
 
 function toTimeObj(timeStr) {
@@ -34,6 +35,16 @@ function timeObjToString(t) {
 export default function PeriodManagementModal({ onClose }) {
   const [periods, setPeriods] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [notification, setNotification] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    type: "info",
+  });
+
+  const showNotification = (title, message, type = "info") => {
+    setNotification({ isOpen: true, title, message, type });
+  };
 
   // form state
   const [editing, setEditing] = useState(null); // null => create
@@ -53,7 +64,7 @@ export default function PeriodManagementModal({ onClose }) {
       );
     } catch (err) {
       console.error("Load periods failed", err);
-      alert("Không thể tải danh sách ca học");
+      showNotification("Lỗi", "Không thể tải danh sách ca học", "error");
     } finally {
       setLoading(false);
     }
@@ -79,11 +90,12 @@ export default function PeriodManagementModal({ onClose }) {
 
   const validate = () => {
     if (!name.trim()) {
-      alert("Vui lòng nhập tên ca học");
+      showNotification("Thiếu thông tin", "Vui lòng nhập tên ca học", "warning");
       return false;
     }
+
     if (!startTime || !endTime) {
-      alert("Vui lòng chọn giờ bắt đầu và giờ kết thúc");
+      showNotification("Thiếu thông tin", "Vui lòng chọn giờ bắt đầu và giờ kết thúc", "warning");
       return false;
     }
     const [sh, sm] = startTime.split(":").map(Number);
@@ -91,7 +103,7 @@ export default function PeriodManagementModal({ onClose }) {
     const s = sh * 60 + sm;
     const e = eh * 60 + em;
     if (e <= s) {
-      alert("Giờ kết thúc phải lớn hơn giờ bắt đầu");
+      showNotification("Lỗi logic", "Giờ kết thúc phải lớn hơn giờ bắt đầu", "warning");
       return false;
     }
     return true;
@@ -117,7 +129,7 @@ export default function PeriodManagementModal({ onClose }) {
       openCreate();
     } catch (err) {
       console.error("Save period failed", err);
-      alert("Lỗi khi lưu ca học");
+      showNotification("Lỗi", "Lỗi khi lưu ca học", "error");
     } finally {
       setSaving(false);
     }
@@ -130,7 +142,7 @@ export default function PeriodManagementModal({ onClose }) {
       await load();
     } catch (err) {
       console.error("Delete failed", err);
-      alert("Không thể xóa ca học");
+      showNotification("Lỗi", "Không thể xóa ca học", "error");
     }
   };
 
@@ -239,6 +251,14 @@ export default function PeriodManagementModal({ onClose }) {
           </button>
         </div>
       </div>
-    </div>
+
+      <NotificationModal
+        isOpen={notification.isOpen}
+        onClose={() => setNotification((prev) => ({ ...prev, isOpen: false }))}
+        title={notification.title}
+        message={notification.message}
+        type={notification.type}
+      />
+    </div >
   );
 }

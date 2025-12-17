@@ -1,15 +1,17 @@
 import React, { useEffect, useState } from "react";
+import NotificationModal from "@components/NotificationModal/NotificationModal";
 import "./ExamManagement.css";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import AdminHeader from "@components/Admin/AdminHeader";
 import { examService } from "@utils/examService.js";
 import ExamCreateDialog from "./ExamCreateDialog";
 import ExamEditDialog from "./ExamEditDialog";
-import ExamDetailDialog from "./ExamDetailDialog";
 import ExamTable from "./ExamTable";
 
 export default function ExamManagement() {
   const navigate = useNavigate();
+  const user = (() => { try { return JSON.parse(localStorage.getItem("loggedInUser") || "{}"); } catch { return {}; } })();
+  const isAdmin = String(user?.role || "").toUpperCase() === "ROLE_ADMIN";
 
   // ✅ Thêm state để chứa danh sách bài kiểm tra
   const [exams, setExams] = useState([]);
@@ -18,6 +20,14 @@ export default function ExamManagement() {
   const [page, setPage] = useState(1);
   const pageSize = 10;
   const [loading, setLoading] = useState(false);
+  const [notification, setNotification] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    type: "info",
+  });
+  const [studentsTotal, setStudentsTotal] = useState(0);
+  const [avgScoreGlobal, setAvgScoreGlobal] = useState(0);
 
   const loadExams = async () => {
     try {
@@ -28,101 +38,117 @@ export default function ExamManagement() {
       const apiArr = Array.isArray(raw)
         ? raw
         : Array.isArray(raw.data)
-        ? raw.data
-        : Array.isArray(raw.content)
-        ? raw.content
-        : Array.isArray(raw.items)
-        ? raw.items
-        : Array.isArray(raw.data?.content)
-        ? raw.data.content
-        : Array.isArray(raw.data?.items)
-        ? raw.data.items
-        : [];
+          ? raw.data
+          : Array.isArray(raw.content)
+            ? raw.content
+            : Array.isArray(raw.items)
+              ? raw.items
+              : Array.isArray(raw.data?.content)
+                ? raw.data.content
+                : Array.isArray(raw.data?.items)
+                  ? raw.data.items
+                  : [];
+
+      const toNumber = (val) => {
+        if (val === undefined || val === null) return 0;
+        if (typeof val === "number" && Number.isFinite(val)) return val;
+        if (typeof val === "string") {
+          const num = Number(val.replace(/[\s,]/g, ""));
+          return Number.isFinite(num) ? num : 0;
+        }
+        if (Array.isArray(val)) return val.length;
+        if (typeof val === "object") {
+          const candidates = [val.value, val.count, val.total, val.number];
+          for (const c of candidates) {
+            const n = toNumber(c);
+            if (Number.isFinite(n) && n !== 0) return n;
+          }
+        }
+        return 0;
+      };
 
       const mapped = apiArr.map((e) => ({
         id: e.id,
-        name: e.title,
-        description: e.description,
-        course: String(e.courseId ?? ""),
-        students: e.students,
-        avgScore: e.avgScore,
-        passRate: e.passRate,
-        totalQuestions: e.totalQuestions,
-        maxScore: e.maxScore,
-        passingScore: e.passingScore,
-        durationMinutes: e.durationMinutes,
-        duration: e.durationMinutes ? `${e.durationMinutes} phút` : "-",
-        startTime: e.startTime || e.startAt,
-        endTime: e.endTime || e.endAt,
-        status: e.status || "Đang mở",
-      }));
-      let local = [];
-      try {
-        local = JSON.parse(localStorage.getItem("exams") || "[]");
-      } catch {}
-      const localMapped = (Array.isArray(local) ? local : []).map((e) => ({
-        id: e.id,
         name: e.title || e.name,
         description: e.description,
-        course: String(e.course || e.courseId || ""),
-        students: e.students,
-        avgScore: e.avgScore,
-        passRate: e.passRate,
-        totalQuestions:
-          e.totalQuestions ??
-          (Array.isArray(e.questions) ? e.questions.length : undefined),
-        maxScore: e.maxScore,
-        passingScore: e.passingScore,
-        durationMinutes:
-          typeof e.durationMinutes === "number"
-            ? e.durationMinutes
-            : typeof e.duration === "string"
-            ? parseInt(String(e.duration).replace(/[^0-9]/g, "")) || undefined
-            : undefined,
-        duration:
-          e.duration || (e.durationMinutes ? `${e.durationMinutes} phút` : "-"),
+        course: String(e.courseId ?? e.course ?? ""),
+        students:
+          toNumber(
+            e.students ??
+              e.participants ??
+              e.participantCount ??
+              e.attempts ??
+              e.totalAttempts ??
+              e.submissions
+          ),
+        avgScore: toNumber(
+          e.avgScore ?? e.averageScore ?? e.avg ?? e.meanScore ?? e.scoreAvg ?? e?.stats?.avgScore
+        ),
+        passRate: toNumber(
+          e.passRate ?? e.passRatio ?? e.passPercentage ?? e.passPercent ?? e?.stats?.passRate
+        ),
+        totalQuestions: toNumber(
+          e.totalQuestions ?? e.questionCount ?? e.questions
+        ),
+        maxScore: toNumber(e.maxScore),
+        passingScore: toNumber(e.passingScore),
+        durationMinutes: toNumber(e.durationMinutes ?? e.duration),
+        duration: (e.durationMinutes ?? e.duration)
+          ? `${toNumber(e.durationMinutes ?? e.duration)} phút`
+          : "-",
         startTime: e.startTime || e.startAt,
         endTime: e.endTime || e.endAt,
         status: e.status || "Đang mở",
       }));
-      const merged = [...mapped, ...localMapped].reduce((acc, cur) => {
-        if (!acc.find((x) => x.id === cur.id)) acc.push(cur);
-        return acc;
-      }, []);
-      setExams(merged);
-      try {
-        localStorage.setItem("exams", JSON.stringify(merged));
-      } catch {}
-    } catch (err) {
-      // Fallback: nếu API lỗi, cố gắng lấy từ localStorage để tránh mất dữ liệu trên UI
-      try {
-        const local = JSON.parse(localStorage.getItem("exams") || "[]");
-        setExams(Array.isArray(local) ? local : []);
-      } catch {
-        setExams([]);
+      setExams(mapped);
+      const sumFromList = mapped.reduce((s, e) => s + (Number(e.students) || 0), 0);
+      const avgFromList = (() => {
+        const total = mapped.reduce((s, e) => s + (Number(e.avgScore) || 0), 0);
+        const count = mapped.length;
+        return count > 0 ? total / count : 0;
+      })();
+      setStudentsTotal(sumFromList);
+      setAvgScoreGlobal(avgFromList);
+      const needFetch = sumFromList === 0 || avgFromList === 0;
+      if (needFetch) {
+        const limited = mapped.slice(0, 10);
+        Promise.all(
+          limited.map((ex) =>
+            examService
+              .listAttempts(Number(ex.id))
+              .then((res) => {
+                const arr = Array.isArray(res?.data) ? res.data : [];
+                const count = arr.length;
+                const avg = arr.length > 0
+                  ? arr.reduce((s, a) => s + (Number(a?.score) || 0), 0) / arr.length
+                  : 0;
+                return { id: ex.id, count, avg };
+              })
+              .catch(() => ({ id: ex.id, count: 0, avg: 0 }))
+          )
+        ).then((stats) => {
+          const totalCount = stats.reduce((s, x) => s + x.count, 0);
+          const avgAll = (() => {
+            const totalAvg = stats.reduce((s, x) => s + x.avg, 0);
+            const n = stats.length;
+            return n > 0 ? totalAvg / n : 0;
+          })();
+          setStudentsTotal(totalCount);
+          setAvgScoreGlobal(avgAll);
+        });
       }
+    } catch (err) {
+      const status = err?.response?.status;
+      const msg = err?.response?.data?.message || err?.message || "Không thể tải danh sách kỳ thi";
+      if (status === 400) {
+        alert(`Lỗi 400: ${msg}`);
+      }
+      setExams([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const mapExam = (e) => ({
-    id: e.id,
-    name: e.title || e.name,
-    description: e.description,
-    course: String(e.courseId ?? e.course ?? ""),
-    students: e.students,
-    avgScore: e.avgScore,
-    passRate: e.passRate,
-    duration:
-      e.duration || (e.durationMinutes ? `${e.durationMinutes} phút` : "-"),
-    status: e.status || "Đang mở",
-    totalQuestions: e.totalQuestions,
-    maxScore: e.maxScore,
-    passingScore: e.passingScore,
-    startTime: e.startTime || e.startAt,
-    endTime: e.endTime || e.endAt,
-  });
 
   useEffect(() => {
     loadExams();
@@ -131,35 +157,15 @@ export default function ExamManagement() {
   const [openCreate, setOpenCreate] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
   const [editingExam, setEditingExam] = useState(null);
-  const [openDetail, setOpenDetail] = useState(false);
-  const [detailExam, setDetailExam] = useState(null);
 
   // ✅ Khi bấm nút "Tạo bài kiểm tra"
   const handleAddExam = () => {
     setOpenCreate(true);
   };
 
-  // ✅ Khi bấm nút "Ngân hàng câu hỏi"
-  const handleQuestionBank = () => {
-    navigate("/admin/question-bank");
-  };
+  
 
-  const handleRefresh = () => {
-    setSearch("");
-    setStatusFilter("ALL");
-    setPage(1);
-    loadExams();
-  };
 
-  // ✅ Khi bấm 📄 => mở dialog chi tiết bài kiểm tra
-  const handleReport = (exam) => {
-    setDetailExam(exam);
-    setOpenDetail(true);
-  };
-
-  const handleView = (exam) => {
-    navigate(`/admin/exam/${exam.id}/preview`);
-  };
 
   const handleEdit = (exam) => {
     setEditingExam(exam);
@@ -167,12 +173,26 @@ export default function ExamManagement() {
   };
 
   const handleDelete = (exam) => {
-    if (window.confirm(`Bạn có chắc muốn xóa "${exam.name}" không?`)) {
-      alert(`🗑️ Đã xóa kỳ thi: ${exam.name}`);
-      const updated = exams.filter((e) => e.id !== exam.id);
-      setExams(updated);
-      localStorage.setItem("exams", JSON.stringify(updated));
-    }
+    (async () => {
+      if (!isAdmin) {
+        alert("Bạn không có quyền xóa kỳ thi. Vui lòng đăng nhập tài khoản ADMIN.");
+        return;
+      }
+      const ok = window.confirm(`Bạn có chắc muốn xóa "${exam.name}" không?`);
+      if (!ok) return;
+      try {
+        await examService.deleteExam(exam.id);
+        await loadExams();
+      } catch (err) {
+        const status = err?.response?.status;
+        const msg = err?.response?.data?.message || err?.message || "Xóa kỳ thi thất bại";
+        if (status === 401 || status === 403) {
+          alert("Bạn không có quyền xóa kỳ thi. Vui lòng đăng nhập tài khoản ADMIN.");
+        } else {
+          alert(msg);
+        }
+      }
+    })();
   };
 
   const handleDeleteById = (id) => {
@@ -194,17 +214,6 @@ export default function ExamManagement() {
         onMenuToggle={toggleSidebar}
         actions={
           <div className="exam-header-buttons">
-            <button
-              className="exam-btn refresh"
-              onClick={handleRefresh}
-              title="Làm mới danh sách"
-              disabled={loading}
-            >
-              {loading ? "⟳ Đang làm mới..." : "⟳ Làm mới"}
-            </button>
-            <button className="exam-btn bank" onClick={handleQuestionBank}>
-              📚 Ngân hàng câu hỏi
-            </button>
             <button className="exam-btn add" onClick={handleAddExam}>
               + Tạo bài kiểm tra
             </button>
@@ -221,20 +230,12 @@ export default function ExamManagement() {
           </div>
           <div className="exam-card">
             <p className="exam-card-title">Số thí sinh</p>
-            <h3>{exams.reduce((sum, e) => sum + (e.students || 0), 0)}</h3>
+            <h3>{studentsTotal}</h3>
           </div>
           <div className="exam-card">
             <p className="exam-card-title">Điểm trung bình</p>
             <h3>
-              {(() => {
-                const total = exams.reduce(
-                  (sum, e) => sum + (e.avgScore || 0),
-                  0
-                );
-                const avg = exams.length > 0 ? total / exams.length : 0;
-                return avg.toFixed(1);
-              })()}
-              %
+              {avgScoreGlobal.toFixed(1)}
             </h3>
           </div>
         </div>
@@ -242,17 +243,25 @@ export default function ExamManagement() {
         {/* --- THANH TÌM KIẾM --- */}
         <div className="exam-searchbar">
           <div className="exam-search-row">
-            <input
-              type="text"
-              placeholder="Tìm kiếm bài kiểm tra..."
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setPage(1);
-              }}
-              className="exam-search-input"
-              aria-label="Tìm kiếm bài kiểm tra"
-            />
+            <div className="exam-search-input-wrap">
+              <div className="exam-search-icon-wrap">
+                <svg className="exam-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <circle cx="11" cy="11" r="8" />
+                  <path d="M21 21l-4.3-4.3" />
+                </svg>
+              </div>
+              <input
+                type="text"
+                placeholder="Tìm kiếm bài kiểm tra..."
+                value={search}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setPage(1);
+                }}
+                className="exam-search-input"
+                aria-label="Tìm kiếm bài kiểm tra"
+              />
+            </div>
             <select
               className="exam-status-filter"
               value={statusFilter}
@@ -277,11 +286,11 @@ export default function ExamManagement() {
           const filtered = exams.filter((e) => {
             const matchText = q
               ? String(e.title || e.name || "")
-                  .toLowerCase()
-                  .includes(q) ||
-                String(e.description || "")
-                  .toLowerCase()
-                  .includes(q)
+                .toLowerCase()
+                .includes(q) ||
+              String(e.description || "")
+                .toLowerCase()
+                .includes(q)
               : true;
             const matchStatus =
               statusFilter === "ALL" ? true : String(e.status) === statusFilter;
@@ -299,10 +308,9 @@ export default function ExamManagement() {
                 loading={loading}
                 onEdit={handleEdit}
                 onDelete={handleDeleteById}
+                canDelete={isAdmin}
                 onViewDetail={(id) => {
-                  const ex = exams.find((e) => String(e.id) === String(id));
-                  setDetailExam(ex || { id });
-                  setOpenDetail(true);
+                  navigate(`/admin/exam/${id}/detail`);
                 }}
               />
               <div className="exam-pagination">
@@ -330,54 +338,26 @@ export default function ExamManagement() {
         <ExamCreateDialog
           open={openCreate}
           onOpenChange={setOpenCreate}
-          onSuccess={(created) => {
-            if (created && created.id) {
-              setExams((prev) => {
-                const next = [mapExam(created), ...prev];
-                // dedupe theo id
-                const seen = new Set();
-                const deduped = next.filter((x) =>
-                  seen.has(x.id) ? false : (seen.add(x.id), true)
-                );
-                try {
-                  localStorage.setItem("exams", JSON.stringify(deduped));
-                } catch {}
-                return deduped;
-              });
-            } else {
-              // Fallback: refetch danh sách từ API
-              loadExams();
-            }
+          onSuccess={() => {
+            loadExams();
           }}
         />
         <ExamEditDialog
           open={openEdit}
           onOpenChange={setOpenEdit}
           exam={editingExam}
-          onSuccess={(updated) => {
-            if (updated && updated.id) {
-              const mapped = mapExam(updated);
-              setExams((prev) => {
-                const next = prev.map((e) =>
-                  String(e.id) === String(mapped.id) ? { ...e, ...mapped } : e
-                );
-                try {
-                  localStorage.setItem("exams", JSON.stringify(next));
-                } catch {}
-                return next;
-              });
-            } else {
-              // fallback: refetch nếu server không trả về object
-              loadExams();
-            }
+          onSuccess={() => {
+            loadExams();
           }}
         />
-        <ExamDetailDialog
-          open={openDetail}
-          onOpenChange={setOpenDetail}
-          exam={detailExam}
-        />
       </div>
+      <NotificationModal
+        isOpen={notification.isOpen}
+        onClose={() => setNotification((prev) => ({ ...prev, isOpen: false }))}
+        title={notification.title}
+        message={notification.message}
+        type={notification.type}
+      />
     </div>
   );
 }

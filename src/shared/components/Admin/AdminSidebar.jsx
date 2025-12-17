@@ -96,58 +96,17 @@ export default function AdminSidebar({ isOpen, onClose }) {
           >
             <i className="fa-solid fa-clipboard-check"></i>
             Bài kiểm tra
-          </NavLink>
-
-          {/* Cộng đồng */}
-          <div className="admin-sidebar-group">
-            <div
-              className="admin-sidebar-item"
-              onClick={() => toggleSection("community")}
-            >
-              <i className="fa-solid fa-comments"></i>
-              <span>Cộng đồng</span>
-              <i
-                className={`fa-solid fa-chevron-${
-                  openSection.community ? "up" : "down"
-                } sidebar-arrow`}
-              ></i>
-            </div>
-            {openSection.community && (
-              <div className="admin-sidebar-submenu">
-                <NavLink
-                  to="/admin/posts"
-                  className={({ isActive }) =>
-                    isActive
-                      ? "admin-sidebar-subitem active"
-                      : "admin-sidebar-subitem"
-                  }
-                >
-                  Bài viết
-                </NavLink>
-                <NavLink
-                  to="/admin/comments"
-                  className={({ isActive }) =>
-                    isActive
-                      ? "admin-sidebar-subitem active"
-                      : "admin-sidebar-subitem"
-                  }
-                >
-                  Bình luận
-                </NavLink>
-              </div>
-            )}
-          </div>
-
-          {/* Cài đặt */}
+          </NavLink> 
           <NavLink
-            to="/admin/settings"
+            to="/admin/question-bank"
             className={({ isActive }) =>
               isActive ? "admin-sidebar-item active" : "admin-sidebar-item"
             }
           >
             <i className="fa-solid fa-gear"></i>
-            Cài đặt hệ thống
+            Ngân hàng câu hỏi
           </NavLink>
+
         </nav>
       </div>
 
@@ -174,6 +133,6 @@ export default function AdminSidebar({ isOpen, onClose }) {
           Đăng xuất
         </button>
       </div>
-    </div>
+    </div >
   );
 }

@@ -1,9 +1,20 @@
 import React from "react";
 import "./ExamReport.css";
 import { useNavigate } from "react-router-dom";
+import NotificationModal from "@components/NotificationModal/NotificationModal";
 
 export default function ExamReport() {
   const navigate = useNavigate();
+  const [notification, setNotification] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    type: "info",
+  });
+
+  const showNotification = (title, message, type = "info") => {
+    setNotification({ isOpen: true, title, message, type });
+  };
 
   const exam = {
     title: "React Basics Quiz",
@@ -74,7 +85,7 @@ export default function ExamReport() {
   ];
 
   const handleBack = () => navigate("/admin/quiz");
-  const handleExport = () => alert("📄 Đang xuất báo cáo...");
+  const handleExport = () => showNotification("Thông báo", "📄 Đang xuất báo cáo...", "info");
 
   return (
     <div className="exam-report-container">
@@ -166,24 +177,22 @@ export default function ExamReport() {
                 <td>{s.duration}</td>
                 <td>
                   <span
-                    className={`status-tag ${
-                      s.status === "Đúng hạn"
-                        ? "ontime"
-                        : s.status === "Nộp muộn"
+                    className={`status-tag ${s.status === "Đúng hạn"
+                      ? "ontime"
+                      : s.status === "Nộp muộn"
                         ? "late"
                         : "missing"
-                    }`}
+                      }`}
                   >
                     {s.status}
                   </span>
                 </td>
                 <td>
                   <span
-                    className={`${
-                      s.score.includes("Chưa")
-                        ? "text-gray"
-                        : "text-green bold"
-                    }`}
+                    className={`${s.score.includes("Chưa")
+                      ? "text-gray"
+                      : "text-green bold"
+                      }`}
                   >
                     {s.score}
                   </span>
@@ -192,10 +201,12 @@ export default function ExamReport() {
                   <button
                     className="btn-view"
                     onClick={() =>
-                      alert(
+                      showNotification(
+                        "Thông báo",
                         s.graded
                           ? `📖 Xem bài nộp của ${s.name}`
-                          : `✏️ Chấm điểm cho ${s.name}`
+                          : `✏️ Chấm điểm cho ${s.name}`,
+                        "info"
                       )
                     }
                   >
@@ -207,6 +218,13 @@ export default function ExamReport() {
           </tbody>
         </table>
       </div>
+      <NotificationModal
+        isOpen={notification.isOpen}
+        onClose={() => setNotification((prev) => ({ ...prev, isOpen: false }))}
+        title={notification.title}
+        message={notification.message}
+        type={notification.type}
+      />
     </div>
   );
 }

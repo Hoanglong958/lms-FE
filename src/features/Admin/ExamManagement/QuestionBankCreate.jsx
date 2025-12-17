@@ -1,9 +1,19 @@
 import React, { useState } from "react";
 import "./QuestionBankCreate.css";
+import { useNavigate } from "react-router-dom";
+import { questionService } from "@utils/questionService.js";
 
 export default function QuestionBankCreate() {
+  const navigate = useNavigate();
   const [type, setType] = useState("Trắc nghiệm");
   const [options, setOptions] = useState(["", "", "", ""]);
+  const [questionText, setQuestionText] = useState("");
+  const [category, setCategory] = useState("");
+  const [correctAnswer, setCorrectAnswer] = useState("");
+  const [explanation, setExplanation] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const user = (() => { try { return JSON.parse(localStorage.getItem("loggedInUser") || "{}"); } catch { return {}; } })();
+  const isAdmin = String(user?.role || "").toUpperCase() === "ROLE_ADMIN";
 
   const handleOptionChange = (value, index) => {
     const newOps = [...options];
@@ -11,10 +21,36 @@ export default function QuestionBankCreate() {
     setOptions(newOps);
   };
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!isAdmin) return alert("Chỉ ADMIN được phép tạo mới câu hỏi");
+    if (!questionText.trim()) return;
+    const payload = {
+      category: category || "",
+      questionText: questionText,
+      options: type === "Trắc nghiệm" ? options.filter((x) => x && x.trim()) : [],
+      correctAnswer: type === "Trắc nghiệm" ? (correctAnswer || "").trim() : "",
+      explanation: explanation || "",
+    };
+    try {
+      setSubmitting(true);
+      await questionService.create(payload);
+      navigate("/admin/question-bank");
+    } catch {
+      setSubmitting(false);
+    }
+  };
+
   return (
     <div className="qb-create-container">
       <h2 className="qb-title">Tạo câu hỏi mới</h2>
       <p className="qb-sub">Nhập thông tin chi tiết cho câu hỏi</p>
+
+      {!isAdmin && (
+        <div style={{ marginBottom: 12, padding: "10px 12px", borderRadius: 8, background: "#fee2e2", color: "#991b1b", fontWeight: 600 }}>
+          Chỉ ADMIN được phép tạo mới câu hỏi
+        </div>
+      )}
 
       <div className="qb-card">
 
@@ -24,14 +60,18 @@ export default function QuestionBankCreate() {
           type="text"
           className="qb-input"
           placeholder="Nhập nội dung câu hỏi..."
+          value={questionText}
+          onChange={(e) => setQuestionText(e.target.value)}
         />
 
-        {/* Khóa học */}
-        <label className="qb-label">Khóa học *</label>
+        {/* Danh mục */}
+        <label className="qb-label">Danh mục *</label>
         <input
           type="text"
           className="qb-input"
           placeholder="VD: React Advanced"
+          value={category}
+          onChange={(e) => setCategory(e.target.value)}
         />
 
         {/* Loại */}
@@ -67,6 +107,8 @@ export default function QuestionBankCreate() {
               type="text"
               className="qb-input"
               placeholder="Nhập đáp án đúng"
+              value={correctAnswer}
+              onChange={(e) => setCorrectAnswer(e.target.value)}
             />
           </>
         )}
@@ -76,12 +118,14 @@ export default function QuestionBankCreate() {
         <textarea
           className="qb-textarea"
           placeholder="Nhập giải thích đáp án..."
+          value={explanation}
+          onChange={(e) => setExplanation(e.target.value)}
         />
 
         {/* Buttons */}
         <div className="qb-actions">
-          <button className="qb-btn cancel">Hủy</button>
-          <button className="qb-btn submit">Lưu câu hỏi</button>
+          <button className="qb-btn cancel" onClick={() => navigate("/admin/question-bank")}>Hủy</button>
+          <button className="qb-btn submit" disabled={!isAdmin || submitting} onClick={handleSubmit}>{submitting ? "Đang lưu..." : "Lưu câu hỏi"}</button>
         </div>
       </div>
     </div>

@@ -3,58 +3,87 @@ import { Link } from "react-router-dom";
 import "./ClassesPage.css";
 import { FaUserTie, FaRegClock } from "react-icons/fa";
 import { classService } from "@utils/classService";
+import { classStudentService } from "@utils/classStudentService";
 
 const ClassesPage = () => {
   const [classes, setClasses] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const mapClassesToState = (rawList) => {
+    const mapped = rawList.map((c) => ({
+      id: c.id,
+      title: c.name || c.className || "Lớp học không tên",
+      teacher: c.instructorName || c.teacherName || "Chưa phân công",
+      status: (c.status || "UPCOMING").toLowerCase() === 'active' ? 'Đang học' : 'Sắp bắt đầu',
+      schedule: c.schedule || "Chưa có lịch",
+      image: "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&w=1000&q=80",
+    }));
+    setClasses(mapped);
+  };
 
   useEffect(() => {
     let mounted = true;
     (async () => {
       try {
-        setLoading(true);
-        const res = await classService.getClasses({ page: 0, size: 1000 });
-        const raw = res?.data;
-        const apiData = Array.isArray(raw?.data?.content)
-          ? raw.data.content
-          : Array.isArray(raw?.content)
-          ? raw.content
-          : Array.isArray(raw?.data)
-          ? raw.data
-          : Array.isArray(raw)
-          ? raw
-          : [];
+        if (mounted) setLoading(true);
 
-        const mapped = apiData.map((item) => ({
-          id: item.id,
-          title:
-            item.className || item.name || item.class_name || "Chưa có tên",
-          teacher:
-            item.instructorName ||
-            item.teacher ||
-            item.instructor ||
-            item.teacherName ||
-            "Chưa phân công",
-          status:
-            item.status === "active" || item.status === "ACTIVE"
-              ? "Đang học"
-              : item.status === "ended" || item.status === "FINISHED"
-              ? "Hoàn thành"
-              : "Sắp bắt đầu",
-          schedule: item.schedule || item.timetable || "",
-          image: item.image || "/anh1.png",
-        }));
-        if (mounted) setClasses(mapped);
-      } catch (e) {
-        console.error("Load user classes failed", e);
-        if (mounted) setClasses([]);
+        const userStr = localStorage.getItem("loggedInUser");
+        let userId = null;
+        if (userStr) {
+          try {
+            userId = JSON.parse(userStr).id;
+          } catch (e) {
+            console.error("Error parsing user", e);
+          }
+        }
+
+        // 1. Fetch ALL classes
+        const res = await classService.getClasses();
+        const data = res.data?.data?.content || res.data?.data || res.data?.content || res.data || [];
+        const allClasses = Array.isArray(data) ? data : [];
+
+        if (userId) {
+          // 2. Filter classes by checking student enrollment
+          // Since backend doesn't support filter params, we check each class
+          const enrollmentChecks = await Promise.all(
+            allClasses.map(async (cls) => {
+              try {
+                const sRes = await classStudentService.getClassStudents(cls.id);
+                const students = sRes.data?.data || sRes.data || [];
+                // Check if current user is in this list
+                // Student record usually has 'studentId'
+                const isEnrolled = Array.isArray(students) && students.some(s =>
+                  String(s.studentId) === String(userId) || String(s.id) === String(userId)
+                );
+                return isEnrolled ? cls : null;
+              } catch (err) {
+                console.warn(`Failed to check students for class ${cls.id}`, err);
+                return null;
+              }
+            })
+          );
+
+          // Filter out nulls
+          const myClasses = enrollmentChecks.filter(c => c !== null);
+
+          if (mounted) mapClassesToState(myClasses);
+        } else {
+          // No user logged in, maybe show empty or all? 
+          // Request implies "YX`our classes", so likely empty if not logged in.
+          // But to be safe/friendly, let's just show all or empty. 
+          // "Danh sách lớp học của bạn" implies ownership.
+          if (mounted) setClasses([]);
+        }
+
+      } catch (err) {
+        console.error(err);
+        if (mounted) setError(err);
       } finally {
         if (mounted) setLoading(false);
       }
     })();
-    return () => {
-      mounted = false;
-    };
+    return () => { mounted = false; };
   }, []);
 
   const grid = useMemo(() => classes, [classes]);
@@ -66,44 +95,52 @@ const ClassesPage = () => {
       <div className="classes-grid">
         {loading && <p>Đang tải lớp học...</p>}
         {!loading && grid.length === 0 && (
-          <p>Chưa có lớp học nào.</p>
+          <div className="empty-state">
+            <p>Chưa có lớp học nào.</p>
+          </div>
         )}
         {!loading &&
-          grid.map((cls) => (
-          <Link
-            to={`/classes/${cls.id}`}
-            key={cls.id}
-            className="class-card"
-          >
-            <img src={cls.image} alt="" className="class-image" />
+          grid.map((cls) => {
+            // Determine status helper for class
+            let statusClass = "status-upcoming";
+            if (cls.status === "Đang học") statusClass = "status-active";
+            if (cls.status === "Đã kết thúc") statusClass = "status-finished";
 
-            <div className="class-content">
-              <h3 className="class-name">{cls.title}</h3>
-
-              <p className="class-info">
-                <FaUserTie className="icon" />
-                <span className="class-label">Giảng viên:</span>{" "}
-                {cls.teacher}
-              </p>
-
-              <p className="class-info">
-                <FaRegClock className="icon" />
-                <span className="class-label">Lịch học:</span>{" "}
-                {cls.schedule}
-              </p>
-
-              <span
-                className={`status-badge ${
-                  cls.status === "Đang học"
-                    ? "status-active"
-                    : "status-finished"
-                }`}
+            return (
+              <Link
+                to={`/classes/${cls.id}`}
+                key={cls.id}
+                className="class-card"
               >
-                {cls.status}
-              </span>
-            </div>
-          </Link>
-          ))}
+                <div className="class-image-wrapper">
+                  <img src={cls.image} alt={cls.title} className="class-image" />
+                  <div className="card-overlay-tags">
+                    <span className={`status-badge ${statusClass}`}>
+                      {cls.status}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="class-content">
+                  <h3 className="class-name">{cls.title}</h3>
+
+                  <div className="class-info-row">
+                    <FaRegClock className="info-icon" />
+                    <span>{cls.schedule}</span>
+                  </div>
+
+                  <div className="divider-line"></div>
+
+                  <div className="teacher-meta">
+                    <div className="teacher-avatar">
+                      {String(cls.teacher).charAt(0).toUpperCase()}
+                    </div>
+                    <span className="teacher-name">{cls.teacher}</span>
+                  </div>
+                </div>
+              </Link>
+            )
+          })}
       </div>
     </div>
   );

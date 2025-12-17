@@ -1,18 +1,43 @@
 import React, { useEffect, useState } from "react";
 import { quizQuestionService } from "@utils/quizQuestionService.js";
+
 import { questionService } from "@utils/questionService.js"; // giả sử có service lấy tất cả question
+import NotificationModal from "@components/NotificationModal/NotificationModal";
 
 export default function QuizQuestionSelector({ quiz, onChange }) {
   const [allQuestions, setAllQuestions] = useState([]);
   const [selectedIds, setSelectedIds] = useState([]);
   const [showModal, setShowModal] = useState(false);
 
+  const [notification, setNotification] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    type: "info",
+  });
+
+  const showNotification = (title, message, type = "info") => {
+    setNotification({ isOpen: true, title, message, type });
+  };
+
   useEffect(() => {
     // Load tất cả question khi modal mở
     if (!showModal) return;
     async function loadQuestions() {
       const res = await questionService.getAll();
-      setAllQuestions(res.data || []);
+      const raw = res?.data;
+      const arr = Array.isArray(raw)
+        ? raw
+        : Array.isArray(raw?.data)
+        ? raw.data
+        : Array.isArray(raw?.content)
+        ? raw.content
+        : [];
+      const mapped = arr.map((q) => ({
+        id: q?.id ?? q?.questionId ?? q?.id,
+        title: q?.questionText ?? q?.title ?? "",
+      }));
+      setAllQuestions(mapped);
     }
     loadQuestions();
   }, [showModal]);
@@ -25,7 +50,7 @@ export default function QuizQuestionSelector({ quiz, onChange }) {
 
   const handleAddSelected = async () => {
     if (selectedIds.length === 0) {
-      alert("Chưa chọn câu hỏi nào");
+      showNotification("Chưa chọn", "Chưa chọn câu hỏi nào", "warning");
       return;
     }
     // Validation removed as per user request (auto count)
@@ -49,7 +74,7 @@ export default function QuizQuestionSelector({ quiz, onChange }) {
       onChange?.();
       setShowModal(false);
     } catch (err) {
-      alert("Lỗi thêm câu hỏi");
+      showNotification("Lỗi", "Lỗi thêm câu hỏi", "error");
     }
   };
 
@@ -63,12 +88,12 @@ export default function QuizQuestionSelector({ quiz, onChange }) {
             <h3>Chọn câu hỏi cho Quiz: {quiz.title}</h3>
             <ul style={{ maxHeight: "300px", overflowY: "auto" }}>
               {allQuestions.map((q) => (
-                <li key={q.questionId}>
+                <li key={q.id}>
                   <label>
                     <input
                       type="checkbox"
-                      checked={selectedIds.includes(q.questionId)}
-                      onChange={() => handleToggle(q.questionId)}
+                      checked={selectedIds.includes(q.id)}
+                      onChange={() => handleToggle(q.id)}
                     />
                     {q.title}
                   </label>
@@ -80,6 +105,13 @@ export default function QuizQuestionSelector({ quiz, onChange }) {
           </div>
         </div>
       )}
+      <NotificationModal
+        isOpen={notification.isOpen}
+        onClose={() => setNotification((prev) => ({ ...prev, isOpen: false }))}
+        title={notification.title}
+        message={notification.message}
+        type={notification.type}
+      />
     </>
   );
 }

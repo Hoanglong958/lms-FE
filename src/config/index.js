@@ -1,7 +1,8 @@
 import axios from "axios";
 
 // Cấu hình Axios instance
-const API_BASE_URL = "http://localhost:3900/api/v1";
+const SERVER_URL = "http://localhost:3900";
+const API_BASE_URL = `${SERVER_URL}/api/v1`;
 
 const axiosInstance = axios.create({
   baseURL: API_BASE_URL,
@@ -31,5 +32,5 @@ axiosInstance.interceptors.response.use(
   }
 );
 
-export { axiosInstance, API_BASE_URL };
+export { axiosInstance, API_BASE_URL, SERVER_URL };
 export default axiosInstance;

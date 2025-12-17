@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { lessonVideoService } from "@utils/lessonVideoService.js";
 import { uploadService } from "@utils/uploadService";
+import NotificationModal from "@components/NotificationModal/NotificationModal";
 import "./CoursesCSS/LessonVideoCreate.css";
 
 function isValidUrl(url) {
@@ -28,7 +29,18 @@ export default function LessonVideoCreate({ lesson, onCreated }) {
     durationSeconds: "",
     description: "",
   });
+
   const [uploading, setUploading] = useState(false);
+  const [notification, setNotification] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    type: "info",
+  });
+
+  const showNotification = (title, message, type = "info") => {
+    setNotification({ isOpen: true, title, message, type });
+  };
 
   async function handleVideoUpload(e) {
     const file = e.target.files[0];
@@ -42,7 +54,7 @@ export default function LessonVideoCreate({ lesson, onCreated }) {
       const url = res.data.url || res.data;
       setForm((prev) => ({ ...prev, videoUrl: url }));
     } catch (err) {
-      alert("Upload video thất bại!");
+      showNotification("Lỗi", "Upload video thất bại!", "error");
       console.error(err);
     } finally {
       setUploading(false);
@@ -55,7 +67,7 @@ export default function LessonVideoCreate({ lesson, onCreated }) {
 
   async function handleCreate() {
     if (!form.videoUrl) {
-      alert("Vui lòng upload video trước khi tạo!");
+      showNotification("Thiếu thông tin", "Vui lòng upload video trước khi tạo!", "warning");
       return;
     }
 

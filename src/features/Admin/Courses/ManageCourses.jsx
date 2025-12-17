@@ -66,7 +66,9 @@ export default function ManageCourses() {
   const [showModal, setShowModal] = useState(false);
   const [currentCourse, setCurrentCourse] = useState(null);
   const [formData, setFormData] = useState(initialFormData);
+
   const [searchTerm, setSearchTerm] = useState("");
+  const [errors, setErrors] = useState({});
 
 
   // Load courses
@@ -84,16 +86,21 @@ export default function ManageCourses() {
   // Input change
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-
+    // Keep value as string to control input completely (like class management)
     setFormData((prev) => ({
       ...prev,
-      [name]: name === "totalSessions" ? Number(value) : value,
+      [name]: value,
     }));
+    // Clear error when user types
+    if (errors[name]) {
+      setErrors((prev) => ({ ...prev, [name]: "" }));
+    }
   };
 
   const handleAdd = () => {
     setCurrentCourse(null);
     setFormData(initialFormData);
+    setErrors({});
     setShowModal(true);
   };
 
@@ -105,6 +112,7 @@ export default function ManageCourses() {
       level: course.level || "",
       totalSessions: course.totalSessions || 0,
     });
+    setErrors({});
     setShowModal(true);
   };
 
@@ -119,6 +127,17 @@ export default function ManageCourses() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    const newErrors = {};
+    if (!formData.title.trim()) newErrors.title = "Vui lòng nhập tên khóa học";
+    if (!formData.description || !formData.description.trim()) newErrors.description = "Vui lòng nhập mô tả";
+    if (!formData.level) newErrors.level = "Vui lòng chọn cấp độ";
+    if (formData.totalSessions === "" || formData.totalSessions <= 0) newErrors.totalSessions = "Tổng số buổi phải lớn hơn 0";
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
 
     const payload = {
       ...formData,
@@ -217,9 +236,11 @@ export default function ManageCourses() {
                     type="text"
                     name="title"
                     value={formData.title}
+
                     onChange={handleInputChange}
-                    required
+                    className={errors.title ? styles.inputError : ""}
                   />
+                  {errors.title && <div className={styles.error}>{errors.title}</div>}
                 </div>
 
                 <div className={styles.formGroup}>
@@ -228,7 +249,9 @@ export default function ManageCourses() {
                     name="description"
                     value={formData.description}
                     onChange={handleInputChange}
+                    className={errors.description ? styles.inputError : ""}
                   />
+                  {errors.description && <div className={styles.error}>{errors.description}</div>}
                 </div>
 
                 <div className={styles.formGroup}>
@@ -238,9 +261,10 @@ export default function ManageCourses() {
                     name="totalSessions"
                     value={formData.totalSessions}
                     onChange={handleInputChange}
-                    required
                     min="1"
+                    className={errors.totalSessions ? styles.inputError : ""}
                   />
+                  {errors.totalSessions && <div className={styles.error}>{errors.totalSessions}</div>}
                 </div>
 
                 <div className={styles.formGroup}>
@@ -250,12 +274,14 @@ export default function ManageCourses() {
                     value={formData.level}
                     onChange={handleInputChange}
                     required
+                    className={errors.level ? styles.inputError : ""}
                   >
                     <option value="">Chọn cấp độ</option>
                     <option value="BEGINNER">Beginner</option>
                     <option value="INTERMEDIATE">Inrmediate</option>
                     <option value="ADVANCED">Advanced</option>
                   </select>
+                  {errors.level && <div className={styles.error}>{errors.level}</div>}
                 </div>
 
                 <div className={styles.formActions}>

@@ -8,6 +8,7 @@ import { courseService } from "@utils/courseService";
 import { classCourseService } from "@utils/classCourseService";
 import ClassDetail from "./ClassDetail";
 import ClassDetailModal from "./ClassDetailModal";
+import NotificationModal from "@components/NotificationModal/NotificationModal";
 import "./class.css";
 
 
@@ -41,6 +42,17 @@ export default function ClassManagement() {
     type: null,
     data: null,
   });
+
+  const [notification, setNotification] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    type: "info",
+  });
+
+  const showNotification = (title, message, type = "info") => {
+    setNotification({ isOpen: true, title, message, type });
+  };
 
   // --- Load classes từ API khi component mount ---
   const fetchClasses = useCallback(async () => {
@@ -339,7 +351,7 @@ export default function ClassManagement() {
               name: payload.name.trim(),
               subtitle: payload.subtitle.trim(),
               code: payload.code.trim(),
-              teacher: payload.teacher.trim(),
+              teacher: payload.teacher.trim(), // Optimistic update
               students: parseInt(payload.students) || 0,
               active: parseInt(payload.active) || 0,
               progress: parseInt(payload.progress) || 0,
@@ -569,22 +581,22 @@ export default function ClassManagement() {
             </thead>
             <tbody>
               {filtered.map((c) => (
-                <tr key={c.id} style={styles.tr}>
+                <tr
+                  key={c.id}
+                  style={{ ...styles.tr, cursor: "pointer" }}
+                  onClick={() => navigate(`/admin/classes/${c.id}`, { state: { classData: c } })}
+                >
                   <td style={styles.td}>
                     <div style={{ display: "grid", rowGap: 4 }}>
-                      <button
-                        type="button"
-                        onClick={() => navigate(`/admin/classes/${c.id}`, { state: { classData: c } })}
+                      <div
                         style={{
-                          background: "transparent",
-                          border: "none",
-                          padding: 0,
-                          textAlign: "left",
-                          cursor: "pointer",
+                          fontWeight: 600,
+                          fontSize: 14,
+                          color: "#111827",
                         }}
                       >
-                        <div style={styles.className}>{c.name}</div>
-                      </button>
+                        {c.name}
+                      </div>
                       <div style={styles.classSubtitle}>{c.subtitle}</div>
                     </div>
                   </td>
@@ -631,22 +643,24 @@ export default function ClassManagement() {
                   <td style={styles.td}>
                     <StatusBadge status={c.status} />
                   </td>
-                  <td style={styles.td}>
+                  <td style={styles.td} onClick={(e) => e.stopPropagation()}>
                     <ActionCell
-                      onView={() => navigate(`/admin/classes/${c.id}`, { state: { classData: c } })}
                       onEdit={() => setEditingClass(c)}
                       onDelete={() => handleRequestDelete(c)}
                     />
                   </td>
                 </tr>
-              ))}
-              {filtered.length === 0 && (
-                <tr>
-                  <td style={styles.emptyCell} colSpan={7}>
-                    Không tìm thấy lớp học phù hợp
-                  </td>
-                </tr>
-              )}
+              ))
+              }
+              {
+                filtered.length === 0 && (
+                  <tr>
+                    <td style={styles.emptyCell} colSpan={7}>
+                      Không tìm thấy lớp học phù hợp
+                    </td>
+                  </tr>
+                )
+              }
             </tbody>
           </table>
         </div>
@@ -795,60 +809,68 @@ function ActionCell({ onView, onEdit, onDelete }) {
     <div ref={containerRef} style={styles.actionWrap}>
       <button
         type="button"
-        aria-label="Xem lớp"
-        onClick={() => onView && onView()}
+        title="Chỉnh sửa"
+        onClick={(e) => {
+          e.stopPropagation();
+          onEdit && onEdit();
+        }}
         style={{
           background: "transparent",
           border: "none",
           cursor: "pointer",
-          color: "#6b7280",
-          marginRight: 8,
-          padding: 6,
+          color: "#2563eb",
+          padding: 4,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
         }}
       >
-        <IconEye />
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+        </svg>
       </button>
       <button
         type="button"
-        aria-label="Thao tác"
-        onClick={() => setOpen((v) => !v)}
-        style={{ ...styles.iconButton, marginLeft: 6 }}
+        title="Xóa"
+        onClick={(e) => {
+          e.stopPropagation();
+          onDelete && onDelete();
+        }}
+        style={{
+          background: "transparent",
+          border: "none",
+          cursor: "pointer",
+          color: "#ef4444",
+          padding: 4,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
       >
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-          <circle cx="5" cy="12" r="2" />
-          <circle cx="12" cy="12" r="2" />
-          <circle cx="19" cy="12" r="2" />
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <polyline points="3 6 5 6 21 6" />
+          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
         </svg>
       </button>
-      {open && (
-        <ul style={styles.menu}>
-          <li style={styles.menuItem}>
-            <button
-              type="button"
-              style={styles.menuBtn}
-              onClick={() => {
-                setOpen(false);
-                onEdit && onEdit();
-              }}
-            >
-              Chỉnh sửa
-            </button>
-          </li>
-
-          <li style={styles.menuItem}>
-            <button
-              type="button"
-              style={styles.menuBtnDanger}
-              onClick={() => {
-                setOpen(false);
-                onDelete && onDelete();
-              }}
-            >
-              Xóa
-            </button>
-          </li>
-        </ul>
-      )}
     </div>
   );
 }
@@ -1114,6 +1136,7 @@ function EditClassModal({ cls, onClose, onSubmit }) {
   const [endDate, setEndDate] = useState(cls.endDate || "");
   const [status, setStatus] = useState(cls.status || "upcoming");
   const [schedule, setSchedule] = useState(cls.schedule || "");
+
   const [errors, setErrors] = useState({});
   const [teachers, setTeachers] = useState([]);
 

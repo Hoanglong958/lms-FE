@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import "./ExamCreateDialog.css";
 import { examService } from "@utils/examService";
 import QuestionSelector from "./QuestionSelector";
+import NotificationModal from "@components/NotificationModal/NotificationModal";
 
 export default function ExamCreateDialog({ open, onOpenChange, onSuccess }) {
   const [submitting, setSubmitting] = useState(false);
@@ -18,6 +19,17 @@ export default function ExamCreateDialog({ open, onOpenChange, onSuccess }) {
     autoAddQuestions: false,
     questionIds: [],
   });
+
+  const [notification, setNotification] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    type: "info",
+  });
+
+  const showNotification = (title, message, type = "info") => {
+    setNotification({ isOpen: true, title, message, type });
+  };
 
   useEffect(() => {
     if (!open) {
@@ -38,16 +50,20 @@ export default function ExamCreateDialog({ open, onOpenChange, onSuccess }) {
     }
   }, [open]);
 
+  
+
   const canSubmit = useMemo(() => {
-    return (
+    const baseOk =
       form.title?.trim() &&
-      Number(form.totalQuestions) > 0 &&
       Number(form.durationMinutes) > 0 &&
-      Number(form.maxScore) > 0 &&
+      Number(form.maxScore) >= 0 &&
       Number(form.passingScore) >= 0 &&
       form.startTime &&
-      form.endTime
-    );
+      form.endTime;
+    const questionsOk = form.autoAddQuestions
+      ? Number(form.totalQuestions) > 0
+      : Array.isArray(form.questionIds) && form.questionIds.length > 0;
+    return baseOk && questionsOk;
   }, [form]);
 
   const handleChange = (e) => {
@@ -58,9 +74,7 @@ export default function ExamCreateDialog({ open, onOpenChange, onSuccess }) {
     }));
   };
 
-  const handleSelectQuestions = (ids) => {
-    setForm((prev) => ({ ...prev, questionIds: ids }));
-  };
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -68,11 +82,44 @@ export default function ExamCreateDialog({ open, onOpenChange, onSuccess }) {
 
     try {
       setSubmitting(true);
-      const payload = {
-        ...form,
+      const start = new Date(form.startTime).getTime();
+      const end = new Date(form.endTime).getTime();
+      if (!(start > 0 && end > 0) || end <= start) {
+        alert("Thời gian kết thúc phải sau thời gian bắt đầu");
+        setSubmitting(false);
+        return;
+      }
+      if (start < Date.now() - 60000) {
+        alert("Thời gian bắt đầu phải là hiện tại hoặc tương lai");
+        setSubmitting(false);
+        return;
+      }
+      if (Number(form.passingScore) > Number(form.maxScore)) {
+        alert("Điểm đạt không được lớn hơn điểm tối đa");
+        setSubmitting(false);
+        return;
+      }
+
+
+
+      const qids = Array.isArray(form.questionIds) ? form.questionIds.map((id) => Number(id)).filter((n) => Number.isFinite(n)) : [];
+      const tq = form.autoAddQuestions ? Number(form.totalQuestions) || 0 : qids.length;
+      const ps = Number(form.passingScore) || 0;
+
+      const basePayload = {
+        title: form.title.trim(),
+        description: (form.description?.trim() || form.title.trim()),
+        totalQuestions: tq,
+        maxScore: Number(form.maxScore) || 0,
+        passingScore: ps,
+        durationMinutes: Number(form.durationMinutes) || 0,
         startTime: new Date(form.startTime).toISOString(),
         endTime: new Date(form.endTime).toISOString(),
+        autoAddQuestions: !!form.autoAddQuestions,
+        questionIds: qids,
       };
+
+      const payload = basePayload;
 
       const res = await examService.createExam(payload);
       const ok = res?.status >= 200 && res?.status < 300;
@@ -84,7 +131,8 @@ export default function ExamCreateDialog({ open, onOpenChange, onSuccess }) {
       const status = err?.response?.status;
       const data = err?.response?.data;
       const message = data?.message || data?.error || err.message || "Lỗi không xác định";
-      alert(`Tạo bài kiểm tra thất bại! Status: ${status || "n/a"}. Message: ${message}`);
+      try { console.error("Create exam error", data || err, { form }); } catch { void 0; }
+      showNotification("Lỗi", `Tạo bài kiểm tra thất bại! Status: ${status || "n/a"}. Message: ${message}`, "error");
     } finally {
       setSubmitting(false);
     }
@@ -116,6 +164,7 @@ export default function ExamCreateDialog({ open, onOpenChange, onSuccess }) {
           <section className="examdlg-section">
             <h3 className="examdlg-section-title">Cấu hình bài thi</h3>
             <div className="examdlg-grid2">
+
               <div className="examdlg-field">
                 <label htmlFor="totalQuestions">Số câu hỏi <span className="req">*</span></label>
                 <input id="totalQuestions" name="totalQuestions" type="number" min={1} value={form.totalQuestions} onChange={handleChange} />
@@ -188,7 +237,15 @@ export default function ExamCreateDialog({ open, onOpenChange, onSuccess }) {
             onSelectQuestions={(ids) => setForm((prev) => ({ ...prev, questionIds: ids }))}
           />
         )}
+
       </div>
+      <NotificationModal
+        isOpen={notification.isOpen}
+        onClose={() => setNotification((prev) => ({ ...prev, isOpen: false }))}
+        title={notification.title}
+        message={notification.message}
+        type={notification.type}
+      />
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import React from "react";
 import "./ExamTable.css";
 
-export default function ExamTable({ exams = [], loading = false, onEdit, onDelete, onViewDetail }) {
+export default function ExamTable({ exams = [], loading = false, onEdit, onDelete, onViewDetail, canDelete = true }) {
   const columns = [
     "Tên kỳ thi",
     "Số câu hỏi",
@@ -83,7 +83,7 @@ export default function ExamTable({ exams = [], loading = false, onEdit, onDelet
                   <div className="examtbl-actions">
                     <button className="btn-icon view" title="Xem chi tiết" onClick={() => onViewDetail && onViewDetail(exam.id)}>👁️</button>
                     <button className="btn-icon edit" title="Chỉnh sửa" onClick={() => onEdit && onEdit(exam)}>✏️</button>
-                    <button className="btn-icon delete" title="Xóa" onClick={() => onDelete && onDelete(exam.id)}>🗑️</button>
+                    <button className="btn-icon delete" title="Xóa" onClick={() => onDelete && onDelete(exam.id)} disabled={!canDelete}>🗑️</button>
                   </div>
                 </td>
               </tr>

@@ -15,6 +15,9 @@ import Level from "@assets/images/Level.svg";
 import arrowUpRight from "@assets/icons/arrow-up-right-icon.svg";
 import pattern from "@assets/pattern/clip-path-group.svg";
 
+import { classService } from "@utils/classService";
+import { classStudentService } from "@utils/classStudentService";
+import { classCourseService } from "@utils/classCourseService";
 import { courseService } from "@utils/courseService";
 
 export default function HomePage() {
@@ -26,20 +29,107 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Fetch data từ API thay cho mock
   useEffect(() => {
+    let mounted = true;
     const fetchCourses = async () => {
       try {
-        setLoading(true);
-        const res = await courseService.getCourses(); // lấy tất cả course
-        setCourses(res.data || []); // axios trả về { data: [...] }
+        if (mounted) setLoading(true);
+
+        const userStr = localStorage.getItem("loggedInUser");
+        let userId = null;
+        if (userStr) {
+          try {
+            userId = JSON.parse(userStr).id;
+          } catch (e) { }
+        }
+
+        if (userId) {
+          // 1. Fetch all classes
+          const classRes = await classService.getClasses();
+          const allClasses = classRes.data?.data?.content || classRes.data?.data || classRes.data || [];
+
+          // 2. Filter enrolled classes
+          const enrollmentChecks = await Promise.all(
+            (Array.isArray(allClasses) ? allClasses : []).map(async (cls) => {
+              try {
+                const sRes = await classStudentService.getClassStudents(cls.id);
+                const students = sRes.data?.data || sRes.data || [];
+                const isEnrolled = Array.isArray(students) && students.some(s =>
+                  String(s.studentId) === String(userId) || String(s.id) === String(userId)
+                );
+                return isEnrolled ? cls : null;
+              } catch (err) {
+                return null;
+              }
+            })
+          );
+          const myClasses = enrollmentChecks.filter(c => c !== null);
+
+          // 3. Fetch courses for each enrolled class
+          const coursePromises = myClasses.map(cls => classCourseService.getClassCourses(cls.id));
+          const courseResponses = await Promise.all(coursePromises);
+
+          let aggregatedCourses = [];
+          courseResponses.forEach(res => {
+            const cList = res.data?.data || res.data || [];
+            if (Array.isArray(cList)) {
+              aggregatedCourses = [...aggregatedCourses, ...cList];
+            }
+          });
+
+          // 4. Deduplicate and map
+          // Course structure from class-course API might be different from main course API
+          // Usually returns { courseId, courseTitle, ... }
+          const uniqueCourses = [];
+          const seenIds = new Set();
+
+          for (const c of aggregatedCourses) {
+            // Determine ID and Title
+            // The API might return course details or just assignment details
+            const cId = c.courseId || c.id;
+            if (!seenIds.has(cId)) {
+              seenIds.add(cId);
+
+              // Note: If the assignment object doesn't have full course details (like image), 
+              // we might need to fetch course details separately. 
+              // For now, let's assume basic info is there or map what we can.
+              uniqueCourses.push({
+                id: cId,
+                title: c.courseTitle || c.title || c.courseName || "Khóa học",
+                slug: c.courseSlug || c.slug,
+                imageUrl: c.image || c.imageUrl, // Might be missing in assignment DTO
+                durationMinutes: c.duration || 360,
+                totalSessions: c.sessions || 32,
+                teacherName: c.teacherName || "Giang Sensei",
+                // Keep original object for other fields if needed
+                ...c
+              });
+            }
+          }
+
+          if (mounted) setCourses(uniqueCourses);
+
+        } else {
+          // No user -> Show all courses
+          const res = await courseService.getCourses();
+          const data = res.data?.data?.content || res.data?.data || res.data || [];
+          // Map standard course response
+          const mapped = (Array.isArray(data) ? data : []).map(c => ({
+            ...c,
+            imageUrl: c.image || c.imageUrl // ensure consistency
+          }));
+          if (mounted) setCourses(mapped);
+        }
+
       } catch (err) {
+        console.error("Home load error", err);
       } finally {
-        setLoading(false);
+        if (mounted) setLoading(false);
       }
     };
 
     fetchCourses();
+    return () => { mounted = false; };
   }, []);
 
   const filteredCourses = courses.filter((c) =>

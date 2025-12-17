@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { classService } from "@utils/classService";
+import { classCourseService } from "@utils/classCourseService";
+import { classStudentService } from "@utils/classStudentService";
+import { slugify } from "@utils/slugify";
 import "./ClassDetailPage.css";
 
 const ClassDetailPage = () => {
@@ -13,13 +16,28 @@ const ClassDetailPage = () => {
     (async () => {
       try {
         setLoading(true);
-        const res = await classService.getClassDetail(id);
-        const raw = res?.data;
+        setLoading(true);
+        const [resDetail, resCourses, resStudents] = await Promise.all([
+          classService.getClassDetail(id),
+          classCourseService.getClassCourses(id),
+          classStudentService.getClassStudents(id)
+        ]);
+
+        const raw = resDetail?.data;
+        const coursesRaw = resCourses?.data || [];
+        // Map courses data
+        const courses = Array.isArray(coursesRaw) ? coursesRaw : (coursesRaw.data || []);
+
+        const studentsRaw = resStudents?.data || [];
+        const fetchedStudents = Array.isArray(studentsRaw) ? studentsRaw : (studentsRaw.data || []);
+
         const d = raw?.data || raw?.item || raw?.content || raw || {};
         const endDate = d.endDate || d.end_date || null;
         const startDate = d.startDate || d.start_date || null;
         const scheduleInfo = d.schedule || d.timetable || "";
-        const studentsArr = d.students || d.studentList || d.members || [];
+        // Use fetched students if detail doesn't have them
+        const studentsArr = fetchedStudents.length > 0 ? fetchedStudents : (d.students || d.studentList || d.members || []);
+
         const image = d.image || "/anh1.png";
         const mapped = {
           id: d.id || Number(id),
@@ -32,20 +50,18 @@ const ClassDetailPage = () => {
           totalStudents:
             typeof d.totalStudents === "number"
               ? d.totalStudents
-              : Array.isArray(studentsArr)
-              ? studentsArr.length
-              : 0,
+              : studentsArr.length,
           totalTeachers: d.totalTeachers || 1,
           totalCourses: d.totalCourses || d.coursesCount || 0,
           image,
           students:
             Array.isArray(studentsArr)
               ? studentsArr.map((s) => ({
-                  id: s.id || s.studentId || s.code || Math.random(),
-                  name: s.fullName || s.name || "Học viên",
-                  code: s.code || s.studentCode || "N/A",
-                }))
+                id: s.id || s.studentId || s.code || Math.random(),
+                name: s.fullName || s.name || s.studentName || "Học viên",
+              }))
               : [],
+          courses: courses,
         };
         if (mounted) setDetail(mapped);
       } catch (e) {
@@ -75,82 +91,123 @@ const ClassDetailPage = () => {
   }, [id]);
 
   const cls = useMemo(() => detail, [detail]);
-  if (loading) return <h2 style={{ padding: 20 }}>Đang tải lớp học...</h2>;
-  if (!cls) return <h2 style={{ padding: 20 }}>Không tìm thấy lớp học!</h2>;
+  if (loading) return <div style={{ minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><h2>Đang tải lớp học...</h2></div>;
+  if (!cls) return <div style={{ minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><h2>Không tìm thấy lớp học!</h2></div>;
+
+  const statusClass = cls.status === "ACTIVE" ? "status-active" : cls.status === "FINISHED" ? "status-finished" : "status-upcoming";
+
+  const statusMap = {
+    "ACTIVE": "Đang học",
+    "FINISHED": "Đã kết thúc",
+    "UPCOMING": "Sắp bắt đầu",
+    "ONGOING": "Sắp bắt đầu" // Mapping per user request, though usually means Active
+  };
+  const displayStatus = statusMap[cls.status] || cls.status || "Sắp bắt đầu";
 
   return (
     <div className="class-detail-container">
-      <div className="class-detail-card">
 
-        {/* Banner */}
-        <div className="banner-wrapper">
-          <img src={cls.image} className="banner-img" />
-        </div>
+      {/* HERO SECTION */}
+      <div className="cd-hero">
+        <div className="cd-hero-bg"></div>
+        <div className="cd-header-content">
+          <span className={`cd-status-badge ${statusClass}`}>{displayStatus}</span>
+          <h1 className="cd-title">{cls.className}</h1>
+          <p className="cd-description">{cls.description}</p>
 
-        {/* Title + Description */}
-        <h1 className="class-title">{cls.className}</h1>
-        <p className="class-description">{cls.description}</p>
-
-        {/* Info Grid */}
-        <div className="info-grid">
-          <div className="info-box">
-            <p>Học viên</p>
-            <span>{cls.totalStudents}</span>
-          </div>
-
-          <div className="info-box">
-            <p>Giảng viên</p>
-            <span>{cls.totalTeachers}</span>
-          </div>
-
-          <div className="info-box">
-            <p>Khóa học</p>
-            <span>{cls.totalCourses}</span>
-          </div>
-
-          <div className="info-box">
-            <p>Lịch học</p>
-            <span>{cls.scheduleInfo}</span>
+          {/* New Action Buttons */}
+          <div className="cd-actions-row">
+            <button className="cd-btn-action">
+              <div className="cd-btn-icon-box icon-schedule">📅</div>
+              <span>Thời khóa biểu</span>
+            </button>
+            <button className="cd-btn-action">
+              <div className="cd-btn-icon-box icon-path">🗺️</div>
+              <span>Lộ trình học</span>
+            </button>
           </div>
         </div>
+      </div>
 
-        {/* Date */}
-        <div className="date-box">
-          <strong>Ngày bắt đầu:</strong> {cls.startDate} <br />
-          <strong>Ngày kết thúc:</strong> {cls.endDate}
-        </div>
+      <div className="cd-sections-grid">
+        {/* LEFT COLUMN: COURSES & STUDENTS */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
 
-        {/* Status */}
-        <span
-          className={`status-label ${
-            cls.status.toLowerCase()
-          }`}
-        >
-          {cls.status}
-        </span>
+          {/* Courses List */}
+          <div className="cd-card">
+            <div className="cd-section-title">
+              Danh sách khóa học ({cls.totalCourses})
+            </div>
+            {(!cls.courses || cls.courses.length === 0) && (
+              <div className="empty-note">Chưa có khóa học nào được gán vào lớp này.</div>
+            )}
+            {cls.courses && cls.courses.length > 0 && (
+              <div className="courses-list-modern">
+                {cls.courses.map((c) => {
+                  const courseTitle = c.courseTitle || c.courseName || c.title || "Khóa học";
+                  const courseSlug = c.slug || c.courseSlug || slugify(courseTitle);
+                  return (
+                    <Link to={`/courses/${courseSlug}`} key={c.id} className="course-item-row">
+                      <div className="course-code-badge">{c.courseCode || "CODE"}</div>
+                      <div className="course-title-row">{courseTitle}</div>
+                      <div className="course-arrow">→</div>
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+          </div>
 
-        {/* Students List */}
-        <div className="students-section">
-          <h3>Danh sách học viên</h3>
-          {(!cls.students || cls.students.length === 0) && (
-            <div className="students-empty">Chưa có dữ liệu học viên</div>
-          )}
-          {cls.students && cls.students.length > 0 && (
-            <ul className="students-list">
-              {cls.students.map((st) => (
-                <li key={st.id} className="student-item">
-                  <div className="student-avatar">{String(st.name || "HV").slice(0, 1)}</div>
-                  <div className="student-meta">
-                    <div className="student-name">{st.name}</div>
-                    <div className="student-code">{st.code}</div>
+          {/* Students List */}
+          <div className="cd-card">
+            <div className="cd-section-title">
+              Danh sách học viên ({cls.totalStudents})
+            </div>
+            {(!cls.students || cls.students.length === 0) && (
+              <div className="empty-note">Chưa có dữ liệu học viên</div>
+            )}
+            {cls.students && cls.students.length > 0 && (
+              <div className="students-grid">
+                {cls.students.map((st) => (
+                  <div key={st.id} className="student-card">
+                    <div className="st-avatar">{String(st.name || "HV").slice(0, 1)}</div>
+                    <div className="st-info">
+                      <span className="st-name">{st.name}</span>
+                      {st.code && st.code !== "N/A" && (
+                        <span className="st-code">{st.code}</span>
+                      )}
+                    </div>
                   </div>
-                </li>
-              ))}
-            </ul>
-          )}
+                ))}
+              </div>
+            )}
+          </div>
+
+        </div>
+
+        {/* RIGHT COLUMN: SIDEBAR INFO */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+          <div className="cd-card">
+            <div className="cd-section-title">Thông tin chi tiết</div>
+            <div>
+              <div className="sidebar-info-row">
+                <span className="sidebar-label">Ngày bắt đầu</span>
+                <span className="sidebar-value">{cls.startDate}</span>
+              </div>
+              <div className="sidebar-info-row">
+                <span className="sidebar-label">Ngày kết thúc</span>
+                <span className="sidebar-value">{cls.endDate}</span>
+              </div>
+              <div className="sidebar-info-row">
+                <span className="sidebar-label">Giảng viên</span>
+                <span className="sidebar-value">{cls.totalTeachers} GV</span>
+              </div>
+            </div>
+          </div>
         </div>
 
       </div>
+
     </div>
   );
 };

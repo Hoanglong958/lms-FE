@@ -5,6 +5,7 @@ import { questionService } from "@utils/questionService.js";
 
 // IMPORT CSS RIÊNG CHO TRANG NÀY
 import "./CoursesCSS/LessonQuizEditor.css";
+import NotificationModal from "@components/NotificationModal/NotificationModal";
 
 export default function LessonQuizEditor({ quiz, onUpdated }) {
   const [editing, setEditing] = useState(false);
@@ -18,6 +19,20 @@ export default function LessonQuizEditor({ quiz, onUpdated }) {
   const [allQuestions, setAllQuestions] = useState([]);
   const [selectingQuestions, setSelectingQuestions] = useState(false);
   const [selectedQuestions, setSelectedQuestions] = useState([]);
+  const [notification, setNotification] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    type: "info",
+  });
+
+  const showNotification = (title, message, type = "info") => {
+    setNotification({ isOpen: true, title, message, type });
+  };
+
+  const closeNotification = () => {
+    setNotification((prev) => ({ ...prev, isOpen: false }));
+  };
 
   // Map quiz questionId với allQuestions để lấy question_text
   const mappedQuestions = questions.map((q) => {
@@ -83,7 +98,7 @@ export default function LessonQuizEditor({ quiz, onUpdated }) {
 
   // Save quiz info
   const handleSave = async () => {
-    if (!form.title) return alert("Tiêu đề quiz không được để trống");
+    if (!form.title) return showNotification("Lỗi", "Tiêu đề quiz không được để trống", "error");
 
     const payload = {
       lessonId: quiz.lessonId,
@@ -97,7 +112,7 @@ export default function LessonQuizEditor({ quiz, onUpdated }) {
       onUpdated(res.data);
       setEditing(false);
     } catch (err) {
-      alert("Không thể lưu quiz");
+      showNotification("Lỗi", "Không thể lưu quiz", "error");
     }
   };
 
@@ -115,7 +130,7 @@ export default function LessonQuizEditor({ quiz, onUpdated }) {
     );
 
     if (toAdd.length === 0 && toRemoveQuestionIds.length === 0) {
-      alert("Không có thay đổi nào");
+      showNotification("Thông báo", "Không có thay đổi nào", "info");
       setSelectingQuestions(false);
       return;
     }
@@ -166,7 +181,7 @@ export default function LessonQuizEditor({ quiz, onUpdated }) {
       setSelectedQuestions(mapped.map((q) => q.questionId));
 
     } catch (err) {
-      alert("Không thể lưu danh sách câu hỏi. Vui lòng thử lại.");
+      showNotification("Lỗi", "Không thể lưu danh sách câu hỏi. Vui lòng thử lại.", "error");
       console.error(err);
     }
   };
@@ -179,9 +194,10 @@ export default function LessonQuizEditor({ quiz, onUpdated }) {
         prev.filter((item) => item.questionId !== q.questionId)
       );
       setSelectedQuestions((prev) => prev.filter((id) => id !== q.questionId));
-      alert("Đã xóa câu hỏi khỏi quiz");
+      setSelectedQuestions((prev) => prev.filter((id) => id !== q.questionId));
+      showNotification("Thành công", "Đã xóa câu hỏi khỏi quiz", "success");
     } catch (err) {
-      alert("Không thể xóa câu hỏi");
+      showNotification("Lỗi", "Không thể xóa câu hỏi", "error");
     }
   };
 
@@ -376,6 +392,14 @@ export default function LessonQuizEditor({ quiz, onUpdated }) {
         </div>
 
         {selectingQuestions && renderSelectModal()}
+
+        <NotificationModal
+          isOpen={notification.isOpen}
+          onClose={closeNotification}
+          title={notification.title}
+          message={notification.message}
+          type={notification.type}
+        />
       </div>
     );
   }
@@ -411,6 +435,14 @@ export default function LessonQuizEditor({ quiz, onUpdated }) {
       <button className="lqz-btn-secondary" onClick={() => setEditing(false)}>
         Hủy
       </button>
+
+      <NotificationModal
+        isOpen={notification.isOpen}
+        onClose={closeNotification}
+        title={notification.title}
+        message={notification.message}
+        type={notification.type}
+      />
     </div>
   );
 }

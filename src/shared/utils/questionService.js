@@ -16,4 +16,7 @@ export const questionService = {
   delete(id) {
     return api.delete(`/api/v1/questions/${id}`);
   },
+  bulkCreate(questions) {
+    return api.post("/api/v1/questions/bulk", questions);
+  },
 };

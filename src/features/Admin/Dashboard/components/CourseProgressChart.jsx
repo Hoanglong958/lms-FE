@@ -1,3 +1,6 @@
+// Đường dẫn: features/Admin/Dashboard/components/CourseProgressChart.jsx
+// (KHÔNG THAY ĐỔI)
+
 import React from "react";
 import {
   BarChart,
@@ -6,32 +9,32 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
+  Legend,
   ResponsiveContainer,
 } from "recharts";
+import { courseProgressData } from "../mock/dashboardMock.js";
 
-const CourseProgressChart = ({ data = [] }) => {
-  // Nếu không có dữ liệu → không render biểu đồ
-  const safeData = Array.isArray(data) ? data : [];
-
+const CourseProgressChart = () => {
   return (
-    <ResponsiveContainer width="100%" height={300}>
+    <ResponsiveContainer width="100%" height="100%">
+      {" "}
       <BarChart
-        data={safeData}
+        data={courseProgressData}
         margin={{
-          top: 20,
-          right: 20,
-          left: 0,
-          bottom: 10,
+          top: 5,
+          right: 0,
+          left: -20, // Dịch sang trái 1 chút cho YAxis
+          bottom: 5,
         }}
       >
-        <CartesianGrid strokeDasharray="3 3" stroke="#ddd" />
+        <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
         <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-        <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
+        <YAxis tick={{ fontSize: 12 }} />
         <Tooltip />
-
-        <Bar dataKey="Hoàn thành" fill="#22c55e" />
-        <Bar dataKey="Đang học" fill="#3b82f6" />
-      </BarChart>
+        <Legend />
+        <Bar dataKey="Hoàn thành" fill="#22c55e" /> {/* Màu xanh green */}
+        <Bar dataKey="Đang học" fill="#3b82f6" /> {/* Màu xanh blue */}{" "}
+      </BarChart>{" "}
     </ResponsiveContainer>
   );
 };

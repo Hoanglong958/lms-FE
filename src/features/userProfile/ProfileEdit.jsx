@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { authService } from "@utils/authService";
+import NotificationModal from "@components/NotificationModal/NotificationModal";
 import "./ProfileEdit.css";
 
 export default function ProfileEdit() {
@@ -11,6 +12,17 @@ export default function ProfileEdit() {
         phone: "0981 965 304",
         studentId: "PT242",
     });
+
+    const [notification, setNotification] = useState({
+        isOpen: false,
+        title: "",
+        message: "",
+        type: "info",
+    });
+
+    const showNotification = (title, message, type = "info") => {
+        setNotification({ isOpen: true, title, message, type });
+    };
 
     const [profileImage, setProfileImage] = useState(null);
 
@@ -28,7 +40,7 @@ export default function ProfileEdit() {
             // Validate file type
             const validTypes = ["image/png", "image/jpeg", "image/jpg"];
             if (!validTypes.includes(file.type)) {
-                alert("Vui lòng chọn file ảnh định dạng PNG hoặc JPG");
+                showNotification("Lỗi định dạng", "Vui lòng chọn file ảnh định dạng PNG hoặc JPG", "error");
                 return;
             }
 
@@ -77,28 +89,28 @@ export default function ProfileEdit() {
         const { oldPassword, newPassword, confirmPassword } = passwordData;
 
         if (!oldPassword || !newPassword || !confirmPassword) {
-            alert("Vui lòng điền đầy đủ thông tin");
+            showNotification("Thiếu thông tin", "Vui lòng điền đầy đủ thông tin", "error");
             return;
         }
 
         if (newPassword !== confirmPassword) {
-            alert("Mật khẩu xác nhận không khớp");
+            showNotification("Lỗi", "Mật khẩu xác nhận không khớp", "error");
             return;
         }
 
         if (newPassword.length < 6) {
-            alert("Mật khẩu mới phải có ít nhất 6 ký tự");
+            showNotification("Mật khẩu yếu", "Mật khẩu mới phải có ít nhất 6 ký tự", "error");
             return;
         }
 
         try {
-            await authService.changePassword({ oldPassword, newPassword });
-            alert("Đổi mật khẩu thành công!");
+            await authService.changePassword({ oldPassword, newPassword, confirmPassword });
+            showNotification("Thành công", "Đổi mật khẩu thành công!", "success");
             handleClosePasswordModal();
         } catch (error) {
             console.error("Change password error:", error);
             const msg = error.response?.data?.message || "Đổi mật khẩu thất bại";
-            alert(msg);
+            showNotification("Lỗi", msg, "error");
         }
     };
 
@@ -106,7 +118,7 @@ export default function ProfileEdit() {
         e.preventDefault();
         // TODO: Implement save logic
         console.log("Form data:", formData);
-        alert("Thông tin đã được lưu!");
+        showNotification("Thành công", "Thông tin đã được lưu!", "success");
     };
 
     return (
@@ -331,6 +343,13 @@ export default function ProfileEdit() {
                     </div>
                 </div>
             )}
+            <NotificationModal
+                isOpen={notification.isOpen}
+                onClose={() => setNotification((prev) => ({ ...prev, isOpen: false }))}
+                title={notification.title}
+                message={notification.message}
+                type={notification.type}
+            />
         </div>
     );
 }

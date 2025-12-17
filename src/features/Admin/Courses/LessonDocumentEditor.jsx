@@ -4,7 +4,9 @@ import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 import { lessonDocumentService } from "@utils/lessonDocumentService.js";
 import { uploadService } from "@utils/uploadService";
 import VideoProgress from "@components/VideoPlayer/VideoProgress";
+import NotificationModal from "@components/NotificationModal/NotificationModal";
 import "./CoursesCSS/LessonDocumentEditor.css";
+import { SERVER_URL } from "@config";
 
 // Toolbar dùng chung
 const CKEDITOR_TOOLBAR = [
@@ -44,6 +46,21 @@ export default function LessonDocumentEditor({ document, onUpdated }) {
     setEditing(false);
   }, [document]);
 
+  const [notification, setNotification] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    type: "info",
+  });
+
+  const showNotification = (title, message, type = "info") => {
+    setNotification({ isOpen: true, title, message, type });
+  };
+
+  const closeNotification = () => {
+    setNotification((prev) => ({ ...prev, isOpen: false }));
+  };
+
   const [uploading, setUploading] = useState(false);
 
   const handleImageUpload = async (e) => {
@@ -54,8 +71,9 @@ export default function LessonDocumentEditor({ document, onUpdated }) {
       const res = await uploadService.uploadImage(file);
       const url = res.data.url || res.data;
       setForm((prev) => ({ ...prev, imageUrl: url }));
+      setForm((prev) => ({ ...prev, imageUrl: url }));
     } catch (err) {
-      alert("Upload ảnh thất bại");
+      showNotification("Lỗi", "Upload ảnh thất bại", "error");
     } finally {
       setUploading(false);
     }
@@ -69,8 +87,9 @@ export default function LessonDocumentEditor({ document, onUpdated }) {
       const res = await uploadService.uploadVideo(file);
       const url = res.data.url || res.data;
       setForm((prev) => ({ ...prev, videoUrl: url }));
+      setForm((prev) => ({ ...prev, videoUrl: url }));
     } catch (err) {
-      alert("Upload video thất bại");
+      showNotification("Lỗi", "Upload video thất bại", "error");
     } finally {
       setUploading(false);
     }
@@ -78,7 +97,7 @@ export default function LessonDocumentEditor({ document, onUpdated }) {
 
   const handleSave = async () => {
     if (!form.title) {
-      alert("Tiêu đề không được để trống");
+      showNotification("Lỗi", "Tiêu đề không được để trống", "error");
       return;
     }
 
@@ -91,7 +110,7 @@ export default function LessonDocumentEditor({ document, onUpdated }) {
       onUpdated(res.data);
       setEditing(false);
     } catch (err) {
-      alert("Lưu tài liệu thất bại.");
+      showNotification("Lỗi", "Lưu tài liệu thất bại.", "error");
     }
   };
 
@@ -125,7 +144,11 @@ export default function LessonDocumentEditor({ document, onUpdated }) {
         />
         {document.imageUrl && (
           <img
-            src={document.imageUrl}
+            src={
+              document.imageUrl.startsWith("/")
+                ? `${SERVER_URL}${document.imageUrl}`
+                : document.imageUrl
+            }
             alt={document.title}
             className="lde-image"
             onError={(e) => {
@@ -136,14 +159,21 @@ export default function LessonDocumentEditor({ document, onUpdated }) {
         )}
         {document.videoUrl && (
           <div style={{ marginTop: "12px", marginBottom: "12px" }}>
-            {/* Simple check: if youtube, show link (or iframe if we wanted), else VideoProgress */}
-            {/youtube\.com|youtu\.be/.test(document.videoUrl) ? (
-              <a href={document.videoUrl} className="lde-link" target="_blank">
-                Link Video (YouTube)
-              </a>
-            ) : (
-              <VideoProgress src={document.videoUrl} />
-            )}
+            {/* Prepend server URL if relative */}
+            {(() => {
+              const fullVideoUrl = document.videoUrl.startsWith("/")
+                ? `${SERVER_URL}${document.videoUrl}`
+                : document.videoUrl;
+
+              if (/youtube\.com|youtu\.be/.test(fullVideoUrl)) {
+                return (
+                  <a href={fullVideoUrl} className="lde-link" target="_blank" rel="noreferrer">
+                    Link Video (YouTube)
+                  </a>
+                );
+              }
+              return <VideoProgress src={fullVideoUrl} />;
+            })()}
           </div>
         )}
         <p>
@@ -152,86 +182,161 @@ export default function LessonDocumentEditor({ document, onUpdated }) {
     );
   }
 
+  // Display Logic (Editing active)
+  if (editing) {
+    return (
+      <div className="admin-form-container">
+        <h3 className="admin-form-title">✏️ Chỉnh sửa tài liệu</h3>
+
+        <div className="admin-form-group">
+          <label className="admin-form-label">Tiêu đề</label>
+          <input
+            className="admin-input"
+            value={form.title}
+            onChange={(e) => setForm({ ...form, title: e.target.value })}
+            autoFocus
+            placeholder="Nhập tiêu đề tài liệu"
+          />
+        </div>
+
+        <div className="admin-form-group">
+          <label className="admin-form-label">Nội dung</label>
+          <div style={{ borderRadius: "10px", overflow: "hidden", border: "1px solid #cbd5e1" }}>
+            <CKEditor
+              editor={ClassicEditor}
+              data={form.content}
+              config={{ toolbar: CKEDITOR_TOOLBAR }}
+              onChange={(event, editor) =>
+                setForm((prev) => ({ ...prev, content: editor.getData() }))
+              }
+            />
+          </div>
+        </div>
+
+        <div className="admin-form-group">
+          <label className="admin-form-label">Ảnh Thumbnail (Tùy chọn)</label>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <label className="admin-btn admin-btn-secondary" style={{ display: "inline-flex", alignItems: "center", gap: "6px", cursor: "pointer" }}>
+              📷 Chọn ảnh
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                disabled={uploading}
+                hidden
+              />
+            </label>
+            {form.imageUrl && <span style={{ fontSize: "13px", color: "#166534" }}>✅ Đã có ảnh</span>}
+          </div>
+          {form.imageUrl && (
+            <div style={{ marginTop: "8px" }}>
+              <img src={form.imageUrl.startsWith("/") ? `${SERVER_URL}${form.imageUrl}` : form.imageUrl} alt="preview" style={{ height: "60px", borderRadius: "6px" }} onError={(e) => e.target.style.display = 'none'} />
+            </div>
+          )}
+        </div>
+
+        <div className="admin-form-group">
+          <label className="admin-form-label">Video bài học (Tùy chọn)</label>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <label className="admin-btn admin-btn-secondary" style={{ display: "inline-flex", alignItems: "center", gap: "6px", cursor: "pointer" }}>
+              🎥 Chọn video
+              <input
+                type="file"
+                accept="video/*"
+                onChange={handleVideoUpload}
+                disabled={uploading}
+                hidden
+              />
+            </label>
+            {form.videoUrl && <span style={{ fontSize: "13px", color: "#166534" }}>✅ Đã có video</span>}
+          </div>
+        </div>
+
+        <div className="admin-form-group">
+          <label className="admin-form-label">Thứ tự hiển thị</label>
+          <input
+            type="number"
+            className="admin-input"
+            value={form.sortOrder}
+            onChange={(e) =>
+              setForm({ ...form, sortOrder: Number(e.target.value) })
+            }
+            style={{ width: "120px" }}
+          />
+        </div>
+
+        <div style={{ marginTop: "32px", display: "flex", justifyContent: "flex-end", gap: "12px" }}>
+          <button className="admin-btn admin-btn-secondary" onClick={() => setEditing(false)} disabled={uploading}>
+            Hủy bỏ
+          </button>
+          <button className="admin-btn admin-btn-primary" onClick={handleSave} disabled={uploading}>
+            {uploading ? "Đang tải lên..." : "Lưu thay đổi"}
+          </button>
+        </div>
+
+        <NotificationModal
+          isOpen={notification.isOpen}
+          onClose={closeNotification}
+          title={notification.title}
+          message={notification.message}
+          type={notification.type}
+        />
+      </div>
+    );
+  }
+
+  // View Mode
   return (
     <div className="lde-wrapper">
-      <h3 className="lde-title">Sửa Tài liệu</h3>
-
-      <div className="lde-form-row">
-        <label className="lde-label">Tiêu đề:</label>
-        <input
-          className="lde-input"
-          value={form.title}
-          onChange={(e) => setForm({ ...form, title: e.target.value })}
-          autoFocus
-        />
+      <div className="lde-header">
+        <h3 className="lde-title">{document.title}</h3>
+        <button className="lde-btn-edit" onClick={() => setEditing(true)}>
+          ✏️ Sửa tài liệu
+        </button>
       </div>
 
-      <div className="lde-form-row">
-        <label className="lde-label">Nội dung:</label>
-        <CKEditor
-          editor={ClassicEditor}
-          data={form.content}
-          config={{ toolbar: CKEDITOR_TOOLBAR }}
-          onChange={(event, editor) =>
-            setForm((prev) => ({ ...prev, content: editor.getData() }))
-          }
-        />
-      </div>
+      <div
+        className="lde-content html-content"
+        dangerouslySetInnerHTML={{ __html: document.content }}
+      />
 
-      <div className="lde-form-row">
-        <label className="lde-label">Image File:</label>
-        <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleImageUpload}
-            disabled={uploading}
-            className="lde-input"
+      {document.imageUrl && (
+        <div style={{ marginTop: "16px" }}>
+          <img
+            src={
+              document.imageUrl.startsWith("/")
+                ? `${SERVER_URL}${document.imageUrl}`
+                : document.imageUrl
+            }
+            alt={document.title}
+            className="lde-image"
+            style={{ maxWidth: "100%", borderRadius: "8px" }}
+            onError={(e) => {
+              e.target.style.display = 'none';
+            }}
           />
-          {form.imageUrl && (
-            <div style={{ fontSize: "0.85rem", color: "green" }}>
-              Hiện tại: {form.imageUrl}
-            </div>
-          )}
         </div>
-      </div>
+      )}
 
-      <div className="lde-form-row">
-        <label className="lde-label">Video File:</label>
-        <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
-          <input
-            type="file"
-            accept="video/*"
-            onChange={handleVideoUpload}
-            disabled={uploading}
-            className="lde-input"
-          />
-          {form.videoUrl && (
-            <div style={{ fontSize: "0.85rem", color: "green" }}>
-              Hiện tại: {form.videoUrl}
-            </div>
-          )}
+      {document.videoUrl && (
+        <div style={{ marginTop: "16px", marginBottom: "12px" }}>
+          {(() => {
+            const fullVideoUrl = document.videoUrl.startsWith("/")
+              ? `${SERVER_URL}${document.videoUrl}`
+              : document.videoUrl;
+
+            if (/youtube\.com|youtu\.be/.test(fullVideoUrl)) {
+              return (
+                <a href={fullVideoUrl} className="lde-link" target="_blank" rel="noreferrer">
+                  Link Video (YouTube)
+                </a>
+              );
+            }
+            return <VideoProgress src={fullVideoUrl} />;
+          })()}
         </div>
-      </div>
-
-      <div className="lde-form-row">
-        <label className="lde-label">Thứ tự:</label>
-        <input
-          type="number"
-          className="lde-input"
-          value={form.sortOrder}
-          onChange={(e) =>
-            setForm({ ...form, sortOrder: Number(e.target.value) })
-          }
-        />
-      </div>
-
-      <button className="lde-btn" onClick={handleSave} disabled={uploading}>
-        {uploading ? "Đang xử lý..." : "Lưu"}
-      </button>
-      <button className="lde-btn-secondary" onClick={() => setEditing(false)}>
-        Hủy
-      </button>
+      )}
     </div>
   );
 }
+
