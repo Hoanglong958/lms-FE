@@ -82,6 +82,11 @@ body {
   margin-bottom: 8px;
 }
 
+.keyword-input-container {
+  position: relative;
+  width: 100%;
+}
+
 .login-form input {
   width: 100%;
   padding: 12px 14px;
@@ -97,6 +102,50 @@ body {
   border-color: #f28c38;
   background: #fff;
   box-shadow: 0 0 0 3px rgba(242, 140, 56, 0.15);
+}
+
+.password-input-container {
+  position: relative;
+  width: 100%;
+}
+
+.password-input-container input {
+  padding-right: 40px; /* Make space for the eye icon */
+}
+
+/* Disable native browser eye icon to prevent conflicts */
+.password-input-container input::-ms-reveal,
+.password-input-container input::-ms-clear {
+  display: none;
+}
+
+.login-form .password-toggle-btn {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: #666; /* Darker grey by default */
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  width: auto;
+  margin-top: 0;
+  box-shadow: none;
+  height: auto;
+  border-radius: 50%;
+  z-index: 10; /* Ensure it is on top */
+}
+
+.login-form .password-toggle-btn:hover {
+  color: #333; /* Slightly darker on hover */
+  background: transparent;
+  transform: translateY(-50%);
+  box-shadow: none;
 }
 
 /* ==== Nút đăng nhập ==== */
