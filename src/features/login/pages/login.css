@@ -185,6 +185,26 @@ body {
   text-decoration: underline;
 }
 
+/* Nút 'Quên mật khẩu?' dạng button không viền/outline */
+.forgot-password .link-button {
+  background: none;
+  border: none;
+  outline: none;
+  box-shadow: none;
+  color: #f28c38;
+  cursor: pointer;
+  padding: 0;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.forgot-password .link-button:focus,
+.forgot-password .link-button:focus-visible {
+  outline: none;
+  box-shadow: none;
+  border: none;
+}
+
 /* ==== Liên kết đăng ký ==== */
 .register-link {
   font-size: 14px;
