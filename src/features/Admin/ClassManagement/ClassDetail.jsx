@@ -1189,54 +1189,64 @@ function AssignTeachersModal({ classData, onClose, onSubmit }) {
                                 borderRadius: 10,
                                 padding: 12,
                             }}>
-                                {teachers.map((teacher) => (
-                                    <label
-                                        key={teacher.id}
-                                        style={{
-                                            display: "flex",
-                                            alignItems: "center",
-                                            padding: "12px 10px",
-                                            borderBottom: "1px solid #f3f4f6",
-                                            cursor: "pointer",
-                                            transition: "background 0.2s",
-                                        }}
-                                        onMouseEnter={(e) => e.currentTarget.style.background = "#f9fafb"}
-                                        onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
-                                    >
-                                        <input
-                                            type="checkbox"
-                                            checked={selectedTeachers.includes(teacher.id)}
-                                            onChange={() => handleToggle(teacher.id)}
+                                {teachers
+                                    .sort((a, b) => {
+                                        const isAExisting = existingTeachers.includes(a.id);
+                                        const isBExisting = existingTeachers.includes(b.id);
+                                        if (isAExisting && !isBExisting) return 1;
+                                        if (!isAExisting && isBExisting) return -1;
+                                        return 0;
+                                    })
+                                    .map((teacher) => (
+                                        <label
+                                            key={teacher.id}
                                             style={{
-                                                width: 18,
-                                                height: 18,
-                                                marginRight: 12,
-                                                cursor: "pointer",
-                                                accentColor: "#f97316",
+                                                display: "flex",
+                                                alignItems: "center",
+                                                padding: "12px 10px",
+                                                borderBottom: "1px solid #f3f4f6",
+                                                cursor: existingTeachers.includes(teacher.id) ? "not-allowed" : "pointer",
+                                                transition: "background 0.2s",
+                                                opacity: existingTeachers.includes(teacher.id) ? 0.6 : 1,
                                             }}
-                                        />
-                                        <div style={{ flex: 1 }}>
-                                            <div style={{ fontWeight: 600, color: "#111827", fontSize: 14 }}>
-                                                {teacher.fullName}
+                                            onMouseEnter={(e) => !existingTeachers.includes(teacher.id) && (e.currentTarget.style.background = "#f9fafb")}
+                                            onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
+                                        >
+                                            <input
+                                                type="checkbox"
+                                                checked={selectedTeachers.includes(teacher.id)}
+                                                onChange={() => !existingTeachers.includes(teacher.id) && handleToggle(teacher.id)}
+                                                disabled={existingTeachers.includes(teacher.id)}
+                                                style={{
+                                                    width: 18,
+                                                    height: 18,
+                                                    marginRight: 12,
+                                                    cursor: existingTeachers.includes(teacher.id) ? "not-allowed" : "pointer",
+                                                    accentColor: "#f97316",
+                                                }}
+                                            />
+                                            <div style={{ flex: 1 }}>
+                                                <div style={{ fontWeight: 600, color: "#111827", fontSize: 14 }}>
+                                                    {teacher.fullName}
+                                                </div>
+                                                <div style={{ fontSize: 12, color: "#6b7280", marginTop: 2 }}>
+                                                    {teacher.email}
+                                                </div>
                                             </div>
-                                            <div style={{ fontSize: 12, color: "#6b7280", marginTop: 2 }}>
-                                                {teacher.email}
-                                            </div>
-                                        </div>
-                                        {existingTeachers.includes(teacher.id) && (
-                                            <span style={{
-                                                fontSize: 11,
-                                                padding: "2px 8px",
-                                                background: "#dbeafe",
-                                                color: "#1e40af",
-                                                borderRadius: 12,
-                                                fontWeight: 600,
-                                            }}>
-                                                Đã phân công
-                                            </span>
-                                        )}
-                                    </label>
-                                ))}
+                                            {existingTeachers.includes(teacher.id) && (
+                                                <span style={{
+                                                    fontSize: 11,
+                                                    padding: "2px 8px",
+                                                    background: "#dbeafe",
+                                                    color: "#1e40af",
+                                                    borderRadius: 12,
+                                                    fontWeight: 600,
+                                                }}>
+                                                    Đã phân công
+                                                </span>
+                                            )}
+                                        </label>
+                                    ))}
                             </div>
                             <div style={{
                                 marginTop: 12,

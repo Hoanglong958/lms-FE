@@ -19,6 +19,18 @@ export default function LessonQuizEditor({ quiz, onUpdated }) {
   const [allQuestions, setAllQuestions] = useState([]);
   const [selectingQuestions, setSelectingQuestions] = useState(false);
   const [selectedQuestions, setSelectedQuestions] = useState([]);
+
+  // Pagination & Search State for Modal
+  const [modalQuestions, setModalQuestions] = useState([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [keyword, setKeyword] = useState("");
+  const [category, setCategory] = useState(""); // Category filter
+  const [debouncedKeyword, setDebouncedKeyword] = useState("");
+  const [loadingModal, setLoadingModal] = useState(false);
+
+  const CATEGORIES = ["Java", "OOP", "HTTP", "Git", "React", "SQL", "Spring Boot"];
+
   const [notification, setNotification] = useState({
     isOpen: false,
     title: "",
@@ -34,6 +46,57 @@ export default function LessonQuizEditor({ quiz, onUpdated }) {
     setNotification((prev) => ({ ...prev, isOpen: false }));
   };
 
+  // Debounce search
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedKeyword(keyword);
+      setPage(1);
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [keyword]);
+
+  // Load questions for modal when open/page/search/category changes
+  useEffect(() => {
+    if (!selectingQuestions) return;
+
+    const fetchModalQuestions = async () => {
+      setLoadingModal(true);
+      try {
+        const res = await questionService.getPage({
+          page: page - 1,
+          size: 10,
+          keyword: debouncedKeyword,
+          category: category === "ALL" ? "" : category,
+        });
+        const data = res.data;
+        const content = data?.content || [];
+        setModalQuestions(content);
+        setTotalPages(data?.totalPages || 1);
+
+        // Update allQuestions cache with new data to ensure titles are available
+        setAllQuestions(prev => {
+          const newQs = content.map(q => ({
+            questionId: q.questionId ?? q.id,
+            question_text: q.questionText ?? q.question_text ?? q.title ?? "Không có tên câu hỏi",
+            category: q.category ?? "N/A"
+          }));
+
+          // Merge avoiding duplicates
+          const existingIds = new Set(prev.map(q => q.questionId));
+          const uniqueNew = newQs.filter(q => !existingIds.has(q.questionId));
+          return [...prev, ...uniqueNew];
+        });
+
+      } catch (err) {
+        console.error("Fetch modal questions error", err);
+      } finally {
+        setLoadingModal(false);
+      }
+    };
+    fetchModalQuestions();
+  }, [selectingQuestions, page, debouncedKeyword, category]);
+
+
   // Map quiz questionId với allQuestions để lấy question_text
   const mappedQuestions = questions.map((q) => {
     const id = q.questionId ?? q.id;
@@ -45,12 +108,15 @@ export default function LessonQuizEditor({ quiz, onUpdated }) {
     };
   });
 
-  // Load all questions
+  // Load questions for cache (using getPage with large size since getAll is missing)
   useEffect(() => {
     (async () => {
       try {
-        const res = await questionService.getAll();
-        const processed = (res.data || []).map((q) => ({
+        const res = await questionService.getPage({ page: 0, size: 100 });
+        const data = res.data;
+        const list = data?.content || [];
+
+        const processed = list.map((q) => ({
           questionId: q.questionId ?? q.id,
           question_text:
             q.questionText ??
@@ -240,51 +306,114 @@ export default function LessonQuizEditor({ quiz, onUpdated }) {
           </button>
         </div>
 
-        <div className="lqz-modal-body">
-          {allQuestions.map((q) => {
-            const isOriginallyIn = questions.some((item) => item.questionId === q.questionId);
-            const isSelected = selectedQuestions.includes(q.questionId);
+        <div className="lqz-modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
 
-            let statusClass = "";
-            let statusLabel = "";
+          {/* Search Bar & Filter */}
+          <div style={{ display: "flex", gap: "10px" }}>
+            <input
+              type="text"
+              placeholder="Tìm kiếm câu hỏi..."
+              value={keyword}
+              onChange={(e) => setKeyword(e.target.value)}
+              style={{ flex: 1, padding: "8px", borderRadius: "4px", border: "1px solid #ddd" }}
+            />
+            <select
+              value={category}
+              onChange={(e) => {
+                setCategory(e.target.value);
+                setPage(1);
+              }}
+              style={{ padding: "8px", borderRadius: "4px", border: "1px solid #ddd", minWidth: "120px" }}
+            >
+              <option value="">Tất cả danh mục</option>
+              {CATEGORIES.map(cat => (
+                <option key={cat} value={cat}>{cat}</option>
+              ))}
+            </select>
+          </div>
 
-            if (isOriginallyIn && isSelected) {
-              statusClass = "lqz-kept";
-              statusLabel = "(Đã có)";
-            } else if (isOriginallyIn && !isSelected) {
-              statusClass = "lqz-pending-remove";
-              statusLabel = "(Sẽ Xóa)";
-            } else if (!isOriginallyIn && isSelected) {
-              statusClass = "lqz-pending-add";
-              statusLabel = "(Mới)";
-            }
+          <div className="lqz-questions-container" style={{ flex: 1, overflowY: 'auto', minHeight: '200px' }}>
+            {loadingModal ? (
+              <p>Đang tải...</p>
+            ) : (
+              modalQuestions.map((q) => {
+                // Use fetched properties directly
+                const qId = q.id ?? q.questionId;
+                const qText = q.questionText ?? q.question_text ?? q.title;
+                const qCategory = q.category;
 
-            return (
-              <div
-                key={`modal-all-question-${q.questionId}`}
-                className={`lqz-select-item ${statusClass}`}
+                const isOriginallyIn = questions.some((item) => item.questionId === qId);
+                const isSelected = selectedQuestions.includes(qId);
+
+                let statusClass = "";
+                let statusLabel = "";
+
+                if (isOriginallyIn && isSelected) {
+                  statusClass = "lqz-kept";
+                  statusLabel = "(Đã có)";
+                } else if (isOriginallyIn && !isSelected) {
+                  statusClass = "lqz-pending-remove";
+                  statusLabel = "(Sẽ Xóa)";
+                } else if (!isOriginallyIn && isSelected) {
+                  statusClass = "lqz-pending-add";
+                  statusLabel = "(Mới)";
+                }
+
+                return (
+                  <div
+                    key={`modal-all-question-${qId}`}
+                    className={`lqz-select-item ${statusClass}`}
+                  >
+                    <label>
+                      <input
+                        type="checkbox"
+                        className="lqz-checkbox"
+                        checked={isSelected}
+                        onChange={() =>
+                          setSelectedQuestions((prev) =>
+                            prev.includes(qId)
+                              ? prev.filter((id) => id !== qId)
+                              : [...prev, qId]
+                          )
+                        }
+                      />
+                      <span className="lqz-select-text">
+                        {qText} - <i>{qCategory}</i>
+                      </span>
+                      {statusLabel && <span className="lqz-select-status">{statusLabel}</span>}
+                    </label>
+                  </div>
+                );
+              })
+            )}
+          </div>
+
+          {/* Pagination */}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "10px", padding: '10px 0', borderTop: '1px solid #eee' }}>
+            <div style={{ fontSize: "14px", color: "#666" }}>
+              Đã chọn: <b>{selectedQuestions.length}</b> câu
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              <button
+                onClick={() => setPage(p => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="lqz-btn-secondary"
+                style={{ padding: "5px 10px" }}
               >
-                <label>
-                  <input
-                    type="checkbox"
-                    className="lqz-checkbox"
-                    checked={isSelected}
-                    onChange={() =>
-                      setSelectedQuestions((prev) =>
-                        prev.includes(q.questionId)
-                          ? prev.filter((id) => id !== q.questionId)
-                          : [...prev, q.questionId]
-                      )
-                    }
-                  />
-                  <span className="lqz-select-text">
-                    {q.question_text} - <i>{q.category}</i>
-                  </span>
-                  {statusLabel && <span className="lqz-select-status">{statusLabel}</span>}
-                </label>
-              </div>
-            );
-          })}
+                &lt; Trước
+              </button>
+              <span>Trang {page} / {totalPages}</span>
+              <button
+                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                disabled={page >= totalPages}
+                className="lqz-btn-secondary"
+                style={{ padding: "5px 10px" }}
+              >
+                Sau &gt;
+              </button>
+            </div>
+          </div>
+
         </div>
 
         <div className="lqz-modal-footer">

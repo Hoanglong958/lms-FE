@@ -17,45 +17,79 @@ export default function QuestionBank() {
     setNotification({ isOpen: true, title, message, type });
   };
 
+  // ================================
+  // PAGINATION & FILTER STATE
+  // ================================
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(false);
+
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [limit, setLimit] = useState(10);
+
   const [searchText, setSearchText] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [category, setCategory] = useState("");
+
+  const CATEGORIES = ["Java", "OOP", "HTTP", "Git", "React", "SQL", "Spring Boot"];
+
   const user = (() => { try { return JSON.parse(localStorage.getItem("loggedInUser") || "{}"); } catch { return {}; } })();
   const isAdmin = String(user?.role || "").toUpperCase() === "ROLE_ADMIN";
 
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchText);
+      setPage(1); // Reset to page 1 on search
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchText]);
+
+  // Fetch Questions
   useEffect(() => {
     let alive = true;
     setLoading(true);
-    questionService
-      .getAll()
-      .then((res) => {
-        const raw = res?.data;
-        const arr = Array.isArray(raw)
-          ? raw
-          : Array.isArray(raw?.data)
-          ? raw.data
-          : Array.isArray(raw?.content)
-          ? raw.content
-          : [];
-        const mapped = arr.map((q) => ({
-          id: q?.id ?? q?.questionId ?? q?.id,
-          question: q?.questionText ?? q?.title ?? "",
-          course: q?.course ?? q?.category ?? "",
-          type: Array.isArray(q?.options) && q.options.length > 0 ? "Trắc nghiệm" : "Tự luận",
+
+    const fetchQuestions = async () => {
+      try {
+        const res = await questionService.getPage({
+          page: page - 1, // API is 0-indexed
+          size: limit,
+          keyword: debouncedSearch,
+          category: category === "Tất cả" ? "" : category
+        });
+
+        if (!alive) return;
+
+        const data = res.data;
+        const content = data?.content || [];
+
+        const mapped = content.map((q) => ({
+          id: q?.id ?? q?.questionId,
+          question: q?.questionText ?? q?.question_text ?? q?.title ?? "",
+          course: q?.course ?? q?.category ?? "N/A",
+          type: "N/A", // API might not return options length in list view, or we assume Tự luận if options empty
           raw: q,
         }));
-        if (alive) setQuestions(mapped);
-      })
-      .catch(() => { if (alive) setQuestions([]); })
-      .finally(() => { if (alive) setLoading(false); });
+
+        setQuestions(mapped);
+        setTotalPages(data?.totalPages || 1);
+
+      } catch (err) {
+        if (alive) {
+          console.error("Fetch questions error:", err);
+          setQuestions([]);
+        }
+      } finally {
+        if (alive) setLoading(false);
+      }
+    };
+
+    fetchQuestions();
+
     return () => { alive = false; };
-  }, []);
+  }, [page, limit, debouncedSearch, category]);
 
-
-  // ================================
-  // FILTER STATE
-  // ================================
-  const [filterType, setFilterType] = useState("Tất cả");
 
   const handleView = (q) => {
     navigate(`/admin/quiz/question/${q.id}`);
@@ -67,7 +101,25 @@ export default function QuestionBank() {
     if (!ok) return;
     try {
       await questionService.delete(q.id);
-      setQuestions((prev) => prev.filter((x) => x.id !== q.id));
+      // Refresh current page
+      const res = await questionService.getPage({
+        page: page - 1,
+        size: limit,
+        keyword: debouncedSearch,
+        category: category === "Tất cả" ? "" : category
+      });
+      const data = res.data;
+      const content = data?.content || [];
+      const mapped = content.map((q) => ({
+        id: q?.id ?? q?.questionId,
+        question: q?.questionText ?? q?.question_text ?? q?.title ?? "",
+        course: q?.course ?? q?.category ?? "N/A",
+        type: "N/A",
+        raw: q,
+      }));
+      setQuestions(mapped);
+      setTotalPages(data?.totalPages || 1);
+
       showNotification("Thành công", "Đã xóa câu hỏi", "success");
     } catch (err) {
       const status = err?.response?.status;
@@ -75,16 +127,6 @@ export default function QuestionBank() {
       showNotification(`Lỗi ${status || ""}`, msg, "error");
     }
   };
-
-  // ================================
-  // FILTER APPLY
-  // ================================
-  const filteredQuestions = questions.filter((q) => {
-    const matchType = filterType === "Tất cả" ? true : q.type === filterType;
-    const s = searchText.trim().toLowerCase();
-    const matchSearch = !s ? true : String(q.question || "").toLowerCase().includes(s);
-    return matchType && matchSearch;
-  });
 
   return (
     <div className="question-bank-container">
@@ -116,39 +158,40 @@ export default function QuestionBank() {
         {/* FILTER ROW */}
         <div className="filter-row">
 
-          {/* FILTER BY TYPE */}
+          {/* FILTER BY CATEGORY */}
           <select
             className="question-filter"
-            value={filterType}
-            onChange={(e) => setFilterType(e.target.value)}
+            value={category}
+            onChange={(e) => {
+              setCategory(e.target.value);
+              setPage(1);
+            }}
           >
-            <option value="Tất cả">Tất cả loại</option>
-            <option value="Trắc nghiệm">Trắc nghiệm</option>
-            <option value="Tự luận">Tự luận</option>
+            <option value="">Tất cả danh mục</option>
+            {CATEGORIES.map(cat => (
+              <option key={cat} value={cat}>{cat}</option>
+            ))}
           </select>
-
-          
-
         </div>
 
-          {/* TABLE */}
-          <table className="question-bank-table">
-            <thead>
-              <tr>
-                <th>Câu hỏi</th>
-                <th>Loại</th>
-                <th>Thao tác</th>
-              </tr>
-            </thead>
-            <tbody>
+        {/* TABLE */}
+        <table className="question-bank-table">
+          <thead>
+            <tr>
+              <th>Câu hỏi</th>
+              <th>Danh mục</th>
+              <th>Thao tác</th>
+            </tr>
+          </thead>
+          <tbody>
             {loading ? (
               <tr><td colSpan={3}>Đang tải dữ liệu...</td></tr>
-            ) : filteredQuestions.length === 0 ? (
+            ) : questions.length === 0 ? (
               <tr><td colSpan={3}>Không có câu hỏi phù hợp</td></tr>
-            ) : filteredQuestions.map((q) => (
+            ) : questions.map((q) => (
               <tr key={q.id}>
                 <td>{q.question}</td>
-                <td>{q.type}</td>
+                <td>{q.course}</td>
                 <td>
                   <button className="btn-icon" onClick={() => handleView(q)}>
                     👁️
@@ -170,6 +213,25 @@ export default function QuestionBank() {
             ))}
           </tbody>
         </table>
+
+        {/* PAGINATION */}
+        <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", marginTop: "20px", gap: "10px" }}>
+          <button
+            onClick={() => setPage(p => Math.max(1, p - 1))}
+            disabled={page === 1 || loading}
+            style={{ padding: "8px 12px", border: "1px solid #ddd", borderRadius: "4px", background: page === 1 ? "#f5f5f5" : "white", cursor: page === 1 ? "default" : "pointer" }}
+          >
+            Trước
+          </button>
+          <span>Trang {page} / {totalPages}</span>
+          <button
+            onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+            disabled={page >= totalPages || loading}
+            style={{ padding: "8px 12px", border: "1px solid #ddd", borderRadius: "4px", background: page >= totalPages ? "#f5f5f5" : "white", cursor: page >= totalPages ? "default" : "pointer" }}
+          >
+            Sau
+          </button>
+        </div>
 
       </div>
       <NotificationModal

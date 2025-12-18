@@ -4,6 +4,8 @@ import { classService } from "@utils/classService";
 import { userService } from "@utils/userService";
 import { classTeacherService } from "@utils/classTeacherService";
 import { classStudentService } from "@utils/classStudentService";
+import { courseService } from "@utils/courseService";
+import { classCourseService } from "@utils/classCourseService";
 import ClassDetail from "./ClassDetail";
 import ClassDetailModal from "./ClassDetailModal";
 import NotificationModal from "@components/NotificationModal/NotificationModal";
@@ -233,6 +235,19 @@ export default function ClassManagement() {
         }
       }
 
+      // 4. Assign course if selected
+      if (payload.courseId && newClassId) {
+        try {
+          await classCourseService.assignCourseToClass({
+            classId: parseInt(newClassId),
+            courseId: parseInt(payload.courseId)
+          });
+        } catch (courseErr) {
+          console.error("Failed to assign course:", courseErr);
+          // Only alert if it's a critical error, but for now we log it.
+        }
+      }
+
       await fetchClasses(); // Reload list from API
       setIsAddOpen(false);
       alert("Tạo lớp học thành công!");
@@ -298,6 +313,33 @@ export default function ClassManagement() {
           console.error("Failed to assign teacher. Payload:", payload, "Error:", teacherErr);
           const msg = teacherErr.response?.data?.message || teacherErr.message;
           alert("Lớp đã cập nhật, nhưng lỗi khi phân công giảng viên Relational: " + msg);
+        }
+      }
+
+      // 4. Update Course Assignment
+      if (payload.courseId) {
+        try {
+          const coursesRes = await classCourseService.getClassCourses(id);
+          const currentCourses = coursesRes.data?.data || coursesRes.data;
+
+          let oldCourseId = null;
+          if (Array.isArray(currentCourses) && currentCourses.length > 0) {
+            oldCourseId = currentCourses[0].courseId;
+          }
+
+          if (String(oldCourseId) !== String(payload.courseId)) {
+            if (oldCourseId) {
+              try {
+                await classCourseService.removeCourseFromClass(id, oldCourseId);
+              } catch (e) { console.warn("Failed to remove old course", e); }
+            }
+            await classCourseService.assignCourseToClass({
+              classId: parseInt(id),
+              courseId: parseInt(payload.courseId)
+            });
+          }
+        } catch (courseErr) {
+          console.error("Failed to update course assignment:", courseErr);
         }
       }
 
@@ -660,16 +702,25 @@ export default function ClassManagement() {
           onSubmit={async (selectedTeacherIds) => {
             try {
               // Assign all selected teachers to the class
-              await Promise.all(
-                selectedTeacherIds.map((teacherId) =>
-                  classTeacherService.assignTeacherToClass({
+              const promises = selectedTeacherIds.map(async (teacherId) => {
+                try {
+                  await classTeacherService.assignTeacherToClass({
                     classId: assigningClass.id,
                     teacherId: teacherId,
                     role: "INSTRUCTOR",
                     note: `Assigned from class management`
-                  })
-                )
-              );
+                  });
+                } catch (err) {
+                  if (err.response && err.response.status === 400) {
+                    console.warn(`Teacher ${teacherId} already assigned (400 ignored).`);
+                    return;
+                  }
+                  throw err;
+                }
+              });
+
+              await Promise.all(promises);
+
               alert("Phân công giảng viên thành công!");
               await fetchClasses(); // Reload list
               setAssigningClass(null);
@@ -831,6 +882,8 @@ function AddClassModal({ onClose, onSubmit }) {
   const [teacher, setTeacher] = useState("");
   const [teacherId, setTeacherId] = useState(""); // Store ID
   const [students, setStudents] = useState("0");
+  const [courseId, setCourseId] = useState("");
+  const [courses, setCourses] = useState([]);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [status, setStatus] = useState("upcoming");
@@ -858,6 +911,15 @@ function AddClassModal({ onClose, onSubmit }) {
         setTeachers(validTeachers);
       })
       .catch((err) => console.error("Failed to load teachers", err));
+
+    courseService.getCourses()
+      .then((res) => {
+        let data = [];
+        if (res.data?.data) data = res.data.data;
+        else if (Array.isArray(res.data)) data = res.data;
+        setCourses(data);
+      })
+      .catch(err => console.error("Failed to load courses", err));
   }, []);
 
   function validate() {
@@ -890,6 +952,7 @@ function AddClassModal({ onClose, onSubmit }) {
       endDate,
       status,
       schedule: "",
+      courseId,
     });
   }
 
@@ -979,6 +1042,30 @@ function AddClassModal({ onClose, onSubmit }) {
               </label>
             </div>
 
+            <label style={modalStyles.label}>
+              Khóa học
+              <div style={{ position: "relative" }}>
+                <select
+                  value={courseId}
+                  onChange={(e) => setCourseId(e.target.value)}
+                  style={{ ...styles.select, width: "100%", height: 40 }}
+                >
+                  <option value="">-- Chọn khóa học --</option>
+                  {courses.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.courseName || c.name || c.title}
+                    </option>
+                  ))}
+                </select>
+                <span
+                  style={{ ...styles.selectChevron, top: 12 }}
+                  aria-hidden="true"
+                >
+                  ▾
+                </span>
+              </div>
+            </label>
+
             <div
               style={{
                 display: "grid",
@@ -1040,6 +1127,8 @@ function EditClassModal({ cls, onClose, onSubmit }) {
   const [code, setCode] = useState(cls.code || "");
   const [teacher, setTeacher] = useState(cls.teacher || "");
   const [teacherId, setTeacherId] = useState(""); // New state for ID
+  const [courseId, setCourseId] = useState("");
+  const [courses, setCourses] = useState([]);
   const [students, setStudents] = useState(String(cls.students) || "0");
   const [active, setActive] = useState(String(cls.active) || "0");
   const [progress, setProgress] = useState(String(cls.progress) || "0");
@@ -1081,6 +1170,30 @@ function EditClassModal({ cls, onClose, onSubmit }) {
       .catch((err) => console.error("Failed to load teachers", err));
   }, [cls.teacher]); // Updated dependency to re-run if class changes
 
+  useEffect(() => {
+    // Load courses
+    courseService.getCourses()
+      .then((res) => {
+        let data = [];
+        if (res.data?.data) data = res.data.data;
+        else if (Array.isArray(res.data)) data = res.data;
+        setCourses(data);
+      })
+      .catch(err => console.error("Failed to load courses", err));
+
+    // Load existing assigned course
+    if (cls.id) {
+      classCourseService.getClassCourses(cls.id)
+        .then(res => {
+          const assigned = res.data?.data || res.data;
+          if (Array.isArray(assigned) && assigned.length > 0) {
+            setCourseId(assigned[0].courseId);
+          }
+        })
+        .catch(err => console.warn("Failed to load assigned course", err));
+    }
+  }, [cls.id]);
+
   function validate() {
     const nextErrors = {};
     if (!name.trim()) nextErrors.name = "Vui lòng nhập tên lớp học";
@@ -1111,6 +1224,7 @@ function EditClassModal({ cls, onClose, onSubmit }) {
       endDate,
       status,
       schedule,
+      courseId,
     });
   }
 
@@ -1196,6 +1310,30 @@ function EditClassModal({ cls, onClose, onSubmit }) {
                 )}
               </label>
             </div>
+
+            <label style={modalStyles.label}>
+              Khóa học
+              <div style={{ position: "relative" }}>
+                <select
+                  value={courseId}
+                  onChange={(e) => setCourseId(e.target.value)}
+                  style={{ ...styles.select, width: "100%", height: 40 }}
+                >
+                  <option value="">-- Chọn khóa học --</option>
+                  {courses.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.courseName || c.name || c.title}
+                    </option>
+                  ))}
+                </select>
+                <span
+                  style={{ ...styles.selectChevron, top: 12 }}
+                  aria-hidden="true"
+                >
+                  ▾
+                </span>
+              </div>
+            </label>
 
             <div
               style={{
@@ -1383,21 +1521,23 @@ function AssignTeachersModal({ classData, onClose, onSubmit }) {
                       alignItems: "center",
                       padding: "12px 10px",
                       borderBottom: "1px solid #f3f4f6",
-                      cursor: "pointer",
+                      cursor: existingTeachers.includes(teacher.id) ? "not-allowed" : "pointer",
                       transition: "background 0.2s",
+                      opacity: existingTeachers.includes(teacher.id) ? 0.6 : 1,
                     }}
-                    onMouseEnter={(e) => e.currentTarget.style.background = "#f9fafb"}
+                    onMouseEnter={(e) => !existingTeachers.includes(teacher.id) && (e.currentTarget.style.background = "#f9fafb")}
                     onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
                   >
                     <input
                       type="checkbox"
                       checked={selectedTeachers.includes(teacher.id)}
-                      onChange={() => handleToggle(teacher.id)}
+                      onChange={() => !existingTeachers.includes(teacher.id) && handleToggle(teacher.id)}
+                      disabled={existingTeachers.includes(teacher.id)}
                       style={{
                         width: 18,
                         height: 18,
                         marginRight: 12,
-                        cursor: "pointer",
+                        cursor: existingTeachers.includes(teacher.id) ? "not-allowed" : "pointer",
                         accentColor: "#f97316",
                       }}
                     />

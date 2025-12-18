@@ -116,6 +116,11 @@ export default function VideoProgress({ src, poster, className }) {
             {/* Click Overlay to handle Play/Pause and block native interactions */}
             <div className="click-overlay" onClick={togglePlay} />
 
+            {/* Big Play Button Overlay */}
+            <div className="big-play-button-overlay" onClick={togglePlay}>
+                <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
+            </div>
+
             <div className="controls-overlay">
                 {/* Read-only Progress Bar */}
                 <div className="progress-bar-wrapper">

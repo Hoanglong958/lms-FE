@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams, useNavigate, useOutletContext } from 'react-router-dom';
 import AdminHeader from '@components/Admin/AdminHeader';
-import { useOutletContext } from "react-router-dom";
 import { classService } from '@utils/classService';
+import { classCourseService } from '@utils/classCourseService';
 import { sessionService } from '@utils/sessionService'; // Course Chapters
 import { lessonService } from '@utils/lessonService';
+import { roadmapService } from '@utils/roadmapService';
 import './Roadmap.css';
+
+import { courseService } from '@utils/courseService';
 
 export default function Roadmap() {
     const [searchParams] = useSearchParams();
@@ -17,11 +20,14 @@ export default function Roadmap() {
     const [chapters, setChapters] = useState([]); // List of Course Sessions (Chapters)
     const [lessonsMap, setLessonsMap] = useState({}); // Map chapterId -> lessons[]
 
-    // Local state for 'Class Sessions' (Buổi học)
-    // In a real app, this would come from the Schedule/Timetable API
+    // Class Sessions (Slots)
     const [classSessions, setClassSessions] = useState([]);
 
-    // State to store roadmap assignments: { [sessionId]: { chapterId, lessonId } }
+    const [availableCourses, setAvailableCourses] = useState([]);
+    const [selectedCourseId, setSelectedCourseId] = useState(null);
+
+    // State to store roadmap assignments: { [orderIndex]: { chapterId, lessonId } }
+    // We use orderIndex (0-based) as the key since periodId might not exist yet
     const [roadmapAssignments, setRoadmapAssignments] = useState({});
 
     const [loading, setLoading] = useState(true);
@@ -32,89 +38,210 @@ export default function Roadmap() {
         toggleSidebar = useOutletContext()?.toggleSidebar || (() => { });
     } catch { }
 
+    // 1. Initial Load: Class Info & Assigned Courses List
     useEffect(() => {
         if (!classId) return;
 
-        const loadData = async () => {
+        const loadClassAndCourses = async () => {
             try {
                 setLoading(true);
-
-                // 1. Fetch Class Detail
+                // Fetch Class Detail
                 const classRes = await classService.getClassDetail(classId);
                 const classData = classRes.data?.data || classRes.data;
                 setClassInfo(classData);
 
-                // 2. Fetch Assigned Course (Assume first course for now if multiple)
-                // We need to look up which course is assigned.
-                const coursesRes = await classService.findCourses(classId);
+                // Fetch Assigned Courses
+                const coursesRes = await classCourseService.getClassCourses(classId);
                 const assignedCourses = Array.isArray(coursesRes.data) ? coursesRes.data : (coursesRes.data?.data || []);
 
-                if (assignedCourses.length > 0) {
-                    const courseId = assignedCourses[0].courseId;
-                    // Fetch Course Detail (Optional, mainly for title)
-                    // const courseRes = await courseService.getCourseDetail(courseId);
-                    setCourseInfo({ id: courseId, title: assignedCourses[0].courseTitle });
+                setAvailableCourses(assignedCourses);
 
-                    // 3. Fetch Chapters (Sessions) for the Course
-                    const chaptersRes = await sessionService.getSessionsByCourse(courseId);
-                    const chaptersData = chaptersRes.data?.data || chaptersRes.data || [];
-                    setChapters(chaptersData);
+                // Default to first course if none selected
+                if (assignedCourses.length > 0 && !selectedCourseId) {
+                    setSelectedCourseId(assignedCourses[0].courseId);
+                } else if (assignedCourses.length === 0) {
+                    setLoading(false); // Stop loading if no courses
+                    alert("Lớp học chưa được gán khóa học nào!");
+                }
+            } catch (err) {
+                console.error("Error loading class/courses", err);
+                setLoading(false);
+            }
+        };
 
-                    // 4. Fetch Lessons for all Chapters (Parallel)
-                    const lessonsObj = {};
-                    await Promise.all(chaptersData.map(async (chap) => {
-                        try {
-                            const lessonsRes = await lessonService.getLessonsBySession(chap.id);
-                            lessonsObj[chap.id] = lessonsRes.data?.data || lessonsRes.data || [];
-                        } catch (e) {
-                            console.warn(`Failed to fetch lessons for chapter ${chap.id}`, e);
-                        }
-                    }));
-                    setLessonsMap(lessonsObj);
+        loadClassAndCourses();
+    }, [classId]);
+
+    // 2. Course Specific Data Load
+    useEffect(() => {
+        if (!selectedCourseId) return;
+
+        const loadCourseData = async () => {
+            setLoading(true);
+            try {
+                // Find basic info from available list first to show something quickly
+                const basicInfo = availableCourses.find(c => String(c.courseId) === String(selectedCourseId));
+                let totalSessions = basicInfo?.totalSessions || 12;
+                let courseTitle = basicInfo?.courseTitle || basicInfo?.title || "";
+
+                // Fetch authoritative Course Detail
+                try {
+                    const courseDetailRes = await courseService.getCourseDetail(selectedCourseId);
+                    const courseDetail = courseDetailRes.data?.data || courseDetailRes.data;
+                    if (courseDetail) {
+                        if (courseDetail.totalSessions) totalSessions = courseDetail.totalSessions;
+                        if (courseDetail.courseName) courseTitle = courseDetail.courseName;
+                    }
+                } catch (err) {
+                    console.warn("Failed to fetch full course detail", err);
                 }
 
-                // 5. Generate / Fetch Class Sessions (Mocking based on "schedule")
-                // In production, this should fetch per specific dates from the backend.
-                // We'll generate 24 sessions for demo.
-                const mockSessions = Array.from({ length: 12 }, (_, i) => ({
-                    id: `session-${i + 1}`,
-                    name: `Buổi ${i + 1}`,
-                    date: classData.startDate ? new Date(new Date(classData.startDate).getTime() + i * 86400000 * 2).toISOString() : null, // Every 2 days
-                    status: i < 3 ? 'COMPLETED' : 'UPCOMING'
+                setCourseInfo({
+                    id: selectedCourseId,
+                    title: courseTitle,
+                    totalSessions: totalSessions
+                });
+
+                // Fetch Chapters
+                const chaptersRes = await sessionService.getSessionsByCourse(selectedCourseId);
+                const chaptersData = chaptersRes.data?.data || chaptersRes.data || [];
+                setChapters(chaptersData);
+
+                // Fetch Lessons
+                const lessonsObj = {};
+                await Promise.all(chaptersData.map(async (chap) => {
+                    try {
+                        const lessonsRes = await lessonService.getLessonsBySession(chap.id);
+                        lessonsObj[chap.id] = lessonsRes.data?.data || lessonsRes.data || [];
+                    } catch (e) {
+                        // silent fail
+                    }
                 }));
-                setClassSessions(mockSessions);
+                setLessonsMap(lessonsObj);
+
+                // Fetch Existing Roadmap
+                let assignments = {};
+                try {
+                    const roadmapRes = await roadmapService.getRoadmap(classId, selectedCourseId);
+                    const roadmapData = roadmapRes.data?.data || roadmapRes.data || {};
+                    const items = roadmapData.items || [];
+
+                    items.forEach(item => {
+                        const index = (item.orderIndex || 0);
+                        assignments[index] = {
+                            chapterId: item.sessionId,
+                            lessonId: item.lessonId
+                        };
+                    });
+                } catch (e) {
+                    if (e.response && e.response.status === 400) {
+                        console.log("No existing roadmap found (400), starting fresh.");
+                    }
+                }
+
+                // Generate Class Sessions
+                const sessions = Array.from({ length: totalSessions }, (_, i) => ({
+                    index: i + 1,
+                    name: `Buổi ${i + 1}`,
+                }));
+                setClassSessions(sessions);
+
+                // Auto-design Logic
+                if (Object.keys(assignments).length === 0 && chaptersData.length > 0) {
+                    let currentSessionIndex = 1;
+                    const newAssignments = { ...assignments };
+                    for (const chap of chaptersData) {
+                        const lessons = lessonsObj[chap.id] || [];
+                        for (const lesson of lessons) {
+                            if (currentSessionIndex > totalSessions) break;
+                            newAssignments[currentSessionIndex] = {
+                                chapterId: chap.id,
+                                lessonId: lesson.id
+                            };
+                            currentSessionIndex++;
+                        }
+                        if (currentSessionIndex > totalSessions) break;
+                    }
+                    setRoadmapAssignments(newAssignments);
+                } else {
+                    setRoadmapAssignments(assignments);
+                }
 
             } catch (error) {
-                console.error("Error loading roadmap data", error);
+                console.error("Error loading specific course data", error);
             } finally {
                 setLoading(false);
             }
         };
 
-        loadData();
-    }, [classId]);
+        loadCourseData();
+    }, [selectedCourseId, classId, availableCourses]); // availableCourses typically stable loop-wise if ref fetched
 
-    const handleAssignmentChange = (sessionId, field, value) => {
+    const handleAssignmentChange = (index, field, value) => {
         setRoadmapAssignments(prev => {
-            const current = prev[sessionId] || {};
+            const current = prev[index] || {};
             // If changing chapter, reset lesson
             if (field === 'chapterId') {
                 return {
                     ...prev,
-                    [sessionId]: { ...current, chapterId: value, lessonId: '' }
+                    [index]: { ...current, chapterId: value, lessonId: '' }
                 };
             }
             return {
                 ...prev,
-                [sessionId]: { ...current, [field]: value }
+                [index]: { ...current, [field]: value }
             };
         });
     };
 
     const handleSave = async () => {
-        // Here we would call API to save the roadmap
-        console.log("Saving Assignments:", roadmapAssignments);
-        alert("Đã lưu lộ trình thành công!");
+        if (!selectedCourseId) {
+            alert("Chưa chọn khóa học!");
+            return;
+        }
+
+        try {
+            setLoading(true);
+            const sessionIds = [];
+            const lessonIds = [];
+            const periodIds = [];
+
+            classSessions.forEach(session => {
+                const assignment = roadmapAssignments[session.index];
+                if (assignment && assignment.chapterId && assignment.lessonId) {
+                    sessionIds.push(parseInt(assignment.chapterId));
+                    lessonIds.push(parseInt(assignment.lessonId));
+                    periodIds.push(session.index);
+                }
+            });
+
+            if (sessionIds.length === 0) {
+                alert("Vui lòng gán ít nhất một bài học cho lộ trình!");
+                setLoading(false);
+                return;
+            }
+
+            const payload = {
+                classId: parseInt(classId),
+                courseId: parseInt(selectedCourseId),
+                sessionIds,
+                lessonIds,
+                periodIds: periodIds, // Re-introducing periodIds
+                orderIndexes: periodIds, // Adding orderIndexes just in case
+            };
+
+            console.log("Saving Roadmap Payload:", JSON.stringify(payload, null, 2));
+            await roadmapService.assignRoadmap(payload);
+
+            alert("Lưu lộ trình thành công!");
+        } catch (error) {
+            console.error("Failed to save roadmap:", error);
+            console.error("Error Response Data:", error.response?.data);
+            const detail = error.response?.data?.error || JSON.stringify(error.response?.data) || error.message;
+            alert("Lỗi khi lưu lộ trình: " + detail);
+        } finally {
+            setLoading(false);
+        }
     };
 
     if (!classId) return <div>Không tìm thấy classId</div>;
@@ -122,7 +249,7 @@ export default function Roadmap() {
     return (
         <div className="roadmap-page">
             <AdminHeader
-                title={`Lộ trình: ${classInfo?.className || '...'}`}
+                title={`Lộ trình: ${classInfo?.className || classInfo?.name || '...'}`}
                 breadcrumb={[
                     { label: "Dashboard", to: "/admin/dashboard" },
                     { label: "Lớp học", to: "/admin/classes" },
@@ -132,7 +259,7 @@ export default function Roadmap() {
                 onMenuToggle={toggleSidebar}
                 onBack={() => navigate(-1)}
                 actions={
-                    <button className="roadmap-btn-save" onClick={handleSave}>
+                    <button className="roadmap-btn-save" onClick={handleSave} disabled={loading}>
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                             <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
                             <polyline points="17 21 17 13 7 13 7 21" />
@@ -145,7 +272,9 @@ export default function Roadmap() {
 
             <div className="roadmap-content">
                 {loading ? (
-                    <div className="roadmap-loading">Đang tải dữ liệu...</div>
+                    <div className="roadmap-loading">
+                        <div className="spinner"></div> Đang tải dữ liệu...
+                    </div>
                 ) : (
                     <div className="roadmap-timeline-container">
                         <div className="roadmap-header-info">
@@ -156,74 +285,91 @@ export default function Roadmap() {
                                 </svg>
                             </div>
                             <div className="header-text">
-                                <h3>{courseInfo?.title ? `Khóa học: ${courseInfo.title}` : 'Chưa gán khóa học'}</h3>
-                                <p>Thiết lập nội dung học tập và theo dõi tiến độ từng buổi học.</p>
+                                {availableCourses.length > 1 ? (
+                                    <div style={{ marginBottom: 4 }}>
+                                        <label style={{ fontWeight: 600, marginRight: 8 }}>Chọn khóa học:</label>
+                                        <select
+                                            value={selectedCourseId}
+                                            onChange={(e) => setSelectedCourseId(e.target.value)}
+                                            style={{ padding: '4px 8px', borderRadius: 4, border: '1px solid #ccc' }}
+                                        >
+                                            {availableCourses.map(c => (
+                                                <option key={c.courseId} value={c.courseId}>
+                                                    {c.courseTitle || c.title}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                ) : (
+                                    <h3>{courseInfo?.title ? `Khóa học: ${courseInfo.title}` : 'Chưa gán khóa học'}</h3>
+                                )}
+                                <p>Thiết lập nội dung học tập cho <strong>{classSessions.length} buổi học</strong>.</p>
                             </div>
                         </div>
 
                         <div className="roadmap-timeline-wrapper">
-                            {classSessions.map((session, index) => {
-                                const assignment = roadmapAssignments[session.id] || {};
+                            {classSessions.map((session) => {
+                                const assignment = roadmapAssignments[session.index] || {};
                                 const selectedChapterId = assignment.chapterId || "";
                                 const selectedLessonId = assignment.lessonId || "";
+
+                                // Find available lessons for the selected chapter
                                 const availableLessons = selectedChapterId ? (lessonsMap[selectedChapterId] || []) : [];
-                                const isPassed = session.status === 'COMPLETED';
 
                                 return (
-                                    <div className={`timeline-item ${isPassed ? 'passed' : ''}`} key={session.id}>
+                                    <div className="timeline-item" key={session.index}>
                                         <div className="timeline-left">
-                                            <div className="timeline-date">
-                                                {session.date ? new Date(session.date).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' }) : '--/--'}
+                                            <div className="timeline-circle">
+                                                {session.index}
                                             </div>
                                             <div className="timeline-line"></div>
-                                            <div className="timeline-dot">
-                                                {isPassed ? (
-                                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4">
-                                                        <polyline points="20 6 9 17 4 12"></polyline>
-                                                    </svg>
-                                                ) : (
-                                                    <div className="inner-dot"></div>
-                                                )}
-                                            </div>
                                         </div>
 
                                         <div className="timeline-content-card">
                                             <div className="card-header">
                                                 <div className="session-title">
-                                                    <span className="session-number">Buổi {index + 1}</span>
+                                                    <span className="session-number">{session.name}</span>
                                                 </div>
-                                                <span className={`status-pill ${session.status.toLowerCase()}`}>
-                                                    {isPassed ? 'Đã hoàn thành' : 'Sắp diễn ra'}
-                                                </span>
                                             </div>
 
                                             <div className="card-body">
-                                                <div className="control-group">
-                                                    <label>Chương học</label>
-                                                    <select
-                                                        className="modern-select"
-                                                        value={selectedChapterId}
-                                                        onChange={(e) => handleAssignmentChange(session.id, 'chapterId', e.target.value)}
-                                                    >
-                                                        <option value="">-- Chọn Chương --</option>
-                                                        {chapters.map(chap => (
-                                                            <option key={chap.id} value={chap.id}>{chap.sessionName || chap.name || chap.title}</option>
-                                                        ))}
-                                                    </select>
-                                                </div>
-                                                <div className="control-group">
-                                                    <label>Bài học</label>
-                                                    <select
-                                                        className="modern-select"
-                                                        value={selectedLessonId}
-                                                        onChange={(e) => handleAssignmentChange(session.id, 'lessonId', e.target.value)}
-                                                        disabled={!selectedChapterId}
-                                                    >
-                                                        <option value="">-- Chọn Bài học --</option>
-                                                        {availableLessons.map(les => (
-                                                            <option key={les.id} value={les.id}>{les.lessonName || les.name || les.title}</option>
-                                                        ))}
-                                                    </select>
+                                                <div className="roadmap-controls-row">
+                                                    <div className="control-group">
+                                                        <label>Chương / Phần</label>
+                                                        <select
+                                                            className="modern-select"
+                                                            value={selectedChapterId}
+                                                            onChange={(e) => handleAssignmentChange(session.index, 'chapterId', e.target.value)}
+                                                        >
+                                                            <option value="">-- Chọn Chương --</option>
+                                                            {chapters.map(chap => (
+                                                                <option key={chap.id} value={chap.id}>
+                                                                    {chap.sessionName || chap.name || chap.title}
+                                                                </option>
+                                                            ))}
+                                                        </select>
+                                                    </div>
+
+                                                    <div className="control-group">
+                                                        <label>Bài học</label>
+                                                        <select
+                                                            className="modern-select"
+                                                            value={selectedLessonId}
+                                                            onChange={(e) => handleAssignmentChange(session.index, 'lessonId', e.target.value)}
+                                                            disabled={!selectedChapterId}
+                                                        >
+                                                            <option value="">-- Chọn Bài học --</option>
+                                                            {availableLessons.length > 0 ? (
+                                                                availableLessons.map(les => (
+                                                                    <option key={les.id} value={les.id}>
+                                                                        {les.lessonName || les.name || les.title}
+                                                                    </option>
+                                                                ))
+                                                            ) : (
+                                                                <option disabled>Không có bài học</option>
+                                                            )}
+                                                        </select>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
