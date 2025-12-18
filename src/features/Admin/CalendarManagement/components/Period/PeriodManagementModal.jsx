@@ -114,8 +114,8 @@ export default function PeriodManagementModal({ onClose }) {
     setSaving(true);
     const payload = {
       name: name.trim(),
-      startTime: toTimeObj(startTime),
-      endTime: toTimeObj(endTime),
+      startTime: `${startTime}:00`,
+      endTime: `${endTime}:00`,
     };
 
     try {
