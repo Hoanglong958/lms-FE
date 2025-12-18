@@ -30,14 +30,6 @@
   align-items: flex-start;
 }
 
-.calendarSidebar {
-  width: 240px;
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-  flex-shrink: 0;
-}
-
 .calendarMainContent {
   flex: 1;
   min-width: 0;
@@ -96,12 +88,8 @@
   .calendarContent {
     flex-direction: column;
   }
-  .calendarSidebar {
-    width: 100%;
-    margin-bottom: 24px;
-  }
+
   .calendarMainContent {
     width: 100%;
   }
 }
-

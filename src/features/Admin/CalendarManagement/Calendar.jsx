@@ -12,8 +12,8 @@ import "./css/Calendar.css";
 // Components
 import PeriodManagementModal from "./components/Period/PeriodManagementModal";
 import CalendarPicker from "./components/CalendarPicker";
-import WeekSelector from "./components/WeekSelector";
-import SubjectList from "./components/SubjectList";
+import WeekSelectionModal from "./components/WeekSelectionModal";
+import SubjectListSidebar from "./components/SubjectListSidebar";
 import TimetableGrid from "./components/TimetableGrid";
 
 export default function CalendarManagement() {
@@ -29,6 +29,10 @@ export default function CalendarManagement() {
   const [periods, setPeriods] = useState([]);
   const [selectedPeriods, setSelectedPeriods] = useState([]);
   const [showPeriodModal, setShowPeriodModal] = useState(false);
+
+  // UI State for Redesign
+  const [showWeekModal, setShowWeekModal] = useState(false);
+  const [showSubjectSidebar, setShowSubjectSidebar] = useState(false);
 
   const [notification, setNotification] = useState({
     isOpen: false,
@@ -72,6 +76,7 @@ export default function CalendarManagement() {
         const classData = classRes.data?.data || classRes.data;
         if (classData && classData.startDate && classData.endDate) {
           handleDateRangeSelect(classData.startDate, classData.endDate);
+          setClassInfo(classData);
         }
 
         // Load periods
@@ -236,46 +241,81 @@ export default function CalendarManagement() {
   };
 
   // Handle schedule change
-  const handleScheduleChange = async (newSchedule, changeDetails) => {
+  const handleScheduleChange = (newSchedule, changeDetails) => {
     setSchedule(newSchedule);
+  };
 
-    if (!changeDetails) return;
+  const [saving, setSaving] = useState(false);
 
-    // Map dayIndex to DayOfWeek (assuming Spring Boot / Java standard or common convention)
-    const days = ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"];
-    const dayOfWeek = days[changeDetails.dayIndex];
-
-    if (changeDetails.remove) {
-      // Handle remove if API available
-      // Currently scheduleService only has deleteByCourse. 
-      // Warn user or try to implement if backend supports ID delete.
-      // Assuming for now we skip or just notify.
-      showNotification("Thông báo", "Chức năng xóa chưa được lưu vào server (API thiếu)", "warning");
-      return;
-    }
-
+  const handleSaveSchedule = async () => {
+    setSaving(true);
     try {
-      // Map dayIndex (0=Monday) to ISO DayOfWeek (1=Monday ... 7=Sunday)
-      // or whatever the backend expects. Trying ISO first.
-      const isoDayOfWeek = changeDetails.dayIndex + 1;
+      // 1. Group by Course -> List of { dayIndex, periodId }
+      const courseMap = {};
 
-      const payload = {
-        classId: Number(classId),
-        courseId: Number(changeDetails.courseId),
-        periodIds: [Number(changeDetails.periodId)],
-        daysOfWeek: [isoDayOfWeek],
-      };
+      Object.keys(schedule).forEach((dayIdx) => {
+        const daySchedule = schedule[dayIdx];
+        if (!daySchedule) return;
 
-      console.log("Saving schedule payload:", payload);
-      await scheduleService.createManual(payload);
-      showNotification("Thành công", "Đã lưu lịch học", "success");
+        Object.values(daySchedule).forEach((item) => {
+          const cId = item.subjectId;
+          const pId = item.periodId;
+          const dIdx = Number(dayIdx); // 0-6
+
+          if (!courseMap[cId]) {
+            courseMap[cId] = [];
+          }
+          courseMap[cId].push({ dayIndex: dIdx, periodId: pId });
+        });
+      });
+
+      // 2. Create requests with 1-to-1 mapping (periodIds[i] <-> daysOfWeek[i])
+      const requests = [];
+
+      Object.keys(courseMap).forEach((courseId) => {
+        const items = courseMap[courseId];
+        // items is array of { dayIndex, periodId }
+
+        const periodIds = [];
+        const daysOfWeek = [];
+
+        items.forEach(({ dayIndex, periodId }) => {
+          if (periodId && (dayIndex >= 0 && dayIndex <= 6)) {
+            periodIds.push(Number(periodId));
+            daysOfWeek.push(dayIndex + 1); // 0->1 ... 6->7
+          }
+        });
+
+        if (periodIds.length > 0) {
+          requests.push({
+            classId: Number(classId),
+            courseId: Number(courseId),
+            periodIds,
+            daysOfWeek
+          });
+        }
+      });
+
+      if (requests.length === 0) {
+        showNotification("Thông báo", "Không có lịch để lưu", "info");
+        setSaving(false);
+        return;
+      }
+
+      // 3. Execute sequentially
+      for (const req of requests) {
+        await scheduleService.createManual(req);
+      }
+
+      showNotification("Thành công", "Đã lưu cấu hình thời khóa biểu", "success");
+
     } catch (error) {
       console.error("Save schedule error", error);
-      const serverMsg = error.response?.data?.message || JSON.stringify(error.response?.data) || "Lỗi server";
-      showNotification("Lỗi", `Không thể lưu: ${serverMsg}`, "error");
-
-      // Optional: Revert state if save fails?
-      // For now, let user know.
+      // Show detailed error if available from backend
+      const msg = error.response?.data?.data || error.response?.data?.message || "Có lỗi khi lưu lịch học";
+      showNotification("Lỗi", msg, "error");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -358,6 +398,34 @@ export default function CalendarManagement() {
             <div style={{ display: "flex", gap: "8px" }}>
               <button
                 type="button"
+                className="triggerButton"
+                onClick={() => setShowWeekModal(true)}
+                title="Chọn tuần"
+                style={{ backgroundColor: "#007bff", color: "white", border: "none" }}
+              >
+                📅 {selectedWeek ? `Tuần ${selectedWeek.weekNumber}` : "Chọn tuần"}
+              </button>
+              <button
+                type="button"
+                className="triggerButton"
+                onClick={() => setShowSubjectSidebar(true)}
+                title="Môn học"
+                style={{ backgroundColor: "#17a2b8", color: "white", border: "none" }}
+              >
+                📚 Môn học
+              </button>
+              <button
+                type="button"
+                className="triggerButton"
+                onClick={handleSaveSchedule}
+                title="Lưu lịch học"
+                disabled={saving}
+                style={{ backgroundColor: "#28a745", color: "white", border: "none" }}
+              >
+                {saving ? "Đang lưu..." : "💾 Lưu lịch học"}
+              </button>
+              <button
+                type="button"
                 className="triggerButton managePeriodBtn"
                 onClick={() => setShowPeriodModal(true)}
                 title="Quản lý ca học"
@@ -369,27 +437,18 @@ export default function CalendarManagement() {
         />
       </div>
 
-      <div className="calendarContent">
-        {/* Left Sidebar - Week Selector and Subject List */}
-        <div className="calendarSidebar">
-          {weeks.length > 0 && (
-            <WeekSelector
-              weeks={weeks}
-              selectedWeek={selectedWeek}
-              onSelectWeek={handleWeekSelect}
-            />
-          )}
-
-          <SubjectList
-            subjects={subjects}
-            onDragStart={handleDragStart}
-            onDragEnd={handleDragEnd}
-            draggingSubject={draggingSubject}
-          />
-        </div>
-
-        {/* Main Content - Timetable Grid */}
-        <div className="calendarMainContent">
+      <div className="calendarContent" style={{
+        width: '100%',
+        flex: 1,
+        padding: '20px',
+        marginLeft: showSubjectSidebar ? '1rem' : '0',
+        position: 'relative',
+        zIndex: showSubjectSidebar ? 3001 : 'auto',
+        backgroundColor: showSubjectSidebar ? '#f7f8fa' : 'transparent',
+        transition: 'all 0.3s ease'
+      }}>
+        {/* Main Content - Full Width */}
+        <div className="calendarMainContent" >
           {selectedWeek ? (
             <>
               <div className="calendarWeekInfo">
@@ -408,7 +467,7 @@ export default function CalendarManagement() {
               </div>
               <TimetableGrid
                 weekDays={weekDays}
-                periods={selectedPeriods} // New Prop
+                periods={selectedPeriods}
                 schedule={schedule}
                 onScheduleChange={handleScheduleChange}
                 draggingSubject={draggingSubject}
@@ -419,13 +478,21 @@ export default function CalendarManagement() {
               <div className="calendarEmptyIcon">📅</div>
               <h3 className="calendarEmptyTitle">Chưa chọn tuần học</h3>
               <p className="calendarEmptyText">
-                Vui lòng chọn khoảng thời gian từ lịch ở góc phải trên để bắt
+                Vui lòng chọn khoảng thời gian từ nút "Chọn tuần" ở trên để bắt
                 đầu tạo thời khóa biểu.
               </p>
+              <button
+                onClick={() => setShowWeekModal(true)}
+                className="calendarPrimaryButton"
+                style={{ marginTop: '15px' }}
+              >
+                Chọn tuần ngay
+              </button>
             </div>
           )}
         </div>
       </div>
+
       {showPeriodModal && (
         <PeriodManagementModal
           onClose={() => setShowPeriodModal(false)}
@@ -433,6 +500,25 @@ export default function CalendarManagement() {
           onApply={handleApplyPeriods}
         />
       )}
+
+      {showWeekModal && (
+        <WeekSelectionModal
+          weeks={weeks}
+          selectedWeek={selectedWeek}
+          onSelectWeek={handleWeekSelect}
+          onClose={() => setShowWeekModal(false)}
+        />
+      )}
+
+      <SubjectListSidebar
+        subjects={subjects}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+        draggingSubject={draggingSubject}
+        isOpen={showSubjectSidebar}
+        onClose={() => setShowSubjectSidebar(false)}
+      />
+
       <NotificationModal
         isOpen={notification.isOpen}
         onClose={() => setNotification((prev) => ({ ...prev, isOpen: false }))}
