@@ -58,7 +58,7 @@ export default function TimeSlot({
             e.dataTransfer.effectAllowed = "move";
             e.dataTransfer.setData(
               "text/plain",
-              JSON.stringify({ type: "schedule", item: scheduleItem })
+              JSON.stringify({ type: "schedule", item: { ...scheduleItem, dayIndex } })
             );
             e.currentTarget.style.opacity = "0.5";
 

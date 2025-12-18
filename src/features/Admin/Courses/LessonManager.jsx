@@ -6,7 +6,7 @@ import styles from "./ManageLessons.module.css";
 export default function LessonManager({
   sessionId,
   onSelectLesson,
-  selectedLessonId,
+  selectedLesson,
 }) {
   const [lessons, setLessons] = useState([]);
   const [showModal, setShowModal] = useState(false);
@@ -128,6 +128,18 @@ export default function LessonManager({
             sessionId,
           }
         );
+
+        // Notify parent if the updated exercise is the currently selected one
+        if (
+          selectedLesson?.id === editingExercise.exerciseId &&
+          selectedLesson?.type === "EXERCISE"
+        ) {
+          onSelectLesson?.({
+            ...selectedLesson,
+            ...exerciseFormData,
+          });
+        }
+
       } else {
         await sessionExerciseService.createSessionExercise({
           ...exerciseFormData,
@@ -145,7 +157,9 @@ export default function LessonManager({
         {lessons.map((lesson) => (
           <li
             key={lesson.id}
-            className={`${styles.lessonListItem} ${selectedLessonId === lesson.id ? styles.lessonListItemActive : ""
+            className={`${styles.lessonListItem} ${selectedLesson?.id === lesson.id && selectedLesson?.type !== "EXERCISE"
+              ? styles.lessonListItemActive
+              : ""
               }`}
           >
             <button
@@ -165,11 +179,22 @@ export default function LessonManager({
         {exercises.map((exercise) => (
           <li
             key={`ex-${exercise.exerciseId}`}
-            className={styles.lessonListItem}
+            className={`${styles.lessonListItem} ${selectedLesson?.id === exercise.exerciseId &&
+              selectedLesson?.type === "EXERCISE"
+              ? styles.lessonListItemActive
+              : ""
+              }`}
           >
             <button
               type="button"
               className={styles.lessonTitleButton}
+              onClick={() =>
+                onSelectLesson?.({
+                  ...exercise,
+                  type: "EXERCISE",
+                  id: exercise.exerciseId,
+                })
+              }
             >
               <span>{exercise.title}</span>
               <span className={styles.lessonTypeBadge}>EXERCISE</span>

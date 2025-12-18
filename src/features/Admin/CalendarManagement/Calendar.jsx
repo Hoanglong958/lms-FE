@@ -360,7 +360,7 @@ export default function CalendarManagement() {
                 type="button"
                 className="triggerButton managePeriodBtn"
                 onClick={() => setShowPeriodModal(true)}
-                title="Quản lý & Chọn ca học"
+                title="Quản lý ca học"
               >
                 ⏰ Quản lý ca học
               </button>

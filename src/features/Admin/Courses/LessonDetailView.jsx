@@ -13,11 +13,12 @@ import { questionService } from "@utils/questionService.js";
 import { lessonDocumentService } from "@utils/lessonDocumentService.js";
 import LessonDocumentEditor from "./LessonDocumentEditor.jsx";
 import LessonDocumentCreate from "./LessonDocumentCreate.jsx";
+import SessionExerciseDetail from "./SessionExerciseDetail.jsx";
 
 import "../Courses/CoursesCSS/LessonDetailView.css";
 import NotificationModal from "@components/NotificationModal/NotificationModal";
 
-export default function LessonDetailView({ lesson }) {
+export default function LessonDetailView({ lesson, onLessonUpdated }) {
   const [videos, setVideos] = useState([]);
   const [selectedVideo, setSelectedVideo] = useState(null);
 
@@ -37,6 +38,7 @@ export default function LessonDetailView({ lesson }) {
     message: "",
     type: "info",
   });
+
 
   const showNotification = (title, message, type = "info") => {
     setNotification({ isOpen: true, title, message, type });
@@ -243,6 +245,16 @@ export default function LessonDetailView({ lesson }) {
               }}
             />
           )}
+        </div>
+      )}
+
+      {/* EXERCISE */}
+      {lesson.type === "EXERCISE" && (
+        <div key={`lesson-exercise-${lesson.id}`}>
+          <SessionExerciseDetail
+            exercise={lesson}
+            onUpdated={onLessonUpdated}
+          />
         </div>
       )}
 

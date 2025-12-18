@@ -42,13 +42,6 @@ export default function PeriodManagementModal({ onClose, selectedPeriodIds = [],
     type: "info",
   });
 
-  // Local selection - default to ALL if incoming is empty?
-  // No, respect props. If props empty, then empty.
-  // BUT the user complaint was "chưa thấy hiển thị".
-  // Note: Calendar.jsx passes `selectedPeriods` ids.
-  const [localSelected, setLocalSelected] = useState([]);
-
-  // form state
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState(null); // null => create
   const [name, setName] = useState("");
@@ -77,12 +70,16 @@ export default function PeriodManagementModal({ onClose, selectedPeriodIds = [],
 
   useEffect(() => {
     load();
-    setLocalSelected(selectedPeriodIds);
   }, []);
 
-  useEffect(() => {
-    setLocalSelected(selectedPeriodIds);
-  }, [selectedPeriodIds]);
+  const handleClose = () => {
+    // Return ALL periods as selected
+    if (onApply) {
+      const allIds = periods.map((p) => p.id);
+      onApply(allIds, periods);
+    }
+    onClose();
+  };
 
   const openCreate = () => {
     setShowForm(true);
@@ -159,28 +156,17 @@ export default function PeriodManagementModal({ onClose, selectedPeriodIds = [],
     }
   };
 
-  const handleToggleSelect = (id) => {
-    setLocalSelected(prev => {
-      if (prev.includes(id)) return prev.filter(pid => pid !== id);
-      return [...prev, id];
-    });
-  };
 
-  const handleApply = () => {
-    if (onApply) {
-      // Pass BOTH selected IDs AND the full periods list
-      onApply(localSelected, periods);
-    }
-    onClose();
-  };
+
+
 
   return (
     <div className="period-modal-backdrop" role="dialog" aria-modal="true">
       <div className="period-modal">
         <div className="period-modal-header">
-          <h3>Quản lý & Chọn ca học</h3>
+          <h3>Quản lý ca học</h3>
           <div>
-            <button className="btn ghost" onClick={onClose} aria-label="Đóng">
+            <button className="btn ghost" onClick={handleClose} aria-label="Đóng">
               ×
             </button>
           </div>
@@ -196,43 +182,24 @@ export default function PeriodManagementModal({ onClose, selectedPeriodIds = [],
             </div>
 
             {loading ? (
-              <p style={{ padding: '20px', textAlign: 'center' }}>Đang tải...</p>
+              <p style={{ padding: "20px", textAlign: "center" }}>Đang tải...</p>
             ) : (
               <ul className="period-list">
-                {periods.length === 0 && (
-                  <li className="muted">Chưa có ca học</li>
-                )}
+                {periods.length === 0 && <li className="muted">Chưa có ca học</li>}
                 {periods.map((p) => {
-                  const isSelected = localSelected.includes(p.id);
                   return (
-                    <li
-                      key={p.id}
-                      className={`period-item ${isSelected ? "selected" : ""}`}
-                      onClick={() => handleToggleSelect(p.id)}
-                    >
-                      <div className="period-checkbox">
-                        <input
-                          type="checkbox"
-                          checked={isSelected}
-                          readOnly
-                          style={{ pointerEvents: 'none' }}
-                        />
-                      </div>
+                    <li key={p.id} className="period-item">
                       <div className="period-info-block">
                         <div className="period-name">{p.name}</div>
                         <div className="period-time">
-                          {timeObjToString(p.startTime)} —{" "}
-                          {timeObjToString(p.endTime)}
+                          {timeObjToString(p.startTime)} — {timeObjToString(p.endTime)}
                         </div>
                       </div>
                       <div className="period-actions" onClick={(e) => e.stopPropagation()}>
                         <button className="btn sm" onClick={() => openEdit(p)}>
                           Sửa
                         </button>
-                        <button
-                          className="btn danger sm"
-                          onClick={() => handleDelete(p.id)}
-                        >
+                        <button className="btn danger sm" onClick={() => handleDelete(p.id)}>
                           Xóa
                         </button>
                       </div>
@@ -241,15 +208,6 @@ export default function PeriodManagementModal({ onClose, selectedPeriodIds = [],
                 })}
               </ul>
             )}
-
-            <div className="period-list-footer">
-              <div className="summary-selected">
-                Đã chọn: <b>{localSelected.length}</b> ca
-              </div>
-              <button className="btn primary" onClick={handleApply}>
-                Áp dụng hiển thị
-              </button>
-            </div>
           </div>
 
           {showForm && (
