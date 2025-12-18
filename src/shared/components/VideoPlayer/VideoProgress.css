@@ -38,6 +38,52 @@
   background: transparent; /* Invisible */
 }
 
+/* Big Play Button Overlay */
+.big-play-button-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 15; /* Above click overlay, below controls if needed, but usually center */
+  pointer-events: none; /* Let clicks pass through to click-overlay if we want general click to play anywhere, OR auto for specific click */
+  opacity: 0;
+  transition: opacity 0.3s ease,
+    transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 50%;
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+}
+
+.video-progress-container.paused .big-play-button-overlay {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+  pointer-events: auto; /* Enable clicking specifically on it */
+  cursor: pointer;
+}
+
+/* Hidden state for playing */
+.video-progress-container:not(.paused) .big-play-button-overlay {
+  transform: translate(-50%, -50%) scale(0.8);
+  pointer-events: none;
+}
+
+.big-play-button-overlay:hover {
+  background: rgba(255, 127, 80, 0.9); /* Orange brand color on hover */
+  transform: translate(-50%, -50%) scale(1.1);
+}
+
+.big-play-button-overlay svg {
+  width: 40px;
+  height: 40px;
+  fill: #fff;
+  margin-left: 4px; /* Visual center adjustment for play triangle */
+}
+
 /* Controls overlay (hiện khi hover hoặc paused) */
 .controls-overlay {
   position: absolute;
