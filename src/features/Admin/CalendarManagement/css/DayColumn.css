@@ -42,8 +42,6 @@
 .slots {
   display: flex;
   flex-direction: column;
-  background-image: linear-gradient(#f9fafb 1px, transparent 1px);
-  background-size: 100% 45px;
   width: 100%; /* Đảm bảo full width */
 }
 

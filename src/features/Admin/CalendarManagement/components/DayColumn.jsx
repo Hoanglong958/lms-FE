@@ -1,3 +1,4 @@
+// src/features/Admin/CalendarManagement/components/DayColumn.jsx
 import React from "react";
 import TimeSlot from "./TimeSlot";
 import "../css/DayColumn.css";
@@ -5,15 +6,13 @@ import "../css/DayColumn.css";
 export default function DayColumn({
   day,
   dayIndex,
-  timeSlots,
+  periods,
   schedule,
   onDrop,
   onDragOver,
   onRemove,
-  onResizeStart,
   onDragStart,
   previewPosition,
-  morningSlotsCount,
 }) {
   const dayNames = [
     "Chủ nhật",
@@ -37,36 +36,28 @@ export default function DayColumn({
         </div>
       </div>
       <div className="slots">
-        {timeSlots.map((timeSlot, index) => {
-          const scheduleItem = schedule?.[timeSlot.key] || null;
-
-          // Logic check bị che khuất bởi item phía trên (cho mục đích render CSS nếu cần)
-          // (Đơn giản hóa ở đây vì chúng ta dùng absolute position cho item)
+        {periods.map((period) => {
+          const scheduleItem = schedule?.[period.id] || null;
 
           return (
-            <React.Fragment key={timeSlot.key}>
-              {/* CHÈN KHOẢNG NGHỈ TRƯA ĐỒNG BỘ */}
-              {index === morningSlotsCount && (
-                <div className="breakSeparator columnSeparator"></div>
-              )}
-
-              <TimeSlot
-                time={timeSlot}
-                timeIndex={index}
-                dayIndex={dayIndex}
-                onDrop={onDrop}
-                onDragOver={onDragOver}
-                scheduleItem={scheduleItem}
-                onRemove={onRemove}
-                onResizeStart={onResizeStart}
-                onDragStart={onDragStart}
-                previewPosition={
-                  previewPosition?.time === timeSlot.key
-                    ? previewPosition
-                    : null
-                }
-              />
-            </React.Fragment>
+            <TimeSlot
+              key={period.id}
+              period={period}
+              periodId={period.id}
+              dayIndex={dayIndex}
+              onDrop={onDrop}
+              onDragOver={onDragOver}
+              scheduleItem={scheduleItem}
+              onRemove={onRemove}
+              onDragStart={onDragStart}
+              previewPosition={
+                previewPosition?.periodId === period.id
+                  ? previewPosition
+                  : null
+              }
+              // Style override for slot
+              style={{ height: '80px' }}
+            />
           );
         })}
       </div>

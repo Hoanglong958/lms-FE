@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { classService } from "@utils/classService";
 import { courseService } from "@utils/courseService";
+import { scheduleService } from "@utils/scheduleService";
+import { periodService } from "@utils/periodService";
 import AdminHeader from "@components/Admin/AdminHeader";
 import { useOutletContext } from "react-router-dom";
 import NotificationModal from "@components/NotificationModal/NotificationModal";
@@ -23,6 +25,9 @@ export default function CalendarManagement() {
   const [loading, setLoading] = useState(true);
   const [courses, setCourses] = useState([]);
 
+  // Period management
+  const [periods, setPeriods] = useState([]);
+  const [selectedPeriods, setSelectedPeriods] = useState([]);
   const [showPeriodModal, setShowPeriodModal] = useState(false);
 
   const [notification, setNotification] = useState({
@@ -65,7 +70,22 @@ export default function CalendarManagement() {
         // Load class info
         const classRes = await classService.getClassDetail(classId);
         const classData = classRes.data?.data || classRes.data;
-        setClassInfo(classData);
+        if (classData && classData.startDate && classData.endDate) {
+          handleDateRangeSelect(classData.startDate, classData.endDate);
+        }
+
+        // Load periods
+        try {
+          const periodRes = await periodService.getAll();
+          const pData = periodRes.data ?? [];
+          const periodList = Array.isArray(pData) ? pData : (pData.data || pData.content || []);
+          setPeriods(periodList);
+          if (periodList.length > 0) {
+            setSelectedPeriods(periodList);
+          }
+        } catch (perr) {
+          console.error("Load periods error", perr);
+        }
 
         // Load courses for subject selection
         const coursesRes = await courseService.getCourses();
@@ -78,7 +98,6 @@ export default function CalendarManagement() {
               : [];
         setCourses(coursesData);
 
-        // Initialize subjects with courses
         if (coursesData.length > 0) {
           setSubjects(
             coursesData.map((course) => ({
@@ -102,11 +121,22 @@ export default function CalendarManagement() {
   const calculateWeeks = (start, end) => {
     if (!start || !end) return [];
 
+    const endDateObj = new Date(end);
+    if (isNaN(endDateObj.getTime())) return [];
+
     const weeks = [];
     const currentDate = new Date(start);
-    let weekNumber = 1;
+    if (isNaN(currentDate.getTime())) return [];
 
-    while (currentDate <= end) {
+    let weekNumber = 1;
+    let safeguard = 0;
+
+    // Ensure we start from a Monday or the exact start date?
+    // User logic in calculateWeeks seems to align to weeks.
+    // Let's keep existing logic but just auto-call it.
+
+    while (currentDate <= endDateObj && safeguard < 1000) {
+      safeguard++;
       // Find Monday of current week
       const dayOfWeek = currentDate.getDay();
       const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; // Monday = 1
@@ -117,9 +147,10 @@ export default function CalendarManagement() {
       const sunday = new Date(monday);
       sunday.setDate(monday.getDate() + 6);
 
-      // Adjust if end date is before Sunday
-      const weekEnd = sunday > end ? end : sunday;
-      const weekStart = monday < start ? start : monday;
+      // Adjust if end date is before Sunday? 
+      // Usually full weeks are better for grid.
+      const weekEnd = sunday;
+      const weekStart = monday;
 
       weeks.push({
         weekNumber,
@@ -128,7 +159,19 @@ export default function CalendarManagement() {
       });
 
       // Move to next week
-      currentDate.setDate(sunday.getDate() + 1);
+      // Use sunday object to increment to ensure we move forward
+      const nextDate = new Date(sunday);
+      nextDate.setDate(sunday.getDate() + 1);
+
+      // Update currentDate
+      currentDate.setTime(nextDate.getTime());
+
+      // Safety check: if currentDate didn't move forward (e.g. invalid date math), break
+      if (currentDate.getTime() <= weekStart.getTime()) {
+        console.error("Infinite loop detected in calculateWeeks");
+        break;
+      }
+
       weekNumber++;
     }
 
@@ -165,7 +208,6 @@ export default function CalendarManagement() {
 
     const days = [];
     const start = new Date(week.startDate);
-    const end = new Date(week.endDate);
 
     // Find Monday
     const dayOfWeek = start.getDay();
@@ -194,8 +236,79 @@ export default function CalendarManagement() {
   };
 
   // Handle schedule change
-  const handleScheduleChange = (newSchedule) => {
+  const handleScheduleChange = async (newSchedule, changeDetails) => {
     setSchedule(newSchedule);
+
+    if (!changeDetails) return;
+
+    // Map dayIndex to DayOfWeek (assuming Spring Boot / Java standard or common convention)
+    const days = ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"];
+    const dayOfWeek = days[changeDetails.dayIndex];
+
+    if (changeDetails.remove) {
+      // Handle remove if API available
+      // Currently scheduleService only has deleteByCourse. 
+      // Warn user or try to implement if backend supports ID delete.
+      // Assuming for now we skip or just notify.
+      showNotification("Thông báo", "Chức năng xóa chưa được lưu vào server (API thiếu)", "warning");
+      return;
+    }
+
+    try {
+      // Map dayIndex (0=Monday) to ISO DayOfWeek (1=Monday ... 7=Sunday)
+      // or whatever the backend expects. Trying ISO first.
+      const isoDayOfWeek = changeDetails.dayIndex + 1;
+
+      const payload = {
+        classId: Number(classId),
+        courseId: Number(changeDetails.courseId),
+        periodIds: [Number(changeDetails.periodId)],
+        daysOfWeek: [isoDayOfWeek],
+      };
+
+      console.log("Saving schedule payload:", payload);
+      await scheduleService.createManual(payload);
+      showNotification("Thành công", "Đã lưu lịch học", "success");
+    } catch (error) {
+      console.error("Save schedule error", error);
+      const serverMsg = error.response?.data?.message || JSON.stringify(error.response?.data) || "Lỗi server";
+      showNotification("Lỗi", `Không thể lưu: ${serverMsg}`, "error");
+
+      // Optional: Revert state if save fails?
+      // For now, let user know.
+    }
+  };
+
+  const handleApplyPeriods = (selectedIds, allPeriods = []) => {
+    // Update local periods state in case new ones were added
+    if (allPeriods.length > 0) {
+      setPeriods(allPeriods);
+    }
+    const sourcePeriods = allPeriods.length > 0 ? allPeriods : periods;
+
+    const selected = sourcePeriods.filter((p) => selectedIds.includes(p.id));
+
+    // Sort periods by startTime
+    const getTimeValue = (t) => {
+      if (!t) return 0;
+      if (typeof t === 'string') {
+        // "HH:mm"
+        return parseInt(t.replace(':', ''), 10);
+      }
+      if (Array.isArray(t)) {
+        // [h, m]
+        return (t[0] || 0) * 60 + (t[1] || 0);
+      }
+      if (typeof t === 'object') {
+        return (t.hour || 0) * 60 + (t.minute || 0);
+      }
+      return 0;
+    };
+
+    selected.sort((a, b) => {
+      return getTimeValue(a.startTime) - getTimeValue(b.startTime);
+    });
+    setSelectedPeriods(selected);
   };
 
   if (loading) {
@@ -242,12 +355,16 @@ export default function CalendarManagement() {
           onMenuToggle={toggleSidebar}
           onBack={() => navigate(-1)}
           actions={
-            <CalendarPicker
-              onDateRangeSelect={handleDateRangeSelect}
-              initialStartDate={startDate}
-              initialEndDate={endDate}
-              onOpenPeriodModal={() => setShowPeriodModal(true)} // 👈 THIS
-            />
+            <div style={{ display: "flex", gap: "8px" }}>
+              <button
+                type="button"
+                className="triggerButton managePeriodBtn"
+                onClick={() => setShowPeriodModal(true)}
+                title="Quản lý & Chọn ca học"
+              >
+                ⏰ Quản lý ca học
+              </button>
+            </div>
           }
         />
       </div>
@@ -291,8 +408,7 @@ export default function CalendarManagement() {
               </div>
               <TimetableGrid
                 weekDays={weekDays}
-                startHour={7}
-                endHour={18}
+                periods={selectedPeriods} // New Prop
                 schedule={schedule}
                 onScheduleChange={handleScheduleChange}
                 draggingSubject={draggingSubject}
@@ -311,7 +427,11 @@ export default function CalendarManagement() {
         </div>
       </div>
       {showPeriodModal && (
-        <PeriodManagementModal onClose={() => setShowPeriodModal(false)} />
+        <PeriodManagementModal
+          onClose={() => setShowPeriodModal(false)}
+          selectedPeriodIds={selectedPeriods.map(p => p.id)}
+          onApply={handleApplyPeriods}
+        />
       )}
       <NotificationModal
         isOpen={notification.isOpen}
