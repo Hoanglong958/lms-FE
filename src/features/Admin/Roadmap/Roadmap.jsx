@@ -177,35 +177,6 @@ export default function Roadmap() {
         loadCourseData();
     }, [selectedCourseId, classId, availableCourses]); // availableCourses typically stable loop-wise if ref fetched
 
-    const autoFillRoadmap = () => {
-        if (!chapters || chapters.length === 0) {
-            alert("Không có dữ liệu chương trình học để tự động gán!");
-            return;
-        }
-
-        const totalSessions = classSessions.length;
-        let currentSessionIndex = 1;
-        const newAssignments = {};
-
-        for (const chap of chapters) {
-            const lessons = lessonsMap[chap.id] || [];
-            for (const lesson of lessons) {
-                if (currentSessionIndex > totalSessions) break;
-
-                newAssignments[currentSessionIndex] = {
-                    chapterId: chap.id,
-                    lessonId: lesson.id
-                };
-
-                currentSessionIndex++;
-            }
-            if (currentSessionIndex > totalSessions) break;
-        }
-
-        setRoadmapAssignments(newAssignments);
-        // alert("Đã tự động điền lộ trình theo thứ tự bài học của khóa học.");
-    };
-
     const handleAssignmentChange = (index, field, value) => {
         setRoadmapAssignments(prev => {
             const current = prev[index] || {};
@@ -288,28 +259,14 @@ export default function Roadmap() {
                 onMenuToggle={toggleSidebar}
                 onBack={() => navigate(-1)}
                 actions={
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                        <button
-                            className="roadmap-btn-save"
-                            style={{ backgroundColor: '#2563eb' }}
-                            onClick={autoFillRoadmap}
-                            disabled={loading || !courseInfo}
-                            title="Tự động điền lộ trình dựa trên danh sách bài học của khóa học"
-                        >
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                            </svg>
-                            Tự động gán
-                        </button>
-                        <button className="roadmap-btn-save" onClick={handleSave} disabled={loading}>
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
-                                <polyline points="17 21 17 13 7 13 7 21" />
-                                <polyline points="7 3 7 8 15 8" />
-                            </svg>
-                            Lưu thay đổi
-                        </button>
-                    </div>
+                    <button className="roadmap-btn-save" onClick={handleSave} disabled={loading}>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                            <polyline points="17 21 17 13 7 13 7 21" />
+                            <polyline points="7 3 7 8 15 8" />
+                        </svg>
+                        Lưu thay đổi
+                    </button>
                 }
             />
 
