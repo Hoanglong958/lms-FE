@@ -72,7 +72,8 @@ export default function TimetableGrid({
         dayIndex,
         periodId,
         courseId: subjectData.courseId || subjectData.subjectId,
-        classId: subjectData.classId // If available
+        classId: subjectData.classId,
+        subject: subjectData // Pass full data
       });
 
       setDraggingItem(null);

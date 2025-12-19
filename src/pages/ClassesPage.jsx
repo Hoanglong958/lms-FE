@@ -107,7 +107,7 @@ const ClassesPage = () => {
 
   return (
     <div className="classes-page">
-      <h2 className="page-title">Danh sách lớp học của bạn</h2>
+      <h2 className="page-title1">Danh sách lớp học của bạn</h2>
 
       <div className="classes-grid">
         {loading && <p>Đang tải lớp học...</p>}

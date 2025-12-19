@@ -1,6 +1,8 @@
 :root {
-  --primary-color: #ff6b00; /* Vibrant Orange */
-  --secondary-color: #fff0e5; /* Light Orange Background */
+  --primary-color: #ff6b00;
+  /* Vibrant Orange */
+  --secondary-color: #fff0e5;
+  /* Light Orange Background */
   --text-primary: #111827;
   --text-secondary: #6b7280;
   --bg-color: #f8fafc;
@@ -29,7 +31,7 @@ body {
 }
 
 /* TITLE SECTION */
-.page-title {
+.page-title1 {
   font-size: 36px;
   font-weight: 800;
   color: var(--text-primary);
@@ -39,7 +41,7 @@ body {
   display: inline-block;
 }
 
-.page-title::after {
+.page-title1::after {
   content: "";
   position: absolute;
   bottom: -8px;
@@ -82,7 +84,8 @@ body {
 .class-image-wrapper {
   position: relative;
   width: 100%;
-  padding-top: 60%; /* Aspect ratio 16:9-ish */
+  padding-top: 60%;
+  /* Aspect ratio 16:9-ish */
   overflow: hidden;
 }
 
@@ -97,7 +100,8 @@ body {
 }
 
 .class-card:hover .class-image {
-  transform: scale(1.08); /* Gentle zoom */
+  transform: scale(1.08);
+  /* Gentle zoom */
 }
 
 /* OVERLAY TAGS ON IMAGE */
@@ -226,7 +230,7 @@ body {
     padding: 30px 16px;
   }
 
-  .page-title {
+  .page-title1 {
     font-size: 28px;
     margin-bottom: 30px;
   }
