@@ -140,11 +140,7 @@ export default function HomePage() {
     navigate(`/courses/${course.slug || slugify(course.title)}`);
   };
 
-  if (loading)
-    return (
-      <p style={{ textAlign: "center", marginTop: 20 }}>Đang tải khóa học...</p>
-    );
-  if (loading) return <p>Đang tải khóa học...</p>;
+
 
   return (
     <div className="home-page">
