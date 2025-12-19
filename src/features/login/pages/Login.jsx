@@ -4,7 +4,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { authService } from "@utils/authService"; // import service
 import NotificationModal from "@components/NotificationModal/NotificationModal";
 import ForgotPasswordModal from "../components/ForgotPasswordModal";
-import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { FaEye, FaEyeSlash, FaLock } from "react-icons/fa";
 import "./login.css";
 
 export default function Login() {
@@ -163,7 +163,8 @@ export default function Login() {
 
             <div className="form-group">
               <label>Mật khẩu</label>
-              <div className="password-input-container">
+              <div className="password-input-container1">
+                <FaLock className="password-icon" />
                 <input
                   type={showPassword ? "text" : "password"}
                   value={password}
@@ -203,10 +204,10 @@ export default function Login() {
         </div>
 
         <div className="login-image"
-             onTouchStart={handleTouchStart}
-             onTouchEnd={handleTouchEnd}
-             onMouseDown={handleMouseDown}
-             onMouseUp={handleMouseUp}
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+          onMouseDown={handleMouseDown}
+          onMouseUp={handleMouseUp}
         >
           <div className="login-image-slider" style={{ transform: `translateX(-${slideIndex * 100}%)` }}>
             {slides.map((s, idx) => (
