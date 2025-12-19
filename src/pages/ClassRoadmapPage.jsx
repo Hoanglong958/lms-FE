@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useSearchParams, useNavigate, useParams, useOutletContext } from 'react-router-dom';
+import { useSearchParams, useNavigate, useParams } from 'react-router-dom';
 import { classService } from '@utils/classService';
 import { classCourseService } from '@utils/classCourseService';
 import { sessionService } from '@utils/sessionService';
@@ -7,9 +7,9 @@ import { lessonService } from '@utils/lessonService';
 import { roadmapService } from '@utils/roadmapService';
 import { scheduleService } from '@utils/scheduleService';
 import { periodService } from '@utils/periodService';
-import { courseService } from '@utils/courseService';
 import TimetableGrid from '@features/Admin/CalendarManagement/components/TimetableGrid';
-import '@features/Admin/Roadmap/Roadmap.css'; // Reuse CSS
+import { FaChevronLeft, FaBook } from 'react-icons/fa';
+import './ClassRoadmap.css';
 
 export default function ClassRoadmapPage() {
     const [searchParams] = useSearchParams();
@@ -325,98 +325,137 @@ export default function ClassRoadmapPage() {
         return sch;
     }, [scheduleItems, weeks, selectedWeekIndex, slotAssignments, chapters, lessonsMap, availableCourses]);
 
-    return (
-        <div className="roadmap-page improved-ui" style={{ padding: '20px', minHeight: '100vh', background: '#fff' }}>
-            <div className="calendarHeaderContainer" style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                    <button onClick={() => navigate(-1)} style={{ marginRight: '10px', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '16px' }}>← Quay lại</button>
-                    <h1 style={{ display: 'inline', fontSize: '24px', fontWeight: 'bold' }}>Lộ trình học - {classInfo?.className}</h1>
+    if (loading) {
+        return (
+            <div className="roadmap-page" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
+                <div style={{
+                    fontFamily: 'Inter, sans-serif',
+                    fontSize: '18px',
+                    fontWeight: '600',
+                    color: '#667eea',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '20px'
+                }}>
+                    <div style={{
+                        width: '48px',
+                        height: '48px',
+                        border: '4px solid rgba(102, 126, 234, 0.2)',
+                        borderTop: '4px solid #667eea',
+                        borderRadius: '50%',
+                        animation: 'spin 1s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite'
+                    }}></div>
+                    Đang chuẩn bị dữ liệu lộ trình...
                 </div>
+            </div>
+        );
+    }
 
+    return (
+        <div className="roadmap-page">
+            {/* Header Section */}
+            <div className="roadmap-header">
+                <div className="roadmap-header-content">
+                    <div className="roadmap-header-left">
+                        <button onClick={() => navigate(`/classes/${classId}`)} className="roadmap-back-btn">
+                            <FaChevronLeft className="roadmap-back-icon" />
+                            <span>Quay lại lớp học</span>
+                        </button>
+                        <div className="roadmap-title-block">
+                            <h1 className="roadmap-page-title">Lộ trình học - {classInfo?.className}</h1>
+                            <p className="roadmap-page-subtitle">Kế hoạch chi tiết các bài học theo tuần</p>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <div className="roadmap-container" style={{ gridTemplateColumns: 'minmax(250px, 300px) 1fr' }}>
-                {/* READ ONLY SIDEBAR */}
-                <div className={`roadmap-lessons-sidebar ${loading ? 'loading' : ''}`}>
-                    <div className="sidebar-header">
-                        <h3>Danh sách bài học</h3>
-                        <div className="course-select-area">
-                            <select
-                                value={selectedCourseId || ''}
-                                onChange={e => setSelectedCourseId(e.target.value)}
-                                className="modern-select"
-                            >
-                                {availableCourses.map(c => (
-                                    <option key={c.courseId} value={c.courseId}>
-                                        {c.courseTitle || c.title}
-                                    </option>
-                                ))}
-                            </select>
+            {/* Main Content */}
+            <div className="roadmap-main-wrapper">
+                <div className="roadmap-container">
+                    {/* Lessons Sidebar */}
+                    <div className={`roadmap-lessons-sidebar ${loading ? 'loading' : ''}`}>
+                        <div className="sidebar-header">
+                            <h3><FaBook style={{ marginRight: '8px', verticalAlign: 'middle' }} />Danh sách bài học</h3>
+                            <div className="course-select-area">
+                                <select
+                                    value={selectedCourseId || ''}
+                                    onChange={e => setSelectedCourseId(e.target.value)}
+                                    className="modern-select"
+                                >
+                                    {availableCourses.map(c => (
+                                        <option key={c.courseId} value={c.courseId}>
+                                            {c.courseTitle || c.title}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div className="chapters-list">
+                            {chapters.map(chap => {
+                                const lessons = lessonsMap[chap.id] || [];
+                                return (
+                                    <div key={chap.id} className="chapter-group">
+                                        <div className="chapter-title">{chap.sessionName || chap.name}</div>
+                                        <div className="lessons-group">
+                                            {lessons.map(les => {
+                                                const isAssigned = Object.values(slotAssignments).some(a => String(a.lessonId) === String(les.id));
+                                                return (
+                                                    <div
+                                                        key={les.id}
+                                                        className={`lesson-item-draggable ${isAssigned ? 'assigned' : ''}`}
+                                                    >
+                                                        <span>{les.lessonName || les.title}</span>
+                                                        {isAssigned && <span style={{ marginLeft: 'auto', color: '#10b981', fontWeight: 'bold', fontSize: '16px' }}>✓</span>}
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                );
+                            })}
                         </div>
                     </div>
 
-                    <div className="chapters-list" style={{ overflowY: 'auto', maxHeight: '70vh' }}>
-                        {chapters.map(chap => {
-                            const lessons = lessonsMap[chap.id] || [];
-                            return (
-                                <div key={chap.id} className="chapter-group">
-                                    <div className="chapter-title">{chap.sessionName || chap.name}</div>
-                                    <div className="lessons-group">
-                                        {lessons.map(les => {
-                                            // Find if lesson is assigned somewhere
-                                            const isAssigned = Object.values(slotAssignments).some(a => String(a.lessonId) === String(les.id));
-                                            return (
-                                                <div
-                                                    key={les.id}
-                                                    className={`lesson-item-draggable ${isAssigned ? 'assigned' : ''}`}
-                                                    style={{ cursor: 'default' }} // No drag cursor
-                                                // No draggable props
-                                                >
-                                                    {/* No drag handle */}
-                                                    <span style={{ marginLeft: '10px' }}>{les.lessonName || les.title}</span>
-                                                    {isAssigned && <span style={{ marginLeft: 'auto', color: '#10b981', fontWeight: 'bold' }}>✓</span>}
-                                                </div>
-                                            )
-                                        })}
-                                    </div>
-                                </div>
-                            )
-                        })}
-                    </div>
-                </div>
+                    {/* Calendar Wrapper */}
+                    <div className="roadmap-cal-wrapper">
+                        {/* Week Navigator */}
+                        <div className="week-navigator">
+                            <button
+                                className="nav-btn"
+                                disabled={selectedWeekIndex <= 0}
+                                onClick={() => setSelectedWeekIndex(p => p - 1)}
+                            >
+                                &lt; Tuần trước
+                            </button>
+                            <span className="week-label">
+                                {weeks[selectedWeekIndex]?.label}
+                                <small>
+                                    ({weeks[selectedWeekIndex]?.startDate?.toLocaleDateString('vi-VN')} - {weeks[selectedWeekIndex]?.endDate?.toLocaleDateString('vi-VN')})
+                                </small>
+                            </span>
+                            <button
+                                className="nav-btn"
+                                disabled={selectedWeekIndex >= weeks.length - 1}
+                                onClick={() => setSelectedWeekIndex(p => p + 1)}
+                            >
+                                Tuần sau &gt;
+                            </button>
+                        </div>
 
-                <div className="roadmap-cal-wrapper">
-                    <div className="week-navigator">
-                        <button
-                            className="nav-btn"
-                            disabled={selectedWeekIndex <= 0}
-                            onClick={() => setSelectedWeekIndex(p => p - 1)}
-                        >
-                            &lt; Tuần trước
-                        </button>
-                        <span className="week-label">
-                            {weeks[selectedWeekIndex]?.label}
-                            <small>
-                                ({weeks[selectedWeekIndex]?.startDate?.toLocaleDateString('vi-VN')} - {weeks[selectedWeekIndex]?.endDate?.toLocaleDateString('vi-VN')})
-                            </small>
-                        </span>
-                        <button
-                            className="nav-btn"
-                            disabled={selectedWeekIndex >= weeks.length - 1}
-                            onClick={() => setSelectedWeekIndex(p => p + 1)}
-                        >
-                            Tuần sau &gt;
-                        </button>
-                    </div>
-
-                    <div style={{ pointerEvents: 'none' }}>
-                        <TimetableGrid
-                            weekDays={currentWeekDates}
-                            periods={periods}
-                            schedule={weekSchedule}
-                            onScheduleChange={() => { }}
-                            draggingSubject={null}
-                        />
+                        {/* Calendar Grid */}
+                        <div className="roadmap-grid-card">
+                            <div style={{ pointerEvents: 'none' }}>
+                                <TimetableGrid
+                                    weekDays={currentWeekDates}
+                                    periods={periods}
+                                    schedule={weekSchedule}
+                                    onScheduleChange={() => { }}
+                                    draggingSubject={null}
+                                />
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

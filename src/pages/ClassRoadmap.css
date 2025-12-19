@@ -1,5 +1,5 @@
 /* ============================================
-   ClassCalendar.css - Premium Modern Design
+   ClassRoadmap.css - Premium Modern Design
    ============================================ */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
@@ -7,7 +7,7 @@
 /* ============================================
    Page Container
    ============================================ */
-.student-calendar-page {
+.roadmap-page {
     min-height: 100vh;
     background: linear-gradient(135deg, #f5f7fa 0%, #e8eef5 100%);
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -18,7 +18,7 @@
 }
 
 /* Animated background pattern */
-.student-calendar-page::before {
+.roadmap-page::before {
     content: '';
     position: fixed;
     top: 0;
@@ -36,7 +36,7 @@
 /* ============================================
    Header Section - Vibrant Gradient
    ============================================ */
-.student-calendar-header {
+.roadmap-header {
     background: linear-gradient(135deg, #DD673C 0%, #C25630 100%);
     color: white;
     padding: 32px 40px 100px;
@@ -46,7 +46,7 @@
 }
 
 /* Animated gradient overlay */
-.student-calendar-header::before {
+.roadmap-header::before {
     content: '';
     position: absolute;
     top: -50%;
@@ -74,7 +74,7 @@
 }
 
 /* Floating orbs */
-.student-calendar-header::after {
+.roadmap-header::after {
     content: '';
     position: absolute;
     top: -30%;
@@ -103,8 +103,8 @@
     }
 }
 
-.header-content {
-    max-width: 1280px;
+.roadmap-header-content {
+    max-width: 1480px;
     margin: 0 auto;
     display: flex;
     justify-content: space-between;
@@ -113,7 +113,7 @@
     z-index: 10;
 }
 
-.header-left {
+.roadmap-header-left {
     display: flex;
     flex-direction: column;
     gap: 20px;
@@ -122,7 +122,7 @@
 /* ============================================
    Back Button - Glassmorphism
    ============================================ */
-.back-btn-modern {
+.roadmap-back-btn {
     display: inline-flex;
     align-items: center;
     gap: 10px;
@@ -140,30 +140,30 @@
     align-self: flex-start;
 }
 
-.back-btn-modern:hover {
+.roadmap-back-btn:hover {
     background: rgba(255, 255, 255, 0.25);
     transform: translateX(-8px) scale(1.02);
     border-color: rgba(255, 255, 255, 0.5);
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
 }
 
-.back-btn-modern:active {
+.roadmap-back-btn:active {
     transform: translateX(-6px) scale(0.98);
 }
 
-.back-icon {
+.roadmap-back-icon {
     font-size: 15px;
     transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-.back-btn-modern:hover .back-icon {
+.roadmap-back-btn:hover .roadmap-back-icon {
     transform: translateX(-4px);
 }
 
 /* ============================================
    Title & Subtitle
    ============================================ */
-.header-title-block {
+.roadmap-title-block {
     display: flex;
     flex-direction: column;
     gap: 12px;
@@ -182,7 +182,7 @@
     }
 }
 
-.page-title {
+.roadmap-page-title {
     font-family: 'Inter', sans-serif;
     font-size: 36px;
     font-weight: 900;
@@ -197,7 +197,7 @@
     position: relative;
 }
 
-.page-subtitle {
+.roadmap-page-subtitle {
     font-size: 15px;
     color: rgba(255, 255, 255, 0.85);
     font-weight: 400;
@@ -207,68 +207,10 @@
 }
 
 /* ============================================
-   Week Selector Button
-   ============================================ */
-.week-select-glass-btn {
-    background: rgba(255, 255, 255, 0.2);
-    border: 1.5px solid rgba(255, 255, 255, 0.3);
-    color: white;
-    padding: 14px 28px;
-    border-radius: 20px;
-    font-weight: 700;
-    font-size: 15px;
-    cursor: pointer;
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    backdrop-filter: blur(20px);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
-    position: relative;
-    overflow: hidden;
-}
-
-.week-select-glass-btn::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-    transition: left 0.5s ease;
-}
-
-.week-select-glass-btn:hover::before {
-    left: 100%;
-}
-
-.week-select-glass-btn:hover {
-    background: rgba(255, 255, 255, 0.3);
-    transform: translateY(-6px) scale(1.02);
-    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.2);
-    border-color: rgba(255, 255, 255, 0.5);
-}
-
-.week-select-glass-btn:active {
-    transform: translateY(-4px) scale(0.98);
-}
-
-.week-select-glass-btn svg {
-    font-size: 20px;
-    transition: all 0.3s ease;
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
-}
-
-.week-select-glass-btn:hover svg {
-    transform: scale(1.1) rotate(5deg);
-}
-
-/* ============================================
    Main Content Wrapper
    ============================================ */
-.calendar-main-wrapper-overlap {
-    max-width: 1280px;
+.roadmap-main-wrapper {
+    max-width: 1480px;
     margin: -60px auto 0;
     padding: 0 40px;
     position: relative;
@@ -276,13 +218,225 @@
 }
 
 /* ============================================
-   Week Info Card
+   Roadmap Container (Sidebar + Grid)
    ============================================ */
-.week-info-card {
+.roadmap-container {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 28px;
+    animation: fadeInScale 0.6s ease-out 0.2s both;
+}
+
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* ============================================
+   Lessons Sidebar
+   ============================================ */
+.roadmap-lessons-sidebar {
+    background: linear-gradient(135deg, #ffffff 0%, #fff8f5 100%);
+    border-radius: 28px;
+    box-shadow:
+        0 30px 60px -15px rgba(221, 103, 60, 0.2),
+        0 0 0 1px rgba(221, 103, 60, 0.05);
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    max-height: calc(100vh - 200px);
+    display: flex;
+    flex-direction: column;
+    position: sticky;
+    top: 20px;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.roadmap-lessons-sidebar:hover {
+    box-shadow:
+        0 40px 80px -20px rgba(221, 103, 60, 0.3),
+        0 0 0 1px rgba(221, 103, 60, 0.1);
+}
+
+.sidebar-header {
+    padding: 28px 24px 24px;
+    background: linear-gradient(135deg, #DD673C 0%, #C25630 100%);
+    color: white;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-header h3 {
+    margin: 0 0 16px 0;
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: #ffffff !important;
+    display: flex;
+    align-items: center;
+}
+
+.sidebar-header h3 svg {
+    color: #ffffff !important;
+    opacity: 1 !important;
+}
+
+.course-select-area {
+    margin-top: 12px;
+}
+
+.modern-select {
+    width: 100%;
+    padding: 12px 16px;
+    border-radius: 16px;
+    border: 1.5px solid transparent;
+    background: #ffffff;
+    color: #DD673C;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    font-family: 'Inter', sans-serif;
+    outline: none;
+}
+
+.modern-select:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+.modern-select:focus {
+    outline: none;
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.4);
+}
+
+.modern-select option {
+    background: #ffffff;
+    color: #333;
+    padding: 12px;
+    font-weight: 500;
+}
+
+/* Chapters List */
+.chapters-list {
+    padding: 20px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.chapters-list::-webkit-scrollbar {
+    width: 8px;
+}
+
+.chapters-list::-webkit-scrollbar-track {
+    background: rgba(221, 103, 60, 0.05);
+    border-radius: 10px;
+}
+
+.chapters-list::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #DD673C 0%, #C25630 100%);
+    border-radius: 10px;
+}
+
+.chapters-list::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #C25630 0%, #DD673C 100%);
+}
+
+.chapter-group {
+    margin-bottom: 24px;
+}
+
+.chapter-title {
+    font-size: 15px;
+    font-weight: 700;
+    background: linear-gradient(135deg, #DD673C 0%, #C25630 100%);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 12px;
+    padding: 8px 12px;
+    border-left: 3px solid #DD673C;
+    letter-spacing: -0.01em;
+}
+
+.lessons-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-left: 8px;
+}
+
+.lesson-item-draggable {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    background: white;
+    border-radius: 12px;
+    border: 1.5px solid rgba(221, 103, 60, 0.15);
+    font-size: 14px;
+    color: #1a202c;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    position: relative;
+    overflow: hidden;
+}
+
+.lesson-item-draggable::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 3px;
+    height: 100%;
+    background: linear-gradient(180deg, #DD673C 0%, #C25630 100%);
+    transform: scaleY(0);
+    transition: transform 0.3s ease;
+}
+
+.lesson-item-draggable:hover {
+    background: linear-gradient(135deg, #fff8f5 0%, #ffffff 100%);
+    border-color: rgba(221, 103, 60, 0.3);
+    transform: translateX(4px);
+    box-shadow: 0 4px 12px rgba(221, 103, 60, 0.1);
+}
+
+.lesson-item-draggable:hover::before {
+    transform: scaleY(1);
+}
+
+.lesson-item-draggable.assigned {
+    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+    border-color: #10b981;
+    color: #065f46;
+    font-weight: 600;
+}
+
+.lesson-item-draggable.assigned::before {
+    background: #10b981;
+    transform: scaleY(1);
+}
+
+/* ============================================
+   Calendar Wrapper
+   ============================================ */
+.roadmap-cal-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+/* Week Navigator */
+.week-navigator {
     background: linear-gradient(135deg, #ffffff 0%, #fff8f5 100%);
     border-radius: 24px;
-    padding: 24px 32px;
-    margin-bottom: 28px;
+    padding: 20px 28px;
     box-shadow:
         0 20px 40px -10px rgba(221, 103, 60, 0.15),
         0 0 0 1px rgba(221, 103, 60, 0.05);
@@ -290,6 +444,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 20px;
     transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     position: relative;
     overflow: hidden;
@@ -308,7 +463,7 @@
     }
 }
 
-.week-info-card::before {
+.week-navigator::before {
     content: '';
     position: absolute;
     top: 0;
@@ -319,38 +474,35 @@
     transition: width 0.3s ease;
 }
 
-.week-info-card:hover {
-    transform: translateY(-4px);
+.week-navigator:hover {
+    transform: translateY(-2px);
     box-shadow:
         0 30px 60px -15px rgba(221, 103, 60, 0.25),
         0 0 0 1px rgba(221, 103, 60, 0.1);
 }
 
-.week-info-card:hover::before {
+.week-navigator:hover::before {
     width: 8px;
 }
 
-.week-info-title {
-    font-family: 'Inter', sans-serif;
-    font-size: 26px;
+.week-label {
+    flex: 1;
+    text-align: center;
+    font-size: 20px;
     font-weight: 800;
-    margin: 0;
     background: linear-gradient(135deg, #DD673C 0%, #C25630 100%);
     background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    display: flex;
-    align-items: center;
-    gap: 14px;
     letter-spacing: -0.02em;
 }
 
-.week-date-range {
+.week-label small {
+    display: block;
+    font-size: 14px;
     font-weight: 500;
     color: #718096;
-    margin-left: 14px;
-    font-size: 16px;
-    font-family: 'Inter', sans-serif;
+    margin-top: 4px;
     background: linear-gradient(135deg, #DD673C 0%, #C25630 100%);
     background-clip: text;
     -webkit-background-clip: text;
@@ -358,10 +510,38 @@
     opacity: 0.7;
 }
 
-/* ============================================
-   Calendar Grid Card
-   ============================================ */
-.calendar-grid-card {
+.nav-btn {
+    background: linear-gradient(135deg, #DD673C 0%, #C25630 100%);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 16px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 4px 16px rgba(221, 103, 60, 0.3);
+    font-family: 'Inter', sans-serif;
+}
+
+.nav-btn:hover:not(:disabled) {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 8px 24px rgba(221, 103, 60, 0.4);
+}
+
+.nav-btn:active:not(:disabled) {
+    transform: translateY(-1px) scale(0.98);
+}
+
+.nav-btn:disabled {
+    background: #e2e8f0;
+    color: #94a3b8;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+/* Calendar Grid Card */
+.roadmap-grid-card {
     background: #ffffff;
     border-radius: 28px;
     box-shadow:
@@ -371,22 +551,9 @@
     border: 1px solid rgba(255, 255, 255, 0.8);
     padding: 0;
     transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    animation: fadeInScale 0.6s ease-out 0.2s both;
 }
 
-@keyframes fadeInScale {
-    from {
-        opacity: 0;
-        transform: scale(0.95);
-    }
-
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
-}
-
-.calendar-grid-card:hover {
+.roadmap-grid-card:hover {
     box-shadow:
         0 40px 80px -20px rgba(221, 103, 60, 0.3),
         0 0 0 1px rgba(221, 103, 60, 0.1);
@@ -394,72 +561,19 @@
 }
 
 /* ============================================
-   Empty State
-   ============================================ */
-.empty-state-container {
-    background: linear-gradient(135deg, #ffffff 0%, #fff8f5 100%);
-    border-radius: 28px;
-    padding: 80px 40px;
-    text-align: center;
-    box-shadow:
-        0 20px 40px -10px rgba(221, 103, 60, 0.15),
-        0 0 0 1px rgba(221, 103, 60, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.8);
-    animation: fadeInScale 0.6s ease-out;
-}
-
-.empty-icon {
-    font-size: 80px;
-    display: block;
-    margin-bottom: 24px;
-    animation: bounce 2s infinite;
-}
-
-@keyframes bounce {
-
-    0%,
-    100% {
-        transform: translateY(0);
-    }
-
-    50% {
-        transform: translateY(-10px);
-    }
-}
-
-.empty-state-container h3 {
-    font-family: 'Inter', sans-serif;
-    font-size: 20px;
-    font-weight: 700;
-    color: #DD673C;
-    margin: 0;
-    letter-spacing: -0.01em;
-}
-
-/* ============================================
    Loading State
    ============================================ */
-.student-calendar-page.loading {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 100vh;
-    background: linear-gradient(135deg, #fff8f5 0%, #feede9 100%);
+.roadmap-lessons-sidebar.loading {
+    opacity: 0.6;
+    pointer-events: none;
 }
 
-.student-calendar-page.loading p {
-    font-family: 'Inter', sans-serif;
-    font-size: 18px;
-    font-weight: 600;
-    color: #DD673C;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 20px;
-}
-
-.student-calendar-page.loading p::before {
+.roadmap-lessons-sidebar.loading::after {
     content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     width: 48px;
     height: 48px;
     border: 4px solid rgba(221, 103, 60, 0.2);
@@ -470,58 +584,66 @@
 
 @keyframes spin {
     0% {
-        transform: rotate(0deg);
+        transform: translate(-50%, -50%) rotate(0deg);
     }
 
     100% {
-        transform: rotate(360deg);
+        transform: translate(-50%, -50%) rotate(360deg);
     }
 }
 
 /* ============================================
    Responsive Design
    ============================================ */
-@media (max-width: 768px) {
-    .student-calendar-header {
+@media (max-width: 1200px) {
+    .roadmap-container {
+        grid-template-columns: 280px 1fr;
+        gap: 20px;
+    }
+
+    .roadmap-main-wrapper {
+        padding: 0 20px;
+    }
+}
+
+@media (max-width: 968px) {
+    .roadmap-header {
         padding: 24px 20px 80px;
     }
 
-    .header-content {
-        flex-direction: column;
-        gap: 24px;
-    }
-
-    .page-title {
+    .roadmap-page-title {
         font-size: 28px;
     }
 
-    .page-subtitle {
+    .roadmap-page-subtitle {
         font-size: 14px;
     }
 
-    .week-select-glass-btn {
-        width: 100%;
-        justify-content: center;
+    .roadmap-container {
+        grid-template-columns: 1fr;
+        gap: 20px;
     }
 
-    .calendar-main-wrapper-overlap {
+    .roadmap-lessons-sidebar {
+        position: relative;
+        top: 0;
+        max-height: 400px;
+    }
+
+    .roadmap-main-wrapper {
         margin: -40px auto 0;
-        padding: 0 20px;
     }
 
-    .week-info-card {
-        padding: 20px 24px;
+    .week-navigator {
         flex-direction: column;
-        align-items: flex-start;
         gap: 12px;
     }
 
-    .week-info-title {
-        font-size: 22px;
+    .nav-btn {
+        width: 100%;
     }
 
-    .week-date-range {
-        font-size: 14px;
-        margin-left: 0;
+    .week-label {
+        order: -1;
     }
 }
