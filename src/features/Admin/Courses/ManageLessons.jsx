@@ -123,8 +123,6 @@ export default function ManageLessons() {
         }
       />
 
-
-
       <div className={styles.contentLayout}>
         <aside className={styles.contentSidebar}>
           {sessions.map((s) => {
@@ -162,7 +160,7 @@ export default function ManageLessons() {
                 {isExpanded && (
                   <LessonManager
                     sessionId={s.id}
-                    selectedLessonId={selectedLesson?.id}
+                    selectedLesson={selectedLesson}
                     onSelectLesson={(l) =>
                       setSelectedLesson({ sessionId: s.id, ...l })
                     }
@@ -198,7 +196,12 @@ export default function ManageLessons() {
           </div>
 
           <section className={styles.contentDetail}>
-            <LessonDetailView lesson={selectedLesson} />
+            <LessonDetailView
+              lesson={selectedLesson}
+              onLessonUpdated={(updated) =>
+                setSelectedLesson((prev) => ({ ...prev, ...updated }))
+              }
+            />
           </section>
         </div>
       </div>

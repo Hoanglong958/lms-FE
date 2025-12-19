@@ -82,8 +82,7 @@ export default function ClassDetail({ classData: propClassData, onBack }) {
 
     // Use real students instead of mock data
     const studentsList = useMemo(() => {
-        console.log('🔍 Mapping students to list:', realStudents);
-        console.log('🔍 Sample student object:', realStudents[0]);
+
 
         return realStudents.map((student, index) => {
             const mapped = {
@@ -94,7 +93,7 @@ export default function ClassDetail({ classData: propClassData, onBack }) {
                 enrolledAt: student.enrolledAt,
                 status: student.status,
             };
-            if (index === 0) console.log('🔍 Mapped student:', mapped);
+            if (index === 0);
             return mapped;
         });
     }, [realStudents]);
@@ -220,7 +219,6 @@ export default function ClassDetail({ classData: propClassData, onBack }) {
         if (classData?.id) {
             try {
                 const res = await classCourseService.getClassCourses(parseInt(classData.id));
-                console.log("Assigned Courses Response:", res); // Debug log
 
                 let data = [];
                 if (res.data?.data && Array.isArray(res.data.data)) {
@@ -247,7 +245,6 @@ export default function ClassDetail({ classData: propClassData, onBack }) {
         setShowCourseSelectionModal(true);
         try {
             const res = await courseService.getCourses();
-            console.log("API Courses Response:", res); // Debug log
 
             let data = [];
             if (res.data?.data?.content && Array.isArray(res.data.data.content)) {
@@ -311,7 +308,6 @@ export default function ClassDetail({ classData: propClassData, onBack }) {
 
     const handleSaveAttendance = () => {
         alert("Đã lưu điểm danh thành công!");
-        console.log("Attendance data:", attendance);
     };
 
     const handleTagClick = (type) => {
@@ -652,7 +648,6 @@ export default function ClassDetail({ classData: propClassData, onBack }) {
 
                             for (const studentId of selectedStudentIds) {
                                 try {
-                                    console.log(`Adding student ${studentId} to class ${addingStudents.id}...`);
                                     await classStudentService.addStudentToClass({
                                         classId: parseInt(addingStudents.id),
                                         studentId: parseInt(studentId),
@@ -1300,7 +1295,6 @@ function AddStudentsModal({ classData, onClose, onSubmit }) {
 
                 // Load all students (users with role ROLE_USER)
                 const res = await userService.getAllUsers({ role: "ROLE_USER", size: 100 });
-                console.log('📥 Students API Response:', res);
 
                 let data = [];
                 if (res.data.data && res.data.data.content) {
@@ -1313,10 +1307,8 @@ function AddStudentsModal({ classData, onClose, onSubmit }) {
                     data = res.data;
                 }
 
-                console.log('📊 All users data:', data, 'Length:', data.length);
 
                 const validStudents = data.filter(u => u.role === "ROLE_USER");
-                console.log('✅ Filtered students (ROLE_USER):', validStudents, 'Count:', validStudents.length);
 
                 setStudents(validStudents);
 

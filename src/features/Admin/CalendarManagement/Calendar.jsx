@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { classService } from "@utils/classService";
 import { courseService } from "@utils/courseService";
+import { scheduleService } from "@utils/scheduleService";
+import { periodService } from "@utils/periodService";
 import AdminHeader from "@components/Admin/AdminHeader";
 import { useOutletContext } from "react-router-dom";
 import NotificationModal from "@components/NotificationModal/NotificationModal";
@@ -10,8 +12,8 @@ import "./css/Calendar.css";
 // Components
 import PeriodManagementModal from "./components/Period/PeriodManagementModal";
 import CalendarPicker from "./components/CalendarPicker";
-import WeekSelector from "./components/WeekSelector";
-import SubjectList from "./components/SubjectList";
+import WeekSelectionModal from "./components/WeekSelectionModal";
+import SubjectListSidebar from "./components/SubjectListSidebar";
 import TimetableGrid from "./components/TimetableGrid";
 
 export default function CalendarManagement() {
@@ -23,7 +25,14 @@ export default function CalendarManagement() {
   const [loading, setLoading] = useState(true);
   const [courses, setCourses] = useState([]);
 
+  // Period management
+  const [periods, setPeriods] = useState([]);
+  const [selectedPeriods, setSelectedPeriods] = useState([]);
   const [showPeriodModal, setShowPeriodModal] = useState(false);
+
+  // UI State for Redesign
+  const [showWeekModal, setShowWeekModal] = useState(false);
+  const [showSubjectSidebar, setShowSubjectSidebar] = useState(false);
 
   const [notification, setNotification] = useState({
     isOpen: false,
@@ -65,7 +74,23 @@ export default function CalendarManagement() {
         // Load class info
         const classRes = await classService.getClassDetail(classId);
         const classData = classRes.data?.data || classRes.data;
-        setClassInfo(classData);
+        if (classData && classData.startDate && classData.endDate) {
+          handleDateRangeSelect(classData.startDate, classData.endDate);
+          setClassInfo(classData);
+        }
+
+        // Load periods
+        try {
+          const periodRes = await periodService.getAll();
+          const pData = periodRes.data ?? [];
+          const periodList = Array.isArray(pData) ? pData : (pData.data || pData.content || []);
+          setPeriods(periodList);
+          if (periodList.length > 0) {
+            setSelectedPeriods(periodList);
+          }
+        } catch (perr) {
+          console.error("Load periods error", perr);
+        }
 
         // Load courses for subject selection
         const coursesRes = await courseService.getCourses();
@@ -78,7 +103,6 @@ export default function CalendarManagement() {
               : [];
         setCourses(coursesData);
 
-        // Initialize subjects with courses
         if (coursesData.length > 0) {
           setSubjects(
             coursesData.map((course) => ({
@@ -102,11 +126,22 @@ export default function CalendarManagement() {
   const calculateWeeks = (start, end) => {
     if (!start || !end) return [];
 
+    const endDateObj = new Date(end);
+    if (isNaN(endDateObj.getTime())) return [];
+
     const weeks = [];
     const currentDate = new Date(start);
-    let weekNumber = 1;
+    if (isNaN(currentDate.getTime())) return [];
 
-    while (currentDate <= end) {
+    let weekNumber = 1;
+    let safeguard = 0;
+
+    // Ensure we start from a Monday or the exact start date?
+    // User logic in calculateWeeks seems to align to weeks.
+    // Let's keep existing logic but just auto-call it.
+
+    while (currentDate <= endDateObj && safeguard < 1000) {
+      safeguard++;
       // Find Monday of current week
       const dayOfWeek = currentDate.getDay();
       const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; // Monday = 1
@@ -117,9 +152,10 @@ export default function CalendarManagement() {
       const sunday = new Date(monday);
       sunday.setDate(monday.getDate() + 6);
 
-      // Adjust if end date is before Sunday
-      const weekEnd = sunday > end ? end : sunday;
-      const weekStart = monday < start ? start : monday;
+      // Adjust if end date is before Sunday? 
+      // Usually full weeks are better for grid.
+      const weekEnd = sunday;
+      const weekStart = monday;
 
       weeks.push({
         weekNumber,
@@ -128,7 +164,19 @@ export default function CalendarManagement() {
       });
 
       // Move to next week
-      currentDate.setDate(sunday.getDate() + 1);
+      // Use sunday object to increment to ensure we move forward
+      const nextDate = new Date(sunday);
+      nextDate.setDate(sunday.getDate() + 1);
+
+      // Update currentDate
+      currentDate.setTime(nextDate.getTime());
+
+      // Safety check: if currentDate didn't move forward (e.g. invalid date math), break
+      if (currentDate.getTime() <= weekStart.getTime()) {
+        console.error("Infinite loop detected in calculateWeeks");
+        break;
+      }
+
       weekNumber++;
     }
 
@@ -165,7 +213,6 @@ export default function CalendarManagement() {
 
     const days = [];
     const start = new Date(week.startDate);
-    const end = new Date(week.endDate);
 
     // Find Monday
     const dayOfWeek = start.getDay();
@@ -194,8 +241,114 @@ export default function CalendarManagement() {
   };
 
   // Handle schedule change
-  const handleScheduleChange = (newSchedule) => {
+  const handleScheduleChange = (newSchedule, changeDetails) => {
     setSchedule(newSchedule);
+  };
+
+  const [saving, setSaving] = useState(false);
+
+  const handleSaveSchedule = async () => {
+    setSaving(true);
+    try {
+      // 1. Group by Course -> List of { dayIndex, periodId }
+      const courseMap = {};
+
+      Object.keys(schedule).forEach((dayIdx) => {
+        const daySchedule = schedule[dayIdx];
+        if (!daySchedule) return;
+
+        Object.values(daySchedule).forEach((item) => {
+          const cId = item.subjectId;
+          const pId = item.periodId;
+          const dIdx = Number(dayIdx); // 0-6
+
+          if (!courseMap[cId]) {
+            courseMap[cId] = [];
+          }
+          courseMap[cId].push({ dayIndex: dIdx, periodId: pId });
+        });
+      });
+
+      // 2. Create requests with 1-to-1 mapping (periodIds[i] <-> daysOfWeek[i])
+      const requests = [];
+
+      Object.keys(courseMap).forEach((courseId) => {
+        const items = courseMap[courseId];
+        // items is array of { dayIndex, periodId }
+
+        const periodIds = [];
+        const daysOfWeek = [];
+
+        items.forEach(({ dayIndex, periodId }) => {
+          if (periodId && (dayIndex >= 0 && dayIndex <= 6)) {
+            periodIds.push(Number(periodId));
+            daysOfWeek.push(dayIndex + 1); // 0->1 ... 6->7
+          }
+        });
+
+        if (periodIds.length > 0) {
+          requests.push({
+            classId: Number(classId),
+            courseId: Number(courseId),
+            periodIds,
+            daysOfWeek
+          });
+        }
+      });
+
+      if (requests.length === 0) {
+        showNotification("Thông báo", "Không có lịch để lưu", "info");
+        setSaving(false);
+        return;
+      }
+
+      // 3. Execute sequentially
+      for (const req of requests) {
+        await scheduleService.createManual(req);
+      }
+
+      showNotification("Thành công", "Đã lưu cấu hình thời khóa biểu", "success");
+
+    } catch (error) {
+      console.error("Save schedule error", error);
+      // Show detailed error if available from backend
+      const msg = error.response?.data?.data || error.response?.data?.message || "Có lỗi khi lưu lịch học";
+      showNotification("Lỗi", msg, "error");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleApplyPeriods = (selectedIds, allPeriods = []) => {
+    // Update local periods state in case new ones were added
+    if (allPeriods.length > 0) {
+      setPeriods(allPeriods);
+    }
+    const sourcePeriods = allPeriods.length > 0 ? allPeriods : periods;
+
+    const selected = sourcePeriods.filter((p) => selectedIds.includes(p.id));
+
+    // Sort periods by startTime
+    const getTimeValue = (t) => {
+      if (!t) return 0;
+      if (typeof t === 'string') {
+        // "HH:mm"
+        return parseInt(t.replace(':', ''), 10);
+      }
+      if (Array.isArray(t)) {
+        // [h, m]
+        return (t[0] || 0) * 60 + (t[1] || 0);
+      }
+      if (typeof t === 'object') {
+        return (t.hour || 0) * 60 + (t.minute || 0);
+      }
+      return 0;
+    };
+
+    selected.sort((a, b) => {
+      return getTimeValue(a.startTime) - getTimeValue(b.startTime);
+    });
+    setSelectedPeriods(selected);
   };
 
   if (loading) {
@@ -242,37 +395,60 @@ export default function CalendarManagement() {
           onMenuToggle={toggleSidebar}
           onBack={() => navigate(-1)}
           actions={
-            <CalendarPicker
-              onDateRangeSelect={handleDateRangeSelect}
-              initialStartDate={startDate}
-              initialEndDate={endDate}
-              onOpenPeriodModal={() => setShowPeriodModal(true)} // 👈 THIS
-            />
+            <div style={{ display: "flex", gap: "8px" }}>
+              <button
+                type="button"
+                className="triggerButton"
+                onClick={() => setShowWeekModal(true)}
+                title="Chọn tuần"
+                style={{ backgroundColor: "#007bff", color: "white", border: "none" }}
+              >
+                📅 {selectedWeek ? `Tuần ${selectedWeek.weekNumber}` : "Chọn tuần"}
+              </button>
+              <button
+                type="button"
+                className="triggerButton"
+                onClick={() => setShowSubjectSidebar(true)}
+                title="Môn học"
+                style={{ backgroundColor: "#17a2b8", color: "white", border: "none" }}
+              >
+                📚 Môn học
+              </button>
+              <button
+                type="button"
+                className="triggerButton"
+                onClick={handleSaveSchedule}
+                title="Lưu lịch học"
+                disabled={saving}
+                style={{ backgroundColor: "#28a745", color: "white", border: "none" }}
+              >
+                {saving ? "Đang lưu..." : "💾 Lưu lịch học"}
+              </button>
+              <button
+                type="button"
+                className="triggerButton managePeriodBtn"
+                onClick={() => setShowPeriodModal(true)}
+                title="Quản lý ca học"
+              >
+                ⏰ Quản lý ca học
+              </button>
+            </div>
           }
         />
       </div>
 
-      <div className="calendarContent">
-        {/* Left Sidebar - Week Selector and Subject List */}
-        <div className="calendarSidebar">
-          {weeks.length > 0 && (
-            <WeekSelector
-              weeks={weeks}
-              selectedWeek={selectedWeek}
-              onSelectWeek={handleWeekSelect}
-            />
-          )}
-
-          <SubjectList
-            subjects={subjects}
-            onDragStart={handleDragStart}
-            onDragEnd={handleDragEnd}
-            draggingSubject={draggingSubject}
-          />
-        </div>
-
-        {/* Main Content - Timetable Grid */}
-        <div className="calendarMainContent">
+      <div className="calendarContent" style={{
+        width: '100%',
+        flex: 1,
+        padding: '20px',
+        marginLeft: showSubjectSidebar ? '1rem' : '0',
+        position: 'relative',
+        zIndex: showSubjectSidebar ? 3001 : 'auto',
+        backgroundColor: showSubjectSidebar ? '#f7f8fa' : 'transparent',
+        transition: 'all 0.3s ease'
+      }}>
+        {/* Main Content - Full Width */}
+        <div className="calendarMainContent" >
           {selectedWeek ? (
             <>
               <div className="calendarWeekInfo">
@@ -291,8 +467,7 @@ export default function CalendarManagement() {
               </div>
               <TimetableGrid
                 weekDays={weekDays}
-                startHour={7}
-                endHour={18}
+                periods={selectedPeriods}
                 schedule={schedule}
                 onScheduleChange={handleScheduleChange}
                 draggingSubject={draggingSubject}
@@ -303,16 +478,47 @@ export default function CalendarManagement() {
               <div className="calendarEmptyIcon">📅</div>
               <h3 className="calendarEmptyTitle">Chưa chọn tuần học</h3>
               <p className="calendarEmptyText">
-                Vui lòng chọn khoảng thời gian từ lịch ở góc phải trên để bắt
+                Vui lòng chọn khoảng thời gian từ nút "Chọn tuần" ở trên để bắt
                 đầu tạo thời khóa biểu.
               </p>
+              <button
+                onClick={() => setShowWeekModal(true)}
+                className="calendarPrimaryButton"
+                style={{ marginTop: '15px' }}
+              >
+                Chọn tuần ngay
+              </button>
             </div>
           )}
         </div>
       </div>
+
       {showPeriodModal && (
-        <PeriodManagementModal onClose={() => setShowPeriodModal(false)} />
+        <PeriodManagementModal
+          onClose={() => setShowPeriodModal(false)}
+          selectedPeriodIds={selectedPeriods.map(p => p.id)}
+          onApply={handleApplyPeriods}
+        />
       )}
+
+      {showWeekModal && (
+        <WeekSelectionModal
+          weeks={weeks}
+          selectedWeek={selectedWeek}
+          onSelectWeek={handleWeekSelect}
+          onClose={() => setShowWeekModal(false)}
+        />
+      )}
+
+      <SubjectListSidebar
+        subjects={subjects}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+        draggingSubject={draggingSubject}
+        isOpen={showSubjectSidebar}
+        onClose={() => setShowSubjectSidebar(false)}
+      />
+
       <NotificationModal
         isOpen={notification.isOpen}
         onClose={() => setNotification((prev) => ({ ...prev, isOpen: false }))}

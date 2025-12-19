@@ -6,6 +6,7 @@ export default function CalendarPicker({
   initialStartDate,
   initialEndDate,
   onOpenPeriodModal,
+  onOpenPeriodSelection,
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [startDate, setStartDate] = useState(initialStartDate || null);
@@ -111,6 +112,16 @@ export default function CalendarPicker({
           )}
         </button>
 
+        <button
+          type="button"
+          className="triggerButton managePeriodBtn"
+          onClick={onOpenPeriodSelection}
+          title="Chọn ca hiển thị"
+          style={{ marginRight: "8px" }}
+        >
+          👁 Chọn ca
+        </button>
+
         {/* 🔥 Nút quản lý ca học */}
         <button
           type="button"
@@ -171,9 +182,8 @@ export default function CalendarPicker({
                     key={idx}
                     type="button"
                     onClick={() => handleDateClick(date)}
-                    className={`day ${isToday ? "today" : ""} ${
-                      inRange ? "inRange" : ""
-                    } ${selected ? "selected" : ""}`}
+                    className={`day ${isToday ? "today" : ""} ${inRange ? "inRange" : ""
+                      } ${selected ? "selected" : ""}`}
                   >
                     {date.getDate()}
                   </button>

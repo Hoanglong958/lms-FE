@@ -32,7 +32,7 @@ function timeObjToString(t) {
   return "";
 }
 
-export default function PeriodManagementModal({ onClose }) {
+export default function PeriodManagementModal({ onClose, selectedPeriodIds = [], onApply }) {
   const [periods, setPeriods] = useState([]);
   const [loading, setLoading] = useState(false);
   const [notification, setNotification] = useState({
@@ -42,26 +42,24 @@ export default function PeriodManagementModal({ onClose }) {
     type: "info",
   });
 
-  const showNotification = (title, message, type = "info") => {
-    setNotification({ isOpen: true, title, message, type });
-  };
-
-  // form state
+  const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState(null); // null => create
   const [name, setName] = useState("");
   const [startTime, setStartTime] = useState("08:00");
   const [endTime, setEndTime] = useState("10:00");
   const [saving, setSaving] = useState(false);
 
+  const showNotification = (title, message, type = "info") => {
+    setNotification({ isOpen: true, title, message, type });
+  };
+
   const load = async () => {
     setLoading(true);
     try {
       const res = await periodService.getAll();
-      // swagger example returns array at top-level; adapt:
       const data = res.data ?? [];
-      setPeriods(
-        Array.isArray(data) ? data : data?.data ?? data?.content ?? []
-      );
+      const loaded = Array.isArray(data) ? data : data?.data ?? data?.content ?? [];
+      setPeriods(loaded);
     } catch (err) {
       console.error("Load periods failed", err);
       showNotification("Lỗi", "Không thể tải danh sách ca học", "error");
@@ -74,7 +72,17 @@ export default function PeriodManagementModal({ onClose }) {
     load();
   }, []);
 
+  const handleClose = () => {
+    // Return ALL periods as selected
+    if (onApply) {
+      const allIds = periods.map((p) => p.id);
+      onApply(allIds, periods);
+    }
+    onClose();
+  };
+
   const openCreate = () => {
+    setShowForm(true);
     setEditing(null);
     setName("");
     setStartTime("08:00");
@@ -82,6 +90,7 @@ export default function PeriodManagementModal({ onClose }) {
   };
 
   const openEdit = (p) => {
+    setShowForm(true);
     setEditing(p);
     setName(p.name || "");
     setStartTime(timeObjToString(p.startTime));
@@ -93,7 +102,6 @@ export default function PeriodManagementModal({ onClose }) {
       showNotification("Thiếu thông tin", "Vui lòng nhập tên ca học", "warning");
       return false;
     }
-
     if (!startTime || !endTime) {
       showNotification("Thiếu thông tin", "Vui lòng chọn giờ bắt đầu và giờ kết thúc", "warning");
       return false;
@@ -114,8 +122,8 @@ export default function PeriodManagementModal({ onClose }) {
     setSaving(true);
     const payload = {
       name: name.trim(),
-      startTime: toTimeObj(startTime),
-      endTime: toTimeObj(endTime),
+      startTime: `${startTime}:00`,
+      endTime: `${endTime}:00`,
     };
 
     try {
@@ -125,8 +133,7 @@ export default function PeriodManagementModal({ onClose }) {
         await periodService.create(payload);
       }
       await load();
-      // reset form
-      openCreate();
+      setShowForm(false);
     } catch (err) {
       console.error("Save period failed", err);
       showNotification("Lỗi", "Lỗi khi lưu ca học", "error");
@@ -140,11 +147,18 @@ export default function PeriodManagementModal({ onClose }) {
     try {
       await periodService.delete(id);
       await load();
+      if (localSelected.includes(id)) {
+        setLocalSelected(prev => prev.filter(pid => pid !== id));
+      }
     } catch (err) {
       console.error("Delete failed", err);
       showNotification("Lỗi", "Không thể xóa ca học", "error");
     }
   };
+
+
+
+
 
   return (
     <div className="period-modal-backdrop" role="dialog" aria-modal="true">
@@ -152,14 +166,14 @@ export default function PeriodManagementModal({ onClose }) {
         <div className="period-modal-header">
           <h3>Quản lý ca học</h3>
           <div>
-            <button className="btn ghost" onClick={onClose} aria-label="Đóng">
+            <button className="btn ghost" onClick={handleClose} aria-label="Đóng">
               ×
             </button>
           </div>
         </div>
 
         <div className="period-modal-body">
-          <div className="period-left">
+          <div className={`period-left ${!showForm ? "full-width" : ""}`}>
             <div className="period-list-header">
               <h4>Danh sách ca học</h4>
               <button className="btn primary" onClick={openCreate}>
@@ -168,87 +182,80 @@ export default function PeriodManagementModal({ onClose }) {
             </div>
 
             {loading ? (
-              <p>Đang tải...</p>
+              <p style={{ padding: "20px", textAlign: "center" }}>Đang tải...</p>
             ) : (
               <ul className="period-list">
-                {periods.length === 0 && (
-                  <li className="muted">Chưa có ca học</li>
-                )}
-                {periods.map((p) => (
-                  <li key={p.id} className="period-item">
-                    <div>
-                      <div className="period-name">{p.name}</div>
-                      <div className="period-time">
-                        {timeObjToString(p.startTime)} —{" "}
-                        {timeObjToString(p.endTime)}
+                {periods.length === 0 && <li className="muted">Chưa có ca học</li>}
+                {periods.map((p) => {
+                  return (
+                    <li key={p.id} className="period-item">
+                      <div className="period-info-block">
+                        <div className="period-name">{p.name}</div>
+                        <div className="period-time">
+                          {timeObjToString(p.startTime)} — {timeObjToString(p.endTime)}
+                        </div>
                       </div>
-                    </div>
-                    <div className="period-actions">
-                      <button className="btn sm" onClick={() => openEdit(p)}>
-                        Sửa
-                      </button>
-                      <button
-                        className="btn danger sm"
-                        onClick={() => handleDelete(p.id)}
-                      >
-                        Xóa
-                      </button>
-                    </div>
-                  </li>
-                ))}
+                      <div className="period-actions" onClick={(e) => e.stopPropagation()}>
+                        <button className="btn sm" onClick={() => openEdit(p)}>
+                          Sửa
+                        </button>
+                        <button className="btn danger sm" onClick={() => handleDelete(p.id)}>
+                          Xóa
+                        </button>
+                      </div>
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </div>
 
-          <div className="period-form">
-            <h4>{editing ? "Sửa ca học" : "Tạo ca học mới"}</h4>
+          {showForm && (
+            <div className="period-form">
+              <h4>{editing ? "Sửa ca học" : "Tạo ca học mới"}</h4>
 
-            <label className="label">
-              Tên ca
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
-            </label>
+              <label className="label">
+                Tên ca
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Ví dụ: Ca 1"
+                />
+              </label>
 
-            <label className="label">
-              Giờ bắt đầu
-              <input
-                type="time"
-                value={startTime}
-                onChange={(e) => setStartTime(e.target.value)}
-              />
-            </label>
+              <label className="label">
+                Giờ bắt đầu
+                <input
+                  type="time"
+                  value={startTime}
+                  onChange={(e) => setStartTime(e.target.value)}
+                />
+              </label>
 
-            <label className="label">
-              Giờ kết thúc
-              <input
-                type="time"
-                value={endTime}
-                onChange={(e) => setEndTime(e.target.value)}
-              />
-            </label>
+              <label className="label">
+                Giờ kết thúc
+                <input
+                  type="time"
+                  value={endTime}
+                  onChange={(e) => setEndTime(e.target.value)}
+                />
+              </label>
 
-            <div className="form-actions">
-              <button className="btn" onClick={openCreate}>
-                Reset
-              </button>
-              <button
-                className="btn primary"
-                onClick={handleSave}
-                disabled={saving}
-              >
-                {saving ? "Đang lưu..." : editing ? "Lưu thay đổi" : "Tạo"}
-              </button>
+              <div className="form-actions">
+                <button className="btn" onClick={() => setShowForm(false)}>
+                  Hủy
+                </button>
+                <button
+                  className="btn primary"
+                  onClick={handleSave}
+                  disabled={saving}
+                >
+                  {saving ? "Đang lưu..." : editing ? "Lưu thay đổi" : "Tạo"}
+                </button>
+              </div>
             </div>
-          </div>
-        </div>
-
-        <div className="period-modal-footer">
-          <button className="btn ghost" onClick={onClose}>
-            Đóng
-          </button>
+          )}
         </div>
       </div>
 

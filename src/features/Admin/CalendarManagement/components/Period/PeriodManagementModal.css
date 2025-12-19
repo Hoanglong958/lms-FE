@@ -1,123 +1,318 @@
+/* src/features/Admin/CalendarManagement/components/Period/PeriodManagementModal.css */
 .period-modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.35);
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(2px);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1200;
+  animation: fadeIn 0.2s ease-out;
 }
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 .period-modal {
-  width: 920px;
-  max-width: calc(100% - 30px);
   background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 8px 30px rgba(2, 6, 23, 0.2);
+  border-radius: 12px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
   overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  max-width: 90vw;
+  /* Width adapts based on content */
+  width: fit-content;
 }
+
 .period-modal-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid #eef2f6;
+  padding: 16px 24px;
+  border-bottom: 1px solid #f1f5f9;
+  background-color: #fff;
 }
+
+.period-modal-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
 .period-modal-body {
   display: flex;
-  gap: 18px;
-  padding: 16px;
+  /* Height fixed to prevent jumping */
+  height: 500px;
+  background-color: #f8fafc;
 }
+
+/* === LEFT COLUMN (LIST) === */
 .period-left {
-  width: 46%;
-  max-height: 420px;
-  overflow: auto;
-  border-right: 1px solid #f1f5f9;
-  padding-right: 12px;
+  width: 400px;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border-right: 1px solid #e2e8f0;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
-.period-form {
-  width: 54%;
-  padding-left: 12px;
+
+.period-left.full-width {
+  width: 600px; /* Wider when form is hidden */
+  border-right: none;
 }
 
 .period-list-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 8px;
+  padding: 16px 24px;
+  border-bottom: 1px solid #f1f5f9;
+  background: #fff;
 }
+
+.period-list-header h4 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: #475569;
+}
+
 .period-list {
   list-style: none;
-  padding: 0;
+  padding: 16px; /* Add padding around list */
   margin: 0;
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px; /* Spacing between items */
 }
+
 .period-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 8px;
-  border-bottom: 1px solid #f3f4f6;
+  padding: 12px 16px;
+  border: 1px solid #f1f5f9;
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
 }
+
+.period-item:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.period-item.selected {
+  border-color: #0ea5a4;
+  background-color: #f0fdf9;
+}
+
+/* Checkbox styling */
+.period-checkbox {
+  margin-right: 16px;
+  display: flex;
+  align-items: center;
+}
+.period-checkbox input {
+  width: 18px;
+  height: 18px;
+  accent-color: #0ea5a4;
+  cursor: pointer;
+}
+
+.period-info-block {
+  flex: 1;
+}
+
 .period-item .period-name {
   font-weight: 600;
+  font-size: 15px;
+  color: #334155;
 }
 .period-item .period-time {
-  color: #6b7280;
+  color: #64748b;
   font-size: 13px;
   margin-top: 4px;
 }
 
+.period-actions {
+  display: flex;
+  gap: 8px;
+  opacity: 0; /* Hidden by default */
+  transform: translateX(10px);
+  transition: all 0.2s;
+}
+
+.period-item:hover .period-actions {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* Footer Section */
+.period-list-footer {
+  padding: 16px 24px;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #fff;
+}
+
+.summary-selected {
+  font-size: 14px;
+  color: #64748b;
+}
+
+/* === RIGHT COLUMN (FORM) === */
+.period-form {
+  width: 320px;
+  padding: 24px;
+  background: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  animation: slideInRight 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-left: 1px solid #e2e8f0;
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.period-form h4 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  font-size: 16px;
+  color: #1e293b;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #e2e8f0;
+}
+
 .label {
   display: block;
-  margin-bottom: 10px;
+  margin-bottom: 16px;
   font-size: 14px;
+  font-weight: 500;
+  color: #475569;
 }
+
 .label input[type="text"],
 .label input[type="time"] {
   width: 100%;
-  padding: 8px 10px;
-  border: 1px solid #e6eef6;
+  padding: 10px 12px;
+  border: 1px solid #cbd5e1;
   border-radius: 6px;
+  margin-top: 6px;
+  font-size: 14px;
+  transition: border-color 0.2s;
+  background: #fff;
+}
+
+.label input:focus {
+  outline: none;
+  border-color: #0ea5a4;
+  box-shadow: 0 0 0 3px rgba(14, 165, 164, 0.1);
 }
 
 .form-actions {
   display: flex;
-  gap: 8px;
+  gap: 12px;
   justify-content: flex-end;
-  margin-top: 12px;
+  margin-top: auto; /* Push to bottom */
+  padding-top: 20px;
 }
+
+/* === BUTTONS === */
 .btn {
-  padding: 6px 10px;
+  padding: 8px 16px;
   border-radius: 6px;
-  border: 1px solid #e6eef6;
+  border: 1px solid #cbd5e1;
   background: #fff;
+  color: #475569;
   cursor: pointer;
+  font-weight: 600;
+  font-size: 13px;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
 }
+
+.btn:hover {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+}
+
 .btn.primary {
   background: #0ea5a4;
   color: #fff;
-  border: none;
+  border: 1px solid #0ea5a4;
+  box-shadow: 0 2px 4px rgba(14, 165, 164, 0.2);
 }
+
+.btn.primary:hover {
+  background: #0d9494;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(14, 165, 164, 0.3);
+}
+
 .btn.danger {
-  background: #ef4444;
-  color: #fff;
-  border: none;
+  background: #fff;
+  color: #ef4444;
+  border: 1px solid #fca5a5;
 }
+
+.btn.danger:hover {
+  background: #fef2f2;
+  border-color: #ef4444;
+}
+
 .btn.sm {
-  padding: 6px 8px;
-  font-size: 13px;
+  padding: 4px 10px;
+  font-size: 12px;
+  border-radius: 4px;
 }
+
 .btn.ghost {
   background: transparent;
   border: none;
-  font-size: 20px;
-  padding: 4px 8px;
+  font-size: 24px;
+  padding: 4px;
+  color: #94a3b8;
+  line-height: 1;
 }
+
+.btn.ghost:hover {
+  color: #475569;
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
 .muted {
-  color: #9ca3af;
-  padding: 12px;
-}
-.period-modal-footer {
-  padding: 12px 16px;
-  border-top: 1px solid #eef2f6;
-  text-align: right;
+  color: #94a3b8;
+  padding: 32px;
+  text-align: center;
+  font-style: italic;
 }
