@@ -53,10 +53,13 @@ export default function QuestionBank() {
     const fetchQuestions = async () => {
       try {
         const res = await questionService.getPage({
-          page: page - 1, // API is 0-indexed
+          page: page - 1,
           size: limit,
           keyword: debouncedSearch,
-          category: category === "Tất cả" ? "" : category
+          category: category === "Tất cả" ? "" : category,
+          course: category === "Tất cả" ? "" : category,
+          subject: category === "Tất cả" ? "" : category,
+          courseName: category === "Tất cả" ? "" : category
         });
 
         if (!alive) return;
@@ -106,7 +109,10 @@ export default function QuestionBank() {
         page: page - 1,
         size: limit,
         keyword: debouncedSearch,
-        category: category === "Tất cả" ? "" : category
+        category: category === "Tất cả" ? "" : category,
+        course: category === "Tất cả" ? "" : category,
+        subject: category === "Tất cả" ? "" : category,
+        courseName: category === "Tất cả" ? "" : category
       });
       const data = res.data;
       const content = data?.content || [];

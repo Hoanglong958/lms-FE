@@ -3,9 +3,9 @@ import api from "@services/api.js";
 export const questionService = {
   // getAll() method removed as it does not exist in API
 
-  getPage({ page = 1, size = 10, keyword = "", category = "" }) {
+  getPage(params) {
     return api.get("/api/v1/questions/page", {
-      params: { page, size, keyword, category },
+      params,
     });
   },
   getById(id) {

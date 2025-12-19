@@ -4,13 +4,35 @@ import NotificationModal from "@components/NotificationModal/NotificationModal";
 import "./ProfileEdit.css";
 
 export default function ProfileEdit() {
+    // Safe user parsing
+    const user = (() => {
+        try {
+            return JSON.parse(localStorage.getItem("loggedInUser") || "{}");
+        } catch {
+            return {};
+        }
+    })();
+
+    // Split fullName into LastName and FirstName if possible
+    let initLastName = "";
+    let initFirstName = "";
+    if (user.fullName) {
+        const parts = user.fullName.trim().split(" ");
+        if (parts.length > 1) {
+            initFirstName = parts.pop();
+            initLastName = parts.join(" ");
+        } else {
+            initFirstName = parts[0];
+        }
+    } else if (user.username) {
+        initFirstName = user.username;
+    }
+
     const [formData, setFormData] = useState({
-        lastName: "Nguyễn",
-        firstName: "Ánh Viên",
-        email: "vien@gmail.com",
-        birthDate: "15/03/2006",
-        phone: "0981 965 304",
-        studentId: "PT242",
+        lastName: initLastName || "Nguyễn",
+        firstName: initFirstName || "Ánh Viên",
+        email: user.gmail || user.email || "vien@gmail.com",
+        phone: user.phone || "0981 965 304",
     });
 
     const [notification, setNotification] = useState({
@@ -24,8 +46,6 @@ export default function ProfileEdit() {
         setNotification({ isOpen: true, title, message, type });
     };
 
-    const [profileImage, setProfileImage] = useState(null);
-
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setFormData((prev) => ({
@@ -34,24 +54,7 @@ export default function ProfileEdit() {
         }));
     };
 
-    const handleImageUpload = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            // Validate file type
-            const validTypes = ["image/png", "image/jpeg", "image/jpg"];
-            if (!validTypes.includes(file.type)) {
-                showNotification("Lỗi định dạng", "Vui lòng chọn file ảnh định dạng PNG hoặc JPG", "error");
-                return;
-            }
 
-            // Validate file size (200x200px requirement would be checked on image load)
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                setProfileImage(event.target.result);
-            };
-            reader.readAsDataURL(file);
-        }
-    };
 
     // Password Modal State
     const [showPasswordModal, setShowPasswordModal] = useState(false);
@@ -98,8 +101,15 @@ export default function ProfileEdit() {
             return;
         }
 
-        if (newPassword.length < 6) {
-            showNotification("Mật khẩu yếu", "Mật khẩu mới phải có ít nhất 6 ký tự", "error");
+        // Strong password validation
+        const hasUpperCase = /[A-Z]/.test(newPassword);
+        const hasLowerCase = /[a-z]/.test(newPassword);
+        const hasNumbers = /\d/.test(newPassword);
+        const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(newPassword);
+        const isValidLength = newPassword.length >= 8;
+
+        if (!isValidLength || !hasUpperCase || !hasLowerCase || !hasNumbers || !hasSpecialChar) {
+            showNotification("Mật khẩu yếu", "Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt", "error");
             return;
         }
 
@@ -108,8 +118,23 @@ export default function ProfileEdit() {
             showNotification("Thành công", "Đổi mật khẩu thành công!", "success");
             handleClosePasswordModal();
         } catch (error) {
-            console.error("Change password error:", error);
-            const msg = error.response?.data?.message || "Đổi mật khẩu thất bại";
+            console.error("Change password error full:", error);
+            if (error.response) {
+                console.error("Error response data:", error.response.data);
+            }
+
+            let msg = "Đổi mật khẩu thất bại";
+            if (error.response) {
+                if (typeof error.response.data === 'string') {
+                    msg = error.response.data;
+                } else if (error.response.data?.message) {
+                    msg = error.response.data.message;
+                } else {
+                    msg = JSON.stringify(error.response.data);
+                }
+            } else if (error.message) {
+                msg = error.message;
+            }
             showNotification("Lỗi", msg, "error");
         }
     };
@@ -125,74 +150,17 @@ export default function ProfileEdit() {
         <div className="profile-edit-container">
             <div className="profile-edit-wrapper">
                 <div className="profile-page-header">
-                    <h1 className="profile-edit-title">Chỉnh sửa thông tin</h1>
+                    <h1 className="profile-edit-title">Hồ sơ của tôi</h1>
 
-                    <div className="profile-edit-notice">
-                        <p>
-                            Tại đây bạn có thể xem các thông tin hiển thị của mình và chỉnh sửa ảnh đại diện.
-                        </p>
-                        <p>
-                            Các thông tin cá nhân còn lại là mặc định và không thể chỉnh sửa.
-                        </p>
-                    </div>
+
                 </div>
 
                 <form onSubmit={handleSubmit} className="profile-edit-form">
                     <div className="profile-edit-content">
-                        {/* Left Side - Profile Picture */}
-                        <div className="profile-picture-section">
-                            <h2 className="section-title">Ảnh đại diện</h2>
-
-                            <div className="profile-picture-wrapper">
-                                <div className="profile-picture">
-                                    {profileImage ? (
-                                        <img src={profileImage} alt="Profile" />
-                                    ) : (
-                                        <div className="profile-picture-placeholder">
-                                            <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
-                                                <circle cx="40" cy="30" r="12" fill="#D9D9D9" />
-                                                <path d="M20 65C20 55 28 48 40 48C52 48 60 55 60 65" fill="#D9D9D9" />
-                                            </svg>
-                                        </div>
-                                    )}
-                                    <label htmlFor="profile-upload" className="upload-button">
-                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
-                                            <path d="M12 15.5C13.933 15.5 15.5 13.933 15.5 12C15.5 10.067 13.933 8.5 12 8.5C10.067 8.5 8.5 10.067 8.5 12C8.5 13.933 10.067 15.5 12 15.5Z" />
-                                            <path d="M20 7H17L15 5H9L7 7H4C2.9 7 2 7.9 2 9V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V9C22 7.9 21.1 7 20 7Z" />
-                                        </svg>
-                                    </label>
-                                    <input
-                                        type="file"
-                                        id="profile-upload"
-                                        accept="image/png,image/jpeg,image/jpg"
-                                        onChange={handleImageUpload}
-                                        style={{ display: "none" }}
-                                    />
-                                </div>
-                            </div>
-
-                            <p className="image-requirements">
-                                Kích thước ảnh cho nhất: 200 x 200px, định dạng PNG hoặc JPG
-                            </p>
-                        </div>
-
-                        {/* Right Side - Personal Information */}
                         <div className="personal-info-section">
-                            <h2 className="section-title">Thông tin cá nhân</h2>
 
                             <div className="form-grid">
-                                <div className="form-group">
-                                    <label htmlFor="lastName">Họ</label>
-                                    <input
-                                        type="text"
-                                        id="lastName"
-                                        name="lastName"
-                                        value={formData.lastName}
-                                        onChange={handleInputChange}
-                                        readOnly
-                                        className="form-input readonly"
-                                    />
-                                </div>
+
 
                                 <div className="form-group">
                                     <label htmlFor="firstName">Tên</label>
@@ -221,38 +189,12 @@ export default function ProfileEdit() {
                                 </div>
 
                                 <div className="form-group">
-                                    <label htmlFor="birthDate">Ngày sinh</label>
-                                    <input
-                                        type="text"
-                                        id="birthDate"
-                                        name="birthDate"
-                                        value={formData.birthDate}
-                                        onChange={handleInputChange}
-                                        readOnly
-                                        className="form-input readonly"
-                                    />
-                                </div>
-
-                                <div className="form-group">
                                     <label htmlFor="phone">Số điện thoại</label>
                                     <input
                                         type="tel"
                                         id="phone"
                                         name="phone"
                                         value={formData.phone}
-                                        onChange={handleInputChange}
-                                        readOnly
-                                        className="form-input readonly"
-                                    />
-                                </div>
-
-                                <div className="form-group">
-                                    <label htmlFor="studentId">Mã sinh viên</label>
-                                    <input
-                                        type="text"
-                                        id="studentId"
-                                        name="studentId"
-                                        value={formData.studentId}
                                         onChange={handleInputChange}
                                         readOnly
                                         className="form-input readonly"

@@ -1,9 +1,10 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import "./ClassesPage.css";
-import { FaUserTie, FaRegClock } from "react-icons/fa";
+import { FaUserTie, FaRegClock, FaUsers } from "react-icons/fa";
 import { classService } from "@utils/classService";
 import { classStudentService } from "@utils/classStudentService";
+import { classTeacherService } from "@utils/classTeacherService";
 
 const ClassesPage = () => {
   const [classes, setClasses] = useState([]);
@@ -14,9 +15,10 @@ const ClassesPage = () => {
     const mapped = rawList.map((c) => ({
       id: c.id,
       title: c.name || c.className || "Lớp học không tên",
-      teacher: c.instructorName || c.teacherName || "Chưa phân công",
+      teacher: c.assignedTeacher || "Chưa phân công",
       status: (c.status || "UPCOMING").toLowerCase() === 'active' ? 'Đang học' : 'Sắp bắt đầu',
       schedule: c.schedule || "Chưa có lịch",
+      studentCount: c.studentCount || 0,
       image: "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&w=1000&q=80",
     }));
     setClasses(mapped);
@@ -52,11 +54,26 @@ const ClassesPage = () => {
                 const sRes = await classStudentService.getClassStudents(cls.id);
                 const students = sRes.data?.data || sRes.data || [];
                 // Check if current user is in this list
-                // Student record usually has 'studentId'
                 const isEnrolled = Array.isArray(students) && students.some(s =>
                   String(s.studentId) === String(userId) || String(s.id) === String(userId)
                 );
-                return isEnrolled ? cls : null;
+
+                if (!isEnrolled) return null;
+
+                // 2.5 Fetch Teacher for this class
+                let assignedTeacher = "Chưa phân công";
+                try {
+                  const tRes = await classTeacherService.getClassTeachers(cls.id);
+                  const teachers = tRes.data?.data || tRes.data || [];
+                  if (teachers.length > 0) {
+                    // Assuming first teacher or combine names
+                    assignedTeacher = teachers.map(t => t.fullName || t.teacherName || t.name).join(", ");
+                  }
+                } catch (e) {
+                  console.warn("Failed to fetch teacher for class " + cls.id);
+                }
+
+                return { ...cls, assignedTeacher, studentCount: students.length };
               } catch (err) {
                 console.warn(`Failed to check students for class ${cls.id}`, err);
                 return null;
@@ -125,8 +142,8 @@ const ClassesPage = () => {
                   <h3 className="class-name">{cls.title}</h3>
 
                   <div className="class-info-row">
-                    <FaRegClock className="info-icon" />
-                    <span>{cls.schedule}</span>
+                    <FaUsers className="info-icon" />
+                    <span>{cls.studentCount} Học viên</span>
                   </div>
 
                   <div className="divider-line"></div>

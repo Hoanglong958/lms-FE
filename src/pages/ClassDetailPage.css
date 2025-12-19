@@ -26,15 +26,17 @@
   position: absolute;
   top: 0;
   right: 0;
-  width: 40%;
+  width: 50%; /* Widen to match card proportion */
   height: 100%;
-  background: linear-gradient(90deg, #fff 0%, rgba(255, 255, 255, 0) 100%),
-    url("https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&w=1000&q=80");
+  background-image: url("https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&w=1000&q=80");
   background-size: cover;
   background-position: center;
-  opacity: 0.1;
   z-index: 0;
   pointer-events: none;
+  /* Mask for the white fade */
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 40%);
+  mask-image: linear-gradient(to right, transparent 0%, black 40%);
+  opacity: 0.9;
 }
 
 .cd-header-content {

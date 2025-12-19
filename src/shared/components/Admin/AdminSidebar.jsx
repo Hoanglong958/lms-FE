@@ -3,6 +3,20 @@ import { useState, useEffect } from "react";
 import "./AdminSidebar.css";
 
 export default function AdminSidebar({ isOpen, onClose }) {
+  // Safe user parsing
+  const user = (() => {
+    try {
+      return JSON.parse(localStorage.getItem("loggedInUser") || "{}");
+    } catch {
+      return {};
+    }
+  })();
+
+  const displayName = user.fullName || user.username || "Admin User";
+  const displayEmail = user.gmail || user.email || "admin@lms.com";
+  // Create avatar initials from fullName if available, else username
+  const displayAvatar = (user.fullName || user.username || "A").charAt(0).toUpperCase();
+
   const [openSection, setOpenSection] = useState({
     evaluate: true,
     community: false,
@@ -96,7 +110,7 @@ export default function AdminSidebar({ isOpen, onClose }) {
           >
             <i className="fa-solid fa-clipboard-check"></i>
             Bài kiểm tra
-          </NavLink> 
+          </NavLink>
           <NavLink
             to="/admin/question-bank"
             className={({ isActive }) =>
@@ -113,10 +127,10 @@ export default function AdminSidebar({ isOpen, onClose }) {
       {/* Footer */}
       <div className="admin-sidebar-footer">
         <div className="admin-footer-user">
-          <div className="admin-user-avatar">AD</div>
+          <div className="admin-user-avatar">{displayAvatar}</div>
           <div className="admin-user-info">
-            <p className="admin-user-name">Admin User</p>
-            <p className="admin-user-email">admin@lms.com</p>
+            <p className="admin-user-name">{displayName}</p>
+            <p className="admin-user-email">{displayEmail}</p>
           </div>
         </div>
       </div>

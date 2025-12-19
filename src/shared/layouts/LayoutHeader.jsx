@@ -19,6 +19,18 @@ export default function Header() {
   const [openDropdown, setOpenDropdown] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  // Safe user parsing
+  const user = (() => {
+    try {
+      return JSON.parse(localStorage.getItem("loggedInUser") || "{}");
+    } catch {
+      return {};
+    }
+  })();
+
+  const displayName = user.fullName || user.username || "Người dùng";
+  const displayEmail = user.gmail || user.email || "user@example.com";
+
   const handleNavigate = (path) => {
     navigate(path);
     setIsMobileMenuOpen(false);
@@ -27,6 +39,7 @@ export default function Header() {
   // ✅ Hàm xử lý đăng xuất (an toàn)
   const handleLogout = () => {
     localStorage.removeItem("loggedInUser");
+    localStorage.removeItem("accessToken"); // Also clear token if present
     setOpenDropdown(false);
     setIsMobileMenuOpen(false);
     navigate("/login", { replace: true });
@@ -65,7 +78,10 @@ export default function Header() {
           <button className="icon-btn">
             <img src={notiIcon} alt="Notification" />
           </button>
-          <div className="avatar-dropdown">
+          <div
+            className="avatar-dropdown"
+            onMouseLeave={() => setOpenDropdown(false)}
+          >
             <button
               className="avatar-btn"
               onClick={() => setOpenDropdown((prev) => !prev)}
@@ -79,11 +95,11 @@ export default function Header() {
                     <img src={avatarDropDown} alt="Avatar" />
                   </div>
                   <div className="user-info">
-                    <div className="name">Nguyễn Ánh Viên</div>
-                    <div className="email">vien@gmail.com</div>
+                    <div className="name">{displayName}</div>
+                    <div className="email">{displayEmail}</div>
                   </div>
                 </div>
-                <div className="divider"></div>
+
                 <div className="dropdown-item">
                   <button
                     onClick={() => {
@@ -94,8 +110,10 @@ export default function Header() {
                     Hồ sơ của tôi
                   </button>
                 </div>
-                <div className="dropdown-item">Khóa học của tôi</div>
-                <div className="divider"></div>
+                <div className="dropdown-item" onClick={() => handleNavigate("/home")}>
+                  Khóa học của tôi
+                </div>
+
                 {/* 🔒 Đăng xuất */}
                 <div className="dropdown-item logout" onClick={handleLogout}>
                   <img src={logoutIcon} alt="Logout" className="logout-icon" />
@@ -142,7 +160,7 @@ export default function Header() {
           <div className="divider-mobile"></div>
           <div className="mobile-menu-user-links">
             <a onClick={() => handleNavigate("/profile/edit")}>Hồ sơ của tôi</a>
-            <a>Khóa học của tôi</a>
+            <a onClick={() => handleNavigate("/dashboard")}>Khóa học của tôi</a>
           </div>
           <div className="mobile-menu-footer">
             <div className="user-info-mobile">
@@ -153,8 +171,8 @@ export default function Header() {
                   className="avatar-mobile"
                 />
                 <div className="text-info">
-                  <div className="name">Nguyễn Ánh Viên</div>
-                  <div className="email">vien@gmail.com</div>
+                  <div className="name">{displayName}</div>
+                  <div className="email">{displayEmail}</div>
                 </div>
               </div>
 
