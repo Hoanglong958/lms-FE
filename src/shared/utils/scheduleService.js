@@ -7,6 +7,11 @@ export const scheduleService = {
     return api.get(`/api/v1/schedules/course/${courseId}`);
   },
 
+  // GET /api/v1/schedules/class/{classId}
+  getByClass: (classId) => {
+    return api.get(`/api/v1/schedules/class/${classId}`);
+  },
+
   // DELETE /api/v1/schedules/course/{courseId}
   deleteByCourse: (courseId) => {
     return api.delete(`/api/v1/schedules/course/${courseId}`);

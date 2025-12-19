@@ -23,6 +23,8 @@ import Register from "@features/login/pages/Register";
 // ⭐ USER CLASS PAGE
 import ClassesPage from "@pages/ClassesPage";
 import ClassDetailPage from "@pages/ClassDetailPage";
+import ClassCalendarPage from "@pages/ClassCalendarPage";
+import ClassRoadmapPage from "@pages/ClassRoadmapPage";
 
 // ⭐⭐ THÊM ROUTE MỚI
 import JavaExamPage from "@pages/JavaExamPage";
@@ -81,6 +83,8 @@ export default function AppRouter() {
             {/* USER CLASS */}
             <Route path="/classes" element={<ClassesPage />} />
             <Route path="/classes/:id" element={<ClassDetailPage />} />
+            <Route path="/classes/:id/calendar" element={<ClassCalendarPage />} />
+            <Route path="/classes/:id/roadmap" element={<ClassRoadmapPage />} />
 
             {/* BLOG */}
             <Route path="/bai-viet" element={<BlogList />} />

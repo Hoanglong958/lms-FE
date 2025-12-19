@@ -117,14 +117,14 @@ const ClassDetailPage = () => {
 
           {/* New Action Buttons */}
           <div className="cd-actions-row">
-            <button className="cd-btn-action">
+            <Link to={`/classes/${id}/calendar`} className="cd-btn-action" style={{ textDecoration: 'none' }}>
               <div className="cd-btn-icon-box icon-schedule">📅</div>
               <span>Thời khóa biểu</span>
-            </button>
-            <button className="cd-btn-action">
+            </Link>
+            <Link to={`/classes/${id}/roadmap`} className="cd-btn-action" style={{ textDecoration: 'none' }}>
               <div className="cd-btn-icon-box icon-path">🗺️</div>
               <span>Lộ trình học</span>
-            </button>
+            </Link>
           </div>
         </div>
       </div>

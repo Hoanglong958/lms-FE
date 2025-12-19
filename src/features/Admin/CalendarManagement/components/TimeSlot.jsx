@@ -52,7 +52,13 @@ export default function TimeSlot({
       {scheduleItem && scheduleItem.periodId === periodId && (
         <div
           className="scheduleItem"
-          style={{ height: "100%", zIndex: 5 }}
+          style={{
+            height: "100%",
+            zIndex: 5,
+            backgroundColor: scheduleItem.backgroundColor || undefined,
+            color: scheduleItem.color || undefined,
+            border: scheduleItem.border || undefined
+          }}
           draggable
           onDragStart={(e) => {
             e.dataTransfer.effectAllowed = "move";

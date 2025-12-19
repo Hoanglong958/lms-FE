@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useSearchParams, useNavigate, useOutletContext } from 'react-router-dom';
-import AdminHeader from '@components/Admin/AdminHeader';
+import { useSearchParams, useNavigate, useParams, useOutletContext } from 'react-router-dom';
 import { classService } from '@utils/classService';
 import { classCourseService } from '@utils/classCourseService';
 import { sessionService } from '@utils/sessionService';
@@ -9,45 +8,33 @@ import { roadmapService } from '@utils/roadmapService';
 import { scheduleService } from '@utils/scheduleService';
 import { periodService } from '@utils/periodService';
 import { courseService } from '@utils/courseService';
-// Import shared components from Calendar
-import TimetableGrid from '../CalendarManagement/components/TimetableGrid';
-import './Roadmap.css';
+import TimetableGrid from '@features/Admin/CalendarManagement/components/TimetableGrid';
+import '@features/Admin/Roadmap/Roadmap.css'; // Reuse CSS
 
-export default function Roadmap() {
+export default function ClassRoadmapPage() {
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
-    const classId = searchParams.get('classId');
+    const { id } = useParams();
+    const classId = id || searchParams.get('classId');
 
     // Data States
     const [classInfo, setClassInfo] = useState(null);
-    const [courseInfo, setCourseInfo] = useState(null);
     const [chapters, setChapters] = useState([]);
-    const [lessonsMap, setLessonsMap] = useState({}); // chapterId -> lessons[]
+    const [lessonsMap, setLessonsMap] = useState({});
 
     // Schedule States
-    const [scheduleItems, setScheduleItems] = useState([]); // All class slots sorted by time
+    const [scheduleItems, setScheduleItems] = useState([]);
     const [periods, setPeriods] = useState([]);
     const [weeks, setWeeks] = useState([]);
     const [selectedWeekIndex, setSelectedWeekIndex] = useState(0);
 
-    // Assignment State: Map<"YYYY-MM-DD_periodId", { chapterId, lessonId }>
+    // Assignment State
     const [slotAssignments, setSlotAssignments] = useState({});
 
     const [availableCourses, setAvailableCourses] = useState([]);
     const [selectedCourseId, setSelectedCourseId] = useState(null);
 
     const [loading, setLoading] = useState(true);
-    const [saving, setSaving] = useState(false);
-
-    // Drag & Drop State
-    const [draggingLesson, setDraggingLesson] = useState(null);
-
-    // Sidebar context
-    let toggleSidebar = () => { };
-    try {
-        const ctx = useOutletContext();
-        if (ctx && ctx.toggleSidebar) toggleSidebar = ctx.toggleSidebar;
-    } catch { }
 
     // Helper for date string
     const getLocalYYYYMMDD = (d) => {
@@ -57,7 +44,7 @@ export default function Roadmap() {
         return `${year}-${month}-${day}`;
     };
 
-    // 1. Initial Load: Class, Periods, Schedule
+    // 1. Initial Load
     useEffect(() => {
         if (!classId) return;
 
@@ -75,12 +62,11 @@ export default function Roadmap() {
                 const periodList = Array.isArray(periodRes.data) ? periodRes.data : (periodRes.data?.data || periodRes.data?.content || []);
                 setPeriods(periodList);
 
-                // 3. Class Schedule & Generate Weeks
+                // 3. Class Schedule
                 let items = [];
                 try {
                     const schedRes = await scheduleService.getByClass(classId);
                     items = schedRes.data?.data || schedRes.data || [];
-
                     items.sort((a, b) => {
                         const dateA = new Date(a.date || a.day);
                         const dateB = new Date(b.date || b.day);
@@ -88,11 +74,9 @@ export default function Roadmap() {
                         return (a.periodId || 0) - (b.periodId || 0);
                     });
                     setScheduleItems(items);
-                } catch (e) {
-                    console.warn("Could not fetch schedule", e);
-                }
+                } catch (e) { }
 
-                // Generate Weeks (Aligned with Class Dates)
+                // Generate Weeks
                 generateWeeks(items, classData?.startDate, classData?.endDate);
 
                 // 4. Assigned Courses
@@ -122,20 +106,14 @@ export default function Roadmap() {
             const endDate = new Date(classEnd);
             let currentDate = new Date(startDate);
             let weekNumber = 1;
-
-            // Loop until we pass the end date
-            // Safety break just in case
             let safeguard = 0;
             while (currentDate <= endDate && safeguard < 1000) {
                 safeguard++;
-
-                // Determine Week Range (Monday to Sunday)
                 const day = currentDate.getDay();
                 const diff = day === 0 ? -6 : 1 - day;
                 const monday = new Date(currentDate);
                 monday.setDate(currentDate.getDate() + diff);
                 monday.setHours(0, 0, 0, 0);
-
                 const sunday = new Date(monday);
                 sunday.setDate(monday.getDate() + 6);
                 sunday.setHours(23, 59, 59, 999);
@@ -146,8 +124,6 @@ export default function Roadmap() {
                     endDate: sunday,
                     label: `Tuần ${weekNumber}`
                 });
-
-                // Move to next week
                 currentDate.setDate(currentDate.getDate() + 7);
                 weekNumber++;
             }
@@ -155,10 +131,9 @@ export default function Roadmap() {
             return;
         }
 
-        // Fallback: Generate from Items if no Class Dates
+        // Fallback
         const weekSet = new Set();
         const weeksArrFallback = [];
-
         items.forEach(item => {
             if (!item.date) return;
             const d = new Date(item.date);
@@ -166,14 +141,12 @@ export default function Roadmap() {
             const diff = d.getDate() - day + (day === 0 ? -6 : 1);
             const monday = new Date(d.setDate(diff));
             monday.setHours(0, 0, 0, 0);
-
             const key = monday.getTime();
             if (!weekSet.has(key)) {
                 weekSet.add(key);
                 weeksArrFallback.push(monday);
             }
         });
-
         if (weeksArrFallback.length === 0) {
             const now = new Date();
             const day = now.getDay();
@@ -182,9 +155,7 @@ export default function Roadmap() {
             monday.setHours(0, 0, 0, 0);
             weeksArrFallback.push(monday);
         }
-
         weeksArrFallback.sort((a, b) => a.getTime() - b.getTime());
-
         setWeeks(weeksArrFallback.map((start, idx) => ({
             index: idx,
             startDate: start,
@@ -193,24 +164,17 @@ export default function Roadmap() {
         })));
     };
 
-    // 2. Load Course Data (Roadmap & Content)
+    // 2. Load Course Data
     useEffect(() => {
         if (!selectedCourseId) return;
 
         const loadCourseData = async () => {
             setLoading(true);
             try {
-                // Course Info
-                const courseDetailRes = await courseService.getCourseDetail(selectedCourseId);
-                const courseDetail = courseDetailRes.data?.data || courseDetailRes.data;
-                setCourseInfo(courseDetail || { id: selectedCourseId });
-
-                // Chapters
                 const chaptersRes = await sessionService.getSessionsByCourse(selectedCourseId);
                 const chaptersData = chaptersRes.data?.data || chaptersRes.data || [];
                 setChapters(chaptersData);
 
-                // Lessons
                 const lessonsObj = {};
                 await Promise.all(chaptersData.map(async (chap) => {
                     try {
@@ -220,7 +184,6 @@ export default function Roadmap() {
                 }));
                 setLessonsMap(lessonsObj);
 
-                // Existing Roadmap
                 const roadmapRes = await roadmapService.getRoadmap(classId, selectedCourseId);
                 const roadmapData = roadmapRes.data?.data || roadmapRes.data || {};
                 const roadmapItems = roadmapData.items || [];
@@ -229,9 +192,9 @@ export default function Roadmap() {
                 const sortedSchedule = [...scheduleItems];
 
                 roadmapItems.forEach(rItem => {
-                    const orderIdx = rItem.orderIndex; // 1-based
+                    const orderIdx = rItem.orderIndex;
                     if (orderIdx - 1 < sortedSchedule.length) {
-                        const sItem = sortedSchedule[orderIdx - 1]; // 0-based
+                        const sItem = sortedSchedule[orderIdx - 1];
                         if (sItem) {
                             const dateStr = getLocalYYYYMMDD(new Date(sItem.date));
                             const key = `${dateStr}_${sItem.periodId}`;
@@ -242,7 +205,6 @@ export default function Roadmap() {
                         }
                     }
                 });
-
                 setSlotAssignments(newAssignments);
 
             } catch (error) {
@@ -254,91 +216,6 @@ export default function Roadmap() {
 
         loadCourseData();
     }, [selectedCourseId, classId, scheduleItems]);
-
-
-    // Handle Drop Logic
-    const handleDropLesson = (dayIndex, periodId, lessonData) => {
-        const currentWeek = weeks[selectedWeekIndex];
-        if (!currentWeek) return;
-
-        const date = new Date(currentWeek.startDate);
-        date.setDate(date.getDate() + dayIndex);
-        const dateStr = getLocalYYYYMMDD(date);
-        const key = `${dateStr}_${periodId}`;
-
-        // Update Assignments Map
-        setSlotAssignments(prev => ({
-            ...prev,
-            [key]: {
-                chapterId: lessonData.chapterId,
-                lessonId: lessonData.id
-            }
-        }));
-    };
-
-    const handleRemoveAssignment = (dayIndex, periodId) => {
-        const currentWeek = weeks[selectedWeekIndex];
-        if (!currentWeek) return;
-        const date = new Date(currentWeek.startDate);
-        date.setDate(date.getDate() + dayIndex);
-        const dateStr = getLocalYYYYMMDD(date);
-        const key = `${dateStr}_${periodId}`;
-
-        setSlotAssignments(prev => {
-            const copy = { ...prev };
-            delete copy[key];
-            return copy;
-        });
-    };
-
-    const handleSave = async () => {
-        setSaving(true);
-        try {
-            const keys = Object.keys(slotAssignments);
-
-            if (keys.length === 0) {
-                alert("Chưa có nội dung nào được gán!");
-                setSaving(false);
-                return;
-            }
-
-            // Sort keys by Date then Period
-            keys.sort((a, b) => {
-                const [d1, p1] = a.split('_');
-                const [d2, p2] = b.split('_');
-                if (d1 !== d2) return d1.localeCompare(d2);
-                return parseInt(p1) - parseInt(p2);
-            });
-
-            const sessionIds = [];
-            const lessonIds = [];
-            const periodIds = [];
-
-            keys.forEach((key, index) => {
-                const assignment = slotAssignments[key];
-                sessionIds.push(parseInt(assignment.chapterId));
-                lessonIds.push(parseInt(assignment.lessonId));
-                periodIds.push(index + 1);
-            });
-
-            const payload = {
-                classId: parseInt(classId),
-                courseId: parseInt(selectedCourseId),
-                sessionIds,
-                lessonIds,
-                periodIds: periodIds,
-                orderIndexes: periodIds,
-            };
-
-            await roadmapService.assignRoadmap(payload);
-            alert("Lưu lộ trình thành công! (Lưu ý: Chỉ lưu nội dung bài học, vui lòng dảm bảo lịch học đã được tạo trong phần Thời khóa biểu)");
-        } catch (error) {
-            console.error(error);
-            alert("Lỗi khi lưu lộ trình!");
-        } finally {
-            setSaving(false);
-        }
-    };
 
     // Prepare data for TimetableGrid
     const currentWeekDates = useMemo(() => {
@@ -359,11 +236,9 @@ export default function Roadmap() {
         const weekKeyStart = start.getTime();
         const weekKeyEnd = start.getTime() + 7 * 24 * 60 * 60 * 1000;
 
-        // 1. Populate from Schedule Items (Existing Database Slots)
         scheduleItems.forEach((item) => {
             const itemDate = new Date(item.date);
             if (itemDate.getTime() >= weekKeyStart && itemDate.getTime() < weekKeyEnd) {
-                // Day Index
                 const d1 = new Date(itemDate); d1.setHours(0, 0, 0, 0);
                 const d2 = new Date(start); d2.setHours(0, 0, 0, 0);
                 const dy = Math.round((d1 - d2) / (1000 * 60 * 60 * 24));
@@ -374,8 +249,6 @@ export default function Roadmap() {
                     const dateStr = getLocalYYYYMMDD(itemDate);
                     const key = `${dateStr}_${item.periodId}`;
                     const assignment = slotAssignments[key];
-
-                    // Lookup Course Info
                     const courseInfo = availableCourses.find(c => String(c.courseId) === String(item.courseId));
                     const scheduledSubject = courseInfo ? (courseInfo.courseTitle || courseInfo.title) : item.subjectName;
 
@@ -385,7 +258,7 @@ export default function Roadmap() {
                     let border = "1px dashed #cbd5e1";
 
                     if (scheduledSubject) {
-                        backgroundColor = "#f0f9ff"; // Light Blue for scheduled slots
+                        backgroundColor = "#f0f9ff";
                         textColor = "#0369a1";
                         border = "1px solid #bae6fd";
                     }
@@ -413,17 +286,15 @@ export default function Roadmap() {
             }
         });
 
-        // 2. Populate from Virtual Assignments
+        // Virtual Assignments view
         Object.keys(slotAssignments).forEach(key => {
             const [dateStr, pIdStr] = key.split('_');
             const periodId = parseInt(pIdStr);
             const date = new Date(dateStr);
-
             if (date.getTime() >= weekKeyStart && date.getTime() < weekKeyEnd) {
                 const d1 = new Date(date); d1.setHours(0, 0, 0, 0);
                 const d2 = new Date(start); d2.setHours(0, 0, 0, 0);
                 const dy = Math.round((d1 - d2) / (1000 * 60 * 60 * 24));
-
                 if (dy >= 0 && dy <= 6) {
                     if (!sch[dy]) sch[dy] = {};
                     const isDbSlot = scheduleItems.some(item => {
@@ -454,34 +325,18 @@ export default function Roadmap() {
         return sch;
     }, [scheduleItems, weeks, selectedWeekIndex, slotAssignments, chapters, lessonsMap, availableCourses]);
 
-    const assignedLessonIds = useMemo(() => {
-        const ids = new Set();
-        Object.values(slotAssignments).forEach(a => {
-            if (a.lessonId) ids.add(String(a.lessonId));
-        });
-        return ids;
-    }, [slotAssignments]);
-
-
     return (
-        <div className="roadmap-page improved-ui">
-            <AdminHeader
-                title={`Lộ trình môn học: ${classInfo ? classInfo.className : '...'}`}
-                breadcrumb={[
-                    { label: "Dashboard", to: "/admin/dashboard" },
-                    { label: "Lớp học", to: "/admin/classes" },
-                    { label: "Lộ trình", to: "#" },
-                ]}
-                onMenuToggle={toggleSidebar}
-                onBack={() => navigate(-1)}
-                actions={
-                    <button className="roadmap-btn-save" onClick={handleSave} disabled={saving}>
-                        {saving ? "Đang lưu..." : "Lưu lộ trình"}
-                    </button>
-                }
-            />
+        <div className="roadmap-page improved-ui" style={{ padding: '20px', minHeight: '100vh', background: '#fff' }}>
+            <div className="calendarHeaderContainer" style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                    <button onClick={() => navigate(-1)} style={{ marginRight: '10px', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '16px' }}>← Quay lại</button>
+                    <h1 style={{ display: 'inline', fontSize: '24px', fontWeight: 'bold' }}>Lộ trình học - {classInfo?.className}</h1>
+                </div>
 
-            <div className="roadmap-container">
+            </div>
+
+            <div className="roadmap-container" style={{ gridTemplateColumns: 'minmax(250px, 300px) 1fr' }}>
+                {/* READ ONLY SIDEBAR */}
                 <div className={`roadmap-lessons-sidebar ${loading ? 'loading' : ''}`}>
                     <div className="sidebar-header">
                         <h3>Danh sách bài học</h3>
@@ -500,7 +355,7 @@ export default function Roadmap() {
                         </div>
                     </div>
 
-                    <div className="chapters-list">
+                    <div className="chapters-list" style={{ overflowY: 'auto', maxHeight: '70vh' }}>
                         {chapters.map(chap => {
                             const lessons = lessonsMap[chap.id] || [];
                             return (
@@ -508,25 +363,17 @@ export default function Roadmap() {
                                     <div className="chapter-title">{chap.sessionName || chap.name}</div>
                                     <div className="lessons-group">
                                         {lessons.map(les => {
-                                            const isAssigned = assignedLessonIds.has(String(les.id));
+                                            // Find if lesson is assigned somewhere
+                                            const isAssigned = Object.values(slotAssignments).some(a => String(a.lessonId) === String(les.id));
                                             return (
                                                 <div
                                                     key={les.id}
                                                     className={`lesson-item-draggable ${isAssigned ? 'assigned' : ''}`}
-                                                    draggable
-                                                    onDragStart={(e) => {
-                                                        e.dataTransfer.effectAllowed = "copy";
-                                                        e.dataTransfer.setData("text/plain", JSON.stringify({
-                                                            chapterId: chap.id,
-                                                            id: les.id,
-                                                            title: les.lessonName || les.title
-                                                        }));
-                                                        setDraggingLesson({ chapterId: chap.id, id: les.id, title: les.lessonName });
-                                                    }}
-                                                    onDragEnd={() => setDraggingLesson(null)}
+                                                    style={{ cursor: 'default' }} // No drag cursor
+                                                // No draggable props
                                                 >
-                                                    <span className="drag-handle">::</span>
-                                                    <span>{les.lessonName || les.title}</span>
+                                                    {/* No drag handle */}
+                                                    <span style={{ marginLeft: '10px' }}>{les.lessonName || les.title}</span>
                                                     {isAssigned && <span style={{ marginLeft: 'auto', color: '#10b981', fontWeight: 'bold' }}>✓</span>}
                                                 </div>
                                             )
@@ -562,18 +409,15 @@ export default function Roadmap() {
                         </button>
                     </div>
 
-                    <TimetableGrid
-                        weekDays={currentWeekDates}
-                        periods={periods}
-                        schedule={weekSchedule}
-                        onScheduleChange={(newSch, details) => {
-                            if (details && details.subject) {
-                                const lessonData = details.subject;
-                                handleDropLesson(details.dayIndex, details.periodId, lessonData);
-                            }
-                        }}
-                        draggingSubject={draggingLesson}
-                    />
+                    <div style={{ pointerEvents: 'none' }}>
+                        <TimetableGrid
+                            weekDays={currentWeekDates}
+                            periods={periods}
+                            schedule={weekSchedule}
+                            onScheduleChange={() => { }}
+                            draggingSubject={null}
+                        />
+                    </div>
                 </div>
             </div>
         </div>

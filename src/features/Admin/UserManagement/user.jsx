@@ -188,7 +188,7 @@ export default function UserManagement({ currentUserRole = "admin" }) {
 
 		const normalizedQuery = searchQuery.trim().toLowerCase();
 
-		return usersToFilter.filter((u) => {
+		const filtered = usersToFilter.filter((u) => {
 			const matchQuery =
 				normalizedQuery.length === 0 ||
 				(u.fullName && u.fullName.toLowerCase().includes(normalizedQuery)) ||
@@ -197,6 +197,19 @@ export default function UserManagement({ currentUserRole = "admin" }) {
 			const matchRole = roleFilter === "all" ? true : u.role === roleFilter;
 
 			return matchQuery && matchRole;
+		});
+
+		// Sắp xếp: ROLE_USER -> ROLE_TEACHER -> ROLE_ADMIN
+		const roleOrder = {
+			"ROLE_USER": 1,
+			"ROLE_TEACHER": 2,
+			"ROLE_ADMIN": 3
+		};
+
+		return filtered.sort((a, b) => {
+			const roleA = roleOrder[a.role] || 99;
+			const roleB = roleOrder[b.role] || 99;
+			return roleA - roleB;
 		});
 
 	}, [users, searchQuery, roleFilter]); // [users] là dependency
