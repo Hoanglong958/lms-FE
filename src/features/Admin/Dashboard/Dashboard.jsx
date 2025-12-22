@@ -17,17 +17,16 @@ import CourseProgressChart from "./components/CourseProgressChart";
 import NewUsersTable from "./components/NewUsersTable";
 import NewCoursesTable from "./components/NewCoursesTable";
 import RecentQuizzesTable from "./components/RecentQuizzesTable";
-import RankingList from "./components/RankingList";
 import { dashboardService } from "@utils/dashboardService";
 import { quizResultService } from "@utils/quizResultService.js";
 
 // 3. XÂY DỰNG LAYOUT
 const DashboardOverview = () => {
   const [userGrowthData, setUserGrowthData] = useState([]);
-  const [topStudents, setTopStudents] = useState([]);
   const [cardsRow1, setCardsRow1] = useState([]);
   const [cardsRow2, setCardsRow2] = useState([]);
   const [recentQuizzes, setRecentQuizzes] = useState([]);
+  const [newCourses, setNewCourses] = useState([]);
 
   useEffect(() => {
     let alive = true;
@@ -155,8 +154,8 @@ const DashboardOverview = () => {
         const arr = Array.isArray(raw)
           ? raw
           : Array.isArray(raw?.data)
-          ? raw.data
-          : [];
+            ? raw.data
+            : [];
         const mapped = arr.map((item, idx) => {
           const month = item?.month || item?.label || `T${idx + 1}`;
           const count =
@@ -172,51 +171,26 @@ const DashboardOverview = () => {
       })
       .catch(() => { if (alive) setUserGrowthData([]); });
 
-    dashboardService
-      .getTopStudents()
-      .then((res) => {
-        const raw = res?.data;
-        const arr = Array.isArray(raw)
-          ? raw
-          : Array.isArray(raw?.data)
-          ? raw.data
-          : [];
-        const mapped = arr.map((s, i) => ({
-          id: s?.id ?? s?.userId ?? i + 1,
-          name: s?.name ?? s?.fullName ?? s?.gmail ?? `#${s?.id ?? i + 1}`,
-          score: Number(s?.score ?? s?.avgScore ?? s?.totalScore ?? 0),
-          courses: Number(s?.courses ?? s?.courseCount ?? s?.completed ?? 0),
-        }));
-        if (alive) setTopStudents(mapped);
-      })
-      .catch(() => { if (alive) setTopStudents([]); });
+
 
     dashboardService
-      .getRecentQuizzes()
+      .getRecentExams()
       .then((res) => {
         const arr = Array.isArray(res?.data) ? res.data : [];
         if (alive) setRecentQuizzes(arr);
       })
       .catch(() => { if (alive) setRecentQuizzes([]); });
 
-    quizResultService
-      .getResults()
+    dashboardService
+      .getNewCourses()
       .then((res) => {
         const arr = Array.isArray(res?.data) ? res.data : [];
-        const completed = arr.length;
-        const scores = arr.map((r) => {
-          const cc = Number(r?.correctCount) || 0;
-          const tc = Number(r?.totalCount) || 0;
-          if (tc <= 0) return 0;
-          return (cc / tc) * 10;
-        });
-        const avg10 = scores.length > 0 ? scores.reduce((a, b) => a + b, 0) / scores.length : 0;
-        if (alive) {
-          setCardsRow1((prev) => prev.map((c) => c?.title === "Bài thi hoàn thành" ? { ...c, value: formatNumber(completed) } : c));
-          setCardsRow2((prev) => prev.map((c) => c?.title === "Điểm trung bình" ? { ...c, value: `${Number(avg10).toFixed(1)}/10` } : c));
-        }
+        if (alive) setNewCourses(arr);
       })
-      .catch(() => { /* ignore */ });
+      .catch((err) => {
+        console.error("Failed to fetch new courses:", err);
+        if (alive) setNewCourses([]);
+      });
 
     return () => { alive = false; };
   }, []);
@@ -265,17 +239,15 @@ const DashboardOverview = () => {
           <h3 className="dashboard-card-title">Người dùng mới</h3>
           <NewUsersTable users={newUsersData} />
         </section>
-        <section className="dashboard-card col-span-12 lg-col-span-5">
-          <RankingList students={topStudents} />
-        </section>
+
 
         {/* === HÀNG 6: BẢNG  === */}
         <section className="dashboard-card col-span-12 lg-col-span-6">
           <h3 className="dashboard-card-title">Khóa học mới tạo</h3>
-          <NewCoursesTable courses={newCoursesData} />
+          <NewCoursesTable courses={newCourses} />
         </section>
         <section className="dashboard-card col-span-12 lg-col-span-6">
-          <h3 className="dashboard-card-title">Bài thi / Quiz gần đây</h3>
+          <h3 className="dashboard-card-title">Bài kiểm tra gần đây</h3>
           <RecentQuizzesTable quizzes={recentQuizzes} />
         </section>
       </div>

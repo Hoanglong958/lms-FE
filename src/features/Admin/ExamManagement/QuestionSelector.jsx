@@ -1,20 +1,36 @@
 import React, { useEffect, useMemo, useState } from "react";
 import "./QuestionSelector.css";
 
+import { questionService } from "@utils/questionService.js";
+
 export default function QuestionSelector({ open, onOpenChange, selectedQuestions = [], onSelectQuestions }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [localSelected, setLocalSelected] = useState([]);
+  const [questions, setQuestions] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  // Mock data demo (có thể thay bằng API sau)
-  const mockQuestions = useMemo(() => (
-    [
-      { id: 1, title: "Câu hỏi về React Hooks", category: "React", difficulty: "Trung bình" },
-      { id: 2, title: "Câu hỏi về TypeScript", category: "TypeScript", difficulty: "Khó" },
-      { id: 3, title: "Câu hỏi về CSS Flexbox", category: "CSS", difficulty: "Dễ" },
-      { id: 4, title: "Câu hỏi về JavaScript ES6", category: "JavaScript", difficulty: "Trung bình" },
-      { id: 5, title: "Câu hỏi về Node.js", category: "Backend", difficulty: "Khó" },
-    ]
-  ), []);
+  useEffect(() => {
+    if (open) {
+      setLoading(true);
+      questionService.getAll()
+        .then((res) => {
+          const raw = res?.data ?? {};
+          // Normalize data
+          const arr = Array.isArray(raw)
+            ? raw
+            : Array.isArray(raw.data)
+              ? raw.data
+              : Array.isArray(raw.content)
+                ? raw.content
+                : Array.isArray(raw.items)
+                  ? raw.items
+                  : [];
+          setQuestions(arr);
+        })
+        .catch((err) => console.error(err))
+        .finally(() => setLoading(false));
+    }
+  }, [open]);
 
   useEffect(() => {
     if (open) setLocalSelected(Array.isArray(selectedQuestions) ? selectedQuestions : []);
@@ -22,9 +38,12 @@ export default function QuestionSelector({ open, onOpenChange, selectedQuestions
 
   const filtered = useMemo(() => {
     const s = searchTerm.trim().toLowerCase();
-    if (!s) return mockQuestions;
-    return mockQuestions.filter((q) => q.title.toLowerCase().includes(s));
-  }, [searchTerm, mockQuestions]);
+    if (!s) return questions;
+    return questions.filter((q) =>
+      String(q.questionText || q.title || "").toLowerCase().includes(s) ||
+      String(q.id).includes(s)
+    );
+  }, [searchTerm, questions]);
 
   const toggleQuestion = (id) => {
     setLocalSelected((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
@@ -74,11 +93,13 @@ export default function QuestionSelector({ open, onOpenChange, selectedQuestions
                 <div className="qs-item-main">
                   <div className="qs-row">
                     <span className="qs-id">ID: {q.id}</span>
-                    <span className="qs-title-text">{q.title}</span>
+                    <span className="qs-title-text" style={{ flex: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                      {q.questionText || q.title || "Câu hỏi không có nội dung"}
+                    </span>
                   </div>
                   <div className="qs-row gap">
-                    <span className="qs-badge blue">{q.category}</span>
-                    <span className={getDifficultyClass(q.difficulty)}>{q.difficulty}</span>
+                    {q.category && <span className="qs-badge blue">{q.category}</span>}
+                    {q.difficulty && <span className={getDifficultyClass(q.difficulty)}>{q.difficulty}</span>}
                   </div>
                 </div>
               </label>

@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import "./ExamEditDialog.css";
 import { examService } from "@utils/examService.js";
 import NotificationModal from "@components/NotificationModal/NotificationModal";
+import QuestionSelector from "./QuestionSelector";
 
 export default function ExamEditDialog({ open, onOpenChange, exam, onSuccess }) {
   const [submitting, setSubmitting] = useState(false);
@@ -322,56 +323,12 @@ export default function ExamEditDialog({ open, onOpenChange, exam, onSuccess }) 
         </form>
 
         {showQuestionSelector && !form.autoAddQuestions && (
-          <div className="examed-submodal">
-            <div className="examed-submodal-card">
-              <div className="examed-submodal-head">
-                <h4>Chọn câu hỏi</h4>
-                <button
-                  className="btn-icon"
-                  onClick={() => setShowQuestionSelector(false)}
-                >
-                  ×
-                </button>
-              </div>
-
-              <div className="examed-submodal-body">
-                <p>Danh sách ID mẫu (1..20). Chọn để thêm/bỏ.</p>
-
-                <div className="examed-ids">
-                  {Array.from({ length: 20 }).map((_, i) => {
-                    const id = i + 1;
-                    const active = form.questionIds.includes(id);
-
-                    return (
-                      <button
-                        key={id}
-                        type="button"
-                        className={"tag " + (active ? "active" : "")}
-                        onClick={() =>
-                          active
-                            ? handleSelectQuestions(
-                              form.questionIds.filter((q) => q !== id)
-                            )
-                            : handleSelectQuestions([...form.questionIds, id])
-                        }
-                      >
-                        {id}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div className="examed-submodal-foot">
-                <button
-                  className="btn-outline"
-                  onClick={() => setShowQuestionSelector(false)}
-                >
-                  Đóng
-                </button>
-              </div>
-            </div>
-          </div>
+          <QuestionSelector
+            open={showQuestionSelector}
+            onOpenChange={setShowQuestionSelector}
+            selectedQuestions={form.questionIds}
+            onSelectQuestions={handleSelectQuestions}
+          />
         )}
       </div>
       <NotificationModal

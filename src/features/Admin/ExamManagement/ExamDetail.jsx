@@ -3,6 +3,7 @@ import "./ExamDetail.css";
 import { useNavigate, useParams } from "react-router-dom";
 import { examService } from "@utils/examService.js";
 import { userService } from "@utils/userService.js";
+import { questionService } from "@utils/questionService.js";
 import { API_BASE_URL } from "@/config/index.js";
 
 export default function ExamDetail() {
@@ -16,11 +17,138 @@ export default function ExamDetail() {
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [selectedAttempt, setSelectedAttempt] = useState(null);
   const [attemptAnswers, setAttemptAnswers] = useState([]);
+  const [questionMap, setQuestionMap] = useState({}); // Stores question details from Question Bank
   const [, setReloading] = useState(false);
   const stompRef = useRef(null);
   const wsAttemptedRef = useRef(false);
   const [wsSubmitted, setWsSubmitted] = useState(new Map());
   const [answersSubmitted, setAnswersSubmitted] = useState(new Map());
+  const [verifiedScore, setVerifiedScore] = useState(null);
+
+  // Calculate Verified Score (Hybrid Logic)
+  useEffect(() => {
+    if (!selectedAttempt || attemptAnswers.length === 0 || Object.keys(questionMap).length === 0) {
+      setVerifiedScore(null);
+      return;
+    }
+
+    let correctCount = 0;
+    const total = attemptAnswers.length;
+
+    attemptAnswers.forEach((ans) => {
+      const q = questionMap[ans.questionId];
+      let isC = ans.isCorrect;
+
+      if (!isC && q) {
+        const userText = String(ans.selectedAnswer || "").trim();
+        const correctVal = String(q.correctAnswer || "").trim();
+        const userIndex = Number.isFinite(Number(ans.answerIndex)) ? Number(ans.answerIndex) : -1;
+
+        let localPass = false;
+
+        // 1. Index Check
+        if (userIndex >= 0 && Array.isArray(q.options) && q.options[userIndex]) {
+          const optText = String(q.options[userIndex]).trim();
+          const letters = ["A", "B", "C", "D", "E", "F"];
+          if (optText === correctVal || letters[userIndex] === correctVal) {
+            localPass = true;
+          }
+        }
+
+        // 2. Text/Fallback Check
+        if (!localPass) {
+          if (userText === correctVal) localPass = true;
+          else if (Array.isArray(q.options)) {
+            let idx = q.options.findIndex(o => String(o).trim() === userText);
+            // Fallback: Check Letter (A, B...)
+            if (idx === -1 && /^[A-F]$/i.test(userText)) {
+              const letters = ["A", "B", "C", "D", "E", "F"];
+              idx = letters.indexOf(userText.toUpperCase());
+              if (idx >= q.options.length) idx = -1;
+            }
+
+            if (idx >= 0) {
+              const letters = ["A", "B", "C", "D", "E", "F"];
+              const optText = String(q.options[idx]).trim();
+              if (letters[idx] === correctVal || optText === correctVal) localPass = true;
+            }
+          }
+        }
+
+        if (localPass) isC = true;
+      }
+      if (isC) correctCount++;
+    });
+
+    const max = Number(exam?.maxScore) || 0;
+    const calc = total > 0 && max > 0 ? Math.round((correctCount / total) * max) : correctCount;
+    setVerifiedScore(calc);
+
+    // AUTO-SYNC: Update the main list (Table) with this verified score immediately
+    // This ensures the table shows "10/10" instead of "0/10" even if the backend is outdated
+    setRows((prev) => {
+      const idx = prev.findIndex(r => r.attemptId === selectedAttempt.id || r.id === selectedAttempt.id);
+      if (idx === -1) return prev;
+
+      const row = prev[idx];
+      // Only update if the score is actually different to avoid render loops
+      if (row.score !== calc) {
+        const newRows = [...prev];
+        newRows[idx] = { ...row, score: calc };
+        return newRows;
+      }
+      return prev;
+    });
+
+  }, [selectedAttempt, attemptAnswers, questionMap, exam]);
+
+  const handleRegrade = async () => {
+    if (!selectedAttempt) return;
+    if (!window.confirm("Bạn có chắc chắn muốn chấm lại bài này? Điểm sẽ được cập nhật vào hệ thống.")) return;
+
+    try {
+      const res = await examService.gradeAttempt(selectedAttempt.id);
+      const updatedAttempt = res?.data;
+
+      if (updatedAttempt) {
+        const serverScore = updatedAttempt.score;
+        // If server graded 0 but we locally verify it as higher, prefer local for display
+        // (because server might still be failing the 'A' vs 'Text' check)
+        const safeScore = (serverScore === 0 && verifiedScore > 0) ? verifiedScore : serverScore;
+
+        alert(`Chấm điểm thành công trên Server (Kết quả: ${serverScore})! \nHiển thị điểm đã xác thực: ${safeScore}`);
+
+        // 1. Update Detail View (selectedAttempt)
+        setSelectedAttempt(prev => ({
+          ...prev,
+          score: safeScore,
+          status: updatedAttempt.status
+        }));
+
+        // 2. Update List View (rows)
+        setRows(prevRows => prevRows.map(r => {
+          const rId = r.attemptId || r.id; // Compatible with both structures
+          if (String(rId) === String(updatedAttempt.id)) {
+            return {
+              ...r,
+              score: safeScore,
+              status: updatedAttempt.status
+            };
+          }
+          return r;
+        }));
+
+        // 3. Refresh Detail Answers content
+        handleViewAttempt({ ...selectedAttempt, ...updatedAttempt });
+
+        // 4. Background refresh (just to be safe)
+        loadData();
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Lỗi khi chấm điểm: " + (err.response?.data?.message || err.message));
+    }
+  };
 
   const loadData = () => {
     if (!examId) return;
@@ -176,13 +304,13 @@ export default function ExamDetail() {
       const prevTime = prevOverride
         ? new Date(prevOverride).getTime()
         : (prev?.endTime || prev?.end_time || prev?.finishTime || prev?.finishedAt || prev?.submittedAt || prev?.endAt)
-        ? new Date(prev.endTime || prev.end_time || prev.finishTime || prev.finishedAt || prev.submittedAt || prev.endAt).getTime()
-        : 0;
+          ? new Date(prev.endTime || prev.end_time || prev.finishTime || prev.finishedAt || prev.submittedAt || prev.endAt).getTime()
+          : 0;
       const curTime = curOverride
         ? new Date(curOverride).getTime()
         : (a?.endTime || a?.end_time || a?.finishTime || a?.finishedAt || a?.submittedAt || a?.endAt)
-        ? new Date(a.endTime || a.end_time || a.finishTime || a.finishedAt || a.submittedAt || a.endAt).getTime()
-        : 0;
+          ? new Date(a.endTime || a.end_time || a.finishTime || a.finishedAt || a.submittedAt || a.endAt).getTime()
+          : 0;
       if (!prev || curTime >= prevTime) latestByUser.set(key, a);
     });
     const allRows = Array.from(latestByUser.values()).map((a) => {
@@ -194,10 +322,10 @@ export default function ExamDetail() {
       const stat = baseStatus
         ? baseStatus
         : etRaw
-        ? "COMPLETED"
-        : stRaw
-        ? "IN_PROGRESS"
-        : "NOT_STARTED";
+          ? "COMPLETED"
+          : stRaw
+            ? "IN_PROGRESS"
+            : "NOT_STARTED";
       const overrideSubmit = wsSubmitted.get(`ATT:${a?.id}`) || wsSubmitted.get(`UID:${a.userId}`) || answersSubmitted.get(String(a?.id));
       if (stat === "IN_PROGRESS" && overrideSubmit) {
         etRaw = overrideSubmit;
@@ -249,9 +377,9 @@ export default function ExamDetail() {
               });
             }
           })
-          .catch(() => {})
+          .catch(() => { })
       )
-    ).then(() => {});
+    ).then(() => { });
     return () => { alive = false; };
   }, [attempts]);
 
@@ -282,17 +410,47 @@ export default function ExamDetail() {
     if (selectedAttempt && selectedAttempt.id === a.attemptId) {
       setSelectedAttempt(null);
       setAttemptAnswers([]);
+      setQuestionMap({});
       return;
     }
-    const att = { id: a.attemptId };
+    const att = { ...a, id: a.attemptId };
     setSelectedAttempt(att);
+    setQuestionMap({});
     examService
       .answersByAttempt(att.id)
-      .then((res) => {
+      .then(async (res) => {
         const arr = Array.isArray(res?.data) ? res.data : [];
-        setAttemptAnswers(arr);
+
+        // Fetch Question Details in parallel
+        const qIds = [...new Set(arr.map((item) => item.questionId))].filter(Boolean);
+        const map = {};
+        await Promise.all(
+          qIds.map(async (qid) => {
+            try {
+              const qRes = await questionService.getById(qid);
+              if (qRes?.data) {
+                map[qid] = qRes.data;
+              }
+            } catch (err) {
+              console.error("Error loading question detail:", qid, err);
+            }
+          })
+        );
+
+        // Use original attempt data as source of truth for display
+        const finalAnswers = arr.map((ans) => {
+          // Ensure scoreAwarded is a number
+          const sc = typeof ans.scoreAwarded === "number" ? ans.scoreAwarded : (ans.isCorrect ? 1 : 0);
+          return { ...ans, scoreAwarded: sc };
+        });
+
+        setQuestionMap(map);
+        setAttemptAnswers(finalAnswers);
       })
-      .catch(() => setAttemptAnswers([]));
+      .catch((err) => {
+        console.error(err);
+        setAttemptAnswers([]);
+      });
   };
 
   return (
@@ -308,7 +466,7 @@ export default function ExamDetail() {
       <div className="exam-detail-header">
         <h2>{exam?.title || "Chi tiết kỳ thi"}</h2>
         <p>Chấm điểm và quản lý bài nộp</p>
-        
+
       </div>
 
       {/* Stats section */}
@@ -431,49 +589,191 @@ export default function ExamDetail() {
                 return String(r.status).toUpperCase() === statusFilter;
               })
               .map((a) => (
-              <tr key={a.attemptId || a.userId}>
-                <td>{a.user?.fullName || `#${a.userId}`}</td>
-                <td>{a.user?.gmail || "—"}</td>
-                <td>{a.endTime ? fmt(a.endTime) : a.status === "NOT_STARTED" ? "Chưa làm" : "Chưa nộp"}</td>
-                <td>{durationText(a)}</td>
-                <td>
-                  <span className={`badge ${String(a.status).toUpperCase() === "COMPLETED" || String(a.status).toUpperCase() === "GRADED" ? "badge-success" : a.status === "NOT_STARTED" ? "badge-danger" : "badge-warning"}`}>
-                    {a.status}
-                  </span>
-                </td>
-                <td>{a.score}/{exam?.maxScore ?? "N/A"}</td>
-                <td>
-                  <button
-                    className="exam-action-btn"
-                    onClick={() => handleViewAttempt(a)}
-                    disabled={!a.attemptId}
-                  >
-                    <i className="fa fa-eye"></i>{" "}
-                    {selectedAttempt?.id === a.attemptId ? "Ẩn" : a.attemptId ? "Xem đáp án" : "—"}
-                  </button>
-                </td>
-              </tr>
-            ))}
+                <tr key={a.attemptId || a.userId}>
+                  <td>{a.user?.fullName || `#${a.userId}`}</td>
+                  <td>{a.user?.gmail || "—"}</td>
+                  <td>{a.endTime ? fmt(a.endTime) : a.status === "NOT_STARTED" ? "Chưa làm" : "Chưa nộp"}</td>
+                  <td>{durationText(a)}</td>
+                  <td>
+                    <span className={`badge ${String(a.status).toUpperCase() === "COMPLETED" || String(a.status).toUpperCase() === "GRADED" ? "badge-success" : a.status === "NOT_STARTED" ? "badge-danger" : "badge-warning"}`}>
+                      {a.status}
+                    </span>
+                  </td>
+                  <td>
+                    {selectedAttempt?.id === a.attemptId && verifiedScore !== null
+                      ? verifiedScore
+                      : a.score}
+                    /{exam?.maxScore ?? "N/A"}
+                  </td>
+                  <td>
+                    <button
+                      className="exam-action-btn"
+                      onClick={() => handleViewAttempt(a)}
+                      disabled={!a.attemptId}
+                    >
+                      <i className="fa fa-eye"></i>{" "}
+                      {selectedAttempt?.id === a.attemptId ? "Ẩn" : a.attemptId ? "Xem đáp án" : "—"}
+                    </button>
+                  </td>
+                </tr>
+              ))}
           </tbody>
         </table>
 
         {/* Chi tiết bài làm */}
-        {selectedAttempt && (
+        {/* Chi tiết bài làm */}        {selectedAttempt && (
           <div className="exam-detail-view">
-            <h3>
-              Lượt làm: <span>#{selectedAttempt.id}</span>
-            </h3>
-            <p>
-              Điểm: <strong>{selectedAttempt.score}/{exam?.maxScore ?? "N/A"}</strong>
-            </p>
-            <div className="exam-question">
-              <ul>
-                {attemptAnswers.map((ans, idx) => (
-                  <li key={idx} className={`exam-option ${ans.isCorrect ? "correct" : "wrong"}`}>
-                    Câu {ans.questionId}: chọn {ans.selectedAnswer} {ans.isCorrect ? "✔" : "✖"} (+{ans.scoreAwarded})
-                  </li>
-                ))}
-              </ul>
+            <div className="exam-detail-info-header">
+              <h3>
+                Lượt làm: <span>#{selectedAttempt.id}</span>
+              </h3>
+              <div className="exam-detail-scores">
+                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  <p style={{ margin: 0 }}>
+                    Điểm tổng kết:{" "}
+                    <strong>
+                      {verifiedScore !== null ? `${verifiedScore}/${exam?.maxScore ?? "N/A"}` : `${selectedAttempt.score}/${exam?.maxScore ?? "N/A"}`}
+                    </strong>
+                    <span className="note" style={{ marginLeft: 8, fontSize: '0.9em', color: '#666' }}>
+                      (Verified by Question Bank)
+                    </span>
+                  </p>
+                  <button
+                    onClick={handleRegrade}
+                    title="Chấm lại lượt thi này trên server"
+                    style={{ padding: "4px 8px", background: "#ff9800", color: "#fff", border: "none", borderRadius: 4, cursor: "pointer", fontSize: "0.85em", display: "flex", alignItems: "center" }}
+                  >
+                    <i className="fa fa-sync-alt" style={{ marginRight: 4 }}></i> Chấm lại (Server)
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="exam-question-list">
+              {attemptAnswers.map((ans, idx) => {
+                const qDetail = questionMap[ans.questionId];
+                const userText = String(ans.selectedAnswer || "").trim();
+                const userIndex = Number.isFinite(Number(ans.answerIndex)) ? Number(ans.answerIndex) : -1;
+
+                // Determine Correctness (Hybrid)
+                let isCorrectFinal = ans.isCorrect;
+
+                // Local Check Helpers
+                let matchedOptionIndex = -1;
+                let localIsCorrect = false;
+
+                if (qDetail) {
+                  const correctVal = String(qDetail.correctAnswer || "").trim();
+
+                  // Find User Match
+                  if (userIndex >= 0 && Array.isArray(qDetail.options) && qDetail.options[userIndex]) {
+                    matchedOptionIndex = userIndex;
+                  } else if (Array.isArray(qDetail.options)) {
+                    matchedOptionIndex = qDetail.options.findIndex(o => String(o).trim() === userText);
+                    // Fallback: Check if userText is A, B ...
+                    if (matchedOptionIndex === -1 && /^[A-F]$/i.test(userText)) {
+                      const letters = ["A", "B", "C", "D", "E", "F"];
+                      const letterIdx = letters.indexOf(userText.toUpperCase());
+                      if (letterIdx >= 0 && letterIdx < qDetail.options.length) {
+                        matchedOptionIndex = letterIdx;
+                      }
+                    }
+                  }
+
+                  // Validate Match
+                  if (matchedOptionIndex >= 0) {
+                    const optText = String(qDetail.options[matchedOptionIndex]).trim();
+                    const letters = ["A", "B", "C", "D", "E", "F"];
+                    if (optText === correctVal || letters[matchedOptionIndex] === correctVal) {
+                      localIsCorrect = true;
+                    }
+                  } else if (userText === correctVal) {
+                    localIsCorrect = true;
+                  }
+
+                  // Overwrite if Server is Wrong but Local is Right
+                  if (!isCorrectFinal && localIsCorrect) {
+                    isCorrectFinal = true;
+                  }
+                }
+
+                return (
+                  <div
+                    key={idx}
+                    className={`exam-question-item ${isCorrectFinal ? "is-correct" : "is-wrong"
+                      }`}
+                  >
+                    <div className="eq-header">
+                      <span className="eq-title">
+                        Câu {idx + 1}{" "}
+                        <span className="eq-id">(ID: {ans.questionId})</span>
+                      </span>
+                      <span
+                        className={`eq-badge ${isCorrectFinal ? "badge-success" : "badge-danger"
+                          }`}
+                      >
+                        {isCorrectFinal ? "Đúng" : "Sai"}
+                        {!ans.isCorrect && isCorrectFinal && " (Check lại: OK)"}
+                      </span>
+                    </div>
+
+                    {qDetail ? (
+                      <div className="eq-content">
+                        <div className="eq-question-text">
+                          {qDetail.questionText}
+                        </div>
+                        <div className="eq-options-grid">
+                          {(qDetail.options || []).map((opt, oIdx) => {
+                            const letters = ["A", "B", "C", "D", "E", "F"];
+                            const optText = String(opt).trim();
+
+                            // Check Selection
+                            const isSelected = (oIdx === matchedOptionIndex) || (optText === userText);
+
+                            // Check Correctness 
+                            const isThisCorrect =
+                              letters[oIdx] === qDetail.correctAnswer ||
+                              optText === qDetail.correctAnswer;
+
+                            let cls = "eq-option";
+                            if (isSelected) cls += " selected-answer";
+                            if (isThisCorrect) cls += " correct-answer";
+                            if (isSelected && !isThisCorrect) cls += " wrong-choice";
+
+                            return (
+                              <div key={oIdx} className={cls}>
+                                <span className="opt-char">{letters[oIdx]}.</span>
+                                <span className="opt-text">{opt}</span>
+                                {isSelected && <i className="fa fa-hand-point-left opt-icon"></i>}
+                                {isThisCorrect && <i className="fa fa-check opt-check"></i>}
+                              </div>
+                            );
+                          })}
+                        </div>
+                        {matchedOptionIndex === -1 && userText && (
+                          <div className="eq-nomatch">
+                            <p className="warn">Không tìm thấy đáp án khớp: "<strong>{userText}</strong>"</p>
+                          </div>
+                        )}
+                        {!isCorrectFinal && (
+                          <div className="eq-explain-box">
+                            <strong>Giải thích:</strong> {qDetail.explanation || "Không có giải thích chi tiết."}
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="eq-loading">
+                        <p>
+                          Đáp án chọn: <strong>{ans.selectedAnswer}</strong>
+                        </p>
+                        <p className="loading-note">
+                          (Đang tải nội dung câu hỏi...)
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}

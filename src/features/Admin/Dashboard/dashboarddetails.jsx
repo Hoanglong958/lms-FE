@@ -1,7 +1,7 @@
 // Đường dẫn: src/features/Admin/Dashboard/dashboarddetails.jsx
 import React from "react";
-import { detailedReports } from "./mock/dashboardMock.js";
 import "./Dashboard.css"; // Import file CSS chung
+import { detailedReports } from "./mock/dashboardMock.js";
 
 const DashboardDetails = () => {
   const reports = detailedReports;

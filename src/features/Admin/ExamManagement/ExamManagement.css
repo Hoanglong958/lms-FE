@@ -167,11 +167,11 @@
   left: 18px;
   top: 50%;
   transform: translateY(-50%);
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
   color: #94a3b8;
   pointer-events: none;
-  z-index: 1;
+  z-index: 2;
 }
 
 .exam-search-input-wrap:focus-within .exam-search-icon{
@@ -181,7 +181,7 @@
 .exam-search-input {
   width: 100%;
   height: 44px;
-  padding: 0 14px 0 104px;
+  padding: 0 14px 0 48px;
   background: #ffffff;
   border: 1.5px solid #e2e8f0;
   border-radius: 10px;
@@ -190,6 +190,11 @@
   outline: none;
   box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
   transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+/* Tăng độ ưu tiên để tránh bị ghi đè bởi CSS khác */
+.exam-searchbar .exam-search-input{
+  padding-left: 48px !important;
 }
 
 .exam-search-input::placeholder {

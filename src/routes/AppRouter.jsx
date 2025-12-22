@@ -48,6 +48,7 @@ import AssignmentManagement from "@features/Admin/ExamManagement/AssignmentManag
 import QuestionBank from "@features/Admin/ExamManagement/QuestionBank";
 import QuestionCreate from "@features/Admin/ExamManagement/QuestionCreate";
 import QuestionBankCreate from "@features/Admin/ExamManagement/QuestionBankCreate";
+import QuestionBankBulk from "@features/Admin/ExamManagement/QuestionBankBulk";
 
 import UserManagement from "@features/Admin/UserManagement/user";
 import ClassManagement from "@features/Admin/ClassManagement/class";
@@ -58,6 +59,9 @@ import CalendarManagement from "@features/Admin/CalendarManagement/Calendar";
 
 // Quản lý lộ trình
 import Roadmap from "@features/Admin/Roadmap/Roadmap";
+import PostManagement from "@features/Admin/PostManagement/PostManagement";
+import PostCreate from "@features/Admin/PostManagement/PostCreate";
+import PostEdit from "@features/Admin/PostManagement/PostEdit";
 
 export default function AppRouter() {
   return (
@@ -141,6 +145,7 @@ export default function AppRouter() {
             <Route path="question-bank" element={<QuestionBank />} />
             <Route path="question-bank/create" element={<QuestionCreate />} />
             <Route path="question-bank/add" element={<QuestionBankCreate />} />
+            <Route path="question-bank/bulk" element={<QuestionBankBulk />} />
 
             <Route path="courses" element={<ManageCourses />} />
             <Route
@@ -153,6 +158,11 @@ export default function AppRouter() {
 
             {/* Quản lý lộ trình */}
             <Route path="roadmap" element={<Roadmap />} />
+
+            {/* Quản lý bài viết */}
+            <Route path="posts" element={<PostManagement />} />
+            <Route path="posts/create" element={<PostCreate />} />
+            <Route path="posts/:id/edit" element={<PostEdit />} />
           </Route>
 
           {/* ADMIN MANAGE LESSONS FROM OUTSIDE */}

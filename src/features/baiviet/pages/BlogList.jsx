@@ -1,39 +1,73 @@
-import { useState } from "react";
-import { Card, Pagination, Dropdown } from "antd";
+import { useState, useEffect } from "react";
+import { Card, Pagination, Dropdown, Spin, message } from "antd";
 import { DownOutlined, ClockCircleOutlined, EyeOutlined } from "@ant-design/icons";
 import { Link } from "react-router-dom";
+import { postService } from "@utils/postService";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+import "dayjs/locale/vi";
 
-// Images served from public/; compose with BASE_URL safely (string concat)
+dayjs.extend(relativeTime);
+dayjs.locale("vi");
+
 const BASE = (import.meta.env.BASE_URL || "/");
-const blogImages = [
-    `${BASE}blog-sample.png`,
-    `${BASE}students.jpg`,
-];  
-
-const mockPosts = Array.from({ length: 9 }).map((_, i) => ({
-    id: i + 1,
-    title: "Authentication & Authorization trong ReactJS",
-    category: "FrontEnd",
-    author: "Nguyễn Văn A",
-    time: "15 phút đọc",
-    views: "1.5k lượt xem",
-    image: blogImages[i % blogImages.length],
-}));
 
 export default function BlogList() {
+    const [posts, setPosts] = useState([]);
+    const [loading, setLoading] = useState(false);
     const [current, setCurrent] = useState(1);
+    const [total, setTotal] = useState(0);
     const [sortKey, setSortKey] = useState("newest");
+
+    const pageSize = 1000; // DEBUG: Show all posts to find missing one
+
+    const fetchPosts = async () => {
+        setLoading(true);
+        try {
+            // API works now!
+            const params = {
+                page: current - 1,
+                size: pageSize,
+                // Sort by ID usually guarantees newest created items come first, even if seed dates are weird
+                sort: sortKey === "newest" ? "id,desc" : "id,asc"
+            };
+            const response = await postService.getPosts(params);
+            console.log("🔥 USER_BLOG_LIST API RESPONSE:", response); // DEBUG
+
+            // Adjust based on your API response wrapper
+            // e.g., if it's Spring Page: { content: [], totalElements: 100, ... }
+            // or { data: [], total: 100 }
+            const data = response.data;
+            console.log("🔥 USER_BLOG_LIST DATA:", data); // DEBUG
+
+            if (data.content) {
+                setPosts(data.content);
+                setTotal(data.totalElements);
+            } else if (Array.isArray(data)) {
+                // If API returns just an array (no pagination metadata), handle gracefully
+                setPosts(data);
+                setTotal(data.length);
+            } else {
+                setPosts([]);
+            }
+        } catch (error) {
+            console.error(error);
+            message.error("Không thể tải bài viết");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchPosts();
+    }, [current, sortKey]);
 
     const handleChange = (page) => setCurrent(page);
 
     const sortItems = [
-        { key: "newest", label: "Mới nhất" },
-        { key: "oldest", label: "Cũ nhất" },
+        { key: "newest", label: "Mới nhất", onClick: () => setSortKey("newest") },
+        { key: "oldest", label: "Cũ nhất", onClick: () => setSortKey("oldest") },
     ];
-
-    const sortedPosts = [...mockPosts].sort((a, b) =>
-        sortKey === "newest" ? b.id - a.id : a.id - b.id
-    );
 
     return (
         <div className="font-sans bg-[#F9FAFB] min-h-screen">
@@ -51,61 +85,70 @@ export default function BlogList() {
                 <div className="flex justify-between items-center mb-6">
                     <h3 className="text-lg font-semibold text-gray-800">
                         Tất cả bài viết{" "}
-                        <span className="text-sm text-gray-500 ml-1">(128)</span>
+                        <span className="text-sm text-gray-500 ml-1">({total})</span>
                     </h3>
                     <Dropdown menu={{ items: sortItems }} trigger={["click"]}>
                         <button className="flex items-center gap-2 border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 transition">
-                            Sắp xếp: <span className="font-medium">Mới nhất</span>
+                            Sắp xếp: <span className="font-medium">{sortKey === "newest" ? "Mới nhất" : "Cũ nhất"}</span>
                             <DownOutlined className="text-xs" />
                         </button>
                     </Dropdown>
                 </div>
 
                 {/* Grid bài viết */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {mockPosts.map((post) => (
-                        <Card
-                            key={post.id}
-                            hoverable
-                            cover={
-                                <img
-                                    alt={post.title}
-                                    src={post.image}
-                                    onError={(e) => { e.currentTarget.src = `${BASE}blog-sample.png`; }}
-                                    className="h-48 w-full object-cover rounded-t-xl"
-                                />
-                            }
-                            className="rounded-xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition-all bg-white"
-                            bodyStyle={{ padding: "16px" }}
-                        >
-                            <div className="text-xs text-orange-500 font-semibold mb-2 uppercase">
-                                {post.category}
-                            </div>
-                            <Link to={`/bai-viet/${post.id}`}>
-                                <h4 className="text-[15px] font-semibold text-gray-800 leading-snug hover:text-orange-500 transition">
-                                    {post.title}
-                                </h4>
-                            </Link>
-                            <div className="flex items-center text-gray-500 text-xs mt-3 gap-3">
-                                <ClockCircleOutlined className="text-orange-500" />
-                                <span>{post.time}</span>
-                                <EyeOutlined className="ml-3 text-orange-500" />
-                                <span>{post.views}</span>
-                            </div>
-                        </Card>
-                    ))}
-                </div>
+                {loading ? (
+                    <div className="flex justify-center py-20">
+                        <Spin size="large" />
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {posts.map((post) => (
+                            <Card
+                                key={post.id}
+                                hoverable
+                                cover={
+                                    <img
+                                        alt={post.title}
+                                        src={post.image || `${BASE}blog-sample.png`}
+                                        onError={(e) => { e.currentTarget.src = `${BASE}blog-sample.png`; }}
+                                        className="h-48 w-full object-cover rounded-t-xl"
+                                    />
+                                }
+                                className="rounded-xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition-all bg-white"
+                                bodyStyle={{ padding: "16px" }}
+                            >
+                                <div className="text-xs text-orange-500 font-semibold mb-2 uppercase">
+                                    {(post.tags && post.tags.length > 0) ? post.tags[0] : (post.tagNames && post.tagNames.length > 0) ? post.tagNames[0] : "General"}
+                                </div>
+                                <Link to={`/bai-viet/${post.id}`}>
+                                    <h4 className="text-[15px] font-semibold text-gray-800 leading-snug hover:text-orange-500 transition line-clamp-2 min-h-[40px]">
+                                        <span className="text-gray-400 font-normal mr-1">#{post.id}</span>
+                                        {post.title}
+                                    </h4>
+                                </Link>
+                                <div className="flex items-center text-gray-500 text-xs mt-3 gap-3">
+                                    <ClockCircleOutlined className="text-orange-500" />
+                                    <span>{dayjs(post.createdAt).fromNow()}</span>
+                                    {/* <EyeOutlined className="ml-3 text-orange-500" />
+                                    <span>{post.viewCount || 0} lượt xem</span> */}
+                                </div>
+                            </Card>
+                        ))}
+                    </div>
+                )}
 
                 {/* Phân trang */}
-                <div className="flex justify-center mt-12">
-                    <Pagination
-                        current={current}
-                        total={45}
-                        pageSize={9}
-                        onChange={handleChange}
-                        showSizeChanger={false}
-                    />
-                </div>
+                {total > 0 && (
+                    <div className="flex justify-center mt-12">
+                        <Pagination
+                            current={current}
+                            total={total}
+                            pageSize={pageSize}
+                            onChange={handleChange}
+                            showSizeChanger={false}
+                        />
+                    </div>
+                )}
             </div>
 
             {/* ==== Footer ==== */}
