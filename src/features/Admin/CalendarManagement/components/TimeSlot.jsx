@@ -11,8 +11,13 @@ export default function TimeSlot({
   onRemove,
   onDragStart,
   previewPosition,
-  style
+  style,
+  onScheduleClick,
+  movingItem
 }) {
+  const isMoving = movingItem && scheduleItem && movingItem.scheduleId === scheduleItem.scheduleId;
+
+  console.log("TimeSlot rendered", scheduleItem);
   const handleDrop = (e) => {
     e.preventDefault();
     if (onDrop) {
@@ -52,12 +57,17 @@ export default function TimeSlot({
       {scheduleItem && scheduleItem.periodId === periodId && (
         <div
           className="scheduleItem"
+          onClick={(e) => {
+            e.stopPropagation();
+            onScheduleClick && onScheduleClick(scheduleItem);
+          }}
           style={{
             height: "100%",
             zIndex: 5,
             backgroundColor: scheduleItem.backgroundColor || undefined,
             color: scheduleItem.color || undefined,
-            border: scheduleItem.border || undefined
+            border: isMoving ? '2px dashed #999' : scheduleItem.border || undefined,
+            opacity: isMoving ? 0.4 : 1
           }}
           draggable
           onDragStart={(e) => {
@@ -84,18 +94,36 @@ export default function TimeSlot({
             <div className="scheduleSubject">{scheduleItem.subjectName}</div>
           </div>
 
-          <button
-            type="button"
-            className="removeBtn"
-            onClick={(e) => {
-              e.stopPropagation();
-              onRemove && onRemove(dayIndex, periodId);
-            }}
-          >
-            ×
-          </button>
+          <div className="actionButtons" style={{ position: 'absolute', top: '2px', right: '2px', display: 'flex', gap: '4px', zIndex: 20 }}>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onScheduleClick && onScheduleClick(scheduleItem);
+              }}
+              style={{
+                background: 'rgba(255,255,255,0.9)',
+                border: '1px solid #007bff',
+                borderRadius: '4px',
+                width: '24px',
+                height: '24px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                fontSize: '14px',
+                color: '#007bff'
+              }}
+              title="Sửa"
+            >
+              ✎
+            </button>
+
+
+          </div>
         </div>
-      )}
+      )
+      }
     </div>
   );
 }

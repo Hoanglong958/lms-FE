@@ -12,7 +12,10 @@ export default function DayColumn({
   onDragOver,
   onRemove,
   onDragStart,
+
   previewPosition,
+  onScheduleClick,
+  movingItem
 }) {
   const dayNames = [
     "Chủ nhật",
@@ -57,6 +60,8 @@ export default function DayColumn({
               }
               // Style override for slot
               style={{ height: '80px' }}
+              onScheduleClick={onScheduleClick}
+              movingItem={movingItem}
             />
           );
         })}

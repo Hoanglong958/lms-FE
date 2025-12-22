@@ -17,6 +17,16 @@ export const scheduleService = {
     return api.delete(`/api/v1/schedules/course/${courseId}`);
   },
 
+  // DELETE /api/v1/schedules/class-course/{classCourseId}
+  deleteByClassCourseId: (classCourseId) => {
+    return api.delete(`/api/v1/schedules/class-course/${classCourseId}`);
+  },
+
+  // GET /api/v1/schedules/class-course/{classCourseId}/schedule
+  getByClassCourseId: (classCourseId) => {
+    return api.get(`/api/v1/schedules/class-course/${classCourseId}/schedule`);
+  },
+
   // POST /api/v1/schedules/generate – tạo tự động
   generateAuto: (data) => {
     return api.post("/api/v1/schedules/generate", data);
