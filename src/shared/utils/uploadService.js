@@ -6,9 +6,15 @@ export const uploadService = {
     const formData = new FormData();
     formData.append("file", file);
 
-    return api.post("/api/v1/uploads/image", formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
+    return api.post("/api/v1/uploads/image", formData);
+  },
+
+  // POST /api/v1/uploads/pdf
+  uploadPdf(file) {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    return api.post("/api/v1/uploads/pdf", formData);
   },
 
   // POST /api/v1/uploads/video
@@ -16,8 +22,6 @@ export const uploadService = {
     const formData = new FormData();
     formData.append("file", file);
 
-    return api.post("/api/v1/uploads/video", formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
+    return api.post("/api/v1/uploads/video", formData);
   },
 };

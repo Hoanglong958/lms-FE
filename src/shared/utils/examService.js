@@ -11,10 +11,6 @@ export const examService = {
   getExams: (params) =>
     params ? api.get("/api/v1/exams", { params }) : api.get("/api/v1/exams"),
 
-  /** Lấy chi tiết kỳ thi (API backend yêu cầu dạng /detail?id=) */
-  getExamById: (id) =>
-    api.get("/api/v1/exams/detail", { params: { id } }),
-
   /** Tạo kỳ thi */
   createExam: (data) =>
     api.post("/api/v1/exams", data),
@@ -23,18 +19,17 @@ export const examService = {
   updateExam: (id, data) =>
     api.put(`/api/v1/exams/${id}`, data),
 
+  /** Xóa kỳ thi */
+  deleteExam: (id) =>
+    api.delete(`/api/v1/exams/${id}`),
+
   /** Thêm câu hỏi vào kỳ thi */
   addQuestionsToExam: (id, data) =>
     api.post(`/api/v1/exams/${id}/questions`, data),
 
-  /** Xóa kỳ thi */
-  deleteExam: (id) => {
-    const rid = Number(id);
-    if (!Number.isFinite(rid) || rid <= 0) {
-      return Promise.reject(new Error("Invalid exam id"));
-    }
-    return api.delete(`/api/v1/exams/${rid}`);
-  },
+  /** Lấy chi tiết kỳ thi */
+  getExamById: (id) =>
+    api.get("/api/v1/exams/detail", { params: { id } }),
 
 
   // ==================================================

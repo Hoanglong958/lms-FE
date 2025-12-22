@@ -7,6 +7,7 @@ import NotificationModal from "@components/NotificationModal/NotificationModal";
 export default function ExamCreateDialog({ open, onOpenChange, onSuccess }) {
   const [submitting, setSubmitting] = useState(false);
   const [showQuestionSelector, setShowQuestionSelector] = useState(false);
+
   const [form, setForm] = useState({
     title: "",
     description: "",
@@ -32,7 +33,7 @@ export default function ExamCreateDialog({ open, onOpenChange, onSuccess }) {
   };
 
   useEffect(() => {
-    if (!open) {
+    if (open) {
       setForm({
         title: "",
         description: "",

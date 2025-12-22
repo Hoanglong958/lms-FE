@@ -3,23 +3,10 @@ import api from "@services/api";
 export const postService = {
     // GET /api/v1/posts
     // params: { page, size, sort, ... }
-    async getPosts(params) {
-        const baseParams = params || { page: 0, size: 100 };
-        const p1 = { page: baseParams.page, size: baseParams.size };
-        const p2 = { pageNumber: baseParams.page, pageSize: baseParams.size };
-        try {
-            return await api.get("/api/v1/posts/page", { params: p1 });
-        } catch {
-            try {
-                return await api.get("/api/v1/posts/page", { params: p2 });
-            } catch {
-                try {
-                    return await api.get("/api/v1/posts", { params: baseParams });
-                } catch {
-                    return await api.get("/api/v1/posts");
-                }
-            }
-        }
+    // GET /api/v1/posts
+    // params: { page, size, sort, ... }
+    getPosts(params) {
+        return api.get("/api/v1/posts", { params });
     },
 
     // GET /api/v1/posts/{id}
