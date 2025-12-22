@@ -7,17 +7,11 @@ import { questionService } from "@utils/questionService";
 export default function QuestionCreate() {
   const navigate = useNavigate();
 
-  // State for form fields based on API payload
-  const [formData, setFormData] = useState({
-    category: "",
-    questionText: "",
-    optionA: "",
-    optionB: "",
-    optionC: "",
-    optionD: "",
-    correctAnswer: "A",
-    explanation: ""
-  });
+  const [category, setCategory] = useState("");
+  const [questionText, setQuestionText] = useState("");
+  const [options, setOptions] = useState(["", "", ""]);
+  const [correctAnswer, setCorrectAnswer] = useState("");
+  const [explanation, setExplanation] = useState("");
 
   const [loading, setLoading] = useState(false);
   const [notification, setNotification] = useState({
@@ -27,10 +21,27 @@ export default function QuestionCreate() {
     type: "info",
   });
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+  const changeOption = (value, index) => {
+    setOptions((prev) => {
+      const next = [...prev];
+      next[index] = value;
+      if (correctAnswer && !next.includes(correctAnswer)) {
+        const first = next.find((x) => x && x.trim());
+        setCorrectAnswer(first || "");
+      }
+      return next;
+    });
   };
+  const addOption = () => setOptions((prev) => [...prev, ""]);
+  const removeOption = (idx) =>
+    setOptions((prev) => {
+      const next = prev.filter((_, i) => i !== idx);
+      if (correctAnswer && !next.includes(correctAnswer)) {
+        const first = next.find((x) => x && x.trim());
+        setCorrectAnswer(first || "");
+      }
+      return next.length ? next : [""];
+    });
 
   const showNotification = (title, message, type = "info") => {
     setNotification({ isOpen: true, title, message, type });
@@ -40,20 +51,23 @@ export default function QuestionCreate() {
     e.preventDefault();
     setLoading(true);
 
-    // Format options array as ["A. Text", "B. Text", ...]
-    const options = [
-      `A. ${formData.optionA}`,
-      `B. ${formData.optionB}`,
-      `C. ${formData.optionC}`,
-      `D. ${formData.optionD}`
-    ];
+    const cleaned = options.filter((x) => x && x.trim());
+    if (cleaned.length < 2) {
+      showNotification("Thiếu đáp án", "Cần ít nhất 2 lựa chọn", "error");
+      setLoading(false);
+      return;
+    }
+    let answer = correctAnswer?.trim();
+    if (!answer || !cleaned.includes(answer)) {
+      answer = cleaned[0];
+    }
 
     const payload = {
-      category: formData.category,
-      questionText: formData.questionText,
-      options: options,
-      correctAnswer: formData.correctAnswer,
-      explanation: formData.explanation
+      category,
+      questionText,
+      options: cleaned,
+      correctAnswer: answer,
+      explanation
     };
 
     try {
@@ -77,9 +91,8 @@ export default function QuestionCreate() {
           Danh mục (Category):
           <input
             type="text"
-            name="category"
-            value={formData.category}
-            onChange={handleChange}
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
             placeholder="Ví dụ: OOP, Java, React..."
             required
             className="input-text"
@@ -90,9 +103,8 @@ export default function QuestionCreate() {
         <label>
           Nội dung câu hỏi:
           <textarea
-            name="questionText"
-            value={formData.questionText}
-            onChange={handleChange}
+            value={questionText}
+            onChange={(e) => setQuestionText(e.target.value)}
             placeholder="Nhập nội dung câu hỏi..."
             required
             rows={3}
@@ -102,57 +114,21 @@ export default function QuestionCreate() {
         {/* Options */}
         <div className="options-group">
           <p className="options-label">Các lựa chọn:</p>
-
-          <div className="option-row">
-            <span className="option-prefix">A.</span>
-            <input
-              type="text"
-              name="optionA"
-              value={formData.optionA}
-              onChange={handleChange}
-              placeholder="Nội dung đáp án A"
-              required
-              className="input-text"
-            />
-          </div>
-
-          <div className="option-row">
-            <span className="option-prefix">B.</span>
-            <input
-              type="text"
-              name="optionB"
-              value={formData.optionB}
-              onChange={handleChange}
-              placeholder="Nội dung đáp án B"
-              required
-              className="input-text"
-            />
-          </div>
-
-          <div className="option-row">
-            <span className="option-prefix">C.</span>
-            <input
-              type="text"
-              name="optionC"
-              value={formData.optionC}
-              onChange={handleChange}
-              placeholder="Nội dung đáp án C"
-              required
-              className="input-text"
-            />
-          </div>
-
-          <div className="option-row">
-            <span className="option-prefix">D.</span>
-            <input
-              type="text"
-              name="optionD"
-              value={formData.optionD}
-              onChange={handleChange}
-              placeholder="Nội dung đáp án D"
-              required
-              className="input-text"
-            />
+          {options.map((op, idx) => (
+            <div className="option-row" key={idx}>
+              <input
+                type="text"
+                value={op}
+                onChange={(e) => changeOption(e.target.value, idx)}
+                placeholder={`Nội dung đáp án ${idx + 1}`}
+                required
+                className="input-text"
+              />
+              <button type="button" className="btn-cancel" onClick={() => removeOption(idx)}>−</button>
+            </div>
+          ))}
+          <div className="form-actions" style={{ justifyContent: "flex-start" }}>
+            <button type="button" className="btn-save" onClick={addOption}>Thêm đáp án</button>
           </div>
         </div>
 
@@ -160,15 +136,16 @@ export default function QuestionCreate() {
         <label>
           Đáp án đúng:
           <select
-            name="correctAnswer"
-            value={formData.correctAnswer}
-            onChange={handleChange}
+            value={correctAnswer}
+            onChange={(e) => setCorrectAnswer(e.target.value)}
             className="select-input"
           >
-            <option value="A">A</option>
-            <option value="B">B</option>
-            <option value="C">C</option>
-            <option value="D">D</option>
+            <option value="">-- Chọn --</option>
+            {options
+              .filter((x) => x && x.trim())
+              .map((op, i) => (
+                <option key={i} value={op}>{op}</option>
+              ))}
           </select>
         </label>
 
@@ -176,25 +153,24 @@ export default function QuestionCreate() {
         <label>
           Giải thích (Explanation):
           <textarea
-            name="explanation"
-            value={formData.explanation}
-            onChange={handleChange}
+            value={explanation}
+            onChange={(e) => setExplanation(e.target.value)}
             placeholder="Giải thích vì sao đáp án đó đúng..."
             rows={3}
           />
         </label>
 
-        <div className="form-buttons">
+        <div className="form-actions">
           <button
             type="button"
-            className="btn-secondary"
-            onClick={() => navigate("/admin/quiz/question-bank")}
+            className="btn-cancel"
+            onClick={() => navigate("/admin/question-bank")}
           >
-            ⬅ Quay lại
+            Quay lại
           </button>
 
-          <button type="submit" className="btn-primary" disabled={loading}>
-            {loading ? "Đang lưu..." : "💾 Lưu câu hỏi"}
+          <button type="submit" className="btn-save" disabled={loading}>
+            {loading ? "Đang lưu..." : "Lưu câu hỏi"}
           </button>
         </div>
 

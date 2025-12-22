@@ -6,7 +6,7 @@ export const dashboardService = {
   getNewCourses: () => api.get("/api/v1/dashboard/new-courses"),
   getNewUsers: () => api.get("/api/v1/dashboard/new-users"),
   getQuizReports: () => api.get("/api/v1/dashboard/quiz-reports"),
-  getRecentQuizzes: () => api.get("/api/v1/dashboard/recent-quizzes"),
+  getRecentExams: () => api.get("/api/v1/dashboard/recent-exams"),
   getTopStudents: () => api.get("/api/v1/dashboard/top-students"),
 
   // ⭐ FIXED: truyền params theo requirement Swagger

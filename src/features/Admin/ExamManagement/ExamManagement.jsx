@@ -185,11 +185,12 @@ export default function ExamManagement() {
         await loadExams();
       } catch (err) {
         const status = err?.response?.status;
-        const msg = err?.response?.data?.message || err?.message || "Xóa kỳ thi thất bại";
+        const backend = err?.response?.data;
+        const msg = backend?.message || backend?.data || err?.message || "Xóa kỳ thi thất bại";
         if (status === 401 || status === 403) {
           alert("Bạn không có quyền xóa kỳ thi. Vui lòng đăng nhập tài khoản ADMIN.");
         } else {
-          alert(msg);
+          alert(`${status || ""} ${msg}`.trim());
         }
       }
     })();

@@ -34,13 +34,18 @@ export default function QuizExamPage({ quizId }) {
         const detailedQuestions = [];
         for (const q of quizQs) {
           try {
+            // Lấy chi tiết câu hỏi từ Ngân hàng câu hỏi
             const detail = await questionService.getById(q.questionId);
             const optionLetters = ["A", "B", "C", "D"];
+
+            // Xử lý options và xác định đáp án đúng cho Client chấm điểm (Display only)
             const options = detail.data.options.map((text, index) => ({
               id: index + 1,
               text,
-              isCorrect: optionLetters[index] === detail.data.correctAnswer,
+              // Logic kiểm tra đáp án đúng tại Client
+              isCorrect: optionLetters[index] === detail.data.correctAnswer || text === detail.data.correctAnswer,
             }));
+
             detailedQuestions.push({
               id: detail.data.id,
               title: detail.data.questionText,
@@ -111,8 +116,6 @@ export default function QuizExamPage({ quizId }) {
 
   const [submissionResult, setSubmissionResult] = useState(null);
 
-  // ... (existing code for render)
-
   const finishQuiz = async () => {
     if (!quizInfo) return;
 
@@ -133,17 +136,19 @@ export default function QuizExamPage({ quizId }) {
     }
 
     // Map answers
-    // Question options map to 1, 2, 3, 4 -> A, B, C, D
     const answers = [];
-    const optionMap = ["A", "B", "C", "D"];
     quizQuestions.forEach((q, idx) => {
       const selectedOptionId = Number(userSelections[idx]);
       if (Number.isFinite(selectedOptionId) && selectedOptionId > 0) {
-        const answerChar = optionMap[selectedOptionId - 1] || "";
+        // Find the selected option object
+        const selectedOption = q.options.find(opt => opt.id === selectedOptionId);
+        // Use the text content as the answer to match Question Bank data
+        const answerText = selectedOption ? String(selectedOption.text).trim() : "";
+
         answers.push({
           questionId: q.id,
-          answer: answerChar,
-          answerIndex: selectedOptionId - 1,
+          answer: answerText, // Gửi Text chuẩn
+          answerIndex: selectedOptionId - 1, // Gửi Index chuẩn tuân thủ API cũ
         });
       }
     });
@@ -154,8 +159,6 @@ export default function QuizExamPage({ quizId }) {
       answers: answers,
     };
 
-    console.log("Logged In User Raw:", userStr);
-    console.log("Parsed User ID:", userId);
     console.log("Submission Payload:", JSON.stringify(payload, null, 2));
 
     try {
@@ -192,7 +195,6 @@ export default function QuizExamPage({ quizId }) {
       if (timerRef.current) clearInterval(timerRef.current);
     } catch (error) {
       console.error("Submit quiz error:", error);
-      console.log("Error Response Data:", error.response?.data);
       let errorMessage = error.message;
       if (error.response && error.response.data) {
         if (typeof error.response.data === 'object') {
@@ -228,7 +230,6 @@ export default function QuizExamPage({ quizId }) {
       </div>
     );
   } else if (isQuizCompleted) {
-    // Fallback if completed but no result yet (shouldn't happen with await, but safety)
     return <p>Đang xử lý kết quả...</p>;
   }
 

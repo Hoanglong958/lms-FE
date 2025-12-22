@@ -96,7 +96,7 @@ export default function AdminSidebar({ isOpen, onClose }) {
           >
             <i className="fa-solid fa-clipboard-check"></i>
             Bài kiểm tra
-          </NavLink> 
+          </NavLink>
           <NavLink
             to="/admin/question-bank"
             className={({ isActive }) =>
@@ -105,6 +105,16 @@ export default function AdminSidebar({ isOpen, onClose }) {
           >
             <i className="fa-solid fa-gear"></i>
             Ngân hàng câu hỏi
+          </NavLink>
+
+          <NavLink
+            to="/admin/posts"
+            className={({ isActive }) =>
+              isActive ? "admin-sidebar-item active" : "admin-sidebar-item"
+            }
+          >
+            <i className="fa-solid fa-newspaper"></i>
+            Quản lý bài viết
           </NavLink>
 
         </nav>

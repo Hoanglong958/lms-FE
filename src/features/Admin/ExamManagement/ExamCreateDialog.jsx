@@ -50,8 +50,6 @@ export default function ExamCreateDialog({ open, onOpenChange, onSuccess }) {
     }
   }, [open]);
 
-  
-
   const canSubmit = useMemo(() => {
     const baseOk =
       form.title?.trim() &&
@@ -164,7 +162,6 @@ export default function ExamCreateDialog({ open, onOpenChange, onSuccess }) {
           <section className="examdlg-section">
             <h3 className="examdlg-section-title">Cấu hình bài thi</h3>
             <div className="examdlg-grid2">
-
               <div className="examdlg-field">
                 <label htmlFor="totalQuestions">Số câu hỏi <span className="req">*</span></label>
                 <input id="totalQuestions" name="totalQuestions" type="number" min={1} value={form.totalQuestions} onChange={handleChange} />
