@@ -13,13 +13,14 @@ export default function TimeSlot({
   previewPosition,
   style,
   onScheduleClick,
-  movingItem
+  movingItem,
+  readOnly = false,
 }) {
   const isMoving = movingItem && scheduleItem && movingItem.scheduleId === scheduleItem.scheduleId;
 
-  console.log("TimeSlot rendered", scheduleItem);
   const handleDrop = (e) => {
     e.preventDefault();
+    if (readOnly) return;
     if (onDrop) {
       const data = e.dataTransfer.getData("text/plain");
       try {
@@ -33,6 +34,7 @@ export default function TimeSlot({
 
   const handleDragOver = (e) => {
     e.preventDefault();
+    if (readOnly) return;
     e.dataTransfer.dropEffect = "move";
     if (onDragOver) onDragOver(dayIndex, periodId);
   };
@@ -69,8 +71,12 @@ export default function TimeSlot({
             border: isMoving ? '2px dashed #999' : scheduleItem.border || undefined,
             opacity: isMoving ? 0.4 : 1
           }}
-          draggable
+          draggable={!readOnly}
           onDragStart={(e) => {
+            if (readOnly) {
+              e.preventDefault();
+              return;
+            }
             e.dataTransfer.effectAllowed = "move";
             e.dataTransfer.setData(
               "text/plain",
@@ -86,6 +92,7 @@ export default function TimeSlot({
               });
           }}
           onDragEnd={(e) => {
+            if (readOnly) return;
             e.currentTarget.style.opacity = "1";
             onDragStart && onDragStart(null);
           }}
@@ -94,33 +101,33 @@ export default function TimeSlot({
             <div className="scheduleSubject">{scheduleItem.subjectName}</div>
           </div>
 
-          <div className="actionButtons" style={{ position: 'absolute', top: '2px', right: '2px', display: 'flex', gap: '4px', zIndex: 20 }}>
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onScheduleClick && onScheduleClick(scheduleItem);
-              }}
-              style={{
-                background: 'rgba(255,255,255,0.9)',
-                border: '1px solid #007bff',
-                borderRadius: '4px',
-                width: '24px',
-                height: '24px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-                fontSize: '14px',
-                color: '#007bff'
-              }}
-              title="Sửa"
-            >
-              ✎
-            </button>
-
-
-          </div>
+          {!readOnly && (
+            <div className="actionButtons" style={{ position: 'absolute', top: '2px', right: '2px', display: 'flex', gap: '4px', zIndex: 20 }}>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onScheduleClick && onScheduleClick(scheduleItem);
+                }}
+                style={{
+                  background: 'rgba(255,255,255,0.9)',
+                  border: '1px solid #007bff',
+                  borderRadius: '4px',
+                  width: '24px',
+                  height: '24px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  color: '#007bff'
+                }}
+                title="Sửa"
+              >
+                ✎
+              </button>
+            </div>
+          )}
         </div>
       )
       }

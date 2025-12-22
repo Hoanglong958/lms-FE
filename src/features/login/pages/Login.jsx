@@ -164,7 +164,7 @@ export default function Login() {
             <div className="form-group">
               <label>Mật khẩu</label>
               <div className="password-input-container1">
-                <FaLock className="password-icon" />
+
                 <input
                   type={showPassword ? "text" : "password"}
                   value={password}

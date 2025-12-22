@@ -20,4 +20,14 @@ export const uploadService = {
       headers: { "Content-Type": "multipart/form-data" },
     });
   },
+
+  // POST /api/v1/uploads/pdf
+  uploadPdf(file) {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    return api.post("/api/v1/uploads/pdf", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+  },
 };

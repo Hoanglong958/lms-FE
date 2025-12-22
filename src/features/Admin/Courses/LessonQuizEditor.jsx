@@ -4,7 +4,17 @@ import { quizQuestionService } from "@utils/quizQuestionService.js";
 import { questionService } from "@utils/questionService.js";
 
 // IMPORT CSS RIÊNG CHO TRANG NÀY
+import "./CoursesCSS/LessonDocumentEditor.css";
+// We might keep LessonQuizEditor.css if it has specific styles for question list/modal, but let's see.
+// The user wants "create and edit same same".
+// We will still need the specific styles for the quiz questions list and modal, so we might need to keep importing it or merge it.
+// For now let's import the new one for the Edit Form, and if we need the old one for the View Mode list, we'll keep it or assume it's handled.
+// Actually, let's keep importing LessonQuizEditor.css BUT override the classes in the Edit form component.
+// Wait, LessonQuizEditor.css might conflict if it sets global styles.
+// Let's inspect LessonQuizEditor.css first? No, I already read it. It uses .lqz-* prefix.
+// So importing generic admin css won't break it.
 import "./CoursesCSS/LessonQuizEditor.css";
+
 import NotificationModal from "@components/NotificationModal/NotificationModal";
 
 export default function LessonQuizEditor({ quiz, onUpdated }) {
@@ -200,9 +210,6 @@ export default function LessonQuizEditor({ quiz, onUpdated }) {
       setSelectingQuestions(false);
       return;
     }
-
-    // REMOVED: Check against questionCount
-    // if (selectedQuestions.length !== Number(form.questionCount)) ...
 
     try {
       // 1. Add new questions
@@ -436,82 +443,79 @@ export default function LessonQuizEditor({ quiz, onUpdated }) {
   // ==============================
   if (!editing) {
     return (
-      <div className="lqz-wrapper">
-        <div className="lqz-header">
-          <div className="lqz-content">
-            {/* Hàng 1: Tiêu đề và Actions */}
-            <div className="lqz-top-row">
-              <h2 className="lqz-title">{form.title}</h2>
+      <div className="lde-wrapper">
+        <div className="lde-header">
+          <h3 className="lde-title">{form.title}</h3>
 
-              <div className="lqz-actions">
-                {/* Nút Chọn câu hỏi */}
-                <button
-                  className="lqz-btn lqz-btn-secondary"
-                  onClick={() => setSelectingQuestions(true)}
-                >
-                  <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <line x1="8" y1="6" x2="21" y2="6"></line>
-                    <line x1="8" y1="12" x2="21" y2="12"></line>
-                    <line x1="8" y1="18" x2="21" y2="18"></line>
-                    <line x1="3" y1="6" x2="3.01" y2="6"></line>
-                    <line x1="3" y1="12" x2="3.01" y2="12"></line>
-                    <line x1="3" y1="18" x2="3.01" y2="18"></line>
-                  </svg>
-                  Chọn câu hỏi
-                </button>
+          <div style={{ display: "flex", gap: "10px" }}>
+            {/* Nút Chọn câu hỏi */}
+            <button
+              className="lde-btn-edit"
+              onClick={() => setSelectingQuestions(true)}
+              style={{ backgroundColor: "#e0f2fe", color: "#0284c7", borderColor: "#bae6fd" }}
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <line x1="8" y1="6" x2="21" y2="6"></line>
+                <line x1="8" y1="12" x2="21" y2="12"></line>
+                <line x1="8" y1="18" x2="21" y2="18"></line>
+                <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                <line x1="3" y1="18" x2="3.01" y2="18"></line>
+              </svg>
+              Chọn câu hỏi
+            </button>
 
-                {/* Nút Sửa Quiz */}
-                <button
-                  className="lqz-btn lqz-btn-primary"
-                  onClick={() => setEditing(true)}
-                >
-                  <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                  </svg>
-                  Sửa quiz
-                </button>
-              </div>
-            </div>
+            <button className="lde-btn-edit" onClick={() => setEditing(true)}>
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+              </svg>
+              Sửa quiz
+            </button>
+          </div>
 
-            {/* Hàng 2: Các chỉ số (Metadata) */}
-            <div className="lqz-meta-row">
-              {/* Số câu hỏi (Calculated) */}
-              <div className="lqz-info">
-                <span className="lqz-label">Số câu hỏi:</span>
-                <span className="lqz-value">{questions.length}</span>
-              </div>
+        </div>
 
-              {/* Điểm tối đa */}
-              <div className="lqz-info">
-                <span className="lqz-label">Điểm tối đa:</span>
-                <span className="lqz-value">{form.maxScore}</span>
-              </div>
-
-              {/* Điểm đạt */}
-              <div className="lqz-info">
-                <span className="lqz-label">Điểm đạt:</span>
-                <span className="lqz-value highlight">{form.passingScore}</span>
-              </div>
-            </div>
+        {/* Info Box */}
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(3, 1fr)",
+          gap: "16px",
+          marginBottom: "24px",
+          backgroundColor: "#f8fafc",
+          padding: "16px",
+          borderRadius: "12px",
+          border: "1px solid #e2e8f0"
+        }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+            <span style={{ fontSize: "13px", color: "#64748b", fontWeight: "500" }}>Số câu hỏi</span>
+            <span style={{ fontSize: "18px", color: "#0f1724", fontWeight: "600" }}>{questions.length}</span>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+            <span style={{ fontSize: "13px", color: "#64748b", fontWeight: "500" }}>Điểm tối đa</span>
+            <span style={{ fontSize: "18px", color: "#0f1724", fontWeight: "600" }}>{form.maxScore}</span>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+            <span style={{ fontSize: "13px", color: "#64748b", fontWeight: "500" }}>Điểm đạt</span>
+            <span style={{ fontSize: "18px", color: "#22c55e", fontWeight: "600" }}>{form.passingScore}</span>
           </div>
         </div>
 
@@ -537,18 +541,18 @@ export default function LessonQuizEditor({ quiz, onUpdated }) {
   //          EDIT MODE
   // ==============================
   return (
-    <div className="lqz-wrapper">
-      <h3 className="lqz-title">Sửa Quiz</h3>
+    <div className="admin-form-container">
+      <h3 className="admin-form-title">✏️ Chỉnh sửa Quiz</h3>
 
       {["title", "passingScore"].map((field) => (
-        <div key={field} className="lqz-form-row">
-          <label className="lqz-label">
+        <div key={field} className="admin-form-group">
+          <label className="admin-form-label">
             {field === "title"
-              ? "Tiêu đề:"
-              : "Điểm đạt (5-10):"}
+              ? "Tiêu đề"
+              : "Điểm đạt (5-10)"}
           </label>
           <input
-            className="lqz-input"
+            className="admin-input"
             type={field === "title" ? "text" : "number"}
             value={form[field]}
             onChange={(e) => setForm({ ...form, [field]: e.target.value })}
@@ -558,12 +562,14 @@ export default function LessonQuizEditor({ quiz, onUpdated }) {
         </div>
       ))}
 
-      <button className="lqz-btn" onClick={handleSave}>
-        Lưu
-      </button>
-      <button className="lqz-btn-secondary" onClick={() => setEditing(false)}>
-        Hủy
-      </button>
+      <div style={{ marginTop: "32px", display: "flex", justifyContent: "flex-end", gap: "12px" }}>
+        <button className="admin-btn admin-btn-secondary" onClick={() => setEditing(false)}>
+          Hủy bỏ
+        </button>
+        <button className="admin-btn admin-btn-primary" onClick={handleSave}>
+          Lưu thay đổi
+        </button>
+      </div>
 
       <NotificationModal
         isOpen={notification.isOpen}

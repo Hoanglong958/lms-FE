@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { lessonDocumentService } from "@utils/lessonDocumentService";
 import "./DocumentViewer.css";
+import { SERVER_URL } from "@config";
 
 const DocumentViewer = ({ item }) => {
   const [document, setDocument] = useState(null);
@@ -50,10 +51,10 @@ const DocumentViewer = ({ item }) => {
       <span className="document-date">
         {document.createdAt
           ? new Date(document.createdAt).toLocaleDateString("vi-VN", {
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-            })
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          })
           : "24 tháng 6 năm 2023"}
       </span>
       <div
@@ -73,6 +74,23 @@ const DocumentViewer = ({ item }) => {
           alt="Nội dung bài học"
           className="document-image"
         />
+      )}
+
+      {document.pdfUrl && (
+        <div className="document-pdf-container">
+          <div className="document-pdf-icon">📄</div>
+          <div className="document-pdf-info">
+            <div className="document-pdf-title">Tài liệu đính kèm</div>
+            <a
+              href={document.pdfUrl.startsWith("/") ? `${SERVER_URL}${document.pdfUrl}` : document.pdfUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="document-pdf-link"
+            >
+              📥 Tải xuống PDF
+            </a>
+          </div>
+        </div>
       )}
     </div>
   );

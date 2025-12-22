@@ -12,7 +12,8 @@ export default function TimetableGrid({
   onScheduleChange,
   draggingSubject = null,
   onScheduleClick,
-  movingItem
+  movingItem,
+  readOnly = false,
 }) {
   const [draggingOver, setDraggingOver] = useState(null);
   const [previewPosition, setPreviewPosition] = useState(null);
@@ -158,6 +159,7 @@ export default function TimetableGrid({
             }
             onScheduleClick={onScheduleClick}
             movingItem={movingItem}
+            readOnly={readOnly}
           />
         ))}
       </div>

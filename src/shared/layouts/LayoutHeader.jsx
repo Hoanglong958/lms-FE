@@ -48,22 +48,22 @@ export default function Header() {
   return (
     <>
       {/* HEADER CHÍNH */}
-      <header className="header-container">
-        <div className="header-left">
+      <header className="user-header-container">
+        <div className="user-header-left">
           <img
             src={mankaiLogo}
             alt="Mankai Logo"
-            className="logo-img"
+            className="user-header-logo-img"
             onClick={() => handleNavigate("/dashboard")}
           />
-          <nav className="menu-desktop">
-            <div className="logo-divider"></div>
-            <div className="menu-items">
-              <div className="menu-item" onClick={() => handleNavigate("/dashboard")}>
+          <nav className="user-header-menu-desktop">
+            <div className="user-header-logo-divider"></div>
+            <div className="user-header-menu-items">
+              <div className="user-header-menu-item" onClick={() => handleNavigate("/dashboard")}>
                 <img src={homeIcon} alt="Home" />
                 <span>Trang Chủ</span>
               </div>
-              <div className="menu-item" onClick={() => navigate("/baiviet")}>
+              <div className="user-header-menu-item" onClick={() => navigate("/baiviet")}>
                 <img src={bookIcon} alt="Posts" />
                 <span>Bài Viết</span>
               </div>
@@ -71,36 +71,36 @@ export default function Header() {
           </nav>
         </div>
 
-        <div className="header-right-desktop">
-          <button className="icon-btn" onClick={() => navigate("/search")}>
+        <div className="user-header-right-desktop">
+          <button className="user-header-icon-btn" onClick={() => navigate("/search")}>
             <img src={searchIcon} alt="Search" />
           </button>
-          <button className="icon-btn">
+          <button className="user-header-icon-btn">
             <img src={notiIcon} alt="Notification" />
           </button>
           <div
-            className="avatar-dropdown"
+            className="user-header-avatar-dropdown"
             onMouseLeave={() => setOpenDropdown(false)}
           >
             <button
-              className="avatar-btn"
+              className="user-header-avatar-btn"
               onClick={() => setOpenDropdown((prev) => !prev)}
             >
               <img src={avatar} alt="Avatar" />
             </button>
             {openDropdown && (
-              <div className="dropdown-menu">
-                <div className="dropdown-header">
-                  <div className="avatar">
+              <div className="user-header-dropdown-menu">
+                <div className="user-header-dropdown-header">
+                  <div className="user-header-avatar">
                     <img src={avatarDropDown} alt="Avatar" />
                   </div>
-                  <div className="user-info">
-                    <div className="name">{displayName}</div>
-                    <div className="email">{displayEmail}</div>
+                  <div className="user-header-user-info">
+                    <div className="user-header-name">{displayName}</div>
+                    <div className="user-header-email">{displayEmail}</div>
                   </div>
                 </div>
 
-                <div className="dropdown-item">
+                <div className="user-header-dropdown-item">
                   <button
                     onClick={() => {
                       setOpenDropdown(false);
@@ -110,13 +110,13 @@ export default function Header() {
                     Hồ sơ của tôi
                   </button>
                 </div>
-                <div className="dropdown-item" onClick={() => handleNavigate("/home")}>
+                <div className="user-header-dropdown-item" onClick={() => handleNavigate("/home")}>
                   Khóa học của tôi
                 </div>
 
                 {/* 🔒 Đăng xuất */}
-                <div className="dropdown-item logout" onClick={handleLogout}>
-                  <img src={logoutIcon} alt="Logout" className="logout-icon" />
+                <div className="user-header-dropdown-item user-header-logout" onClick={handleLogout}>
+                  <img src={logoutIcon} alt="Logout" className="user-header-logout-icon" />
                   <span>Đăng xuất</span>
                 </div>
               </div>
@@ -126,7 +126,7 @@ export default function Header() {
 
         {/* MENU MOBILE */}
         <button
-          className="hamburger-menu"
+          className="user-header-hamburger-menu"
           onClick={() => setIsMobileMenuOpen(true)}
         >
           <img src={menuIcon} alt="Menu" />
@@ -134,19 +134,19 @@ export default function Header() {
       </header>
 
       {/* OVERLAY MENU MOBILE */}
-      <div className={`mobile-menu-overlay ${isMobileMenuOpen ? "open" : ""}`}>
-        <div className="mobile-menu-header">
+      <div className={`user-header-mobile-menu-overlay ${isMobileMenuOpen ? "open" : ""}`}>
+        <div className="user-header-mobile-menu-header">
           <img
             src={mankaiLogo}
             alt="Mankai Logo"
-            className="mobile-menu-logo"
+            className="user-header-mobile-menu-logo"
           />
-          <div className="close-btn" onClick={() => setIsMobileMenuOpen(false)}>
+          <div className="user-header-close-btn" onClick={() => setIsMobileMenuOpen(false)}>
             &times;
           </div>
         </div>
-        <div className="mobile-menu-content">
-          <nav className="mobile-menu-nav">
+        <div className="user-header-mobile-menu-content">
+          <nav className="user-header-mobile-menu-nav">
             <a onClick={() => handleNavigate("/dashboard")}>
               <img src={homeIcon} alt="Trang chủ" /> Trang chủ
             </a>
@@ -157,22 +157,22 @@ export default function Header() {
               <img src={bookIcon} alt="Bài viết" /> Bài viết
             </a>
           </nav>
-          <div className="divider-mobile"></div>
-          <div className="mobile-menu-user-links">
+          <div className="user-header-divider-mobile"></div>
+          <div className="user-header-mobile-menu-user-links">
             <a onClick={() => handleNavigate("/profile/edit")}>Hồ sơ của tôi</a>
             <a onClick={() => handleNavigate("/dashboard")}>Khóa học của tôi</a>
           </div>
-          <div className="mobile-menu-footer">
-            <div className="user-info-mobile">
-              <div className="avatarlablegroup">
+          <div className="user-header-mobile-menu-footer">
+            <div className="user-header-user-info-mobile">
+              <div className="user-header-avatarlablegroup">
                 <img
                   src={avatarDropDown}
                   alt="Avatar"
-                  className="avatar-mobile"
+                  className="user-header-avatar-mobile"
                 />
-                <div className="text-info">
-                  <div className="name">{displayName}</div>
-                  <div className="email">{displayEmail}</div>
+                <div className="user-header-text-info">
+                  <div className="user-header-name">{displayName}</div>
+                  <div className="user-header-email">{displayEmail}</div>
                 </div>
               </div>
 
@@ -181,7 +181,7 @@ export default function Header() {
                 src={logoutIcon2}
                 alt="Logout"
                 onClick={handleLogout}
-                className="logout-icon-mobile"
+                className="user-header-logout-icon-mobile"
               />
             </div>
           </div>

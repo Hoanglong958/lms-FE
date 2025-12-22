@@ -15,7 +15,8 @@ export default function DayColumn({
 
   previewPosition,
   onScheduleClick,
-  movingItem
+  movingItem,
+  readOnly = false,
 }) {
   const dayNames = [
     "Chủ nhật",
@@ -62,6 +63,7 @@ export default function DayColumn({
               style={{ height: '80px' }}
               onScheduleClick={onScheduleClick}
               movingItem={movingItem}
+              readOnly={readOnly}
             />
           );
         })}
