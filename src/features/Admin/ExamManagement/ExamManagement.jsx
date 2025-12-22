@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
+import { FileText, Clock, TrendingUp, CheckCircle2, Search, Activity, ChevronDown } from "lucide-react";
 import NotificationModal from "@components/NotificationModal/NotificationModal";
 import "./ExamManagement.css";
 import { useNavigate, useOutletContext } from "react-router-dom";
-import AdminHeader from "@components/Admin/AdminHeader";
 import { examService } from "@utils/examService.js";
 import ExamCreateDialog from "./ExamCreateDialog";
 import ExamEditDialog from "./ExamEditDialog";
@@ -13,7 +13,6 @@ export default function ExamManagement() {
   const user = (() => { try { return JSON.parse(localStorage.getItem("loggedInUser") || "{}"); } catch { return {}; } })();
   const isAdmin = String(user?.role || "").toUpperCase() === "ROLE_ADMIN";
 
-  // ✅ Thêm state để chứa danh sách bài kiểm tra
   const [exams, setExams] = useState([]);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
@@ -33,7 +32,6 @@ export default function ExamManagement() {
     try {
       setLoading(true);
       const res = await examService.getExams();
-      // Chuẩn hoá các kiểu trả về thường gặp
       const raw = res?.data ?? {};
       const apiArr = Array.isArray(raw)
         ? raw
@@ -75,11 +73,11 @@ export default function ExamManagement() {
         students:
           toNumber(
             e.students ??
-              e.participants ??
-              e.participantCount ??
-              e.attempts ??
-              e.totalAttempts ??
-              e.submissions
+            e.participants ??
+            e.participantCount ??
+            e.attempts ??
+            e.totalAttempts ??
+            e.submissions
           ),
         avgScore: toNumber(
           e.avgScore ?? e.averageScore ?? e.avg ?? e.meanScore ?? e.scoreAvg ?? e?.stats?.avgScore
@@ -149,7 +147,6 @@ export default function ExamManagement() {
     }
   };
 
-
   useEffect(() => {
     loadExams();
   }, []);
@@ -158,14 +155,9 @@ export default function ExamManagement() {
   const [openEdit, setOpenEdit] = useState(false);
   const [editingExam, setEditingExam] = useState(null);
 
-  // ✅ Khi bấm nút "Tạo bài kiểm tra"
   const handleAddExam = () => {
     setOpenCreate(true);
   };
-
-  
-
-
 
   const handleEdit = (exam) => {
     setEditingExam(exam);
@@ -202,155 +194,460 @@ export default function ExamManagement() {
 
   const { toggleSidebar } = useOutletContext() || {};
 
+  // Calculate stats
+  const stats = {
+    total: exams.length,
+    upcoming: exams.filter(e => e.status === 'UPCOMING' || e.status === 'Sắp diễn ra').length,
+    ongoing: exams.filter(e => e.status === 'ONGOING' || e.status === 'Đang mở').length,
+    completed: exams.filter(e => e.status === 'COMPLETED' || e.status === 'Hoàn thành').length
+  };
+
+  // Filter exams
+  const q = search.trim().toLowerCase();
+  const filtered = exams.filter((e) => {
+    const matchText = q
+      ? String(e.title || e.name || "")
+        .toLowerCase()
+        .includes(q) ||
+      String(e.description || "")
+        .toLowerCase()
+        .includes(q)
+      : true;
+    const matchStatus =
+      statusFilter === "ALL" ? true : String(e.status) === statusFilter;
+    return matchText && matchStatus;
+  });
+
+  const total = filtered.length;
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const curPage = Math.min(page, totalPages);
+  const start = (curPage - 1) * pageSize;
+  const pageItems = filtered.slice(start, start + pageSize);
+
   return (
-    <div className="exam-management-container">
-      {/* --- HEADER --- */}
-      <AdminHeader
-        title="Quản lý bài kiểm tra"
-        breadcrumb={[
-          { label: "Dashboard", to: "/admin/dashboard" },
-          { label: "Bài kiểm tra", to: "/admin/exams" },
-        ]}
-        onMenuToggle={toggleSidebar}
-        actions={
-          <div className="exam-header-buttons">
-            <button className="exam-btn add" onClick={handleAddExam}>
-              + Tạo bài kiểm tra
-            </button>
+    <div style={{
+      fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+      background: "#f5f5f5",
+      minHeight: "100vh",
+      padding: "28px 24px"
+    }}>
+      {/* Breadcrumbs */}
+      <div style={{
+        fontSize: 13,
+        marginBottom: 16,
+        fontWeight: 500
+      }}>
+        <span style={{ color: '#f97316', fontWeight: 600 }}>Quản lý bài kiểm tra</span>
+        <span style={{ color: '#d1d5db', margin: '0 4px' }}> / </span>
+        <span style={{ color: '#9ca3af' }}>Dashboard</span>
+        <span style={{ color: '#d1d5db', margin: '0 4px' }}> / </span>
+        <span style={{ color: '#374151', fontWeight: 600 }}>Tất cả bài thi</span>
+      </div>
+
+      {/* Header */}
+      <header style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 32
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16, flex: 1 }}>
+          <div style={{
+            width: 48,
+            height: 48,
+            background: 'linear-gradient(135deg, #f97316, #ea580c)',
+            borderRadius: 12,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'white',
+            boxShadow: '0 4px 12px rgba(249, 115, 22, 0.3)',
+            flexShrink: 0
+          }}>
+            <FileText size={24} />
           </div>
-        }
+          <div>
+            <h1 style={{
+              fontSize: 24,
+              fontWeight: 700,
+              color: '#111827',
+              margin: '0 0 4px 0',
+              lineHeight: 1.2
+            }}>Quản lý bài kiểm tra</h1>
+            <p style={{
+              fontSize: 14,
+              color: '#6b7280',
+              margin: 0,
+              fontWeight: 500
+            }}>
+              Tạo và quản lý các bài kiểm tra trong hệ thống
+            </p>
+          </div>
+        </div>
+
+        <button
+          onClick={handleAddExam}
+          style={{
+            background: '#f97316',
+            color: 'white',
+            border: 'none',
+            padding: '10px 20px',
+            borderRadius: 8,
+            fontWeight: 600,
+            fontSize: 14,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            boxShadow: '0 2px 4px rgba(249, 115, 22, 0.2)',
+            transition: 'all 0.2s'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = '#ea580c';
+            e.currentTarget.style.boxShadow = '0 4px 8px rgba(249, 115, 22, 0.3)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = '#f97316';
+            e.currentTarget.style.boxShadow = '0 2px 4px rgba(249, 115, 22, 0.2)';
+          }}
+        >
+          + Tạo bài kiểm tra
+        </button>
+      </header>
+
+      {/* Stats Grid */}
+      <section style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(4, 1fr)',
+        gap: 20,
+        marginBottom: 32
+      }}>
+        <div style={{
+          background: 'white',
+          borderRadius: 12,
+          padding: 20,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          border: '1px solid #e5e7eb',
+          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+          transition: 'all 0.2s'
+        }}>
+          <div>
+            <h3 style={{
+              margin: '0 0 8px 0',
+              fontSize: 13,
+              color: '#6b7280',
+              fontWeight: 600,
+              textTransform: 'uppercase',
+              letterSpacing: 0.5
+            }}>Tổng bài thi</h3>
+            <p style={{
+              margin: 0,
+              fontSize: 32,
+              fontWeight: 700,
+              color: '#111827',
+              lineHeight: 1
+            }}>{stats.total}</p>
+          </div>
+          <div style={{
+            width: 40,
+            height: 40,
+            borderRadius: 10,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: '#fff7ed',
+            color: '#f97316'
+          }}>
+            <FileText size={20} />
+          </div>
+        </div>
+
+        <div style={{
+          background: 'white',
+          borderRadius: 12,
+          padding: 20,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          border: '1px solid #e5e7eb',
+          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+          transition: 'all 0.2s'
+        }}>
+          <div>
+            <h3 style={{
+              margin: '0 0 8px 0',
+              fontSize: 13,
+              color: '#6b7280',
+              fontWeight: 600,
+              textTransform: 'uppercase',
+              letterSpacing: 0.5
+            }}>Sắp diễn ra</h3>
+            <p style={{
+              margin: 0,
+              fontSize: 32,
+              fontWeight: 700,
+              color: '#111827',
+              lineHeight: 1
+            }}>{stats.upcoming}</p>
+          </div>
+          <div style={{
+            width: 40,
+            height: 40,
+            borderRadius: 10,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: '#eff6ff',
+            color: '#2563eb'
+          }}>
+            <Clock size={20} />
+          </div>
+        </div>
+
+        <div style={{
+          background: 'white',
+          borderRadius: 12,
+          padding: 20,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          border: '1px solid #e5e7eb',
+          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+          transition: 'all 0.2s'
+        }}>
+          <div>
+            <h3 style={{
+              margin: '0 0 8px 0',
+              fontSize: 13,
+              color: '#6b7280',
+              fontWeight: 600,
+              textTransform: 'uppercase',
+              letterSpacing: 0.5
+            }}>Đang diễn ra</h3>
+            <p style={{
+              margin: 0,
+              fontSize: 32,
+              fontWeight: 700,
+              color: '#111827',
+              lineHeight: 1
+            }}>{stats.ongoing}</p>
+          </div>
+          <div style={{
+            width: 40,
+            height: 40,
+            borderRadius: 10,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: '#f0fdf4',
+            color: '#16a34a'
+          }}>
+            <TrendingUp size={20} />
+          </div>
+        </div>
+
+        <div style={{
+          background: 'white',
+          borderRadius: 12,
+          padding: 20,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          border: '1px solid #e5e7eb',
+          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+          transition: 'all 0.2s'
+        }}>
+          <div>
+            <h3 style={{
+              margin: '0 0 8px 0',
+              fontSize: 13,
+              color: '#6b7280',
+              fontWeight: 600,
+              textTransform: 'uppercase',
+              letterSpacing: 0.5
+            }}>Hoàn thành</h3>
+            <p style={{
+              margin: 0,
+              fontSize: 32,
+              fontWeight: 700,
+              color: '#111827',
+              lineHeight: 1
+            }}>{stats.completed}</p>
+          </div>
+          <div style={{
+            width: 40,
+            height: 40,
+            borderRadius: 10,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: '#faf5ff',
+            color: '#9333ea'
+          }}>
+            <CheckCircle2 size={20} />
+          </div>
+        </div>
+      </section>
+
+      {/* Filter Bar */}
+      <section style={{
+        background: 'white',
+        borderRadius: 12,
+        padding: '16px 24px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 20,
+        marginBottom: 24,
+        border: '1px solid #e5e7eb',
+        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)'
+      }}>
+        <div style={{ flex: 1, position: 'relative' }}>
+          <Search style={{
+            position: 'absolute',
+            left: 14,
+            top: '50%',
+            transform: 'translateY(-50%)',
+            color: '#9ca3af',
+            pointerEvents: 'none'
+          }} size={18} />
+          <input
+            type="text"
+            placeholder="Tìm kiếm bài kiểm tra..."
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
+            style={{
+              width: '100%',
+              padding: '10px 16px 10px 42px',
+              border: '1px solid #e5e7eb',
+              borderRadius: 8,
+              fontSize: 14,
+              color: '#374151',
+              background: '#fafafa',
+              transition: 'all 0.2s',
+              outline: 'none'
+            }}
+            onFocus={(e) => {
+              e.target.style.background = 'white';
+              e.target.style.borderColor = '#f97316';
+              e.target.style.boxShadow = '0 0 0 3px rgba(249, 115, 22, 0.1)';
+            }}
+            onBlur={(e) => {
+              e.target.style.background = '#fafafa';
+              e.target.style.borderColor = '#e5e7eb';
+              e.target.style.boxShadow = 'none';
+            }}
+          />
+        </div>
+
+        <div style={{ position: 'relative' }}>
+          <Activity style={{
+            position: 'absolute',
+            left: 14,
+            top: '50%',
+            transform: 'translateY(-50%)',
+            color: '#9ca3af',
+            pointerEvents: 'none'
+          }} size={18} />
+          <select
+            value={statusFilter}
+            onChange={(e) => {
+              setStatusFilter(e.target.value);
+              setPage(1);
+            }}
+            style={{
+              padding: '10px 40px 10px 42px',
+              border: '1px solid #e5e7eb',
+              borderRadius: 8,
+              background: '#fafafa',
+              color: '#374151',
+              fontSize: 14,
+              fontWeight: 500,
+              cursor: 'pointer',
+              appearance: 'none',
+              minWidth: 180,
+              outline: 'none'
+            }}
+          >
+            <option value="ALL">Tất cả trạng thái</option>
+            <option value="UPCOMING">Sắp diễn ra</option>
+            <option value="ONGOING">Đang diễn ra</option>
+            <option value="COMPLETED">Đã kết thúc</option>
+          </select>
+          <ChevronDown style={{
+            position: 'absolute',
+            right: 14,
+            top: '50%',
+            transform: 'translateY(-50%)',
+            color: '#9ca3af',
+            pointerEvents: 'none'
+          }} size={16} />
+        </div>
+
+        <span style={{
+          fontSize: 14,
+          color: '#6b7280',
+          whiteSpace: 'nowrap',
+          fontWeight: 500,
+          padding: '0 8px'
+        }}>
+          {filtered.length} kết quả
+        </span>
+      </section>
+
+      {/* Table */}
+      <ExamTable
+        exams={pageItems}
+        loading={loading}
+        onEdit={handleEdit}
+        onDelete={handleDeleteById}
+        canDelete={isAdmin}
+        onViewDetail={(id) => {
+          navigate(`/admin/exam/${id}/detail`);
+        }}
       />
 
-      {/* --- THỐNG KÊ --- */}
-      <div className="exam-content-page">
-        <div className="exam-stats">
-          <div className="exam-card">
-            <p className="exam-card-title">Tổng kỳ thi</p>
-            <h3>{exams.length}</h3>
-          </div>
-          <div className="exam-card">
-            <p className="exam-card-title">Số thí sinh</p>
-            <h3>{studentsTotal}</h3>
-          </div>
-          <div className="exam-card">
-            <p className="exam-card-title">Điểm trung bình</p>
-            <h3>
-              {avgScoreGlobal.toFixed(1)}
-            </h3>
-          </div>
-        </div>
-
-        {/* --- THANH TÌM KIẾM --- */}
-        <div className="exam-searchbar">
-          <div className="exam-search-row">
-            <div className="exam-search-input-wrap">
-              <div className="exam-search-icon-wrap">
-                <svg className="exam-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <circle cx="11" cy="11" r="8" />
-                  <path d="M21 21l-4.3-4.3" />
-                </svg>
-              </div>
-              <input
-                type="text"
-                placeholder="Tìm kiếm bài kiểm tra..."
-                value={search}
-                onChange={(e) => {
-                  setSearch(e.target.value);
-                  setPage(1);
-                }}
-                className="exam-search-input"
-                aria-label="Tìm kiếm bài kiểm tra"
-              />
-            </div>
-            <select
-              className="exam-status-filter"
-              value={statusFilter}
-              onChange={(e) => {
-                setStatusFilter(e.target.value);
-                setPage(1);
-              }}
-              aria-label="Lọc theo trạng thái"
-            >
-              <option value="ALL">Tất cả trạng thái</option>
-              <option value="UPCOMING">Sắp diễn ra</option>
-              <option value="ONGOING">Đang diễn ra</option>
-              <option value="COMPLETED">Đã kết thúc</option>
-              <option value="CANCELLED">Đã hủy</option>
-            </select>
-          </div>
-        </div>
-
-        {/* --- BẢNG DANH SÁCH (component) --- */}
-        {(() => {
-          const q = search.trim().toLowerCase();
-          const filtered = exams.filter((e) => {
-            const matchText = q
-              ? String(e.title || e.name || "")
-                .toLowerCase()
-                .includes(q) ||
-              String(e.description || "")
-                .toLowerCase()
-                .includes(q)
-              : true;
-            const matchStatus =
-              statusFilter === "ALL" ? true : String(e.status) === statusFilter;
-            return matchText && matchStatus;
-          });
-          const total = filtered.length;
-          const totalPages = Math.max(1, Math.ceil(total / pageSize));
-          const curPage = Math.min(page, totalPages);
-          const start = (curPage - 1) * pageSize;
-          const pageItems = filtered.slice(start, start + pageSize);
-          return (
-            <>
-              <ExamTable
-                exams={pageItems}
-                loading={loading}
-                onEdit={handleEdit}
-                onDelete={handleDeleteById}
-                canDelete={isAdmin}
-                onViewDetail={(id) => {
-                  navigate(`/admin/exam/${id}/detail`);
-                }}
-              />
-              <div className="exam-pagination">
-                <button
-                  className="page-btn"
-                  disabled={curPage <= 1}
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                >
-                  ‹ Trước
-                </button>
-                <span className="page-info">
-                  Trang {curPage}/{totalPages}
-                </span>
-                <button
-                  className="page-btn"
-                  disabled={curPage >= totalPages}
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                >
-                  Sau ›
-                </button>
-              </div>
-            </>
-          );
-        })()}
-        <ExamCreateDialog
-          open={openCreate}
-          onOpenChange={setOpenCreate}
-          onSuccess={() => {
-            loadExams();
-          }}
-        />
-        <ExamEditDialog
-          open={openEdit}
-          onOpenChange={setOpenEdit}
-          exam={editingExam}
-          onSuccess={() => {
-            loadExams();
-          }}
-        />
+      {/* Pagination */}
+      <div className="exam-pagination">
+        <button
+          className="page-btn"
+          disabled={curPage <= 1}
+          onClick={() => setPage((p) => Math.max(1, p - 1))}
+        >
+          ‹ Trước
+        </button>
+        <span className="page-info">
+          Trang {curPage}/{totalPages}
+        </span>
+        <button
+          className="page-btn"
+          disabled={curPage >= totalPages}
+          onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+        >
+          Sau ›
+        </button>
       </div>
+
+      <ExamCreateDialog
+        open={openCreate}
+        onOpenChange={setOpenCreate}
+        onSuccess={() => {
+          loadExams();
+        }}
+      />
+      <ExamEditDialog
+        open={openEdit}
+        onOpenChange={setOpenEdit}
+        exam={editingExam}
+        onSuccess={() => {
+          loadExams();
+        }}
+      />
+
       <NotificationModal
         isOpen={notification.isOpen}
         onClose={() => setNotification((prev) => ({ ...prev, isOpen: false }))}

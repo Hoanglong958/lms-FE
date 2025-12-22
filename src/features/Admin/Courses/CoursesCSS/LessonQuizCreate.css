@@ -23,9 +23,12 @@
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue",
     Arial;
 
-  width: 100%; /* chiếm toàn bộ chiều ngang */
-  max-width: none; /* bỏ giới hạn */
-  box-sizing: border-box; /* để padding không làm tràn */
+  width: 100%;
+  /* chiếm toàn bộ chiều ngang */
+  max-width: none;
+  /* bỏ giới hạn */
+  box-sizing: border-box;
+  /* để padding không làm tràn */
 }
 
 /* TITLE */
@@ -55,7 +58,8 @@
   border: 1px solid var(--lqc-border);
   border-radius: 12px;
   font-size: 14px;
-  background: #f3f4f6; /* màu nền sáng xám thay cho trắng */
+  background: #f3f4f6;
+  /* màu nền sáng xám thay cho trắng */
   transition: box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
@@ -77,11 +81,9 @@
   font-size: 14px;
   transition: all var(--lqc-transition);
   border: 1px solid transparent;
-  background: linear-gradient(
-    180deg,
-    var(--lqc-accent),
-    var(--lqc-accent-hover)
-  );
+  background: linear-gradient(180deg,
+      var(--lqc-accent),
+      var(--lqc-accent-hover));
   color: #fff;
 }
 
@@ -94,6 +96,7 @@
   .lqc-wrapper {
     padding: 16px;
   }
+
   .lqc-btn {
     width: 100%;
   }
