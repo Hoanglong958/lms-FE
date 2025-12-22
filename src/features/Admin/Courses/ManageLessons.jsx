@@ -9,6 +9,7 @@ import LessonDetailView from "./LessonDetailView.jsx";
 import styles from "./ManageLessons.module.css";
 import { slugify } from "@utils/slugify";
 import dayjs from "dayjs";
+import { FolderPlus, Book, ListOrdered, X, Save } from "lucide-react";
 
 export default function ManageLessons() {
   const { courseSlug } = useParams();
@@ -208,41 +209,56 @@ export default function ManageLessons() {
 
       {showModal && (
         <div className={styles.modalOverlay}>
-          <div className={styles.modalContent}>
-            <h2>{currentSession ? "Sửa Chương học" : "Thêm Chương học"}</h2>
-            <form onSubmit={handleSubmitSession}>
-              <div className={styles.formGroup}>
-                <label>Tên Chương học</label>
-                <input
-                  value={formData.title}
-                  onChange={(e) => setFormData({ title: e.target.value })}
-                  required
-                  autoFocus
-                />
+          <div className={styles.modalContainer}>
+            <div className={styles.modalHeaderOrange}>
+              <div className={styles.modalHeaderIcon}>
+                <FolderPlus size={32} color="white" strokeWidth={1.5} />
               </div>
+              <h3>{currentSession ? "Cập nhật chương học" : "Thêm Chương học"}</h3>
+            </div>
+
+            <form onSubmit={handleSubmitSession} className={styles.modalFormBody}>
               <div className={styles.formGroup}>
-                <label>Thứ tự</label>
-                <input
-                  type="number"
-                  value={formData.orderIndex || ""}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      orderIndex: Number(e.target.value),
-                    })
-                  }
-                  min={1}
-                />
+                <label className={styles.labelBold}>Tên Chương học</label>
+                <div className={styles.inputWithIcon}>
+                  <Book size={24} className={styles.inputIcon} />
+                  <input
+                    className={styles.customInputModal}
+                    value={formData.title}
+                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                    placeholder="Nhập tên chương học..."
+                    required
+                    autoFocus
+                  />
+                </div>
               </div>
-              <div className={styles.formActions}>
-                <button type="button" onClick={() => setShowModal(false)}>
-                  Hủy
+
+              <div className={styles.formGroup}>
+                <label className={styles.labelBold}>Thứ tự</label>
+                <div className={styles.inputWithIcon}>
+                  <ListOrdered size={24} className={styles.inputIcon} />
+                  <input
+                    type="number"
+                    className={styles.customInputModal}
+                    value={formData.orderIndex || ""}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        orderIndex: Number(e.target.value),
+                      })
+                    }
+                    placeholder="Ví dụ: 1, 2, 3..."
+                    min={1}
+                  />
+                </div>
+              </div>
+
+              <div className={styles.modalFooterButtons}>
+                <button type="button" onClick={() => setShowModal(false)} className={styles.btnCancel}>
+                  <X size={18} /> Hủy
                 </button>
-                <button
-                  type="submit"
-                  className={`${styles.btn} ${styles.btnPrimary}`}
-                >
-                  Lưu
+                <button type="submit" className={styles.btnSave}>
+                  <Save size={18} /> Lưu
                 </button>
               </div>
             </form>

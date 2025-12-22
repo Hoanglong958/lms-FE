@@ -1,4 +1,5 @@
 import React, { useMemo, useState, useEffect, useRef, useCallback } from "react";
+import { School, Info, Hash, User, BookOpen, Calendar, Sparkles, X, ChevronDown, FilePenLine, Clock, TrendingUp, CheckCircle2, Users, Search, Activity } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { classService } from "@utils/classService";
 import { userService } from "@utils/userService";
@@ -493,76 +494,370 @@ export default function ClassManagement() {
   return (
     <div style={styles.page}>
       <LocalStyles />
-      <header style={styles.header}>
-        <div>
-          <h1 style={styles.title}>Quản lý lớp học</h1>
-          <p style={styles.subtitle}>
-            Danh sách lớp học và theo dõi tiến độ học viên
-          </p>
+
+      {/* Breadcrumbs */}
+      <div style={{
+        fontSize: 13,
+        marginBottom: 16,
+        fontWeight: 500
+      }}>
+        <span style={{ color: '#f97316', fontWeight: 600 }}>Quản lý lớp học</span>
+        <span style={{ color: '#d1d5db', margin: '0 4px' }}> / </span>
+        <span style={{ color: '#9ca3af' }}>Dashboard</span>
+        <span style={{ color: '#d1d5db', margin: '0 4px' }}> / </span>
+        <span style={{ color: '#374151', fontWeight: 600 }}>Tất cả lớp học</span>
+      </div>
+
+      {/* Header */}
+      <header style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 32
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16, flex: 1 }}>
+          <div style={{
+            width: 48,
+            height: 48,
+            background: 'linear-gradient(135deg, #f97316, #ea580c)',
+            borderRadius: 12,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'white',
+            boxShadow: '0 4px 12px rgba(249, 115, 22, 0.3)',
+            flexShrink: 0
+          }}>
+            <School size={24} />
+          </div>
+          <div>
+            <h1 style={{
+              fontSize: 24,
+              fontWeight: 700,
+              color: '#111827',
+              margin: '0 0 4px 0',
+              lineHeight: 1.2
+            }}>Quản lý lớp học</h1>
+            <p style={{
+              fontSize: 14,
+              color: '#6b7280',
+              margin: 0,
+              fontWeight: 500
+            }}>
+              Quản lý danh sách lớp học và theo dõi học viên
+            </p>
+          </div>
         </div>
 
-
-        {/* Select class to send id to calendar */}
-        {/* Select class to send id to calendar */}
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <button
             type="button"
-            style={styles.primaryButton}
+            style={{
+              background: '#f97316',
+              color: 'white',
+              border: 'none',
+              padding: '10px 20px',
+              borderRadius: 8,
+              fontWeight: 600,
+              fontSize: 14,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              boxShadow: '0 2px 4px rgba(249, 115, 22, 0.2)',
+              transition: 'all 0.2s'
+            }}
             onClick={() => setIsAddOpen(true)}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = '#ea580c';
+              e.currentTarget.style.boxShadow = '0 4px 8px rgba(249, 115, 22, 0.3)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = '#f97316';
+              e.currentTarget.style.boxShadow = '0 2px 4px rgba(249, 115, 22, 0.2)';
+            }}
           >
-            <span style={styles.plusIcon}>+ Tạo lớp học</span>
+            + Tạo lớp học mới
           </button>
         </div>
       </header>
 
-      <section style={styles.kpis}>
-        <StatCard
-          icon={<IconClass />}
-          label="Tổng lớp học"
-          value={stats.totalClasses}
-        />
-        <StatCard
-          icon={<IconCheckCircle />}
-          label="Đang học"
-          value={stats.totalActiveClasses}
-        />
-        <StatCard
-          icon={<IconUserGroup />}
-          label="Tổng học viên"
-          value={stats.totalStudents}
-        />
-        <StatCard icon={<IconTrend />} label="Tiến độ TB" value={null} />
+      {/* Stats Grid */}
+      <section style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(4, 1fr)',
+        gap: 20,
+        marginBottom: 32
+      }}>
+        <div style={{
+          background: 'white',
+          borderRadius: 12,
+          padding: 20,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          border: '1px solid #e5e7eb',
+          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+          transition: 'all 0.2s'
+        }}>
+          <div>
+            <h3 style={{
+              margin: '0 0 8px 0',
+              fontSize: 13,
+              color: '#6b7280',
+              fontWeight: 600,
+              textTransform: 'uppercase',
+              letterSpacing: 0.5
+            }}>Tổng lớp học</h3>
+            <p style={{
+              margin: 0,
+              fontSize: 32,
+              fontWeight: 700,
+              color: '#111827',
+              lineHeight: 1
+            }}>{stats.totalClasses}</p>
+          </div>
+          <div style={{
+            width: 40,
+            height: 40,
+            borderRadius: 10,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: '#fff7ed',
+            color: '#f97316'
+          }}>
+            <School size={20} />
+          </div>
+        </div>
+
+        <div style={{
+          background: 'white',
+          borderRadius: 12,
+          padding: 20,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          border: '1px solid #e5e7eb',
+          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+          transition: 'all 0.2s'
+        }}>
+          <div>
+            <h3 style={{
+              margin: '0 0 8px 0',
+              fontSize: 13,
+              color: '#6b7280',
+              fontWeight: 600,
+              textTransform: 'uppercase',
+              letterSpacing: 0.5
+            }}>Sắp diễn ra</h3>
+            <p style={{
+              margin: 0,
+              fontSize: 32,
+              fontWeight: 700,
+              color: '#111827',
+              lineHeight: 1
+            }}>{classes.filter(c => c.status === 'upcoming').length}</p>
+          </div>
+          <div style={{
+            width: 40,
+            height: 40,
+            borderRadius: 10,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: '#eff6ff',
+            color: '#2563eb'
+          }}>
+            <Clock size={20} />
+          </div>
+        </div>
+
+        <div style={{
+          background: 'white',
+          borderRadius: 12,
+          padding: 20,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          border: '1px solid #e5e7eb',
+          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+          transition: 'all 0.2s'
+        }}>
+          <div>
+            <h3 style={{
+              margin: '0 0 8px 0',
+              fontSize: 13,
+              color: '#6b7280',
+              fontWeight: 600,
+              textTransform: 'uppercase',
+              letterSpacing: 0.5
+            }}>Đang học</h3>
+            <p style={{
+              margin: 0,
+              fontSize: 32,
+              fontWeight: 700,
+              color: '#111827',
+              lineHeight: 1
+            }}>{stats.totalActiveClasses}</p>
+          </div>
+          <div style={{
+            width: 40,
+            height: 40,
+            borderRadius: 10,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: '#f0fdf4',
+            color: '#16a34a'
+          }}>
+            <TrendingUp size={20} />
+          </div>
+        </div>
+
+        <div style={{
+          background: 'white',
+          borderRadius: 12,
+          padding: 20,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          border: '1px solid #e5e7eb',
+          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+          transition: 'all 0.2s'
+        }}>
+          <div>
+            <h3 style={{
+              margin: '0 0 8px 0',
+              fontSize: 13,
+              color: '#6b7280',
+              fontWeight: 600,
+              textTransform: 'uppercase',
+              letterSpacing: 0.5
+            }}>Hoàn thành</h3>
+            <p style={{
+              margin: 0,
+              fontSize: 32,
+              fontWeight: 700,
+              color: '#111827',
+              lineHeight: 1
+            }}>{classes.filter(c => c.status === 'ended').length}</p>
+          </div>
+          <div style={{
+            width: 40,
+            height: 40,
+            borderRadius: 10,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: '#faf5ff',
+            color: '#9333ea'
+          }}>
+            <CheckCircle2 size={20} />
+          </div>
+        </div>
       </section>
 
-      <section style={styles.toolbar} className="_cm-toolbar">
-        <div style={styles.searchWrap} className="_cm-search">
-          <span aria-hidden="true" style={styles.searchIcon}>
-            <IconSearch />
-          </span>
+      {/* Filter Bar */}
+      <section style={{
+        background: 'white',
+        borderRadius: 12,
+        padding: '16px 24px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 20,
+        marginBottom: 24,
+        border: '1px solid #e5e7eb',
+        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)'
+      }}>
+        <div style={{ flex: 1, position: 'relative' }}>
+          <Search style={{
+            position: 'absolute',
+            left: 14,
+            top: '50%',
+            transform: 'translateY(-50%)',
+            color: '#9ca3af',
+            pointerEvents: 'none'
+          }} size={18} />
           <input
             type="text"
-            placeholder="Tìm kiếm lớp học..."
+            placeholder="Tìm kiếm theo tên lớp học..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            style={styles.searchInput}
+            style={{
+              width: '100%',
+              padding: '10px 16px 10px 42px',
+              border: '1px solid #e5e7eb',
+              borderRadius: 8,
+              fontSize: 14,
+              color: '#374151',
+              background: '#fafafa',
+              transition: 'all 0.2s',
+              outline: 'none'
+            }}
+            onFocus={(e) => {
+              e.target.style.background = 'white';
+              e.target.style.borderColor = '#f97316';
+              e.target.style.boxShadow = '0 0 0 3px rgba(249, 115, 22, 0.1)';
+            }}
+            onBlur={(e) => {
+              e.target.style.background = '#fafafa';
+              e.target.style.borderColor = '#e5e7eb';
+              e.target.style.boxShadow = 'none';
+            }}
           />
         </div>
 
-        <label style={styles.filterWrap}>
+        <div style={{ position: 'relative' }}>
+          <Activity style={{
+            position: 'absolute',
+            left: 14,
+            top: '50%',
+            transform: 'translateY(-50%)',
+            color: '#9ca3af',
+            pointerEvents: 'none'
+          }} size={18} />
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            style={styles.select}
+            style={{
+              padding: '10px 40px 10px 42px',
+              border: '1px solid #e5e7eb',
+              borderRadius: 8,
+              background: '#fafafa',
+              color: '#374151',
+              fontSize: 14,
+              fontWeight: 500,
+              cursor: 'pointer',
+              appearance: 'none',
+              minWidth: 180,
+              outline: 'none'
+            }}
           >
             <option value="all">Tất cả trạng thái</option>
             <option value="active">Đang học</option>
             <option value="upcoming">Sắp bắt đầu</option>
             <option value="ended">Đã kết thúc</option>
           </select>
-          <span style={styles.selectChevron} aria-hidden="true">
-            ▾
-          </span>
-        </label>
+          <ChevronDown style={{
+            position: 'absolute',
+            right: 14,
+            top: '50%',
+            transform: 'translateY(-50%)',
+            color: '#9ca3af',
+            pointerEvents: 'none'
+          }} size={16} />
+        </div>
+
+        <span style={{
+          fontSize: 14,
+          color: '#6b7280',
+          whiteSpace: 'nowrap',
+          fontWeight: 500,
+          padding: '0 8px'
+        }}>
+          {filtered.length} kết quả
+        </span>
       </section>
 
       <div style={styles.card}>
@@ -814,16 +1109,6 @@ function ActionCell({ onView, onEdit, onDelete }) {
           e.stopPropagation();
           onEdit && onEdit();
         }}
-        style={{
-          background: "transparent",
-          border: "none",
-          cursor: "pointer",
-          color: "#2563eb",
-          padding: 4,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
       >
         <svg
           width="18"
@@ -957,165 +1242,164 @@ function AddClassModal({ onClose, onSubmit }) {
   }
 
   return (
-    <div style={modalStyles.backdrop} role="dialog" aria-modal="true">
-      <div style={modalStyles.container} className="_add-class-modal">
-        <div style={modalStyles.header}>
-          <h3 style={modalStyles.title}>Tạo lớp học mới</h3>
-          <button
-            type="button"
-            onClick={onClose}
-            style={styles.iconButton}
-            aria-label="Đóng"
-          >
-            ×
+    <div className="modal-backdrop-custom" role="dialog" aria-modal="true">
+      <div className="modal-container-custom">
+        {/* Blue Header */}
+        <div className="modal-blue-header">
+          <button type="button" onClick={onClose} className="close-btn-abs">
+            <X size={20} />
           </button>
+          <div className="header-content">
+            <div className="header-icon-box">
+              <School size={32} color="white" />
+              <div className="sparkle-badge"><Sparkles size={12} fill="white" /></div>
+            </div>
+            <div className="header-texts">
+              <h3>Tạo lớp học mới</h3>
+              <p>Điền thông tin để tạo lớp học mới cho hệ thống</p>
+            </div>
+          </div>
+
         </div>
-        <form onSubmit={handleSubmit}>
-          <div style={modalStyles.body}>
-            <label style={modalStyles.label}>
-              Tên lớp học
+
+        {/* Body */}
+        <div className="modal-form-body">
+          <form onSubmit={handleSubmit} className="form-card">
+            {/* Tên lớp học */}
+            <div className="form-group-mb">
+              <label className="custom-label">
+                <div className="label-icon icon-blue"><School size={16} color="white" /></div>
+                Tên lớp học <span style={{ color: '#ef4444' }}>*</span>
+              </label>
               <input
                 type="text"
+                className="custom-input"
+                placeholder="VD: Lớp React Advanced - Sáng"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                style={modalStyles.input}
-                placeholder="Ví dụ: Lớp React Advanced - Sáng"
               />
-              {errors.name && (
-                <div style={modalStyles.error}>{errors.name}</div>
-              )}
-            </label>
-            <label style={modalStyles.label}>
-              Mô tả ngắn
+              {errors.name && <div style={{ color: '#ef4444', fontSize: 12, marginTop: 4 }}>{errors.name}</div>}
+            </div>
+
+            {/* Mô tả ngắn */}
+            <div className="form-group-mb">
+              <label className="custom-label">
+                <div className="label-icon icon-pink"><BookOpen size={16} color="white" /></div>
+                Mô tả ngắn
+              </label>
               <input
                 type="text"
+                className="custom-input"
+                placeholder="VD: React Advanced"
                 value={subtitle}
                 onChange={(e) => setSubtitle(e.target.value)}
-                style={modalStyles.input}
-                placeholder="Ví dụ: React Advanced"
               />
-            </label>
+            </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-              <label style={modalStyles.label}>
-                Mã lớp học
+            {/* Row 2 cols */}
+            <div className="field-grid-2 form-group-mb">
+              <div>
+                <label className="custom-label">
+                  <div className="label-icon icon-orange"><Hash size={16} color="white" /></div>
+                  Mã lớp học
+                </label>
                 <input
                   type="text"
+                  className="custom-input"
+                  placeholder="VD: REACT-ADV"
                   value={code}
                   onChange={(e) => setCode(e.target.value)}
-                  style={modalStyles.input}
-                  placeholder="Ví dụ: REACT-ADV-01"
                 />
-                {errors.code && (
-                  <div style={modalStyles.error}>{errors.code}</div>
-                )}
-              </label>
-              <label style={modalStyles.label}>
-                Giảng viên
-                <div style={{ position: "relative" }}>
+                {errors.code && <div style={{ color: '#ef4444', fontSize: 12, marginTop: 4 }}>{errors.code}</div>}
+              </div>
+              <div>
+                <label className="custom-label">
+                  <div className="label-icon icon-green"><User size={16} color="white" /></div>
+                  Giảng viên
+                </label>
+                <div className="select-wrapper">
                   <select
+                    className="custom-select"
                     value={teacherId}
                     onChange={(e) => {
                       setTeacherId(e.target.value);
                       const selected = teachers.find(t => String(t.id) === String(e.target.value));
                       setTeacher(selected ? selected.fullName : "");
                     }}
-                    style={{ ...styles.select, width: "100%", height: 40 }}
                   >
                     <option value="">-- Chọn giảng viên --</option>
                     {teachers.map((t) => (
-                      <option key={t.id} value={t.id}>
-                        {t.fullName}
-                      </option>
+                      <option key={t.id} value={t.id}>{t.fullName}</option>
                     ))}
                   </select>
-                  <span
-                    style={{ ...styles.selectChevron, top: 12 }}
-                    aria-hidden="true"
-                  >
-                    ▾
-                  </span>
+                  <div className="select-icon">▼</div>
                 </div>
-                {errors.teacher && (
-                  <div style={modalStyles.error}>{errors.teacher}</div>
-                )}
-              </label>
+                {errors.teacher && <div style={{ color: '#ef4444', fontSize: 12, marginTop: 4 }}>{errors.teacher}</div>}
+              </div>
             </div>
 
-            <label style={modalStyles.label}>
-              Khóa học
-              <div style={{ position: "relative" }}>
+            {/* Khóa học */}
+            <div className="form-group-mb">
+              <label className="custom-label">
+                <div className="label-icon icon-pink"><BookOpen size={16} color="white" /></div>
+                Khóa học
+              </label>
+              <div className="select-wrapper">
                 <select
+                  className="custom-select"
                   value={courseId}
                   onChange={(e) => setCourseId(e.target.value)}
-                  style={{ ...styles.select, width: "100%", height: 40 }}
                 >
                   <option value="">-- Chọn khóa học --</option>
                   {courses.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.courseName || c.name || c.title}
-                    </option>
+                    <option key={c.id} value={c.id}>{c.courseName || c.name || c.title}</option>
                   ))}
                 </select>
-                <span
-                  style={{ ...styles.selectChevron, top: 12 }}
-                  aria-hidden="true"
-                >
-                  ▾
-                </span>
+                <div className="select-icon">▼</div>
               </div>
-            </label>
+            </div>
 
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: 12,
-              }}
-            >
-              <label style={modalStyles.label}>
-                Ngày bắt đầu
+            {/* Dates */}
+            <div className="field-grid-2 form-group-mb">
+              <div>
+                <label className="custom-label">
+                  <div className="label-icon icon-blue"><Calendar size={16} color="white" /></div>
+                  Ngày bắt đầu <span style={{ color: '#ef4444' }}>*</span>
+                </label>
                 <input
                   type="date"
+                  className="custom-input"
                   value={startDate}
                   min={today}
                   onChange={(e) => setStartDate(e.target.value)}
-                  style={modalStyles.input}
                 />
-                {errors.startDate && (
-                  <div style={modalStyles.error}>{errors.startDate}</div>
-                )}
-              </label>
-              <label style={modalStyles.label}>
-                Ngày kết thúc
+                {errors.startDate && <div style={{ color: '#ef4444', fontSize: 12, marginTop: 4 }}>{errors.startDate}</div>}
+              </div>
+              <div>
+                <label className="custom-label">
+                  <div className="label-icon icon-purple"><Calendar size={16} color="white" /></div>
+                  Ngày kết thúc
+                </label>
                 <input
                   type="date"
+                  className="custom-input"
                   value={endDate}
                   min={startDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  style={modalStyles.input}
                 />
-                {errors.endDate && (
-                  <div style={modalStyles.error}>{errors.endDate}</div>
-                )}
-              </label>
+                {errors.endDate && <div style={{ color: '#ef4444', fontSize: 12, marginTop: 4 }}>{errors.endDate}</div>}
+              </div>
             </div>
 
-
-          </div>
-          <div style={modalStyles.footer}>
-            <button
-              type="button"
-              onClick={onClose}
-              style={modalStyles.ghostBtn}
-            >
-              Hủy
-            </button>
-            <button type="submit" style={styles.primaryButton}>
-              Tạo
-            </button>
-          </div>
-        </form>
+            {/* Footer */}
+            <div className="footer-actions">
+              <button type="button" onClick={onClose} className="btn-white">Hủy</button>
+              <button type="submit" className="btn-orange">
+                <Sparkles size={16} fill="white" /> Tạo ngay
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );
@@ -1139,6 +1423,25 @@ function EditClassModal({ cls, onClose, onSubmit }) {
 
   const [errors, setErrors] = useState({});
   const [teachers, setTeachers] = useState([]);
+  const [initialTeacherId, setInitialTeacherId] = useState("");
+  const [initialCourseId, setInitialCourseId] = useState("");
+
+  // Sync state with cls prop when it changes
+  useEffect(() => {
+    if (cls) {
+      setName(cls.name || "");
+      setSubtitle(cls.subtitle || "");
+      setCode(cls.code || "");
+      setTeacher(cls.teacher || "");
+      setStudents(String(cls.students || 0));
+      setActive(String(cls.active || 0));
+      setProgress(String(cls.progress || 0));
+      setStartDate(cls.startDate ? cls.startDate.substring(0, 10) : "");
+      setEndDate(cls.endDate ? cls.endDate.substring(0, 10) : "");
+      setStatus(cls.status || "upcoming");
+      setSchedule(cls.schedule || "");
+    }
+  }, [cls]);
 
   useEffect(() => {
     userService
@@ -1162,6 +1465,7 @@ function EditClassModal({ cls, onClose, onSubmit }) {
           const found = validTeachers.find(t => t.fullName === cls.teacher);
           if (found) {
             setTeacherId(found.id);
+            setInitialTeacherId(found.id);
             // Ensure 'teacher' name state is consistent just in case
             setTeacher(found.fullName);
           }
@@ -1188,6 +1492,7 @@ function EditClassModal({ cls, onClose, onSubmit }) {
           const assigned = res.data?.data || res.data;
           if (Array.isArray(assigned) && assigned.length > 0) {
             setCourseId(assigned[0].courseId);
+            setInitialCourseId(assigned[0].courseId);
           }
         })
         .catch(err => console.warn("Failed to load assigned course", err));
@@ -1228,171 +1533,180 @@ function EditClassModal({ cls, onClose, onSubmit }) {
     });
   }
 
+  const isChanged = useMemo(() => {
+    if (!cls) return false;
+    const iStart = cls.startDate ? cls.startDate.substring(0, 10) : "";
+    const iEnd = cls.endDate ? cls.endDate.substring(0, 10) : "";
+
+    return (
+      name !== (cls.name || "") ||
+      subtitle !== (cls.subtitle || "") ||
+      code !== (cls.code || "") ||
+      String(teacherId) !== String(initialTeacherId) ||
+      String(courseId) !== String(initialCourseId) ||
+      startDate !== iStart ||
+      (endDate || "") !== iEnd ||
+      status !== (cls.status || "upcoming")
+    );
+  }, [cls, name, subtitle, code, teacherId, initialTeacherId, courseId, initialCourseId, startDate, endDate, status]);
+
   return (
-    <div style={modalStyles.backdrop} role="dialog" aria-modal="true">
-      <div style={modalStyles.container} className="_edit-class-modal">
-        <div style={modalStyles.header}>
-          <h3 style={modalStyles.title}>Chỉnh sửa lớp học</h3>
-          <button
-            type="button"
-            onClick={onClose}
-            style={styles.iconButton}
-            aria-label="Đóng"
-          >
-            ×
+    <div className="modal-backdrop-custom" role="dialog" aria-modal="true">
+      <div className="modal-container-custom">
+        {/* Blue Header */}
+        <div className="modal-blue-header">
+          <button type="button" onClick={onClose} className="close-btn-abs">
+            <X size={20} />
           </button>
+          <div className="header-content">
+            <div className="header-icon-box">
+              <FilePenLine size={32} color="white" />
+              <div className="sparkle-badge"><Sparkles size={12} fill="white" /></div>
+            </div>
+            <div className="header-texts">
+              <h3>Cập nhật lớp học</h3>
+              <p>Cập nhật thông tin lớp học</p>
+            </div>
+          </div>
         </div>
-        <form onSubmit={handleSubmit}>
-          <div style={modalStyles.body}>
-            <label style={modalStyles.label}>
-              Tên lớp học
+
+        {/* Body */}
+        <div className="modal-form-body">
+          <form onSubmit={handleSubmit} className="form-card">
+            {/* Tên lớp học */}
+            <div className="form-group-mb">
+              <label className="custom-label">
+                <div className="label-icon icon-blue"><School size={16} color="white" /></div>
+                Tên lớp học <span style={{ color: '#ef4444' }}>*</span>
+              </label>
               <input
                 type="text"
+                className="custom-input"
+                placeholder="VD: Lớp React Advanced - Sáng"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                style={modalStyles.input}
               />
-              {errors.name && (
-                <div style={modalStyles.error}>{errors.name}</div>
-              )}
-            </label>
-            <label style={modalStyles.label}>
-              Mô tả ngắn
+              {errors.name && <div style={{ color: '#ef4444', fontSize: 12, marginTop: 4 }}>{errors.name}</div>}
+            </div>
+
+            {/* Mô tả ngắn */}
+            <div className="form-group-mb">
+              <label className="custom-label">
+                <div className="label-icon icon-pink"><BookOpen size={16} color="white" /></div>
+                Mô tả ngắn
+              </label>
               <input
                 type="text"
+                className="custom-input"
+                placeholder="VD: React Advanced"
                 value={subtitle}
                 onChange={(e) => setSubtitle(e.target.value)}
-                style={modalStyles.input}
               />
-            </label>
+            </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-              <label style={modalStyles.label}>
-                Mã lớp học
+            {/* Row 2 cols */}
+            <div className="field-grid-2 form-group-mb">
+              <div>
+                <label className="custom-label">
+                  <div className="label-icon icon-orange"><Hash size={16} color="white" /></div>
+                  Mã lớp học
+                </label>
                 <input
                   type="text"
+                  className="custom-input"
+                  placeholder="VD: REACT-ADV"
                   value={code}
                   onChange={(e) => setCode(e.target.value)}
-                  style={modalStyles.input}
                 />
-                {errors.code && (
-                  <div style={modalStyles.error}>{errors.code}</div>
-                )}
-              </label>
-              <label style={modalStyles.label}>
-                Giảng viên
-                <div style={{ position: "relative" }}>
+                {errors.code && <div style={{ color: '#ef4444', fontSize: 12, marginTop: 4 }}>{errors.code}</div>}
+              </div>
+              <div>
+                <label className="custom-label">
+                  <div className="label-icon icon-green"><User size={16} color="white" /></div>
+                  Giảng viên
+                </label>
+                <div className="select-wrapper">
                   <select
+                    className="custom-select"
                     value={teacherId}
                     onChange={(e) => {
                       setTeacherId(e.target.value);
                       const selected = teachers.find(t => String(t.id) === String(e.target.value));
                       setTeacher(selected ? selected.fullName : "");
                     }}
-                    style={{ ...styles.select, width: "100%", height: 40 }}
                   >
                     <option value="">-- Chọn giảng viên --</option>
                     {teachers.map((t) => (
-                      <option key={t.id} value={t.id}>
-                        {t.fullName}
-                      </option>
+                      <option key={t.id} value={t.id}>{t.fullName}</option>
                     ))}
                   </select>
-                  <span
-                    style={{ ...styles.selectChevron, top: 12 }}
-                    aria-hidden="true"
-                  >
-                    ▾
-                  </span>
+                  <div className="select-icon">▼</div>
                 </div>
-                {errors.teacher && (
-                  <div style={modalStyles.error}>{errors.teacher}</div>
-                )}
-              </label>
+                {errors.teacher && <div style={{ color: '#ef4444', fontSize: 12, marginTop: 4 }}>{errors.teacher}</div>}
+              </div>
             </div>
 
-            <label style={modalStyles.label}>
-              Khóa học
-              <div style={{ position: "relative" }}>
+            {/* Khóa học */}
+            <div className="form-group-mb">
+              <label className="custom-label">
+                <div className="label-icon icon-pink"><BookOpen size={16} color="white" /></div>
+                Khóa học
+              </label>
+              <div className="select-wrapper">
                 <select
+                  className="custom-select"
                   value={courseId}
                   onChange={(e) => setCourseId(e.target.value)}
-                  style={{ ...styles.select, width: "100%", height: 40 }}
                 >
                   <option value="">-- Chọn khóa học --</option>
                   {courses.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.courseName || c.name || c.title}
-                    </option>
+                    <option key={c.id} value={c.id}>{c.courseName || c.name || c.title}</option>
                   ))}
                 </select>
-                <span
-                  style={{ ...styles.selectChevron, top: 12 }}
-                  aria-hidden="true"
-                >
-                  ▾
-                </span>
+                <div className="select-icon">▼</div>
               </div>
-            </label>
+            </div>
 
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: 12,
-              }}
-            >
-              <label style={modalStyles.label}>
-                Ngày bắt đầu
+            {/* Dates */}
+            <div className="field-grid-2 form-group-mb">
+              <div>
+                <label className="custom-label">
+                  <div className="label-icon icon-blue"><Calendar size={16} color="white" /></div>
+                  Ngày bắt đầu <span style={{ color: '#ef4444' }}>*</span>
+                </label>
                 <input
                   type="date"
+                  className="custom-input"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
-                  style={modalStyles.input}
                 />
-                {errors.startDate && (
-                  <div style={modalStyles.error}>{errors.startDate}</div>
-                )}
-              </label>
-              <label style={modalStyles.label}>
-                Ngày kết thúc
+                {errors.startDate && <div style={{ color: '#ef4444', fontSize: 12, marginTop: 4 }}>{errors.startDate}</div>}
+              </div>
+              <div>
+                <label className="custom-label">
+                  <div className="label-icon icon-purple"><Calendar size={16} color="white" /></div>
+                  Ngày kết thúc
+                </label>
                 <input
                   type="date"
+                  className="custom-input"
                   value={endDate}
                   min={startDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  style={modalStyles.input}
                 />
-                {errors.endDate && (
-                  <div style={modalStyles.error}>{errors.endDate}</div>
-                )}
-              </label>
+                {errors.endDate && <div style={{ color: '#ef4444', fontSize: 12, marginTop: 4 }}>{errors.endDate}</div>}
+              </div>
             </div>
 
-            <label style={modalStyles.label}>
-              Lịch học
-              <input
-                type="text"
-                value={schedule}
-                onChange={(e) => setSchedule(e.target.value)}
-                style={modalStyles.input}
-              />
-            </label>
-
-          </div>
-          <div style={modalStyles.footer}>
-            <button
-              type="button"
-              onClick={onClose}
-              style={modalStyles.ghostBtn}
-            >
-              Hủy
-            </button>
-            <button type="submit" style={styles.primaryButton}>
-              Lưu thay đổi
-            </button>
-          </div>
-        </form>
+            {/* Footer */}
+            <div className="footer-actions">
+              <button type="button" onClick={onClose} className="btn-white">Hủy bỏ</button>
+              <button type="submit" className="btn-orange" disabled={!isChanged}>
+                <Sparkles size={16} fill="white" /> Cập nhật
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );
@@ -1973,8 +2287,9 @@ function IconEye() {
 const styles = {
   page: {
     padding: "28px 24px",
-    background: "#f7f8fa",
+    background: "#f5f5f5",
     minHeight: "100%",
+    fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
   },
   header: {
     display: "flex",
@@ -1983,7 +2298,7 @@ const styles = {
     marginBottom: 16,
   },
   title: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: 700,
     color: "#111827",
     margin: 0,
@@ -2292,14 +2607,15 @@ const modalStyles = {
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
-    padding: "14px 16px",
-    borderBottom: "1px solid #f3f4f6",
+    padding: "24px 32px",
+    background: "linear-gradient(135deg, #f97316, #ea580c)",
+    color: "white",
   },
   title: {
     margin: 0,
     fontSize: 18,
     fontWeight: 700,
-    color: "#111827",
+    color: "white",
   },
   body: {
     padding: 16,
