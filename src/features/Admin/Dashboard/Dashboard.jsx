@@ -19,6 +19,7 @@ import NewCoursesTable from "./components/NewCoursesTable";
 import RecentQuizzesTable from "./components/RecentQuizzesTable";
 import { dashboardService } from "@utils/dashboardService";
 import { quizResultService } from "@utils/quizResultService.js";
+import { courseService } from "@utils/courseService.js";
 
 // 3. XÂY DỰNG LAYOUT
 const DashboardOverview = () => {
@@ -27,6 +28,7 @@ const DashboardOverview = () => {
   const [cardsRow2, setCardsRow2] = useState([]);
   const [recentQuizzes, setRecentQuizzes] = useState([]);
   const [newCourses, setNewCourses] = useState([]);
+  const [courseProgress, setCourseProgress] = useState([]);
 
   useEffect(() => {
     let alive = true;
@@ -192,6 +194,47 @@ const DashboardOverview = () => {
         if (alive) setNewCourses([]);
       });
 
+    // Fetch Course Progress
+    courseService.getCoursesPaging({ page: 0, size: 5 })
+      .then(async (res) => {
+        if (!alive) return;
+        const courses = res?.data?.content || [];
+        if (!courses.length) {
+          setCourseProgress([]);
+          return;
+        }
+
+        try {
+          // Fetch progress for each course
+          const progressPromises = courses.map(c =>
+            dashboardService.getCourseProgress(c.id).then(r => ({ id: c.id, ...r.data })).catch(() => null)
+          );
+
+          const results = await Promise.all(progressPromises);
+
+          const chartData = courses.map((course, index) => {
+            const stats = results[index] || {};
+            // Mapping API response to Chart keys
+            // Assuming API returns { completed: number, inProgress: number } or similar
+            // Adjust keys based on actual API response debug
+            const completed = stats.completed ?? stats.finished ?? stats.completedCount ?? 0;
+            const inProgress = stats.inProgress ?? stats.learning ?? stats.studyingCount ?? 0;
+
+            return {
+              name: course.name || course.title || `Course ${course.id}`,
+              "Hoàn thành": Number(completed),
+              "Đang học": Number(inProgress)
+            };
+          });
+
+          if (alive) setCourseProgress(chartData);
+
+        } catch (err) {
+          console.error("Error fetching course progress details", err);
+        }
+      })
+      .catch(e => console.error("Failed to load courses for progress", e));
+
     return () => { alive = false; };
   }, []);
   return (
@@ -230,7 +273,7 @@ const DashboardOverview = () => {
         <section className="dashboard-card col-span-12 lg-col-span-5">
           <h3 className="dashboard-card-title">Tiến độ khóa học</h3>
           <div className="chart-container">
-            <CourseProgressChart />
+            <CourseProgressChart data={courseProgress} />
           </div>
         </section>
 

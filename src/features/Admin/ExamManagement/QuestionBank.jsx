@@ -20,12 +20,34 @@ export default function QuestionBank() {
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [totalElements, setTotalElements] = useState(0);
   const [limit, setLimit] = useState(10);
   const [searchText, setSearchText] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [category, setCategory] = useState("");
 
-  const CATEGORIES = ["Java", "OOP", "HTTP", "Git", "React", "SQL", "Spring Boot"];
+  const [categoryList, setCategoryList] = useState([]);
+
+  const fetchCategories = async () => {
+    try {
+      const res = await questionService.getCategories({ size: 100 }); // Get plenty
+      const data = res?.data ?? res;
+      // Assuming API returns array of strings or objects with name?
+      // User prompt says: "Trả về danh sách các category duy nhất hiện có". 
+      // Typical backend might return ["Java", "OOP"] or [{id:1, name:"Java"}]. 
+      // Let's assume array of strings based on context "danh sách các category duy nhất".
+      // If data.content exists (pagination), use that.
+      const list = Array.isArray(data) ? data : (data?.content || []);
+      // Filter out any non-string or empty if necessary, but usually backend handles unique list
+      setCategoryList(list);
+    } catch (e) {
+      console.error("Failed to load categories", e);
+    }
+  };
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
 
   const user = (() => {
     try {
@@ -61,11 +83,13 @@ export default function QuestionBank() {
         id: q?.id ?? q?.questionId,
         question: q?.questionText ?? q?.question_text ?? q?.title ?? "",
         course: q?.course ?? q?.category ?? "N/A",
+        // Logic: Options exist -> Trắc nghiệm, else Tự luận. Ensure no "Đúng/Sai" text is manually added.
         type: Array.isArray(q?.options) && q.options.length > 0 ? "Trắc nghiệm" : "Tự luận",
         raw: q,
       }));
       setQuestions(mapped);
       setTotalPages(data?.totalPages || 1);
+      setTotalElements(data?.totalElements || mapped.length);
     } catch {
       setQuestions([]);
     } finally {
@@ -80,6 +104,51 @@ export default function QuestionBank() {
     refreshList();
   }, [page, limit, debouncedSearch, category]);
 
+  const [stats, setStats] = useState({
+    total: 0,
+    categories: 0,
+    multipleChoice: 0,
+    essay: 0,
+  });
+
+  const fetchStats = async () => {
+    try {
+      // Fetch all questions to calculate stats
+      const res = await questionService.getAll();
+      const data = res?.data ?? res;
+      const content = data?.content || [];
+
+      let mcCount = 0;
+      let essayCount = 0;
+      const uniqueCats = new Set();
+
+      content.forEach(q => {
+        // Determine type
+        const isMC = Array.isArray(q?.options) && q.options.length > 0;
+        if (isMC) mcCount++;
+        else essayCount++;
+
+        // Collect categories
+        const cat = q?.course || q?.category;
+        if (cat) uniqueCats.add(cat);
+      });
+
+      setStats({
+        total: data?.totalElements || content.length,
+        categories: uniqueCats.size,
+        multipleChoice: mcCount,
+        essay: essayCount
+      });
+
+    } catch (e) {
+      console.error("Failed to fetch stats", e);
+    }
+  };
+
+  useEffect(() => {
+    fetchStats();
+  }, [questions]); // Re-fetch stats when list updates (e.g. after delete/add)
+
   const [openDetail, setOpenDetail] = useState(false);
   const [detailData, setDetailData] = useState(null);
   const [openEdit, setOpenEdit] = useState(false);
@@ -92,10 +161,11 @@ export default function QuestionBank() {
     explanation: "",
   });
   const [savingEdit, setSavingEdit] = useState(false);
-  const [openBulk, setOpenBulk] = useState(false);
-  const [bulkJSON, setBulkJSON] = useState(
-    '[{"category":"Java","questionText":"Ví dụ câu hỏi?","options":["A","B","C","D"],"correctAnswer":"A","explanation":"Giải thích"}]'
-  );
+  const [openBulk, setOpenBulk] = useState(false); // Can remove if unused, but button action changed
+  // Cleanup unnecessary local bulk state if moving everything to page
+
+  // Import logic moved to QuestionBankBulk.jsx
+
 
   const handleView = async (q) => {
     try {
@@ -214,96 +284,150 @@ export default function QuestionBank() {
     }
   };
 
-  const submitBulk = async () => {
-    if (!isAdmin) {
-      showNotification("Không có quyền", "Chỉ ADMIN được phép tạo hàng loạt", "error");
-      return;
-    }
-    let arr;
-    try {
-      arr = JSON.parse(bulkJSON);
-      if (!Array.isArray(arr)) throw new Error("invalid");
-    } catch {
-      showNotification("Lỗi", "Dữ liệu không hợp lệ (JSON)", "error");
-      return;
-    }
-    try {
-      await questionService.bulkCreate(arr);
-      setOpenBulk(false);
-      showNotification("Thành công", "Đã tạo nhiều câu hỏi", "success");
-      setPage(1);
-      setDebouncedSearch("");
-      setCategory("");
-      await refreshList();
-    } catch {
-      showNotification("Lỗi", "Tạo hàng loạt thất bại", "error");
-    }
-  };
+  // Submit bulk logic moved to QuestionBankBulk.jsx
+
 
   return (
     <div className="question-bank-container">
+      {/* Breadcrumb */}
+      <div className="qb-breadcrumb">
+        <span>Ngân hàng câu hỏi</span> / <span>Dashboard</span> / <span className="active">Tất cả câu hỏi</span>
+      </div>
+
+      {/* Header */}
       <div className="question-bank-header">
-        <div>
-          <h2>📚 Ngân hàng câu hỏi</h2>
-          <p>Quản lý danh sách câu hỏi dùng cho các quiz</p>
+        <div className="qb-title-section">
+          <div className="qb-icon-box">
+            <i className="fa fa-question">?</i>
+          </div>
+          <div className="qb-title-text">
+            <h2>Ngân hàng câu hỏi</h2>
+            <p>Quản lý danh sách câu hỏi sẵn sàng cho các quiz</p>
+          </div>
         </div>
 
         <div className="question-actions">
+          {/* Logic Swap: "Tạo nhanh câu hỏi" -> Add Single */}
           <button
-            className="question-btn add"
+            className="qb-btn-action outline"
             onClick={() => navigate("/admin/question-bank/add")}
           >
-            + Thêm câu hỏi mới
+            ⚡ Tạo nhanh câu hỏi
           </button>
-          <button className="question-btn add" onClick={() => navigate("/admin/question-bank/bulk")}>
-            + Tạo nhiều câu hỏi
+
+          {/* Logic Swap: "Thêm câu hỏi mới" -> Bulk Create Page */}
+          <button className="qb-btn-action primary" onClick={() => navigate("/admin/question-bank/bulk")}>
+            + Thêm câu hỏi mới
           </button>
         </div>
       </div>
 
-      <div className="question-bank-table-section">
-        <input
-          type="text"
-          placeholder="🔍 Tìm kiếm câu hỏi..."
-          className="question-search"
-          value={searchText}
-          onChange={(e) => setSearchText(e.target.value)}
-        />
-
-        <div className="filter-row">
-          <select
-            className="question-filter"
-            value={category}
-            onChange={(e) => {
-              setCategory(e.target.value);
-              setPage(1);
-            }}
-          >
-            <option value="">Tất cả danh mục</option>
-            {CATEGORIES.map((cat) => (
-              <option key={cat} value={cat}>
-                {cat}
-              </option>
-            ))}
-          </select>
+      {/* Stats Grid */}
+      {/* Stats Grid */}
+      <div className="stats-grid">
+        {/* Total (Orange) */}
+        <div className="stat-card orange">
+          <div className="stat-icon-wrapper">
+            <i className="fa fa-file-text-o"></i>
+          </div>
+          <div className="stat-value">{stats.total}</div>
+          <div className="stat-label">Tổng câu hỏi</div>
+          <div className="stat-decoration">✨</div>
         </div>
 
+        {/* Categories (Blue) */}
+        <div className="stat-card blue">
+          <div className="stat-icon-wrapper">
+            <i className="fa fa-book"></i>
+          </div>
+          <div className="stat-value">{stats.categories}</div>
+          <div className="stat-label">Danh mục</div>
+          <div className="stat-decoration">✨</div>
+        </div>
+
+        {/* Multiple Choice (Green) */}
+        <div className="stat-card green">
+          <div className="stat-icon-wrapper">
+            <i className="fa fa-check-square-o"></i>
+          </div>
+          <div className="stat-value">{stats.multipleChoice}</div>
+          <div className="stat-label">Trắc nghiệm</div>
+          <div className="stat-decoration">✨</div>
+        </div>
+
+        {/* Essay (Purple) */}
+        <div className="stat-card purple">
+          <div className="stat-icon-wrapper">
+            <i className="fa fa-pencil-square-o"></i>
+          </div>
+          <div className="stat-value">{stats.essay}</div>
+          <div className="stat-label">Tự luận</div>
+          <div className="stat-decoration">✨</div>
+        </div>
+      </div>
+
+      {/* Filter Bar */}
+      <div className="filter-bar-container">
+        <div className="filter-left">
+          <div className="search-wrapper">
+            <span>🔍</span>
+            <input
+              type="text"
+              placeholder=" Tìm kiếm câu hỏi..."
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              style={{ marginLeft: 8 }}
+            />
+          </div>
+
+          <div className="filter-dropdown">
+            <span>Y</span>
+            <select
+              value={category}
+              onChange={(e) => {
+                setCategory(e.target.value);
+                setPage(1);
+              }}
+            >
+              <option value="">Tất cả danh mục</option>
+              {categoryList.map((cat, index) => {
+                const val = cat?.name || cat;
+                return (
+                  <option key={index} value={val}>
+                    {val} {cat?.count ? `(${cat.count})` : ''}
+                  </option>
+                );
+              })}
+            </select>
+          </div>
+
+
+        </div>
+
+        <div className="filter-right">
+          Tìm thấy: <span className="filter-count">{totalElements}</span> câu hỏi
+        </div>
+      </div>
+
+      {/* Table Section */}
+      <div className="question-bank-table-section">
         <table className="question-bank-table">
           <thead>
             <tr>
               <th>Câu hỏi</th>
               <th>Danh mục</th>
+              <th>Loại</th>
               <th>Thao tác</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={3}>Đang tải dữ liệu...</td>
+                <td colSpan={4} style={{ textAlign: "center", padding: "40px" }}>Đang tải dữ liệu...</td>
               </tr>
             ) : questions.length === 0 ? (
               <tr>
-                <td colSpan={3}>Không có câu hỏi phù hợp</td>
+                <td colSpan={4} style={{ textAlign: "center", padding: "40px" }}>Không có câu hỏi phù hợp</td>
               </tr>
             ) : (
               questions.map((q) => (
@@ -311,13 +435,25 @@ export default function QuestionBank() {
                   <td>{q.question}</td>
                   <td>{q.course}</td>
                   <td>
-                    <button className="btn-icon" onClick={() => handleView(q)}>
+                    <span style={{
+                      padding: '4px 10px',
+                      borderRadius: '20px',
+                      background: q.type === 'Trắc nghiệm' ? '#E0F2FE' : '#FEF3C7',
+                      color: q.type === 'Trắc nghiệm' ? '#0284C7' : '#D97706',
+                      fontSize: '12px',
+                      fontWeight: 600
+                    }}>
+                      {q.type}
+                    </span>
+                  </td>
+                  <td>
+                    <button className="btn-icon" onClick={() => handleView(q)} title="Xem">
                       👁️
                     </button>
-                    <button className="btn-icon" onClick={() => handleEditOpen(q)}>
+                    <button className="btn-icon" onClick={() => handleEditOpen(q)} title="Sửa">
                       ✏️
                     </button>
-                    <button className="btn-icon delete" onClick={() => handleDelete(q)}>
+                    <button className="btn-icon delete" onClick={() => handleDelete(q)} title="Xóa">
                       🗑️
                     </button>
                   </td>
@@ -327,6 +463,7 @@ export default function QuestionBank() {
           </tbody>
         </table>
 
+        {/* Pagination */}
         <div
           style={{
             display: "flex",
@@ -339,35 +476,26 @@ export default function QuestionBank() {
           <button
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={page === 1 || loading}
-            style={{
-              padding: "8px 12px",
-              border: "1px solid #ddd",
-              borderRadius: "4px",
-              background: page === 1 ? "#f5f5f5" : "white",
-              cursor: page === 1 ? "default" : "pointer",
-            }}
+            className="qb-btn cancel"
+            style={{ padding: "6px 12px" }}
           >
             Trước
           </button>
-          <span>
+          <span style={{ fontSize: '14px', color: '#64748b' }}>
             Trang {page} / {totalPages}
           </span>
           <button
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
             disabled={page >= totalPages || loading}
-            style={{
-              padding: "8px 12px",
-              border: "1px solid #ddd",
-              borderRadius: "4px",
-              background: page >= totalPages ? "#f5f5f5" : "white",
-              cursor: page >= totalPages ? "default" : "pointer",
-            }}
+            className="qb-btn cancel"
+            style={{ padding: "6px 12px" }}
           >
             Sau
           </button>
         </div>
       </div>
 
+      {/* Modals */}
       {openDetail && (
         <div className="modal-overlay">
           <div className="modal-card">
@@ -379,24 +507,31 @@ export default function QuestionBank() {
             </div>
             <div className="modal-body">
               <div style={{ marginBottom: 8 }}>
-                <b>Danh mục:</b> {detailData?.category || ""}
+                <span className="qb-label">Danh mục</span>
+                <div>{detailData?.category || "N/A"}</div>
               </div>
               <div style={{ marginBottom: 12 }}>
-                <b>Câu hỏi:</b> {detailData?.questionText || ""}
+                <span className="qb-label">Câu hỏi</span>
+                <div>{detailData?.questionText || ""}</div>
               </div>
               {Array.isArray(detailData?.options) && detailData.options.length > 0 && (
                 <div style={{ marginBottom: 12 }}>
-                  <div style={{ fontWeight: 600, marginBottom: 6 }}>Lựa chọn</div>
-                  <ul>
+                  <span className="qb-label">Lựa chọn</span>
+                  <ul style={{ paddingLeft: 20 }}>
                     {detailData.options.map((op, i) => (
                       <li key={i} style={{ marginBottom: 4 }}>
-                        {op} {detailData.correctAnswer === op ? "✅" : ""}
+                        {op} {detailData.correctAnswer === op ? "✅ (Đúng)" : ""}
                       </li>
                     ))}
                   </ul>
                 </div>
               )}
-              {detailData?.explanation && <div><b>Giải thích:</b> {detailData.explanation}</div>}
+              {detailData?.explanation && (
+                <div>
+                  <span className="qb-label">Giải thích</span>
+                  <div>{detailData.explanation}</div>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -419,12 +554,13 @@ export default function QuestionBank() {
                 onChange={(e) => changeEditField("category", e.target.value)}
               />
               <label className="qb-label">Câu hỏi</label>
-              <input
-                className="qb-input"
+              <textarea
+                className="qb-textarea"
+                rows={3}
                 value={editForm.questionText}
                 onChange={(e) => changeEditField("questionText", e.target.value)}
               />
-              <label className="qb-label">Các lựa chọn</label>
+              <label className="qb-label">Các lựa chọn (Để trống nếu là tự luận)</label>
               {Array.isArray(editForm.options) &&
                 editForm.options.map((op, idx) => (
                   <div key={idx} style={{ display: "flex", gap: 8, marginBottom: 8 }}>
@@ -432,32 +568,39 @@ export default function QuestionBank() {
                       className="qb-input"
                       value={op}
                       onChange={(e) => changeEditOption(idx, e.target.value)}
+                      style={{ marginBottom: 0 }}
                     />
                     <button type="button" className="qb-btn small" onClick={() => removeEditOption(idx)}>
                       −
                     </button>
                   </div>
                 ))}
-              <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
-                <button type="button" className="qb-btn submit" onClick={addEditOption}>
-                  Thêm đáp án
+              <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+                <button type="button" className="qb-btn outline" onClick={addEditOption} style={{ fontSize: '12px' }}>
+                  + Thêm đáp án
                 </button>
               </div>
-              <label className="qb-label">Đáp án đúng</label>
-              <select
-                className="qb-input"
-                value={editForm.correctAnswer}
-                onChange={(e) => changeEditField("correctAnswer", e.target.value)}
-              >
-                <option value="">-- Chọn --</option>
-                {editForm.options
-                  .filter((x) => x && x.trim())
-                  .map((op, i) => (
-                    <option key={i} value={op}>
-                      {op}
-                    </option>
-                  ))}
-              </select>
+
+              {editForm.options.length > 0 && (
+                <>
+                  <label className="qb-label">Đáp án đúng</label>
+                  <select
+                    className="qb-select"
+                    value={editForm.correctAnswer}
+                    onChange={(e) => changeEditField("correctAnswer", e.target.value)}
+                  >
+                    <option value="">-- Chọn --</option>
+                    {editForm.options
+                      .filter((x) => x && x.trim())
+                      .map((op, i) => (
+                        <option key={i} value={op}>
+                          {op}
+                        </option>
+                      ))}
+                  </select>
+                </>
+              )}
+
               <label className="qb-label">Giải thích</label>
               <textarea
                 className="qb-textarea"
@@ -470,41 +613,15 @@ export default function QuestionBank() {
                 Hủy
               </button>
               <button className="qb-btn submit" disabled={savingEdit} onClick={saveEdit}>
-                {savingEdit ? "Đang lưu..." : "Lưu"}
+                {savingEdit ? "Đang lưu..." : "Lưu thay đổi"}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {openBulk && (
-        <div className="modal-overlay">
-          <div className="modal-card" style={{ maxWidth: 800 }}>
-            <div className="modal-header">
-              <h3>Tạo nhiều câu hỏi</h3>
-              <button className="btn-icon" onClick={() => setOpenBulk(false)}>
-                ✖
-              </button>
-            </div>
-            <div className="modal-body">
-              <textarea
-                className="qb-textarea"
-                rows={14}
-                value={bulkJSON}
-                onChange={(e) => setBulkJSON(e.target.value)}
-              />
-            </div>
-            <div className="modal-footer">
-              <button className="qb-btn cancel" onClick={() => setOpenBulk(false)}>
-                Hủy
-              </button>
-              <button className="qb-btn submit" onClick={submitBulk}>
-                Gửi
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Bulk/Import Modal removed - moved to separate page QuestionBankBulk.jsx */}
+
 
       <NotificationModal
         isOpen={notification.isOpen}
@@ -516,4 +633,3 @@ export default function QuestionBank() {
     </div>
   );
 }
-
