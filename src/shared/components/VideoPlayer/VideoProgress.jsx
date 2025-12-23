@@ -8,7 +8,7 @@ function formatTime(seconds) {
     return `${m < 10 ? "0" + m : m}:${s < 10 ? "0" + s : s}`;
 }
 
-export default function VideoProgress({ src, poster, className }) {
+export default function VideoProgress({ src, poster, className, onEnded }) {
     const videoRef = useRef(null);
     const containerRef = useRef(null);
     const [isPlaying, setIsPlaying] = useState(false);
@@ -34,6 +34,7 @@ export default function VideoProgress({ src, poster, className }) {
 
         const handleEnded = () => {
             setIsPlaying(false);
+            if (onEnded) onEnded(); // Trigger parent callback
         };
 
         video.addEventListener("timeupdate", handleTimeUpdate);

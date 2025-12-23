@@ -22,7 +22,9 @@ import {
   Search,
   TrendingUp,
   Award,
-  Plus
+  Plus,
+  Pencil,
+  Trash2
 } from "lucide-react";
 
 // Giá trị khởi tạo form
@@ -56,22 +58,36 @@ function CourseRow({ course, onEdit, onDelete }) {
           ? course.description.substring(0, 50) + "..."
           : course.description || "—"}
       </td>
+      <td>
+        <span style={{
+          padding: '4px 10px',
+          borderRadius: '6px',
+          fontSize: '0.8rem',
+          fontWeight: 600,
+          backgroundColor: course.level === 'BEGINNER' ? '#dcfce7' : course.level === 'INTERMEDIATE' ? '#dbeafe' : '#f3e8ff',
+          color: course.level === 'BEGINNER' ? '#166534' : course.level === 'INTERMEDIATE' ? '#1e40af' : '#6b21a8',
+        }}>
+          {course.level || '—'}
+        </span>
+      </td>
       <td>{course.totalSessions || 0}</td>
       <td className={styles.colActions}>
-        <div className={styles.rowActions}>
+        <div className={styles.rowActions} style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
           <button
             type="button"
-            className={`${styles.actionBtn} ${styles.actionBtnSecondary}`}
+            className={styles.btnIcon}
+            title="Chỉnh sửa"
             onClick={onEdit}
           >
-            Sửa
+            ✏️
           </button>
           <button
             type="button"
-            className={`${styles.actionBtn} ${styles.actionBtnDanger}`}
+            className={`${styles.btnIcon} ${styles.btnIconDelete}`}
+            title="Xóa"
             onClick={onDelete}
           >
-            Xóa
+            🗑️
           </button>
         </div>
       </td>
@@ -331,6 +347,7 @@ export default function ManageCourses() {
             <tr className={styles.tableHeader}>
               <th className={styles.colTitle}>Tên khóa học</th>
               <th className={styles.colDesc}>Mô tả</th>
+              <th>Cấp độ</th>
               <th>Tổng buổi</th>
               <th className={styles.colActions}>Thao tác</th>
             </tr>

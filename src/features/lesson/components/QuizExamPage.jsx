@@ -7,7 +7,7 @@ import { quizResultService } from "@utils/quizResultService.js";
 
 import "./QuizExamPage.css";
 
-export default function QuizExamPage({ quizId }) {
+export default function QuizExamPage({ quizId, onFinish }) {
   const params = useParams();
   const quizIdFromParams = params.quizId || quizId;
 
@@ -193,6 +193,11 @@ export default function QuizExamPage({ quizId }) {
       setSubmissionResult(finalResult);
       setIsQuizCompleted(true);
       if (timerRef.current) clearInterval(timerRef.current);
+
+      // Trigger callback (for progress saving in parent)
+      if (onFinish) {
+        onFinish(finalResult);
+      }
     } catch (error) {
       console.error("Submit quiz error:", error);
       let errorMessage = error.message;

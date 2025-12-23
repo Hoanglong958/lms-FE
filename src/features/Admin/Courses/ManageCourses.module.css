@@ -10,7 +10,8 @@
   --radius-lg: 12px;
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
   --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.08);
-  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
 }
 
 /* Global basics */
@@ -440,7 +441,11 @@
   left: -40px;
   width: 150px;
   height: 150px;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.2) 0%, transparent 70%);
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.2) 0%,
+    transparent 70%
+  );
   border-radius: 50%;
 }
 
@@ -656,7 +661,8 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1),
+    0 8px 10px -6px rgba(0, 0, 0, 0.05);
 }
 
 .customInputGroup {
@@ -1171,4 +1177,30 @@
   background: #fecaca;
   border-color: #fca5a5;
   box-shadow: 0 10px 22px -18px rgba(185, 28, 28, 0.6);
+}
+
+/* Action Buttons Standardized */
+.btnIcon {
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  border-radius: 8px;
+  padding: 6px 8px;
+  cursor: pointer;
+  font-size: 1.2rem;
+  line-height: 1;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btnIcon:hover {
+  background: #fff7ed;
+  border-color: #f97316;
+}
+
+.btnIconDelete:hover {
+  background: #fef2f2;
+  border-color: #fca5a5;
+  color: #ef4444;
 }

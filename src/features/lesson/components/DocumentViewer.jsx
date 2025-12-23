@@ -1,11 +1,44 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { lessonDocumentService } from "@utils/lessonDocumentService";
+import { userProgressService } from "@utils/userProgressService";
 import "./DocumentViewer.css";
 import { SERVER_URL } from "@config";
 
 const DocumentViewer = ({ item }) => {
   const [document, setDocument] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isCompleted, setIsCompleted] = useState(false);
+  const timerRef = useRef(null);
+
+  // Get current user
+  const user = (() => {
+    try {
+      return JSON.parse(localStorage.getItem("loggedInUser") || "{}");
+    } catch {
+      return {};
+    }
+  })();
+
+  const handleComplete = async () => {
+    if (isCompleted) return;
+    if (!user.id || !item?.id) return;
+
+    try {
+      await userProgressService.saveLessonProgress({
+        userId: user.id,
+        lessonId: item.id,
+        sessionId: item.sessionId || 0,
+        courseId: item.courseId || 0,
+        type: "document",
+        status: "COMPLETED",
+        progressPercent: 100
+      });
+      setIsCompleted(true);
+      // console.log("Document progress saved");
+    } catch (e) {
+      console.error("Failed to save document progress", e);
+    }
+  };
 
   useEffect(() => {
     if (!item?.id) {
@@ -15,7 +48,6 @@ const DocumentViewer = ({ item }) => {
 
     const fetchDocument = async () => {
       try {
-        // Fetch document theo lessonId giống như Admin
         const res = await lessonDocumentService.getDocumentsByLesson(item.id);
         const documents = res.data || [];
         if (documents.length > 0) {
@@ -28,8 +60,33 @@ const DocumentViewer = ({ item }) => {
       }
     };
 
-    fetchDocument();
+    fetcborthDocument();
   }, [item.id]);
+
+  // Timer: 10 seconds to auto-complete
+  useEffect(() => {
+    if (!document) return;
+    timerRef.current = setTimeout(() => {
+      handleComplete();
+    }, 10000); // 10s
+
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, [document]); // Depend on document load
+
+  // Scroll detection (window)
+  useEffect(() => {
+    const onScroll = () => {
+      if (isCompleted) return;
+      if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 50) {
+        handleComplete();
+      }
+    };
+    window.addEventListener("scroll", onScroll);
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [isCompleted, document]);
+
 
   if (loading) {
     return (
@@ -92,6 +149,9 @@ const DocumentViewer = ({ item }) => {
           </div>
         </div>
       )}
+
+
+
     </div>
   );
 };

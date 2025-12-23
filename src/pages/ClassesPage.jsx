@@ -12,15 +12,50 @@ const ClassesPage = () => {
   const [error, setError] = useState(null);
 
   const mapClassesToState = (rawList) => {
-    const mapped = rawList.map((c) => ({
-      id: c.id,
-      title: c.name || c.className || "Lớp học không tên",
-      teacher: c.assignedTeacher || "Chưa phân công",
-      status: (c.status || "UPCOMING").toLowerCase() === 'active' ? 'Đang học' : 'Sắp bắt đầu',
-      schedule: c.schedule || "Chưa có lịch",
-      studentCount: c.studentCount || 0,
-      image: "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&w=1000&q=80",
-    }));
+    const mapped = rawList.map((c) => {
+      // Calculate status dynamically
+      let status = "Sắp bắt đầu";
+      let statusKey = "UPCOMING";
+
+      const start = c.startDate || c.start_date ? new Date(c.startDate || c.start_date) : null;
+      const end = c.endDate || c.end_date ? new Date(c.endDate || c.end_date) : null;
+      const now = new Date();
+
+      if (start && end) {
+        if (now < start) {
+          status = "Sắp bắt đầu";
+          statusKey = "UPCOMING";
+        } else if (now >= start && now <= end) {
+          status = "Đang học";
+          statusKey = "ACTIVE";
+        } else {
+          status = "Đã kết thúc";
+          statusKey = "FINISHED";
+        }
+      } else if (start) {
+        // If only start date is known
+        if (now < start) {
+          status = "Sắp bắt đầu";
+          statusKey = "UPCOMING";
+        } else {
+          status = "Đang học";
+          statusKey = "ACTIVE";
+        }
+      }
+
+      return {
+        id: c.id,
+        title: c.name || c.className || "Lớp học không tên",
+        teacher: c.assignedTeacher || "Chưa phân công",
+        status: status, // Use calculated status display string
+        statusKey: statusKey, // Keep internal key if needed for styling
+        schedule: c.schedule || "Chưa có lịch",
+        studentCount: c.studentCount || 0,
+        image: "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&w=1000&q=80",
+        startDate: c.startDate || c.start_date,
+        endDate: c.endDate || c.end_date
+      };
+    });
     setClasses(mapped);
   };
 

@@ -110,6 +110,14 @@ export default function LessonPage() {
     }
   };
 
+  // 7. Enrich lesson data with Context (CourseID, SessionID)
+  const currentSession = sessions.find(s => s.lessons && s.lessons.some(l => l.id === lesson?.id));
+  const enrichedLesson = lesson ? {
+    ...lesson,
+    courseId: course?.id,
+    sessionId: currentSession?.id || lesson.sessionId
+  } : null;
+
   if (loading || !lesson)
     return <div className="lesson-layout">Đang tải bài học...</div>;
 
@@ -168,22 +176,9 @@ export default function LessonPage() {
         </div>
       </div>
 
-      <LessonContentDisplay item={lesson} />
+      <LessonContentDisplay item={enrichedLesson} progress={progressText} />
 
-      {/* Truyền progressText xuống component con */}
-      {/* Lưu ý: progressText bây giờ mặc định là "..." chứ không phải rỗng */}
 
-      {lesson.type === "video" && (
-        <VideoPlayer item={lesson} progress={progressText} />
-      )}
-
-      {lesson.type === "document" && (
-        <DocumentViewer item={lesson} progress={progressText} />
-      )}
-
-      {lesson.type === "quiz" && (
-        <QuizComponent item={lesson} progress={progressText} />
-      )}
     </div>
   );
 }

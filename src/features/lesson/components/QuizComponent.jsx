@@ -16,6 +16,8 @@ const formatDate = (dateString) => {
   });
 };
 
+import { userProgressService } from "@utils/userProgressService"; // Added import
+
 // Nhận prop 'progress'
 const QuizComponent = ({ item, progress }) => {
   const navigate = useNavigate();
@@ -23,6 +25,7 @@ const QuizComponent = ({ item, progress }) => {
   const [quiz, setQuiz] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showHistory, setShowHistory] = useState(false);
+  const [descExpanded, setDescExpanded] = useState(false); // Toggle state
 
   useEffect(() => {
     if (!item?.id) {
@@ -35,7 +38,17 @@ const QuizComponent = ({ item, progress }) => {
         const res = await lessonQuizService.getQuizzesByLesson(item.id);
         const quizzes = res.data || [];
         if (quizzes.length > 0) {
-          setQuiz(quizzes[0]);
+          const basicQuiz = quizzes[0];
+          // setQuiz(basicQuiz); // Old logic
+
+          // Fetch Full Details to get Description
+          try {
+            const detailRes = await lessonQuizService.getQuiz(basicQuiz.id || basicQuiz.quizId);
+            setQuiz(detailRes.data);
+          } catch (e) {
+            console.warn("Failed to fetch full quiz details, using basic info", e);
+            setQuiz(basicQuiz);
+          }
         }
       } catch (err) {
         console.error(err);
@@ -51,11 +64,68 @@ const QuizComponent = ({ item, progress }) => {
     setShowQuiz(true);
   };
 
+  const handleQuizFinish = async (result) => {
+    // Logic: Save progress only if higher than current
+    try {
+      const user = JSON.parse(localStorage.getItem("loggedInUser") || "{}");
+      if (!user.id || !item.id || !item.courseId) {
+        console.warn("Missing info to save quiz progress");
+        return;
+      }
+
+      const score = result.score || 0;
+      const maxScore = quiz?.maxScore || 10; // Avoid division by zero
+      let newPercent = Math.round((score / maxScore) * 100);
+      if (newPercent > 100) newPercent = 100;
+
+      // Fetch current progress
+      // Ideally we fetch specifically for this lesson, but getByCourse returns a list.
+      // Or we can just blindly save if we trust backend not to overwrite with lower? 
+      // User asked explicitly "lưu tiến trình cao nhất".
+      // Let's fetch first.
+      let currentPercent = 0;
+      try {
+        const res = await userProgressService.getByCourse(user.id, item.courseId);
+        const myProg = (res.data || []).find(p => String(p.lessonId) === String(item.id));
+        if (myProg) {
+          currentPercent = myProg.progressPercent || 0;
+        }
+      } catch (e) {
+        console.error("Failed to fetch existing progress", e);
+      }
+
+      console.log(`Quiz Result: ${newPercent}%. Current: ${currentPercent}%`);
+
+      if (newPercent > currentPercent) {
+        await userProgressService.saveLessonProgress({
+          userId: user.id,
+          lessonId: item.id,
+          sessionId: item.sessionId || 0,
+          courseId: item.courseId || 0,
+          type: "quiz",
+          status: newPercent >= 100 ? "COMPLETED" : "IN_PROGRESS",
+          progressPercent: newPercent
+        });
+        console.log("Quiz progress updated.");
+      } else {
+        console.log("New score not higher than existing progress. Skipping update.");
+      }
+
+    } catch (e) {
+      console.error("Error saving quiz progress", e);
+    }
+  };
+
   if (loading)
     return <div className="qc-loading">Đang tải bài kiểm tra...</div>;
 
   if (showQuiz && quiz) {
-    return <QuizExamPage quizId={quiz.quizId || quiz.id || item.id} />;
+    return (
+      <QuizExamPage
+        quizId={quiz.quizId || quiz.id || item.id}
+        onFinish={handleQuizFinish}
+      />
+    );
   }
 
   const displayTitle = quiz?.title || item.title || "Bài kiểm tra";
@@ -73,10 +143,7 @@ const QuizComponent = ({ item, progress }) => {
         <div className="qc-intro-content">
           <h2 className="qc-card-title">{displayTitle}</h2>
           <p className="qc-card-meta">Bài kiểm tra • {questionCount} câu hỏi</p>
-          <p className="qc-card-desc">
-            Ornare eu elementum felis porttitor nunc tortor. Ornare neque
-            accumsan metus nulla ultricies.
-          </p>
+
 
           <button className="qc-start-btn" onClick={handleStartQuiz}>
             <span>Bắt đầu làm bài</span>
@@ -116,26 +183,50 @@ const QuizComponent = ({ item, progress }) => {
         </div>
       </div>
 
-      {/* 2. INFO SECTION */}
       <div className="qc-info-section">
         <div className="qc-info-header">
           <h1 className="qc-main-title">{displayTitle}</h1>
-          <div className="qc-progress">
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="#ccc"
-              strokeWidth="2"
-              style={{ marginRight: 6 }}
-            >
-              <circle cx="12" cy="12" r="10" />
-              <path d="M12 6v6l4 2" />
-            </svg>
+          <div className="qc-progress-badge">
+            {(() => {
+              // Extract numbers from "1/10 Bài học" string
+              const match = typeof progress === 'string' ? progress.match(/(\d+)\/(\d+)/) : null;
+              const current = match ? parseInt(match[1]) : 0;
+              const total = match ? parseInt(match[2]) : 1;
+              const percent = total > 0 ? Math.round((current / total) * 100) : 0;
 
-            {/* SỬA Ở ĐÂY: Thêm fallback nếu progress bị rỗng */}
-            <span>{progress || "Đang tải..."}</span>
+              // SVG Logic for Circle
+              const radius = 18;
+              const circumference = 2 * Math.PI * radius;
+              const offset = circumference - (percent / 100) * circumference;
+
+              return (
+                <>
+                  <div style={{ position: 'relative', width: '48px', height: '48px' }}>
+                    <svg width="48" height="48" viewBox="0 0 48 48" style={{ transform: 'rotate(-90deg)' }}>
+                      <circle cx="24" cy="24" r={radius} stroke="#E0E0E0" strokeWidth="4" fill="none" />
+                      <circle
+                        cx="24" cy="24" r={radius}
+                        stroke="#F05123" strokeWidth="4" fill="none"
+                        strokeLinecap="round"
+                        strokeDasharray={circumference}
+                        strokeDashoffset={offset}
+                        style={{ transition: 'stroke-dashoffset 0.5s ease' }}
+                      />
+                    </svg>
+                    <div style={{
+                      position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: '12px', fontWeight: 'bold', color: '#333'
+                    }}>
+                      {percent}%
+                    </div>
+                  </div>
+                  <span style={{ fontSize: '20px', fontWeight: '800', color: '#333' }}>
+                    {current}/{total} Bài học
+                  </span>
+                </>
+              );
+            })()}
           </div>
         </div>
 
@@ -154,16 +245,12 @@ const QuizComponent = ({ item, progress }) => {
             <polyline points="12 6 12 12 16 14"></polyline>
           </svg>
           <span>
-            {formatDate(quiz?.createdAt || item.createdAt || new Date())}
+            Cập nhật: {formatDate(quiz?.createdAt || item.createdAt || new Date())}
           </span>
         </div>
 
-        <div className="qc-desc-box">
-          <h3 className="qc-desc-title">Mô tả</h3>
-          <div className="qc-desc-content">
-            <p>{description}</p>
-          </div>
-        </div>
+
+
 
         {/* 3. HISTORY MODAL */}
         {showHistory && (

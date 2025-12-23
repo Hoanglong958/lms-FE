@@ -865,12 +865,12 @@ export default function ClassManagement() {
           <table style={styles.table}>
             <thead>
               <tr>
-                <th style={{ ...styles.th, width: 360 }}>Lớp học</th>
-                <th style={{ ...styles.th, width: 140 }}>Mã lớp</th>
-                <th style={{ ...styles.th, width: 160 }}>Giảng viên</th>
-                <th style={{ ...styles.th, width: 110 }}>Học viên</th>
-                <th style={{ ...styles.th, width: 210 }}>Thời gian</th>
-                <th style={{ ...styles.th, width: 120 }}>Trạng thái</th>
+                <th style={{ ...styles.th, width: 440 }}>Lớp học</th>
+                {/* <th style={{ ...styles.th, width: 140 }}>Mã lớp</th> Removed */}
+                <th style={{ ...styles.th, width: 220 }}>Giảng viên</th>
+                <th style={{ ...styles.th, width: 120 }}>Học viên</th>
+                <th style={{ ...styles.th, width: 240 }}>Thời gian</th>
+                <th style={{ ...styles.th, width: 140 }}>Trạng thái</th>
                 <th style={{ ...styles.th, width: 120 }}>Thao tác</th>
               </tr>
             </thead>
@@ -895,11 +895,13 @@ export default function ClassManagement() {
                       <div style={styles.classSubtitle}>{c.subtitle}</div>
                     </div>
                   </td>
+                  {/* Code column removed
                   <td style={styles.td}>
                     <span className="cm-badge cm-badge-code">
                       {c.code}
                     </span>
                   </td>
+                  */}
                   <td style={styles.td}>
                     <button
                       type="button"
@@ -939,10 +941,22 @@ export default function ClassManagement() {
                     <StatusBadge status={c.status} />
                   </td>
                   <td style={styles.td} onClick={(e) => e.stopPropagation()}>
-                    <ActionCell
-                      onEdit={() => setEditingClass(c)}
-                      onDelete={() => handleRequestDelete(c)}
-                    />
+                    <div className="cm-actions">
+                      <button
+                        className="btn-icon edit"
+                        title="Chỉnh sửa"
+                        onClick={() => setEditingClass(c)}
+                      >
+                        ✏️
+                      </button>
+                      <button
+                        className="btn-icon delete"
+                        title="Xóa"
+                        onClick={() => handleRequestDelete(c)}
+                      >
+                        🗑️
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))
@@ -950,7 +964,7 @@ export default function ClassManagement() {
               {
                 filtered.length === 0 && (
                   <tr>
-                    <td style={styles.emptyCell} colSpan={7}>
+                    <td style={styles.emptyCell} colSpan={6}>
                       Không tìm thấy lớp học phù hợp
                     </td>
                   </tr>
@@ -1163,12 +1177,12 @@ function ActionCell({ onView, onEdit, onDelete }) {
 function AddClassModal({ onClose, onSubmit }) {
   const [name, setName] = useState("");
   const [subtitle, setSubtitle] = useState("");
-  const [code, setCode] = useState("");
+  // const [code, setCode] = useState(""); // Removed code input
   const [teacher, setTeacher] = useState("");
   const [teacherId, setTeacherId] = useState(""); // Store ID
   const [students, setStudents] = useState("0");
-  const [courseId, setCourseId] = useState("");
-  const [courses, setCourses] = useState([]);
+  // const [courseId, setCourseId] = useState(""); // Removed course input
+  // const [courses, setCourses] = useState([]); // Removed course fetching
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [status, setStatus] = useState("upcoming");
@@ -1196,21 +1210,12 @@ function AddClassModal({ onClose, onSubmit }) {
         setTeachers(validTeachers);
       })
       .catch((err) => console.error("Failed to load teachers", err));
-
-    courseService.getCourses()
-      .then((res) => {
-        let data = [];
-        if (res.data?.data) data = res.data.data;
-        else if (Array.isArray(res.data)) data = res.data;
-        setCourses(data);
-      })
-      .catch(err => console.error("Failed to load courses", err));
   }, []);
 
   function validate() {
     const nextErrors = {};
     if (!name.trim()) nextErrors.name = "Vui lòng nhập tên lớp học";
-    if (!code.trim()) nextErrors.code = "Vui lòng nhập mã lớp học";
+    // if (!code.trim()) nextErrors.code = "Vui lòng nhập mã lớp học"; // Logic removed
     if (!teacher.trim()) nextErrors.teacher = "Vui lòng chọn giảng viên";
     if (!startDate) nextErrors.startDate = "Vui lòng chọn ngày bắt đầu";
     if (!endDate) nextErrors.endDate = "Vui lòng chọn ngày kết thúc";
@@ -1224,10 +1229,14 @@ function AddClassModal({ onClose, onSubmit }) {
   function handleSubmit(e) {
     e.preventDefault();
     if (!validate()) return;
+
+    // Auto-generate code
+    const generatedCode = `CLS-${Date.now()}`;
+
     onSubmit({
       name,
       subtitle,
-      code,
+      code: generatedCode,
       teacher,
       teacherId,  // Add teacherId to payload
       students,
@@ -1237,7 +1246,7 @@ function AddClassModal({ onClose, onSubmit }) {
       endDate,
       status,
       schedule: "",
-      courseId,
+      courseId: null, // No course
     });
   }
 
@@ -1296,68 +1305,33 @@ function AddClassModal({ onClose, onSubmit }) {
               />
             </div>
 
-            {/* Row 2 cols */}
-            <div className="field-grid-2 form-group-mb">
-              <div>
-                <label className="custom-label">
-                  <div className="label-icon icon-orange"><Hash size={16} color="white" /></div>
-                  Mã lớp học
-                </label>
-                <input
-                  type="text"
-                  className="custom-input"
-                  placeholder="VD: REACT-ADV"
-                  value={code}
-                  onChange={(e) => setCode(e.target.value)}
-                />
-                {errors.code && <div style={{ color: '#ef4444', fontSize: 12, marginTop: 4 }}>{errors.code}</div>}
-              </div>
-              <div>
-                <label className="custom-label">
-                  <div className="label-icon icon-green"><User size={16} color="white" /></div>
-                  Giảng viên
-                </label>
-                <div className="select-wrapper">
-                  <select
-                    className="custom-select"
-                    value={teacherId}
-                    onChange={(e) => {
-                      setTeacherId(e.target.value);
-                      const selected = teachers.find(t => String(t.id) === String(e.target.value));
-                      setTeacher(selected ? selected.fullName : "");
-                    }}
-                  >
-                    <option value="">-- Chọn giảng viên --</option>
-                    {teachers.map((t) => (
-                      <option key={t.id} value={t.id}>{t.fullName}</option>
-                    ))}
-                  </select>
-                  <div className="select-icon">▼</div>
-                </div>
-                {errors.teacher && <div style={{ color: '#ef4444', fontSize: 12, marginTop: 4 }}>{errors.teacher}</div>}
-              </div>
-            </div>
-
-            {/* Khóa học */}
+            {/* Row: Giang vien only (Code removed) */}
             <div className="form-group-mb">
               <label className="custom-label">
-                <div className="label-icon icon-pink"><BookOpen size={16} color="white" /></div>
-                Khóa học
+                <div className="label-icon icon-green"><User size={16} color="white" /></div>
+                Giảng viên
               </label>
               <div className="select-wrapper">
                 <select
                   className="custom-select"
-                  value={courseId}
-                  onChange={(e) => setCourseId(e.target.value)}
+                  value={teacherId}
+                  onChange={(e) => {
+                    setTeacherId(e.target.value);
+                    const selected = teachers.find(t => String(t.id) === String(e.target.value));
+                    setTeacher(selected ? selected.fullName : "");
+                  }}
                 >
-                  <option value="">-- Chọn khóa học --</option>
-                  {courses.map((c) => (
-                    <option key={c.id} value={c.id}>{c.courseName || c.name || c.title}</option>
+                  <option value="">-- Chọn giảng viên --</option>
+                  {teachers.map((t) => (
+                    <option key={t.id} value={t.id}>{t.fullName}</option>
                   ))}
                 </select>
                 <div className="select-icon">▼</div>
               </div>
+              {errors.teacher && <div style={{ color: '#ef4444', fontSize: 12, marginTop: 4 }}>{errors.teacher}</div>}
             </div>
+
+            {/* Course Removed */}
 
             {/* Dates */}
             <div className="field-grid-2 form-group-mb">
