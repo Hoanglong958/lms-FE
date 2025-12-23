@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Link, useOutletContext, useNavigate } from "react-router-dom";
 import { courseService } from "@utils/courseService.js";
+import { uploadService } from "@utils/uploadService";
+import { SERVER_URL } from "@config";
 
 import styles from "./ManageCourses.module.css";
 import AdminHeader from "@components/Admin/AdminHeader";
@@ -24,7 +26,8 @@ import {
   Award,
   Plus,
   Pencil,
-  Trash2
+  Trash2,
+  Image as ImageIcon
 } from "lucide-react";
 
 // Giá trị khởi tạo form
@@ -33,6 +36,7 @@ const initialFormData = {
   description: "",
   level: "",
   totalSessions: 0,
+  imageUrl: "",
 };
 
 // Component dòng khóa học
@@ -52,6 +56,20 @@ function CourseRow({ course, onEdit, onDelete }) {
       onClick={handleRowClick}
       style={{ cursor: "pointer" }}
     >
+      <td>
+        <img
+          src={course.imageUrl ? (course.imageUrl.startsWith("http") ? course.imageUrl : `${SERVER_URL}${course.imageUrl}`) : "https://placehold.co/60x40?text=No+Img"}
+          alt=""
+          style={{
+            width: "60px",
+            height: "40px",
+            objectFit: "cover",
+            borderRadius: "6px",
+            border: "1px solid #e2e8f0"
+          }}
+          onError={(e) => e.target.style.display = 'none'}
+        />
+      </td>
       <td className={styles.colTitle}>{course.title}</td>
       <td className={styles.colDesc}>
         {course.description && course.description.length > 50
@@ -105,7 +123,22 @@ export default function ManageCourses() {
   const [searchTerm, setSearchTerm] = useState("");
   const [levelFilter, setLevelFilter] = useState("");
   const [errors, setErrors] = useState({});
+  const [uploading, setUploading] = useState(false);
 
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const res = await uploadService.uploadImage(file);
+      const url = res.data.url || res.data;
+      setFormData((prev) => ({ ...prev, imageUrl: url }));
+    } catch (err) {
+      alert("Upload ảnh thất bại");
+    } finally {
+      setUploading(false);
+    }
+  };
 
   // Load courses
   const loadCourses = async () => {
@@ -147,6 +180,7 @@ export default function ManageCourses() {
       description: course.description,
       level: course.level || "",
       totalSessions: course.totalSessions || 0,
+      imageUrl: course.imageUrl || "",
     });
     setErrors({});
     setShowModal(true);
@@ -220,7 +254,8 @@ export default function ManageCourses() {
         formData.title !== initialFormData.title ||
         formData.description !== initialFormData.description ||
         formData.level !== initialFormData.level ||
-        String(formData.totalSessions) !== String(initialFormData.totalSessions)
+        String(formData.totalSessions) !== String(initialFormData.totalSessions) ||
+        formData.imageUrl !== initialFormData.imageUrl
       );
     }
     // Compare with current course data
@@ -228,7 +263,8 @@ export default function ManageCourses() {
       formData.title !== currentCourse.title ||
       formData.description !== currentCourse.description ||
       (formData.level || "") !== (currentCourse.level || "") ||
-      String(formData.totalSessions) !== String(currentCourse.totalSessions || 0)
+      String(formData.totalSessions) !== String(currentCourse.totalSessions || 0) ||
+      (formData.imageUrl || "") !== (currentCourse.imageUrl || "")
     );
   }, [formData, currentCourse]);
 
@@ -345,6 +381,7 @@ export default function ManageCourses() {
         <table className={styles.courseTable}>
           <thead>
             <tr className={styles.tableHeader}>
+              <th>Ảnh</th>
               <th className={styles.colTitle}>Tên khóa học</th>
               <th className={styles.colDesc}>Mô tả</th>
               <th>Cấp độ</th>
@@ -393,6 +430,68 @@ export default function ManageCourses() {
             <div className={styles.modalBody}>
               <form onSubmit={handleSubmit} id="courseForm">
                 <div className={styles.formSection}>
+                  {/* Image Upload */}
+                  <div className={styles.customInputGroup}>
+                    <div className={styles.customLabel}>
+                      <ImageIcon />
+                      Ảnh khóa học (Thumbnail)
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+                      <label
+                        className={styles.btnAdd}
+                        style={{
+                          width: 'fit-content',
+                          cursor: 'pointer',
+                          background: '#f1f5f9',
+                          color: '#475569',
+                          boxShadow: 'none',
+                          border: '1px solid #cbd5e1'
+                        }}
+                      >
+                        📸 Chọn ảnh
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageUpload}
+                          disabled={uploading}
+                          hidden
+                        />
+                      </label>
+                      {formData.imageUrl && (
+                        <div style={{ position: 'relative' }}>
+                          <img
+                            src={formData.imageUrl.startsWith("http") ? formData.imageUrl : `${SERVER_URL}${formData.imageUrl}`}
+                            alt="Preview"
+                            style={{ height: "60px", borderRadius: "8px", border: "1px solid #e2e8f0" }}
+                            onError={(e) => e.target.style.display = 'none'}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setFormData(prev => ({ ...prev, imageUrl: "" }))}
+                            style={{
+                              position: 'absolute',
+                              top: -8,
+                              right: -8,
+                              background: '#ef4444',
+                              color: 'white',
+                              border: 'none',
+                              borderRadius: '50%',
+                              width: '20px',
+                              height: '20px',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontSize: '12px'
+                            }}
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
                   {/* Title */}
                   <div className={styles.customInputGroup}>
                     <div className={styles.customLabel}>

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { slugify } from "@utils/slugify";
 import useWindowSize from "@hooks/useWindowSize";
+import { SERVER_URL } from "@config";
 import "./HomePage.css";
 
 // Import các hình ảnh của bạn
@@ -11,7 +12,6 @@ import quotes2 from "@assets/icons/quotes2.svg";
 import clockIcon from "@assets/icons/clock-icon.svg";
 import bookIcon from "@assets/icons/book2-icon.svg";
 import profileIcon from "@assets/icons/profile-icon.svg";
-import Level from "@assets/images/Level.svg";
 import arrowUpRight from "@assets/icons/arrow-up-right-icon.svg";
 import pattern from "@assets/pattern/clip-path-group.svg";
 
@@ -35,6 +35,11 @@ export default function HomePage() {
       try {
         if (mounted) setLoading(true);
 
+        // 1. Fetch Master List of Courses (Contains full info: imageUrl, description, etc.)
+        const courseRes = await courseService.getCourses();
+        const allCoursesRaw = courseRes.data?.data?.content || courseRes.data?.data || courseRes.data || [];
+        const fullCourses = Array.isArray(allCoursesRaw) ? allCoursesRaw : [];
+
         const userStr = localStorage.getItem("loggedInUser");
         let userId = null;
         if (userStr) {
@@ -43,12 +48,16 @@ export default function HomePage() {
           } catch (e) { }
         }
 
+        let displayCourses = [];
+
         if (userId) {
-          // 1. Fetch all classes
+          // LOGGED IN: Identify enrolled course IDs, then pick from master list
+
+          // A. Fetch all classes
           const classRes = await classService.getClasses();
           const allClasses = classRes.data?.data?.content || classRes.data?.data || classRes.data || [];
 
-          // 2. Filter enrolled classes
+          // B. Filter enrolled classes
           const enrollmentChecks = await Promise.all(
             (Array.isArray(allClasses) ? allClasses : []).map(async (cls) => {
               try {
@@ -65,61 +74,44 @@ export default function HomePage() {
           );
           const myClasses = enrollmentChecks.filter(c => c !== null);
 
-          // 3. Fetch courses for each enrolled class
+          // C. Collect Course IDs from these classes
           const coursePromises = myClasses.map(cls => classCourseService.getClassCourses(cls.id));
           const courseResponses = await Promise.all(coursePromises);
 
-          let aggregatedCourses = [];
+          const enrolledCourseIds = new Set();
           courseResponses.forEach(res => {
             const cList = res.data?.data || res.data || [];
             if (Array.isArray(cList)) {
-              aggregatedCourses = [...aggregatedCourses, ...cList];
+              cList.forEach(c => {
+                // c might be a ClassCourse link or a Course object. Ensure we get the Course ID.
+                enrolledCourseIds.add(String(c.courseId || c.id));
+              });
             }
           });
 
-          // 4. Deduplicate and map
-          // Course structure from class-course API might be different from main course API
-          // Usually returns { courseId, courseTitle, ... }
-          const uniqueCourses = [];
-          const seenIds = new Set();
-
-          for (const c of aggregatedCourses) {
-            // Determine ID and Title
-            // The API might return course details or just assignment details
-            const cId = c.courseId || c.id;
-            if (!seenIds.has(cId)) {
-              seenIds.add(cId);
-
-              // Note: If the assignment object doesn't have full course details (like image), 
-              // we might need to fetch course details separately. 
-              // For now, let's assume basic info is there or map what we can.
-              uniqueCourses.push({
-                id: cId,
-                title: c.courseTitle || c.title || c.courseName || "Khóa học",
-                slug: c.courseSlug || c.slug,
-                imageUrl: c.image || c.imageUrl, // Might be missing in assignment DTO
-                durationMinutes: c.duration || 360,
-                totalSessions: c.sessions || 32,
-                teacherName: c.teacherName || "Giang Sensei",
-                // Keep original object for other fields if needed
-                ...c
-              });
-            }
-          }
-
-          if (mounted) setCourses(uniqueCourses);
+          // D. Filter the Master List
+          // This ensures we display the "Full" course object with proper images
+          displayCourses = fullCourses.filter(c => enrolledCourseIds.has(String(c.id)));
 
         } else {
-          // No user -> Show all courses
-          const res = await courseService.getCourses();
-          const data = res.data?.data?.content || res.data?.data || res.data || [];
-          // Map standard course response
-          const mapped = (Array.isArray(data) ? data : []).map(c => ({
-            ...c,
-            imageUrl: c.image || c.imageUrl // ensure consistency
-          }));
-          if (mounted) setCourses(mapped);
+          // NOT LOGGED IN: Show all courses
+          displayCourses = fullCourses;
         }
+
+        // Map for display
+        const mapped = displayCourses.map(c => ({
+          ...c,
+          title: c.title || c.courseName || "Khóa học",
+          slug: c.slug || c.courseSlug || slugify(c.title || ""),
+          // Prioritize imageUrl, allow generic fallback in JSX
+          imageUrl: c.imageUrl || c.image || null,
+          durationMinutes: c.duration || 360,
+          totalSessions: c.totalSessions || c.sessions || 32,
+          teacherName: c.teacherName || "Giang Sensei",
+          level: c.level || "Beginner"
+        }));
+
+        if (mounted) setCourses(mapped);
 
       } catch (err) {
         console.error("Home load error", err);
@@ -180,32 +172,22 @@ export default function HomePage() {
             >
               <div className="course-image-wrapper">
                 <img
-                  src={course.imageUrl || Level}
+                  src={course.imageUrl ? (course.imageUrl.startsWith("http") ? course.imageUrl : `${SERVER_URL}${course.imageUrl}`) : "https://placehold.co/600x400?text=Khoa+hoc"}
                   alt={course.title}
                   className="course-image"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = "https://placehold.co/600x400?text=Khoa+hoc";
+                  }}
                 />
               </div>
               <div className="course-content">
-                <img src={Level} alt="level" className="level-badge" />
+                <span className={`course-level-badge ${course.level ? course.level.toLowerCase() : "beginner"}`}>{course.level || "Beginner"}</span>
                 <div className="course-info">
                   <div className="course-meta">
                     <div className="meta-item">
-                      <img src={clockIcon} alt="clock" className="meta-icon" />
-                      <span>{course.durationMinutes || 360} phút</span>
-                    </div>
-                    <div className="divider"></div>
-                    <div className="meta-item">
                       <img src={bookIcon} alt="book" className="meta-icon" />
                       <span>{course.totalSessions || 32} Chương</span>
-                    </div>
-                    <div className="divider"></div>
-                    <div className="meta-item">
-                      <img
-                        src={profileIcon}
-                        alt="teacher"
-                        className="meta-icon"
-                      />
-                      <span>{course.teacherName || "Giang Sensei"}</span>
                     </div>
                   </div>
                   <h3 className="course-title-card">{course.title}</h3>
@@ -218,7 +200,7 @@ export default function HomePage() {
                   }}
                 >
                   <span>HỌC NGAY</span>
-                  <img src={arrowUpRight} alt="arrow" className="btn-icon" />
+                  <img src={arrowUpRight} alt="arrow" className="btn-home-icon" />
                 </button>
               </div>
             </div>
