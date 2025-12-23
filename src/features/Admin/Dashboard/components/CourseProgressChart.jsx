@@ -14,12 +14,12 @@ import {
 } from "recharts";
 import { courseProgressData } from "../mock/dashboardMock.js";
 
-const CourseProgressChart = () => {
+const CourseProgressChart = ({ data = [] }) => {
   return (
     <ResponsiveContainer width="100%" height="100%">
       {" "}
       <BarChart
-        data={courseProgressData}
+        data={data}
         margin={{
           top: 5,
           right: 0,

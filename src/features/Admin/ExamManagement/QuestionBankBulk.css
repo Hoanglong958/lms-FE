@@ -1,0 +1,259 @@
+/* QuestionBankBulk.css */
+.qb-bulk-container {
+    padding: 40px 20px;
+    font-family: 'Inter', system-ui, sans-serif;
+    background-color: #f8fafc;
+    min-height: 100vh;
+}
+
+.qb-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.qb-title {
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin-bottom: 10px;
+    background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.qb-desc {
+    color: #64748b;
+    font-size: 1.1rem;
+}
+
+/* Content Card */
+.qb-content-card {
+    max-width: 900px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+}
+
+/* Tabs */
+.qb-tabs {
+    display: flex;
+    border-bottom: 1px solid #e2e8f0;
+    background: #f8fafc;
+}
+
+.qb-tab-item {
+    flex: 1;
+    text-align: center;
+    padding: 20px;
+    font-weight: 600;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.2s;
+    border-bottom: 3px solid transparent;
+}
+
+.qb-tab-item:hover {
+    color: #334155;
+    background: #f1f5f9;
+}
+
+.qb-tab-item.active {
+    color: #f97316;
+    border-bottom-color: #f97316;
+    background: white;
+}
+
+.qb-tab-content {
+    padding: 40px;
+}
+
+/* JSON Section */
+.qb-json-section {
+    display: flex;
+    flex-direction: column;
+}
+
+.qb-guideline {
+    font-size: 14px;
+    color: #64748b;
+    margin-bottom: 12px;
+    font-weight: 500;
+}
+
+.qb-textarea-large {
+    width: 100%;
+    min-height: 400px;
+    padding: 20px;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    font-family: 'Fira Code', monospace;
+    font-size: 14px;
+    color: #334155;
+    background: #f8fafc;
+    resize: vertical;
+    outline: none;
+    transition: all 0.2s;
+    margin-bottom: 30px;
+}
+
+.qb-textarea-large:focus {
+    border-color: #f97316;
+    background: white;
+    box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.1);
+}
+
+/* Excel Section */
+.qb-excel-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.qb-sub-tabs {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 40px;
+    background: #f1f5f9;
+    padding: 6px;
+    border-radius: 12px;
+}
+
+.qb-sub-tab-btn {
+    padding: 10px 24px;
+    border-radius: 8px;
+    border: none;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    color: #64748b;
+    background: transparent;
+    transition: all 0.2s;
+}
+
+.qb-sub-tab-btn.active {
+    background: white;
+    color: #0f172a;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.qb-import-area {
+    width: 100%;
+    max-width: 600px;
+    margin-bottom: 40px;
+}
+
+.qb-file-upload-box {
+    border: 2px dashed #cbd5e1;
+    border-radius: 16px;
+    padding: 60px 40px;
+    text-align: center;
+    transition: all 0.2s;
+    background: #f8fafc;
+}
+
+.qb-file-upload-box:hover {
+    border-color: #f97316;
+    background: #fff7ed;
+}
+
+.qb-file-label {
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.qb-icon-folder {
+    font-size: 48px;
+    margin-bottom: 16px;
+}
+
+.qb-text-main {
+    font-weight: 700;
+    color: #334155;
+    margin-bottom: 4px;
+}
+
+.qb-text-sub {
+    font-size: 13px;
+    color: #94a3b8;
+}
+
+.qb-url-input-box {
+    width: 100%;
+}
+
+.qb-input-field {
+    width: 100%;
+    padding: 14px 20px;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 15px;
+    outline: none;
+    transition: all 0.2s;
+}
+
+.qb-input-field:focus {
+    border-color: #f97316;
+    box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.1);
+}
+
+.qb-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 10px;
+    display: block;
+}
+
+
+/* Common Actions */
+.qb-action-row {
+    display: flex;
+    justify-content: flex-end;
+    gap: 16px;
+    width: 100%;
+}
+
+.qb-btn {
+    padding: 12px 24px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 15px;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+}
+
+.qb-btn.submit {
+    background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+    color: white;
+    box-shadow: 0 4px 6px -1px rgba(249, 115, 22, 0.2);
+}
+
+.qb-btn.submit:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 8px -1px rgba(249, 115, 22, 0.3);
+}
+
+.qb-btn.submit:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.qb-btn.cancel {
+    background: white;
+    border: 1px solid #cbd5e1;
+    color: #64748b;
+}
+
+.qb-btn.cancel:hover {
+    background: #f1f5f9;
+    color: #334155;
+    border-color: #94a3b8;
+}
