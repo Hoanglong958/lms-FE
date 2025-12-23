@@ -244,8 +244,33 @@ export default function LessonSidebar({ initialMinimized = false }) {
     fetchProgress();
   }, [courseIdState, lessonId]);
 
-  // ===== 3. XỬ LÝ NAVIGATE =====
+  // ===== 3. COMPUTE LOCKED STATE =====
+  // Create a Set of locked IDs
+  const lockedLessonIds = React.useMemo(() => {
+    const locked = new Set();
+    let isAllowed = true; // First lesson is allowed
+
+    for (const session of sidebarData) {
+      if (!session.lessons) continue;
+      for (const lesson of session.lessons) {
+        if (!isAllowed) {
+          locked.add(String(lesson.id));
+        }
+
+        // Determine if NEXT lesson is allowed
+        // It is allowed if CURRENT lesson is completed (>= 100%)
+        const p = progressMap[String(lesson.id)] || 0;
+        if (p < 100) {
+          isAllowed = false;
+        }
+      }
+    }
+    return locked;
+  }, [sidebarData, progressMap]);
+
+  // ===== 4. XỬ LÝ NAVIGATE =====
   const handleItemClick = (lesson) => {
+    if (lockedLessonIds.has(String(lesson.id))) return;
     navigate(`/courses/${courseSlug}/${lesson.id}`);
   };
 
@@ -287,6 +312,7 @@ export default function LessonSidebar({ initialMinimized = false }) {
                 const isActive = String(lesson.id) === String(lessonId);
                 const progress = progressMap[String(lesson.id)] || 0;
                 const isCompleted = progress >= 100;
+                const isLocked = lockedLessonIds.has(String(lesson.id));
 
                 return (
                   <SidebarItem
@@ -295,6 +321,7 @@ export default function LessonSidebar({ initialMinimized = false }) {
                     isActive={isActive}
                     isCompleted={isCompleted}
                     progress={progress}
+                    isLocked={isLocked}
                     onClick={handleItemClick}
                   />
                 );
