@@ -23,7 +23,7 @@ import terminalIconSvg from "@assets/icons/lesson-type-icons/terminal-icon.svg";
 import elipsesIconSvg from "@assets/icons/elipse.svg";
 
 // SideItem Component to handle individual data fetching
-const SidebarItem = ({ lesson, isActive, isCompleted, progress, onClick }) => {
+const SidebarItem = ({ lesson, isActive, isCompleted, progress, isLocked, onClick }) => {
   const [meta, setMeta] = useState(null);
 
   // Helper to format duration (seconds or string)
@@ -101,6 +101,7 @@ const SidebarItem = ({ lesson, isActive, isCompleted, progress, onClick }) => {
   };
 
   const renderMeta = () => {
+    if (isLocked) return <span>Bị khóa</span>;
     const type = (lesson.type || "").toUpperCase();
     if (type === 'VIDEO') {
       return (
@@ -128,13 +129,15 @@ const SidebarItem = ({ lesson, isActive, isCompleted, progress, onClick }) => {
 
   return (
     <li
-      className={`ls-user-lesson-item ${isActive ? "active" : ""}`}
-      onClick={() => onClick(lesson)}
+      className={`ls-user-lesson-item ${isActive ? "active" : ""} ${isLocked ? "locked" : ""}`}
+      onClick={() => !isLocked && onClick(lesson)}
+      style={isLocked ? { cursor: 'not-allowed', opacity: 0.6 } : {}}
     >
       <img
         src={getItemIcon()}
         alt=""
         className="ls-user-item-icon"
+        style={isLocked ? { filter: 'grayscale(100%)' } : {}}
       />
 
       <div className="ls-user-item-content">
@@ -144,10 +147,13 @@ const SidebarItem = ({ lesson, isActive, isCompleted, progress, onClick }) => {
         </div>
       </div>
 
-      {progress > 0 && (
+      {!isLocked && progress > 0 && (
         <div style={{ marginLeft: 'auto', fontSize: '12px', color: isCompleted ? '#22c55e' : '#666', fontWeight: isCompleted ? 'bold' : 'normal' }}>
           {progress}%
         </div>
+      )}
+      {isLocked && (
+        <div style={{ marginLeft: 'auto', fontSize: '16px' }}>🔒</div>
       )}
     </li>
   );
