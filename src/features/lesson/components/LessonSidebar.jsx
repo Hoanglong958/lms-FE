@@ -23,7 +23,7 @@ import terminalIconSvg from "@assets/icons/lesson-type-icons/terminal-icon.svg";
 import elipsesIconSvg from "@assets/icons/elipse.svg";
 
 // SideItem Component to handle individual data fetching
-const SidebarItem = ({ lesson, isActive, isCompleted, onClick }) => {
+const SidebarItem = ({ lesson, isActive, isCompleted, progress, onClick }) => {
   const [meta, setMeta] = useState(null);
 
   // Helper to format duration (seconds or string)
@@ -143,6 +143,12 @@ const SidebarItem = ({ lesson, isActive, isCompleted, onClick }) => {
           {renderMeta()}
         </div>
       </div>
+
+      {progress > 0 && (
+        <div style={{ marginLeft: 'auto', fontSize: '12px', color: isCompleted ? '#22c55e' : '#666', fontWeight: isCompleted ? 'bold' : 'normal' }}>
+          {progress}%
+        </div>
+      )}
     </li>
   );
 };
@@ -153,16 +159,18 @@ export default function LessonSidebar({ initialMinimized = false }) {
   // State lưu dữ liệu API
   const [sidebarData, setSidebarData] = useState([]);
   const [courseTitle, setCourseTitle] = useState("");
-  const [completedLessons, setCompletedLessons] = useState([]);
+  // const [completedLessons, setCompletedLessons] = useState([]); // REMOVED
+  const [progressMap, setProgressMap] = useState({}); // ADDED: id -> percent
+  const [courseIdState, setCourseIdState] = useState(null);
 
   const { width } = useWindowSize();
   const navigate = useNavigate();
   const { courseSlug, lessonId } = useParams();
   const isDesktop = width >= 1440;
 
-  // ===== 1. LOGIC CALL API (Lấy dữ liệu thật) =====
+  // ===== 1. LOGIC CALL API (Lấy cấu trúc bài học) =====
   useEffect(() => {
-    const fetchSidebarData = async () => {
+    const fetchCourseAndStructure = async () => {
       if (!courseSlug) return;
       try {
         // B1: Tìm Course ID từ Slug
@@ -173,21 +181,7 @@ export default function LessonSidebar({ initialMinimized = false }) {
 
         if (!currentCourse) return;
         setCourseTitle(currentCourse.title);
-
-        // Get user ID
-        const user = JSON.parse(localStorage.getItem("loggedInUser") || "{}");
-        if (user && user.id) {
-          try {
-            const progressRes = await userProgressService.getByCourse(user.id, currentCourse.id);
-            const progressData = progressRes.data || [];
-            const doneIds = progressData
-              .filter(p => p.status === 'COMPLETED' || p.progressPercent >= 100)
-              .map(p => String(p.lessonId));
-            setCompletedLessons(doneIds);
-          } catch (e) {
-            console.error("Failed to load progress", e);
-          }
-        }
+        setCourseIdState(currentCourse.id);
 
         // B2: Lấy Sessions
         const sessionRes = await sessionService.getSessionsByCourse(
@@ -211,11 +205,44 @@ export default function LessonSidebar({ initialMinimized = false }) {
         // Sắp xếp theo thứ tự
         fullData.sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0));
         setSidebarData(fullData);
-      } catch (err) { }
+      } catch (err) {
+        console.error("Error fetching course structure:", err);
+      }
     };
 
-    fetchSidebarData();
+    fetchCourseAndStructure();
   }, [courseSlug]);
+
+  // ===== 2. LOGIC CALL API (Lấy Progress - Chạy lại khi đổi bài học) =====
+  useEffect(() => {
+    const fetchProgress = async () => {
+      if (!courseIdState) return;
+
+      const user = JSON.parse(localStorage.getItem("loggedInUser") || "{}");
+      if (user && user.id) {
+        try {
+          const progressRes = await userProgressService.getByCourse(user.id, courseIdState);
+          const progressData = progressRes.data || [];
+
+          const newMap = {};
+          progressData.forEach(p => {
+            // Prefer existing higher progress if dupes exist (though API should handle uniqueness)
+            const pid = String(p.lessonId);
+            const val = p.progressPercent || 0;
+            if (!newMap[pid] || val > newMap[pid]) {
+              newMap[pid] = val;
+            }
+          });
+          setProgressMap(newMap);
+
+        } catch (e) {
+          console.error("Failed to load progress", e);
+        }
+      }
+    };
+
+    fetchProgress();
+  }, [courseIdState, lessonId]);
 
   // ===== 3. XỬ LÝ NAVIGATE =====
   const handleItemClick = (lesson) => {
@@ -258,7 +285,8 @@ export default function LessonSidebar({ initialMinimized = false }) {
             <ul className="ls-user-lesson-list">
               {session.lessons && session.lessons.map((lesson) => {
                 const isActive = String(lesson.id) === String(lessonId);
-                const isCompleted = completedLessons.includes(String(lesson.id));
+                const progress = progressMap[String(lesson.id)] || 0;
+                const isCompleted = progress >= 100;
 
                 return (
                   <SidebarItem
@@ -266,6 +294,7 @@ export default function LessonSidebar({ initialMinimized = false }) {
                     lesson={lesson}
                     isActive={isActive}
                     isCompleted={isCompleted}
+                    progress={progress}
                     onClick={handleItemClick}
                   />
                 );

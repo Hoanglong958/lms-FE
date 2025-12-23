@@ -176,7 +176,11 @@ export default function LessonPage() {
         </div>
       </div>
 
-      <LessonContentDisplay item={enrichedLesson} progress={progressText} />
+      <LessonContentDisplay
+        item={enrichedLesson}
+        progress={progressText}
+        onNextLesson={() => handleNavigation(1)}
+      />
 
 
     </div>

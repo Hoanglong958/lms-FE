@@ -7,7 +7,7 @@ import { quizResultService } from "@utils/quizResultService.js";
 
 import "./QuizExamPage.css";
 
-export default function QuizExamPage({ quizId, onFinish }) {
+export default function QuizExamPage({ quizId, onFinish, onNextLesson }) {
   const params = useParams();
   const quizIdFromParams = params.quizId || quizId;
 
@@ -212,6 +212,13 @@ export default function QuizExamPage({ quizId, onFinish }) {
     }
   };
 
+  const handleRetry = () => {
+    setCurrentQuestionIndex(0);
+    setUserSelections({});
+    setIsQuizCompleted(false);
+    setSubmissionResult(null);
+  };
+
   // ================== RENDER ==================
   if (!quizInfo || quizQuestions.length === 0) return <p>Đang tải quiz...</p>;
 
@@ -230,7 +237,22 @@ export default function QuizExamPage({ quizId, onFinish }) {
               ? "Chúc mừng! Bạn đã vượt qua bài kiểm tra."
               : "Rất tiếc, bạn chưa đạt yêu cầu."}
           </p>
-          <button onClick={() => window.location.reload()}>Làm lại</button>
+          <div style={{ display: "flex", gap: "10px", justifyContent: "center" }}>
+            <button onClick={handleRetry}>Làm lại</button>
+            {submissionResult.isPassed && onNextLesson && (
+              <button
+                className="quiz-next-lesson-btn"
+                onClick={onNextLesson}
+                style={{
+                  backgroundColor: "#F05123",
+                  color: "#fff",
+                  border: "none"
+                }}
+              >
+                Bài tiếp theo
+              </button>
+            )}
+          </div>
         </div>
       </div>
     );

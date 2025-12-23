@@ -5,14 +5,14 @@ import QuizComponent from "./QuizComponent";
 import TaskComponent from "./TaskComponent";
 import DocumentViewer from "./DocumentViewer";
 
-const LessonContentDisplay = ({ item, progress }) => {
+const LessonContentDisplay = ({ item, progress, onNextLesson }) => {
   switch (item.type) {
     case "video":
     case "VIDEO":
       return <VideoPlayer item={item} progress={progress} />;
     case "quiz":
     case "QUIZ":
-      return <QuizComponent item={item} progress={progress} />;
+      return <QuizComponent item={item} progress={progress} onNextLesson={onNextLesson} />;
     case "task":
     case "TASK":
       return <TaskComponent item={item} progress={progress} />;

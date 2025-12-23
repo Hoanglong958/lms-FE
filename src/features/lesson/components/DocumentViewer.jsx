@@ -60,7 +60,7 @@ const DocumentViewer = ({ item }) => {
       }
     };
 
-    fetcborthDocument();
+    fetchDocument();
   }, [item.id]);
 
   // Timer: 10 seconds to auto-complete

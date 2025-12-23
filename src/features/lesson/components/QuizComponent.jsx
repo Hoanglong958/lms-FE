@@ -19,7 +19,7 @@ const formatDate = (dateString) => {
 import { userProgressService } from "@utils/userProgressService"; // Added import
 
 // Nhận prop 'progress'
-const QuizComponent = ({ item, progress }) => {
+const QuizComponent = ({ item, progress, onNextLesson }) => {
   const navigate = useNavigate();
   const [showQuiz, setShowQuiz] = useState(false);
   const [quiz, setQuiz] = useState(null);
@@ -124,6 +124,7 @@ const QuizComponent = ({ item, progress }) => {
       <QuizExamPage
         quizId={quiz.quizId || quiz.id || item.id}
         onFinish={handleQuizFinish}
+        onNextLesson={onNextLesson}
       />
     );
   }
