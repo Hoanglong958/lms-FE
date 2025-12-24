@@ -36,4 +36,14 @@ export const authService = {
   resetPassword(payload) {
     return api.post("/api/v1/auth/reset-password", payload);
   },
+
+  // GET /api/v1/auth/profile
+  getProfile() {
+    return api.get("/api/v1/auth/profile");
+  },
+
+  // PUT /api/v1/auth/profile
+  updateProfile(payload) {
+    return api.put("/api/v1/auth/profile", payload);
+  },
 };

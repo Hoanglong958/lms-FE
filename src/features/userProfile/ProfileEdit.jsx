@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import Cropper from "react-easy-crop";
 import { authService } from "@utils/authService";
 import { uploadService } from "@utils/uploadService";
@@ -34,11 +34,11 @@ export default function ProfileEdit() {
     }
 
     const [formData, setFormData] = useState({
-        lastName: initLastName || "Nguyễn",
-        firstName: initFirstName || "Ánh Viên",
-        email: user.gmail || user.email || "vien@gmail.com",
-        phone: user.phone || "0981 965 304",
-        avatar: user.avatar || null,
+        lastName: "",
+        firstName: "",
+        email: "",
+        phone: "",
+        avatar: null,
     });
 
     const [uploading, setUploading] = useState(false);
@@ -56,6 +56,45 @@ export default function ProfileEdit() {
         message: "",
         type: "info",
     });
+
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchProfile = async () => {
+            try {
+                const res = await authService.getProfile();
+                const profile = res.data;
+
+                // Split fullName into LastName and FirstName
+                let lastName = "";
+                let firstName = "";
+                if (profile.fullName) {
+                    const parts = profile.fullName.trim().split(" ");
+                    if (parts.length > 1) {
+                        firstName = parts.pop();
+                        lastName = parts.join(" ");
+                    } else {
+                        firstName = parts[0];
+                    }
+                }
+
+                setFormData({
+                    lastName: lastName,
+                    firstName: firstName,
+                    email: profile.email || profile.gmail || "",
+                    phone: profile.phone || "",
+                    avatar: profile.avatar || profile.imageUrl || null,
+                });
+            } catch (error) {
+                console.error("Fetch profile error:", error);
+                showNotification("Lỗi", "Không thể tải thông tin cá nhân", "error");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchProfile();
+    }, []);
 
     const showNotification = (title, message, type = "info") => {
         setNotification({ isOpen: true, title, message, type });
@@ -220,40 +259,32 @@ export default function ProfileEdit() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setUploading(true);
         try {
-            // Construct payload matching Swagger (PUT /api/v1/users/{id})
-            // Schema: { "fullName": "string", "imageUrl": "string", "role": "string", "isActive": true }
             const payload = {
                 fullName: `${formData.lastName} ${formData.firstName}`.trim(),
-                imageUrl: formData.avatar, // Map avatar state to imageUrl
-                role: user.role || "USER", // Preserve role or default
-                isActive: user.isActive !== undefined ? user.isActive : true, // Preserve active status
-                // Include other fields if API supports them, otherwise they might be ignored or handled separately
-                email: formData.email,
-                phone: formData.phone
+                phone: formData.phone,
+                avatar: formData.avatar
             };
 
-            // Note: userService.updateUser requires ID.
-            if (user.id) {
-                await userService.updateUser(user.id, payload);
+            await authService.updateProfile(payload);
 
-                // Update local storage to reflect changes immediately
-                // We update using the formData structure for frontend consistency, but ensure we save what we sent
-                const updatedUser = {
-                    ...user,
-                    ...formData,
-                    fullName: payload.fullName,
-                    imageUrl: payload.imageUrl,
-                    avatar: payload.imageUrl // Keep avatar for internal logic if needed
-                };
-                localStorage.setItem("loggedInUser", JSON.stringify(updatedUser));
-                showNotification("Thành công", "Thông tin đã được lưu!", "success");
-            } else {
-                showNotification("Lỗi", "Không tìm thấy ID người dùng", "error");
-            }
+            // Update local storage 
+            const updatedUser = {
+                ...user,
+                fullName: payload.fullName,
+                phone: payload.phone,
+                avatar: payload.avatar,
+                imageUrl: payload.avatar
+            };
+            localStorage.setItem("loggedInUser", JSON.stringify(updatedUser));
+
+            showNotification("Thành công", "Thông tin đã được lưu!", "success");
         } catch (err) {
             console.error(err);
             showNotification("Lỗi", "Cập nhật thất bại", "error");
+        } finally {
+            setUploading(false);
         }
     };
 
@@ -262,157 +293,159 @@ export default function ProfileEdit() {
             <div className="profile-edit-wrapper">
                 <div className="profile-page-header">
                     <h1 className="profile-edit-title">Hồ sơ của tôi</h1>
-
-
                 </div>
 
-                <form onSubmit={handleSubmit} className="profile-edit-form">
-                    <div className="profile-edit-content">
-                        {/* Avatar Section */}
-                        <div className="avatar-section">
-                            <div className="avatar-wrapper">
-                                <img
-                                    src={getAvatarSrc(formData.avatar)}
-                                    alt="Profile"
-                                    className="avatar-image"
-                                />
-                                <label htmlFor="avatar-upload" className="camera-btn">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
-                                        <circle cx="12" cy="13" r="4"></circle>
-                                    </svg>
-                                </label>
-                                <input
-                                    type="file"
-                                    id="avatar-upload"
-                                    accept="image/*"
-                                    onChange={onFileChange}
-                                    style={{ display: "none" }}
-                                    disabled={uploading}
-                                />
-                            </div>
-                            {uploading && <span className="upload-status">Đang tải ảnh...</span>}
-                        </div>
-
-                        <div className="personal-info-section">
-
-                            <div className="form-grid">
-
-                                <div className="form-group">
-                                    <label htmlFor="firstName">Họ và tên đệm</label>
+                {loading ? (
+                    <div className="profile-loading">Đang tải thông tin...</div>
+                ) : (
+                    <form onSubmit={handleSubmit} className="profile-edit-form">
+                        <div className="profile-edit-content">
+                            {/* Avatar Section */}
+                            <div className="avatar-section">
+                                <div className="avatar-wrapper">
+                                    <img
+                                        src={getAvatarSrc(formData.avatar)}
+                                        alt="Profile"
+                                        className="avatar-image"
+                                    />
+                                    <label htmlFor="avatar-upload" className="camera-btn">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                                            <circle cx="12" cy="13" r="4"></circle>
+                                        </svg>
+                                    </label>
                                     <input
-                                        type="text"
-                                        id="lastName"
-                                        name="lastName"
-                                        value={formData.lastName}
-                                        onChange={handleInputChange}
-                                        className="form-input"
+                                        type="file"
+                                        id="avatar-upload"
+                                        accept="image/*"
+                                        onChange={onFileChange}
+                                        style={{ display: "none" }}
+                                        disabled={uploading}
                                     />
                                 </div>
-
-                                <div className="form-group">
-                                    <label htmlFor="firstName">Tên</label>
-                                    <input
-                                        type="text"
-                                        id="firstName"
-                                        name="firstName"
-                                        value={formData.firstName}
-                                        onChange={handleInputChange}
-                                        className="form-input"
-                                    />
-                                </div>
-
-                                <div className="form-group">
-                                    <label htmlFor="email">Email</label>
-                                    <input
-                                        type="email"
-                                        id="email"
-                                        name="email"
-                                        value={formData.email}
-                                        onChange={handleInputChange}
-                                        readOnly
-                                        className="form-input readonly"
-                                    />
-                                </div>
-
-                                <div className="form-group">
-                                    <label htmlFor="phone">Số điện thoại</label>
-                                    <input
-                                        type="tel"
-                                        id="phone"
-                                        name="phone"
-                                        value={formData.phone}
-                                        onChange={handleInputChange}
-                                        readOnly
-                                        className="form-input readonly"
-                                    />
-                                </div>
+                                {uploading && <span className="upload-status">Đang tải ảnh...</span>}
                             </div>
 
-                            <button
-                                type="button"
-                                onClick={handleChangePassword}
-                                className="change-password-btn"
-                            >
-                                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                                    <path d="M8 1C4.134 1 1 4.134 1 8s3.134 7 7 7 7-3.134 7-7-3.134-7-7-7zm0 12.5c-3.033 0-5.5-2.467-5.5-5.5S4.967 2.5 8 2.5s5.5 2.467 5.5 5.5-2.467 5.5-5.5 5.5z" />
-                                    <path d="M8 4.5c-.828 0-1.5.672-1.5 1.5v1.5H5v4.5h6V7.5h-1.5V6c0-.828-.672-1.5-1.5-1.5z" />
-                                </svg>
-                                Đổi mật khẩu
-                            </button>
-                        </div>
-                    </div>
+                            <div className="personal-info-section">
 
-                    <div className="form-actions">
-                        <button type="submit" className="save-btn">Lưu thay đổi</button>
-                    </div>
+                                <div className="form-grid">
 
-                    {/* Crop Modal */}
-                    {showCropModal && (
-                        <div className="crop-modal-overlay">
-                            <div className="crop-modal-container">
-                                <div className="crop-modal-header">
-                                    <h3>Cập nhật ảnh đại diện</h3>
-                                    <button type="button" className="close-btn" onClick={handleCloseCrop}>&times;</button>
-                                </div>
-                                <div className="crop-container">
-                                    <Cropper
-                                        image={imageSrc}
-                                        crop={crop}
-                                        zoom={zoom}
-                                        aspect={1}
-                                        cropShape="round"
-                                        showGrid={false}
-                                        onCropChange={setCrop}
-                                        onCropComplete={onCropComplete}
-                                        onZoomChange={setZoom}
-                                    />
-                                </div>
-                                <div className="crop-controls">
-                                    <div className="zoom-control">
-                                        <label>Thu phóng</label>
+                                    <div className="form-group">
+                                        <label htmlFor="firstName">Họ và tên đệm</label>
                                         <input
-                                            type="range"
-                                            value={zoom}
-                                            min={1}
-                                            max={3}
-                                            step={0.1}
-                                            aria-labelledby="Zoom"
-                                            onChange={(e) => setZoom(Number(e.target.value))}
-                                            className="zoom-range"
+                                            type="text"
+                                            id="lastName"
+                                            name="lastName"
+                                            value={formData.lastName}
+                                            onChange={handleInputChange}
+                                            className="form-input"
                                         />
                                     </div>
-                                    <div className="crop-actions">
-                                        <button type="button" className="btn-cancel" onClick={handleCloseCrop}>Hủy</button>
-                                        <button type="button" className="btn-save" onClick={showCroppedImage} disabled={uploading}>
-                                            {uploading ? "Đang xử lý..." : "Lưu"}
-                                        </button>
+
+                                    <div className="form-group">
+                                        <label htmlFor="firstName">Tên</label>
+                                        <input
+                                            type="text"
+                                            id="firstName"
+                                            name="firstName"
+                                            value={formData.firstName}
+                                            onChange={handleInputChange}
+                                            className="form-input"
+                                        />
+                                    </div>
+
+                                    <div className="form-group">
+                                        <label htmlFor="email">Email</label>
+                                        <input
+                                            type="email"
+                                            id="email"
+                                            name="email"
+                                            value={formData.email}
+                                            onChange={handleInputChange}
+                                            readOnly
+                                            className="form-input readonly"
+                                        />
+                                    </div>
+
+                                    <div className="form-group">
+                                        <label htmlFor="phone">Số điện thoại</label>
+                                        <input
+                                            type="tel"
+                                            id="phone"
+                                            name="phone"
+                                            value={formData.phone}
+                                            onChange={handleInputChange}
+                                            readOnly
+                                            className="form-input readonly"
+                                        />
+                                    </div>
+                                </div>
+
+                                <button
+                                    type="button"
+                                    onClick={handleChangePassword}
+                                    className="change-password-btn"
+                                >
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                                        <path d="M8 1C4.134 1 1 4.134 1 8s3.134 7 7 7 7-3.134 7-7-3.134-7-7-7zm0 12.5c-3.033 0-5.5-2.467-5.5-5.5S4.967 2.5 8 2.5s5.5 2.467 5.5 5.5-2.467 5.5-5.5 5.5z" />
+                                        <path d="M8 4.5c-.828 0-1.5.672-1.5 1.5v1.5H5v4.5h6V7.5h-1.5V6c0-.828-.672-1.5-1.5-1.5z" />
+                                    </svg>
+                                    Đổi mật khẩu
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="form-actions">
+                            <button type="submit" className="save-btn">Lưu thay đổi</button>
+                        </div>
+
+                        {/* Crop Modal */}
+                        {showCropModal && (
+                            <div className="crop-modal-overlay">
+                                <div className="crop-modal-container">
+                                    <div className="crop-modal-header">
+                                        <h3>Cập nhật ảnh đại diện</h3>
+                                        <button type="button" className="close-btn" onClick={handleCloseCrop}>&times;</button>
+                                    </div>
+                                    <div className="crop-container">
+                                        <Cropper
+                                            image={imageSrc}
+                                            crop={crop}
+                                            zoom={zoom}
+                                            aspect={1}
+                                            cropShape="round"
+                                            showGrid={false}
+                                            onCropChange={setCrop}
+                                            onCropComplete={onCropComplete}
+                                            onZoomChange={setZoom}
+                                        />
+                                    </div>
+                                    <div className="crop-controls">
+                                        <div className="zoom-control">
+                                            <label>Thu phóng</label>
+                                            <input
+                                                type="range"
+                                                value={zoom}
+                                                min={1}
+                                                max={3}
+                                                step={0.1}
+                                                aria-labelledby="Zoom"
+                                                onChange={(e) => setZoom(Number(e.target.value))}
+                                                className="zoom-range"
+                                            />
+                                        </div>
+                                        <div className="crop-actions">
+                                            <button type="button" className="btn-cancel" onClick={handleCloseCrop}>Hủy</button>
+                                            <button type="button" className="btn-save" onClick={showCroppedImage} disabled={uploading}>
+                                                {uploading ? "Đang xử lý..." : "Lưu"}
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    )}
-                </form>
+                        )}
+                    </form>
+                )}
             </div>
 
             {/* Password Change Modal */}
