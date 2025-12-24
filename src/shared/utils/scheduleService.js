@@ -7,9 +7,24 @@ export const scheduleService = {
     return api.get(`/api/v1/schedules/course/${courseId}`);
   },
 
+  // GET /api/v1/schedules/class/{classId}
+  getByClass: (classId) => {
+    return api.get(`/api/v1/schedules/class/${classId}`);
+  },
+
   // DELETE /api/v1/schedules/course/{courseId}
   deleteByCourse: (courseId) => {
     return api.delete(`/api/v1/schedules/course/${courseId}`);
+  },
+
+  // DELETE /api/v1/schedules/class-course/{classCourseId}
+  deleteByClassCourseId: (classCourseId) => {
+    return api.delete(`/api/v1/schedules/class-course/${classCourseId}`);
+  },
+
+  // GET /api/v1/schedules/class-course/{classCourseId}/schedule
+  getByClassCourseId: (classCourseId) => {
+    return api.get(`/api/v1/schedules/class-course/${classCourseId}/schedule`);
   },
 
   // POST /api/v1/schedules/generate – tạo tự động

@@ -222,43 +222,56 @@ export default function LessonManager({
       {showModal && (
         <div className={styles.modalOverlay}>
           <div className={styles.modalContent}>
-            <h2>{editingLesson ? "Sửa Bài học" : "Thêm Bài học"}</h2>
-            <form onSubmit={handleSubmitLesson}>
-              <div className={styles.formGroup}>
-                <label>Tiêu đề</label>
-                <input
-                  value={formData.title}
-                  onChange={(e) =>
-                    setFormData({ ...formData, title: e.target.value })
-                  }
-                  required
-                  autoFocus
-                />
+            <div className={styles.modalContainer}>
+              <div className={styles.modalHeaderOrange}>
+                <h3>{editingLesson ? "Cập nhật bài học" : "Thêm bài học mới"}</h3>
               </div>
-              <div className={styles.formGroup}>
-                <label>Dạng bài học</label>
-                <select
-                  value={formData.type}
-                  onChange={(e) =>
-                    setFormData({ ...formData, type: e.target.value })
-                  }
-                  disabled={!!editingLesson}
-                  required
-                >
-                  <option value="VIDEO">VIDEO</option>
-                  <option value="QUIZ">QUIZ</option>
-                  <option value="DOCUMENT">DOCUMENT</option>
-                </select>
+              <div className={styles.modalFormBody}>
+                <form onSubmit={handleSubmitLesson}>
+                  <div className={styles.formGroup}>
+                    <label className={styles.labelBold}>Tiêu đề bài học</label>
+                    <input
+                      className={styles.customInputModal}
+                      value={formData.title}
+                      onChange={(e) =>
+                        setFormData({ ...formData, title: e.target.value })
+                      }
+                      placeholder="Nhập tiêu đề bài học..."
+                      required
+                      autoFocus
+                    />
+                  </div>
+                  <div className={styles.formGroup}>
+                    <label className={styles.labelBold}>Dạng bài học</label>
+                    <div className={styles.lessonTypeSelector}>
+                      {["VIDEO", "QUIZ", "DOCUMENT"].map((type) => (
+                        <button
+                          key={type}
+                          type="button"
+                          className={formData.type === type ? styles.active : ""}
+                          onClick={() => !editingLesson && setFormData({ ...formData, type })}
+                          disabled={!!editingLesson}
+                        >
+                          {type}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className={styles.modalFooterButtons}>
+                    <button
+                      type="button"
+                      onClick={() => setShowModal(false)}
+                      className={styles.btnCancel}
+                    >
+                      Hủy
+                    </button>
+                    <button type="submit" className={styles.btnSave}>
+                      {editingLesson ? "Lưu thay đổi" : "Thêm bài học"}
+                    </button>
+                  </div>
+                </form>
               </div>
-              <div className={styles.formActions}>
-                <button type="button" onClick={() => setShowModal(false)}>
-                  Hủy
-                </button>
-                <button type="submit" className={styles.btnPrimary}>
-                  Lưu
-                </button>
-              </div>
-            </form>
+            </div>
           </div>
         </div>
       )}
@@ -266,84 +279,102 @@ export default function LessonManager({
       {showExerciseModal && (
         <div className={styles.modalOverlay}>
           <div className={styles.modalContent}>
-            <h2>{editingExercise ? "Sửa Bài tập" : "Thêm Bài tập"}</h2>
-            <form onSubmit={handleSubmitExercise}>
-              <div className={styles.formGroup}>
-                <label>Tiêu đề</label>
-                <input
-                  value={exerciseFormData.title}
-                  onChange={(e) =>
-                    setExerciseFormData({
-                      ...exerciseFormData,
-                      title: e.target.value,
-                    })
-                  }
-                  required
-                />
+            <div className={styles.modalContainer}>
+              <div className={styles.modalHeaderOrange}>
+                <h3>{editingExercise ? "Cập nhật bài tập" : "Thêm bài tập mới"}</h3>
               </div>
-              <div className={styles.formGroup}>
-                <label>Hướng dẫn</label>
-                <textarea
-                  value={exerciseFormData.instructions}
-                  onChange={(e) =>
-                    setExerciseFormData({
-                      ...exerciseFormData,
-                      instructions: e.target.value,
-                    })
-                  }
-                  rows={3}
-                />
+              <div className={styles.modalFormBody}>
+                <form onSubmit={handleSubmitExercise}>
+                  <div className={styles.formGroup}>
+                    <label className={styles.labelBold}>Tiêu đề bài tập</label>
+                    <input
+                      className={styles.customInputModal}
+                      value={exerciseFormData.title}
+                      onChange={(e) =>
+                        setExerciseFormData({
+                          ...exerciseFormData,
+                          title: e.target.value,
+                        })
+                      }
+                      placeholder="Nhập tiêu đề..."
+                      required
+                    />
+                  </div>
+                  <div className={styles.formGroup}>
+                    <label className={styles.labelBold}>Hướng dẫn</label>
+                    <textarea
+                      className={styles.customInputModal}
+                      style={{ minHeight: '100px' }}
+                      value={exerciseFormData.instructions}
+                      onChange={(e) =>
+                        setExerciseFormData({
+                          ...exerciseFormData,
+                          instructions: e.target.value,
+                        })
+                      }
+                      placeholder="Hướng dẫn làm bài..."
+                      rows={3}
+                    />
+                  </div>
+                  <div className={styles.formGroup}>
+                    <label className={styles.labelBold}>Code mẫu</label>
+                    <textarea
+                      className={styles.customInputModal}
+                      value={exerciseFormData.exampleCode}
+                      onChange={(e) =>
+                        setExerciseFormData({
+                          ...exerciseFormData,
+                          exampleCode: e.target.value,
+                        })
+                      }
+                      placeholder="// Code mẫu..."
+                      rows={3}
+                      style={{ fontFamily: "monospace", minHeight: '120px', backgroundColor: '#1e1e1e', color: '#d4d4d4' }}
+                    />
+                  </div>
+                  <div className={styles.formGroup}>
+                    <label className={styles.labelBold}>Yêu cầu (Required Fields)</label>
+                    <input
+                      className={styles.customInputModal}
+                      value={exerciseFormData.requiredFields}
+                      onChange={(e) =>
+                        setExerciseFormData({
+                          ...exerciseFormData,
+                          requiredFields: e.target.value,
+                        })
+                      }
+                      placeholder="Ví dụ: functionName, variableName..."
+                    />
+                  </div>
+                  <div className={styles.formGroup}>
+                    <label className={styles.labelBold}>Ghi chú</label>
+                    <input
+                      className={styles.customInputModal}
+                      value={exerciseFormData.notes}
+                      onChange={(e) =>
+                        setExerciseFormData({
+                          ...exerciseFormData,
+                          notes: e.target.value,
+                        })
+                      }
+                      placeholder="Ghi chú thêm..."
+                    />
+                  </div>
+                  <div className={styles.modalFooterButtons}>
+                    <button
+                      type="button"
+                      onClick={() => setShowExerciseModal(false)}
+                      className={styles.btnCancel}
+                    >
+                      Hủy
+                    </button>
+                    <button type="submit" className={styles.btnSave}>
+                      {editingExercise ? "Lưu thay đổi" : "Thêm bài tập"}
+                    </button>
+                  </div>
+                </form>
               </div>
-              <div className={styles.formGroup}>
-                <label>Code mẫu</label>
-                <textarea
-                  value={exerciseFormData.exampleCode}
-                  onChange={(e) =>
-                    setExerciseFormData({
-                      ...exerciseFormData,
-                      exampleCode: e.target.value,
-                    })
-                  }
-                  rows={3}
-                  style={{ fontFamily: "monospace" }}
-                />
-              </div>
-              <div className={styles.formGroup}>
-                <label>Yêu cầu (Required Fields)</label>
-                <input
-                  value={exerciseFormData.requiredFields}
-                  onChange={(e) =>
-                    setExerciseFormData({
-                      ...exerciseFormData,
-                      requiredFields: e.target.value,
-                    })
-                  }
-                />
-              </div>
-              <div className={styles.formGroup}>
-                <label>Ghi chú</label>
-                <input
-                  value={exerciseFormData.notes}
-                  onChange={(e) =>
-                    setExerciseFormData({
-                      ...exerciseFormData,
-                      notes: e.target.value,
-                    })
-                  }
-                />
-              </div>
-              <div className={styles.formActions}>
-                <button
-                  type="button"
-                  onClick={() => setShowExerciseModal(false)}
-                >
-                  Hủy
-                </button>
-                <button type="submit" className={styles.btnPrimary}>
-                  Lưu
-                </button>
-              </div>
-            </form>
+            </div>
           </div>
         </div>
       )}

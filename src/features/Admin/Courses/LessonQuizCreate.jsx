@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { lessonQuizService } from "@utils/lessonQuizService.js";
 import NotificationModal from "@components/NotificationModal/NotificationModal";
-import "./CoursesCSS/LessonQuizCreate.css";
+import "./CoursesCSS/LessonDocumentEditor.css";
 
 export default function LessonQuizCreate({ lesson, onCreated }) {
   const [form, setForm] = useState({
@@ -53,34 +53,43 @@ export default function LessonQuizCreate({ lesson, onCreated }) {
     }
   };
 
-  const fields = [
-    { key: "title", label: "Tiêu đề", type: "text" },
-    { key: "passingScore", label: "Điểm đạt (5-10)", type: "number", min: 5, max: 10 },
-  ];
-
   return (
-    <div className="lqc-wrapper">
-      <h3 className="lqc-title">Thêm Quiz Mới</h3>
+    <div className="admin-form-container">
+      <h3 className="admin-form-title">
+        <span style={{ fontSize: "24px" }}>📝</span> Thêm Quiz Mới
+      </h3>
 
-      {fields.map((f) => (
-        <div key={f.key} className="lqc-form-row">
-          <label className="lqc-label">{f.label}:</label>
-          <input
-            type={f.type}
-            min={f.min}
-            max={f.max}
-            className="lqc-input"
-            value={form[f.key]}
-            onChange={(e) => setForm({ ...form, [f.key]: e.target.value })}
-            required
-            autoFocus={f.key === "title"}
-          />
-        </div>
-      ))}
+      <div className="admin-form-group">
+        <label className="admin-form-label">Tiêu đề</label>
+        <input
+          type="text"
+          className="admin-input"
+          value={form.title}
+          onChange={(e) => setForm({ ...form, title: e.target.value })}
+          required
+          autoFocus
+          placeholder="Nhập tiêu đề Quiz"
+        />
+      </div>
 
-      <button className="lqc-btn" onClick={handleCreate}>
-        Tạo Quiz
-      </button>
+      <div className="admin-form-group">
+        <label className="admin-form-label">Điểm đạt (5-10)</label>
+        <input
+          type="number"
+          min={5}
+          max={10}
+          className="admin-input"
+          value={form.passingScore}
+          onChange={(e) => setForm({ ...form, passingScore: e.target.value })}
+          required
+        />
+      </div>
+
+      <div style={{ marginTop: "32px", display: "flex", justifyContent: "flex-end", gap: "12px" }}>
+        <button className="admin-btn admin-btn-primary" onClick={handleCreate} style={{ width: "100%", justifyContent: "center" }}>
+          Tạo Quiz
+        </button>
+      </div>
 
       <NotificationModal
         isOpen={notification.isOpen}

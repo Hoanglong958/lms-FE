@@ -11,6 +11,9 @@ export default function TimetableGrid({
   schedule,
   onScheduleChange,
   draggingSubject = null,
+  onScheduleClick,
+  movingItem,
+  readOnly = false,
 }) {
   const [draggingOver, setDraggingOver] = useState(null);
   const [previewPosition, setPreviewPosition] = useState(null);
@@ -72,7 +75,8 @@ export default function TimetableGrid({
         dayIndex,
         periodId,
         courseId: subjectData.courseId || subjectData.subjectId,
-        classId: subjectData.classId // If available
+        classId: subjectData.classId,
+        subject: subjectData // Pass full data
       });
 
       setDraggingItem(null);
@@ -153,6 +157,9 @@ export default function TimetableGrid({
             previewPosition={
               previewPosition?.dayIndex === index ? previewPosition : null
             }
+            onScheduleClick={onScheduleClick}
+            movingItem={movingItem}
+            readOnly={readOnly}
           />
         ))}
       </div>

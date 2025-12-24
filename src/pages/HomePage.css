@@ -162,15 +162,9 @@
 
 /* Image bên trong */
 .course-image-wrapper .course-image {
-  width: 348.06px;
-  height: 240px;
-  width: 348.06px;
-  height: 240px;
+  width: calc(100% - 30px);
+  height: calc(100% - 32px);
   position: absolute;
-  top: 16px;
-  left: 15px;
-  border-radius: 12px;
-  object-fit: cover;
   top: 16px;
   left: 15px;
   border-radius: 12px;
@@ -189,13 +183,35 @@
 }
 
 /* ----------------- Level Badge ----------------- */
-.level-badge {
-  width: 84px !important;
-  height: 28px !important;
-  display: flex;
+/* ----------------- Level Badge ----------------- */
+.course-level-badge {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
+  padding: 4px 12px;
+  background: #fdf2ee; /* Default fallback */
+  border-radius: 100px;
+  color: #dd673c;
+  font-family: "SF Pro Display", sans-serif;
+  font-weight: 500;
+  font-size: 12px;
+  width: fit-content;
+  text-transform: capitalize;
+}
+
+.course-level-badge.beginner {
+  background: #e6f4ea;
+  color: #1e8e3e;
+}
+
+.course-level-badge.intermediate {
+  background: #e8f0fe;
+  color: #1967d2;
+}
+
+.course-level-badge.advanced {
+  background: #f3e8fd;
+  color: #8430ce;
 }
 
 /* ----------------- Course Info ----------------- */
@@ -309,7 +325,7 @@
   border-color: #dd673c;
 }
 
-.btn-learn:hover .btn-icon,
+.btn-learn:hover .btn-home-icon,
 .btn-learn:hover span {
   filter: brightness(0) invert(1);
 }
@@ -318,7 +334,7 @@
   display: inline-block;
 }
 
-.btn-learn .btn-icon {
+.btn-learn .btn-home-icon {
   width: 20px;
   height: 20px;
   flex-shrink: 0;

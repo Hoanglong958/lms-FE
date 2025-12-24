@@ -39,6 +39,20 @@ const ClassDetailPage = () => {
         const studentsArr = fetchedStudents.length > 0 ? fetchedStudents : (d.students || d.studentList || d.members || []);
 
         const image = d.image || "/anh1.png";
+
+        let calStatus = "UPCOMING";
+        const start = startDate ? new Date(startDate) : null;
+        const end = endDate ? new Date(endDate) : null;
+        const now = new Date();
+        if (start && end) {
+          if (now < start) calStatus = "UPCOMING";
+          else if (now >= start && now <= end) calStatus = "ACTIVE";
+          else calStatus = "FINISHED";
+        } else if (start) {
+          if (now < start) calStatus = "UPCOMING";
+          else calStatus = "ACTIVE";
+        }
+
         const mapped = {
           id: d.id || Number(id),
           className: d.className || d.name || d.class_name || "Chưa có tên",
@@ -46,7 +60,7 @@ const ClassDetailPage = () => {
           scheduleInfo,
           startDate: startDate || "N/A",
           endDate: endDate || "N/A",
-          status: d.status || "UPCOMING",
+          status: calStatus,
           totalStudents:
             typeof d.totalStudents === "number"
               ? d.totalStudents
@@ -117,14 +131,14 @@ const ClassDetailPage = () => {
 
           {/* New Action Buttons */}
           <div className="cd-actions-row">
-            <button className="cd-btn-action">
+            <Link to={`/classes/${id}/calendar`} className="cd-btn-action" style={{ textDecoration: 'none' }}>
               <div className="cd-btn-icon-box icon-schedule">📅</div>
               <span>Thời khóa biểu</span>
-            </button>
-            <button className="cd-btn-action">
+            </Link>
+            <Link to={`/classes/${id}/roadmap`} className="cd-btn-action" style={{ textDecoration: 'none' }}>
               <div className="cd-btn-icon-box icon-path">🗺️</div>
               <span>Lộ trình học</span>
-            </button>
+            </Link>
           </div>
         </div>
       </div>

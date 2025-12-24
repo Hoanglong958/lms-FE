@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { lessonVideoService } from "@utils/lessonVideoService.js";
 import { uploadService } from "@utils/uploadService";
-import "../Courses/CoursesCSS/LessonVideoEditor.css";
+import "../Courses/CoursesCSS/LessonDocumentEditor.css";
 import VideoProgress from "@components/VideoPlayer/VideoProgress";
 import NotificationModal from "@components/NotificationModal/NotificationModal";
 import { SERVER_URL } from "@config";
@@ -165,59 +165,40 @@ export default function LessonVideoEditor({ video, onUpdated }) {
   // ============================
   if (!editing) {
     return (
-      <div className="lessonVideoWrapper">
-        {/* Phần Header chứa thông tin + Nút sửa */}
-        <div className="lessonVideoHeader">
-          <div className="headerContent">
-            {/* Hàng 1: Tiêu đề - Thời lượng - Nút Sửa */}
-            <div className="headerTopRow">
-              <div className="titleGroup">
-                <h2 className="videoTitle">{video.title}</h2>
-                <span className="durationBadge">
-                  <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <polyline points="12 6 12 12 16 14"></polyline>
-                  </svg>
-                  {video.durationSeconds} giây
-                </span>
-              </div>
+      <div className="lde-wrapper">
+        <div className="lde-header">
+          <h3 className="lde-title">{video.title}</h3>
+          <button className="lde-btn-edit" onClick={() => setEditing(true)}>
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+            </svg>
+            Sửa video
+          </button>
+        </div>
 
-              <button className="editButton" onClick={() => setEditing(true)}>
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                </svg>
-                Sửa video
-              </button>
-            </div>
-
-            {/* Hàng 2: Mô tả */}
-            <div className="headerDescription">
-              <p>{video.description || "Chưa có mô tả"}</p>
-            </div>
-          </div>
+        {/* Info */}
+        <div style={{ marginBottom: "16px", color: "#64748b", fontSize: "14px", display: "flex", gap: "20px" }}>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
+            🕒 {video.durationSeconds} giây
+          </span>
         </div>
 
         {/* Phần Video Player */}
         <div className="videoholderlesson">{renderVideo()}</div>
+
+        <div style={{ marginTop: "16px" }}>
+          <p style={{ color: "#334155", lineHeight: "1.6" }}>{video.description || "Chưa có mô tả"}</p>
+        </div>
 
         <NotificationModal
           isOpen={notification.isOpen}
@@ -234,13 +215,13 @@ export default function LessonVideoEditor({ video, onUpdated }) {
   //   EDIT MODE
   // ============================
   return (
-    <div>
-      <h3 className="edit-title">Sửa Video</h3>
+    <div className="admin-form-container">
+      <h3 className="admin-form-title">✏️ Chỉnh sửa Video</h3>
 
-      <div className="title-container">
-        <label className="title-label">Tiêu đề: </label>
+      <div className="admin-form-group">
+        <label className="admin-form-label">Tiêu đề</label>
         <input
-          className="title-input-text"
+          className="admin-input"
           name="title"
           value={form.title}
           onChange={handleChange}
@@ -248,51 +229,50 @@ export default function LessonVideoEditor({ video, onUpdated }) {
         />
       </div>
 
-      <div className="title-container">
-        <label className="title-label">Video File: </label>
-        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-          <input
-            type="file"
-            accept="video/*"
-            onChange={handleVideoUpload}
-            disabled={uploading}
-            className="title-input-text"
-          />
-          {uploading && <span style={{ color: "orange" }}>Đang upload...</span>}
-          {form.videoUrl && (
-            <div style={{ fontSize: "0.85rem", color: "green" }}>
-              Video hiện tại: {form.videoUrl}
-            </div>
-          )}
+      <div className="admin-form-group">
+        <label className="admin-form-label">Video File</label>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <label className="admin-btn admin-btn-secondary" style={{ display: "inline-flex", alignItems: "center", gap: "6px", cursor: "pointer" }}>
+            🎥 Tải lên video mới
+            <input
+              type="file"
+              accept="video/*"
+              onChange={handleVideoUpload}
+              disabled={uploading}
+              hidden
+            />
+          </label>
+          {uploading && <span style={{ color: "orange", fontSize: "14px" }}>Đang upload...</span>}
+          {form.videoUrl && <span style={{ fontSize: "13px", color: "#166534" }}>✅ Đã có video</span>}
         </div>
+        {form.videoUrl && (
+          <div style={{ fontSize: "0.85rem", color: "#666", marginTop: "4px" }}>
+            Video hiện tại: {form.videoUrl}
+          </div>
+        )}
       </div>
 
-      <div className="title-container">
-        <label className="title-label">Thời lượng (giây): </label>
-        <input
-          className="title-input-number"
-          name="durationSeconds"
-          type="number"
-          value={form.durationSeconds}
-          onChange={handleChange}
-        />
-      </div>
-      <div className="description-container">
-        <label className="description-label">Mô tả:</label>
+
+
+      <div className="admin-form-group">
+        <label className="admin-form-label">Mô tả</label>
         <textarea
-          className="description-textarea"
+          className="admin-input"
           name="description"
           value={form.description}
           onChange={handleChange}
+          style={{ minHeight: "80px", resize: "vertical" }}
         />
       </div>
 
-      <button className="button" onClick={handleSave} disabled={uploading}>
-        {uploading ? "Đang xử lý..." : "Lưu"}
-      </button>
-      <button className="button" onClick={() => setEditing(false)}>
-        Hủy
-      </button>
+      <div style={{ marginTop: "32px", display: "flex", justifyContent: "flex-end", gap: "12px" }}>
+        <button className="admin-btn admin-btn-secondary" onClick={() => setEditing(false)} disabled={uploading}>
+          Hủy bỏ
+        </button>
+        <button className="admin-btn admin-btn-primary" onClick={handleSave} disabled={uploading}>
+          {uploading ? "Đang xử lý..." : "Lưu thay đổi"}
+        </button>
+      </div>
 
       <NotificationModal
         isOpen={notification.isOpen}

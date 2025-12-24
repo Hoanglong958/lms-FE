@@ -5,20 +5,20 @@ import QuizComponent from "./QuizComponent";
 import TaskComponent from "./TaskComponent";
 import DocumentViewer from "./DocumentViewer";
 
-const LessonContentDisplay = ({ item }) => {
+const LessonContentDisplay = ({ item, progress, onNextLesson }) => {
   switch (item.type) {
     case "video":
     case "VIDEO":
-      return <VideoPlayer item={item} />;
+      return <VideoPlayer item={item} progress={progress} />;
     case "quiz":
     case "QUIZ":
-      return <QuizComponent item={item} />;
+      return <QuizComponent item={item} progress={progress} onNextLesson={onNextLesson} />;
     case "task":
     case "TASK":
-      return <TaskComponent item={item} />;
+      return <TaskComponent item={item} progress={progress} />;
     case "document":
     case "DOCUMENT":
-      return <DocumentViewer item={item} />;
+      return <DocumentViewer item={item} progress={progress} />;
     default:
       return <div>Loại nội dung này chưa được hỗ trợ.</div>;
   }

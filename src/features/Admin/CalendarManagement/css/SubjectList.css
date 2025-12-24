@@ -34,3 +34,7 @@
   padding: 20px 0;
 }
 
+.sidebarHeaderTitle {
+  color: #000 !important;
+  opacity: 1 !important;
+}

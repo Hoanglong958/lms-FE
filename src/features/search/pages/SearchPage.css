@@ -1,86 +1,126 @@
 /* ================= Layout Base ================= */
-.sp-page { width: 100%; background:#fff; }
-.sp-container { width:80%; max-width:1200px; margin:auto; }
+.sp-page {
+  width: 100%;
+  background: #fff;
+}
+.sp-container {
+  width: 80%;
+  max-width: 1200px;
+  margin: auto;
+}
 
 /* ================= HERO ================= */
-.sp-hero{
-  background: linear-gradient(90deg,#E6673E,#F18B50);
-  padding:60px 0 90px;
-  text-align:center;
-  color:#fff;
+.sp-hero {
+  background: linear-gradient(90deg, #e6673e, #f18b50);
+  padding: 60px 0 90px;
+  text-align: center;
+  color: #fff;
 }
-.sp-title{ font-size:42px; font-weight:700; margin-bottom:6px; }
-.sp-sub{ opacity:.9; margin-bottom:28px; }
+.sp-title {
+  font-size: 42px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.sp-sub {
+  opacity: 0.9;
+  margin-bottom: 28px;
+}
 
 /* ----- Search card ----- */
-.sp-search-card{
-  background:#fff;
-  width:60%;
-  margin:auto;
-  display:flex;
-  gap:10px;
-  padding:12px;
-  border-radius:14px;
-  box-shadow:0 6px 18px rgba(0,0,0,0.15);
+.sp-search-card {
+  background: #fff;
+  width: 60%;
+  margin: auto;
+  display: flex;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 14px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+  color: black;
 }
-.sp-input{
-  flex:1; border:none; outline:none;
-  font-size:16px; padding:12px;
+.sp-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 16px;
+  padding: 12px;
 }
-.sp-btn{
-  background:#E6673E;
-  color:#fff; border:none;
-  padding:12px 28px;
-  border-radius:10px;
-  cursor:pointer; font-weight:600;
+.sp-btn {
+  background: #e6673e;
+  color: #fff;
+  border: none;
+  padding: 12px 28px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
 }
-.sp-btn:hover{ opacity:.9; }
+.sp-btn:hover {
+  opacity: 0.9;
+}
 
 /* ================= RESULTS ================= */
-.sp-results{ 
-  margin-top:-40px;      /* giúp panel nổi lên dưới banner */
-  padding-bottom:60px;
+.sp-results {
+  margin-top: -40px; /* giúp panel nổi lên dưới banner */
+  padding-bottom: 60px;
 }
-.sp-panel{
-  background:#fff;
-  padding:30px;
-  border-radius:16px;
-  box-shadow:0 6px 18px rgba(0,0,0,0.08);
+.sp-panel {
+  background: #fff;
+  padding: 30px;
+  border-radius: 16px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
 }
 
 /* ----- head section ----- */
-.sp-results-head{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-bottom:25px;
+.sp-results-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
 }
-.sp-sort{ cursor:pointer; font-weight:600; }
+.sp-sort {
+  cursor: pointer;
+  font-weight: 600;
+}
 
 /* ----- Grid ----- */
-.sp-grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
-  gap:26px;
+.sp-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 26px;
 }
 
 /* ================= FOOTER ================= */
-.sp-footer{
-  background:linear-gradient(90deg,#E6673E,#F18B50);
-  padding:55px 0;
-  text-align:center;
-  margin-top:60px;
-  color:#fff;
+.sp-footer {
+  background: linear-gradient(90deg, #e6673e, #f18b50);
+  padding: 55px 0;
+  text-align: center;
+  margin-top: 60px;
+  color: #fff;
 }
-.sp-footer-box img{ height:35px; margin-bottom:10px; }
-.sp-footer-box p{ font-weight:600; }
+.sp-footer-box img {
+  height: 35px;
+  margin-bottom: 10px;
+}
+.sp-footer-box p {
+  font-weight: 600;
+}
 
 /* ================= Responsive ================= */
-@media(max-width:900px){
-  .sp-search-card{ width:85%; }
+@media (max-width: 900px) {
+  .sp-search-card {
+    width: 85%;
+  }
 }
-@media(max-width:600px){  
-  .sp-search-card{ flex-direction:column; }
-  .sp-btn{ width:100%; }
-  .sp-results-head{ flex-direction:column; gap:10px; text-align:center; }
+@media (max-width: 600px) {
+  .sp-search-card {
+    flex-direction: column;
+  }
+  .sp-btn {
+    width: 100%;
+  }
+  .sp-results-head {
+    flex-direction: column;
+    gap: 10px;
+    text-align: center;
+  }
 }

@@ -31,6 +31,7 @@ export default function LessonDocumentEditor({ document, onUpdated }) {
     content: "",
     imageUrl: "",
     videoUrl: "",
+    pdfUrl: "",
     sortOrder: 0,
   });
 
@@ -41,6 +42,7 @@ export default function LessonDocumentEditor({ document, onUpdated }) {
       content: document.content || "",
       imageUrl: document.imageUrl || "",
       videoUrl: document.videoUrl || "",
+      pdfUrl: document.pdfUrl || "",
       sortOrder: document.sortOrder || 0,
     });
     setEditing(false);
@@ -90,6 +92,21 @@ export default function LessonDocumentEditor({ document, onUpdated }) {
       setForm((prev) => ({ ...prev, videoUrl: url }));
     } catch (err) {
       showNotification("Lỗi", "Upload video thất bại", "error");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handlePdfUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const res = await uploadService.uploadPdf(file);
+      const url = res.data.url || res.data;
+      setForm((prev) => ({ ...prev, pdfUrl: url }));
+    } catch (err) {
+      showNotification("Lỗi", "Upload PDF thất bại", "error");
     } finally {
       setUploading(false);
     }
@@ -253,17 +270,23 @@ export default function LessonDocumentEditor({ document, onUpdated }) {
         </div>
 
         <div className="admin-form-group">
-          <label className="admin-form-label">Thứ tự hiển thị</label>
-          <input
-            type="number"
-            className="admin-input"
-            value={form.sortOrder}
-            onChange={(e) =>
-              setForm({ ...form, sortOrder: Number(e.target.value) })
-            }
-            style={{ width: "120px" }}
-          />
+          <label className="admin-form-label">File PDF (Tùy chọn)</label>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <label className="admin-btn admin-btn-secondary" style={{ display: "inline-flex", alignItems: "center", gap: "6px", cursor: "pointer" }}>
+              📄 Chọn PDF
+              <input
+                type="file"
+                accept="application/pdf"
+                onChange={handlePdfUpload}
+                disabled={uploading}
+                hidden
+              />
+            </label>
+            {form.pdfUrl && <span style={{ fontSize: "13px", color: "#166534" }}>✅ Đã có PDF</span>}
+          </div>
         </div>
+
+
 
         <div style={{ marginTop: "32px", display: "flex", justifyContent: "flex-end", gap: "12px" }}>
           <button className="admin-btn admin-btn-secondary" onClick={() => setEditing(false)} disabled={uploading}>
@@ -334,6 +357,23 @@ export default function LessonDocumentEditor({ document, onUpdated }) {
             }
             return <VideoProgress src={fullVideoUrl} />;
           })()}
+        </div>
+      )}
+
+      {document.pdfUrl && (
+        <div className="lde-pdf-container">
+          <div className="lde-pdf-icon">📄</div>
+          <div className="lde-pdf-info">
+            <div className="lde-pdf-title">Tài liệu đính kèm PDF</div>
+            <a
+              href={document.pdfUrl.startsWith("/") ? `${SERVER_URL}${document.pdfUrl}` : document.pdfUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="lde-pdf-link"
+            >
+              📥 Tải xuống / Xem tài liệu
+            </a>
+          </div>
         </div>
       )}
     </div>

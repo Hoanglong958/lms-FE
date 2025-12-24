@@ -4,7 +4,6 @@ import api from "@services/api.js";
  * Service quản lý câu hỏi (Question Bank)
  */
 export const questionService = {
-
   /**
    * GET /api/v1/questions/page
    * Lấy danh sách câu hỏi (phân trang + tìm kiếm)
@@ -97,4 +96,3 @@ export const questionService = {
     return api.get("/api/v1/questions/categories", { params: { page, size } });
   },
 };
-

@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { lessonVideoService } from "@utils/lessonVideoService.js";
 import { uploadService } from "@utils/uploadService";
 import NotificationModal from "@components/NotificationModal/NotificationModal";
-import "./CoursesCSS/LessonVideoCreate.css";
+import "./CoursesCSS/LessonDocumentEditor.css";
 
 function isValidUrl(url) {
   try {
@@ -49,8 +49,6 @@ export default function LessonVideoCreate({ lesson, onCreated }) {
     setUploading(true);
     try {
       const res = await uploadService.uploadVideo(file);
-      // Giả sử API trả về { url: "..." } hoặc res.data là string url tuỳ swagger
-      // Swagger: { "url": "string" } => res.data.url
       const url = res.data.url || res.data;
       setForm((prev) => ({ ...prev, videoUrl: url }));
     } catch (err) {
@@ -81,64 +79,73 @@ export default function LessonVideoCreate({ lesson, onCreated }) {
   }
 
   return (
-    <div className="lvc-wrapper">
-      <h3 className="lvc-title">Thêm Video Mới</h3>
+    <div className="admin-form-container">
+      <h3 className="admin-form-title">
+        <span style={{ fontSize: "24px" }}>🎥</span> Thêm Video Mới
+      </h3>
 
-      <div className="lvc-form-row">
-        <label className="lvc-label">Tiêu đề:</label>
+      <div className="admin-form-group">
+        <label className="admin-form-label">Tiêu đề</label>
         <input
-          className="lvc-input"
+          className="admin-input"
           name="title"
           value={form.title}
           onChange={handleChange}
           required
           autoFocus
+          placeholder="Nhập tiêu đề video"
         />
       </div>
 
-      <div className="lvc-form-row">
-        <label className="lvc-label">Video File:</label>
-        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-          <input
-            type="file"
-            accept="video/*"
-            onChange={handleVideoUpload}
-            disabled={uploading}
-            className="lvc-input"
-          />
-          {uploading && <span style={{ color: "orange" }}>Đang upload...</span>}
-          {form.videoUrl && (
-            <div style={{ fontSize: "0.85rem", color: "green" }}>
-              Đã upload: {form.videoUrl}
-            </div>
-          )}
+      <div className="admin-form-group">
+        <label className="admin-form-label">Video File</label>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <label className="admin-btn admin-btn-secondary" style={{ display: "inline-flex", alignItems: "center", gap: "6px", cursor: "pointer" }}>
+            🎥 Chọn video
+            <input
+              type="file"
+              accept="video/*"
+              onChange={handleVideoUpload}
+              disabled={uploading}
+              hidden
+            />
+          </label>
+          {uploading && <span style={{ color: "orange", fontSize: "14px" }}>Đang upload...</span>}
+          {form.videoUrl && <span style={{ fontSize: "13px", color: "#166534" }}>✅ Đã upload</span>}
         </div>
+        {form.videoUrl && (
+          <div style={{ fontSize: "0.85rem", color: "#666", marginTop: "4px" }}>
+            {form.videoUrl}
+          </div>
+        )}
       </div>
 
-      <div className="lvc-form-row">
-        <label className="lvc-label">Thời lượng (giây):</label>
-        <input
-          className="lvc-input"
-          type="number"
-          name="durationSeconds"
-          value={form.durationSeconds}
-          onChange={handleChange}
-        />
-      </div>
 
-      <div className="lvc-form-row">
-        <label className="lvc-label">Mô tả:</label>
+      <div className="admin-form-group">
+        <label className="admin-form-label">Mô tả</label>
         <textarea
-          className="lvc-textarea"
+          className="admin-input"
           name="description"
           value={form.description}
           onChange={handleChange}
+          style={{ minHeight: "80px", resize: "vertical" }}
+          placeholder="Nhập mô tả video..."
         />
       </div>
 
-      <button className="lvc-btn" onClick={handleCreate} disabled={uploading}>
-        {uploading ? "Đang xử lý..." : "Tạo Video"}
-      </button>
+      <div style={{ marginTop: "32px", display: "flex", justifyContent: "flex-end", gap: "12px" }}>
+        <button className="admin-btn admin-btn-primary" onClick={handleCreate} disabled={uploading} style={{ width: "100%", justifyContent: "center" }}>
+          {uploading ? "Đang xử lý..." : "Tạo Video"}
+        </button>
+      </div>
+
+      <NotificationModal
+        isOpen={notification.isOpen}
+        onClose={() => setNotification((prev) => ({ ...prev, isOpen: false }))}
+        title={notification.title}
+        message={notification.message}
+        type={notification.type}
+      />
     </div>
   );
 }

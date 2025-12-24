@@ -4,7 +4,8 @@ import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 import { lessonDocumentService } from "@utils/lessonDocumentService.js";
 import { uploadService } from "@utils/uploadService";
 import NotificationModal from "@components/NotificationModal/NotificationModal";
-import "./CoursesCSS/LessonDocumentCreate.css";
+import "./CoursesCSS/LessonDocumentEditor.css";
+import { SERVER_URL } from "@config";
 
 // Dùng cùng toolbar
 const CKEDITOR_TOOLBAR = [
@@ -28,6 +29,7 @@ export default function LessonDocumentCreate({ lesson, onCreated }) {
     content: "",
     imageUrl: "",
     videoUrl: "",
+    pdfUrl: "",
     sortOrder: 0,
   });
 
@@ -73,6 +75,21 @@ export default function LessonDocumentCreate({ lesson, onCreated }) {
     }
   };
 
+  const handlePdfUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const res = await uploadService.uploadPdf(file);
+      const url = res.data.url || res.data;
+      setForm((prev) => ({ ...prev, pdfUrl: url }));
+    } catch (err) {
+      showNotification("Lỗi", "Upload PDF thất bại", "error");
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const handleCreate = async () => {
     if (!form.title) {
       showNotification("Thiếu thông tin", "Tiêu đề không được để trống", "warning");
@@ -94,83 +111,100 @@ export default function LessonDocumentCreate({ lesson, onCreated }) {
   };
 
   return (
-    <div className="ldc-wrapper">
-      <h3 className="ldc-title">Thêm Tài liệu Mới</h3>
+    <div className="admin-form-container">
+      <h3 className="admin-form-title">
+        <span style={{ fontSize: "24px" }}>📄</span> Thêm Tài liệu Mới
+      </h3>
 
-      <div className="ldc-form-row">
-        <label className="ldc-label">Tiêu đề:</label>
+      <div className="admin-form-group">
+        <label className="admin-form-label">Tiêu đề</label>
         <input
-          className="ldc-input"
+          className="admin-input"
           value={form.title}
           onChange={(e) => setForm({ ...form, title: e.target.value })}
           required
           autoFocus
+          placeholder="Nhập tiêu đề tài liệu"
         />
       </div>
 
-      <div className="ldc-form-row">
-        <label className="ldc-label">Nội dung:</label>
-        <CKEditor
-          editor={ClassicEditor}
-          data={form.content}
-          config={{ toolbar: CKEDITOR_TOOLBAR }}
-          onChange={(event, editor) =>
-            setForm((prev) => ({ ...prev, content: editor.getData() }))
-          }
-        />
-      </div>
-
-      <div className="ldc-form-row">
-        <label className="ldc-label">Image File:</label>
-        <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleImageUpload}
-            disabled={uploading}
-            className="ldc-input"
+      <div className="admin-form-group">
+        <label className="admin-form-label">Nội dung</label>
+        <div style={{ borderRadius: "10px", overflow: "hidden", border: "1px solid #cbd5e1" }}>
+          <CKEditor
+            editor={ClassicEditor}
+            data={form.content}
+            config={{ toolbar: CKEDITOR_TOOLBAR }}
+            onChange={(event, editor) =>
+              setForm((prev) => ({ ...prev, content: editor.getData() }))
+            }
           />
-          {form.imageUrl && (
-            <div style={{ fontSize: "0.85rem", color: "green" }}>
-              Đã upload: {form.imageUrl}
-            </div>
-          )}
         </div>
       </div>
 
-      <div className="ldc-form-row">
-        <label className="ldc-label">Video File:</label>
-        <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
-          <input
-            type="file"
-            accept="video/*"
-            onChange={handleVideoUpload}
-            disabled={uploading}
-            className="ldc-input"
-          />
-          {form.videoUrl && (
-            <div style={{ fontSize: "0.85rem", color: "green" }}>
-              Đã upload: {form.videoUrl}
-            </div>
-          )}
+      <div className="admin-form-group">
+        <label className="admin-form-label">Ảnh Thumbnail (Tùy chọn)</label>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <label className="admin-btn admin-btn-secondary" style={{ display: "inline-flex", alignItems: "center", gap: "6px", cursor: "pointer" }}>
+            📷 Chọn ảnh
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+              disabled={uploading}
+              hidden
+            />
+          </label>
+          {form.imageUrl && <span style={{ fontSize: "13px", color: "#166534" }}>✅ Đã có ảnh</span>}
+        </div>
+        {form.imageUrl && (
+          <div style={{ marginTop: "8px" }}>
+            <img src={form.imageUrl.startsWith("/") ? `${SERVER_URL}${form.imageUrl}` : form.imageUrl} alt="preview" style={{ height: "60px", borderRadius: "6px" }} onError={(e) => e.target.style.display = 'none'} />
+          </div>
+        )}
+      </div>
+
+      <div className="admin-form-group">
+        <label className="admin-form-label">Video bài học (Tùy chọn)</label>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <label className="admin-btn admin-btn-secondary" style={{ display: "inline-flex", alignItems: "center", gap: "6px", cursor: "pointer" }}>
+            🎥 Chọn video
+            <input
+              type="file"
+              accept="video/*"
+              onChange={handleVideoUpload}
+              disabled={uploading}
+              hidden
+            />
+          </label>
+          {form.videoUrl && <span style={{ fontSize: "13px", color: "#166534" }}>✅ Đã có video</span>}
         </div>
       </div>
 
-      <div className="ldc-form-row">
-        <label className="ldc-label">Thứ tự:</label>
-        <input
-          type="number"
-          className="ldc-input"
-          value={form.sortOrder}
-          onChange={(e) =>
-            setForm({ ...form, sortOrder: Number(e.target.value) })
-          }
-        />
+      <div className="admin-form-group">
+        <label className="admin-form-label">File PDF (Tùy chọn)</label>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <label className="admin-btn admin-btn-secondary" style={{ display: "inline-flex", alignItems: "center", gap: "6px", cursor: "pointer" }}>
+            📄 Chọn PDF
+            <input
+              type="file"
+              accept="application/pdf"
+              onChange={handlePdfUpload}
+              disabled={uploading}
+              hidden
+            />
+          </label>
+          {form.pdfUrl && <span style={{ fontSize: "13px", color: "#166534" }}>✅ Đã có PDF</span>}
+        </div>
       </div>
 
-      <button className="ldc-btn" onClick={handleCreate} disabled={uploading}>
-        {uploading ? "Đang xử lý..." : "Tạo Tài liệu"}
-      </button>
+
+
+      <div style={{ marginTop: "32px", display: "flex", justifyContent: "flex-end", gap: "12px" }}>
+        <button className="admin-btn admin-btn-primary" onClick={handleCreate} disabled={uploading} style={{ width: "100%", justifyContent: "center" }}>
+          {uploading ? "Đang xử lý..." : "Tạo Tài liệu"}
+        </button>
+      </div>
 
       <NotificationModal
         isOpen={notification.isOpen}

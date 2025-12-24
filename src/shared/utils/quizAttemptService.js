@@ -1,35 +1,44 @@
 import api from "@services/api";
 
 export const quizAttemptService = {
-    /**
-     * GET /api/v1/quiz-attempts/{attemptId}
-     * Chi tiết lượt làm
-     */
-    getAttemptById(attemptId) {
+    // POST /api/v1/quiz-attempts/start
+    // payload: { quizId, userId }
+    startAttempt(payload) {
+        return api.post("/api/v1/quiz-attempts/start", payload);
+    },
+
+    // POST /api/v1/quiz-attempts/{attemptId}/submit
+    submitAttempt(attemptId, payload) {
+        return api.post(`/api/v1/quiz-attempts/${attemptId}/submit`, payload);
+    },
+
+    // GET /api/v1/quiz-attempts/{attemptId}
+    getAttemptDetail(attemptId) {
         return api.get(`/api/v1/quiz-attempts/${attemptId}`);
     },
 
-    /**
-     * GET /api/v1/quiz-attempts/by-quiz/{quizId}
-     * Danh sách lượt làm của quiz
-     */
+    // POST /api/v1/quiz-attempts/{attemptId}/attachments
+    uploadAttachment(attemptId, file) {
+        const formData = new FormData();
+        formData.append("file", file);
+        return api.post(
+            `/api/v1/quiz-attempts/${attemptId}/attachments`,
+            formData,
+            {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+            }
+        );
+    },
+
+    // GET /api/v1/quiz-attempts/by-quiz/{quizId}
     getAttemptsByQuiz(quizId) {
         return api.get(`/api/v1/quiz-attempts/by-quiz/${quizId}`);
     },
 
-    /**
-     * GET /api/v1/quiz-attempts/by-user/{userId}
-     * Danh sách lượt làm của user
-     */
+    // GET /api/v1/quiz-attempts/by-user/{userId}
     getAttemptsByUser(userId) {
         return api.get(`/api/v1/quiz-attempts/by-user/${userId}`);
     },
-
-    /**
-     * Helper: Get All Attempts if available (Optional/Guess)
-     * Using /api/v1/quiz-attempts without params might return all
-     */
-    getAllAttempts(params) {
-        return api.get(`/api/v1/quiz-attempts`, { params });
-    }
 };

@@ -4,10 +4,11 @@ import { lessonQuizService } from "@utils/lessonQuizService.js";
 import { quizQuestionService } from "@utils/quizQuestionService.js";
 import { questionService } from "@utils/questionService.js";
 import { quizResultService } from "@utils/quizResultService.js";
+import { quizAttemptService } from "@utils/quizAttemptService.js"; // Added import
 
 import "./QuizExamPage.css";
 
-export default function QuizExamPage({ quizId }) {
+export default function QuizExamPage({ quizId, attemptId, onFinish, onNextLesson }) {
   const params = useParams();
   const quizIdFromParams = params.quizId || quizId;
 
@@ -162,37 +163,82 @@ export default function QuizExamPage({ quizId }) {
     console.log("Submission Payload:", JSON.stringify(payload, null, 2));
 
     try {
-      const res = await quizResultService.submitQuiz(payload);
-      const serverResult = res?.data || {};
-      let finalResult = serverResult;
-
       const optionIsCorrect = (idx, selId) => {
         const q = quizQuestions[idx];
         const opt = q && Array.isArray(q.options) ? q.options[Number(selId) - 1] : undefined;
         return !!(opt && opt.isCorrect);
       };
+
       const localCorrect = quizQuestions.reduce((acc, _q, idx) => {
         const sel = Number(userSelections[idx]);
         return acc + (Number.isFinite(sel) && sel > 0 && optionIsCorrect(idx, sel) ? 1 : 0);
       }, 0);
-      const localTotal = quizQuestions.length;
-      const max = Number(quizInfo?.maxScore) || localTotal || 0;
-      const localScore = max > 0 ? Math.round((localCorrect / (localTotal || 1)) * max) : localCorrect;
 
-      const needFallback = (!Number.isFinite(Number(serverResult?.score)) || Number(serverResult?.score) === 0) && localCorrect > 0;
-      if (needFallback) {
-        finalResult = {
-          ...serverResult,
+      const localTotal = quizQuestions.length;
+      const max = Number(quizInfo?.maxScore) || 10;
+      const localScore = max > 0 && localTotal > 0 ? Math.round((localCorrect / localTotal) * max * 10) / 10 : 0;
+
+      // Determine if passed
+      // Passing score might be percentage (e.g. 50%) or absolute value.
+      // Based on UI "50% passing", let's assume if maxScore is 10, passing is 5.
+      // Or check quizInfo.passingScore if available.
+      let isPassed = false;
+      if (Number.isFinite(Number(quizInfo?.passingScore))) {
+        isPassed = localScore >= Number(quizInfo.passingScore);
+      } else {
+        // Default 50%
+        isPassed = (localScore / max) >= 0.5;
+      }
+
+      let res;
+      let finalResult;
+
+      if (attemptId) {
+        // New flow: Submit calculated stats to Quiz Attempt API
+        const payloadStats = {
+          score: localScore,
           correctCount: localCorrect,
           totalCount: localTotal,
-          score: localScore,
-          isPassed: Number.isFinite(Number(quizInfo?.passingScore)) ? localScore >= Number(quizInfo.passingScore) : undefined,
+          passed: isPassed
         };
+        console.log("Submitting Attempt Payload:", JSON.stringify(payloadStats, null, 2));
+        res = await quizAttemptService.submitAttempt(attemptId, payloadStats);
+
+        // API returns the attempt object. Map it to local state result format.
+        const attemptData = res.data || {};
+        finalResult = {
+          score: attemptData.score ?? localScore, // Use server value if present
+          correctCount: attemptData.correctCount ?? localCorrect,
+          totalCount: attemptData.totalCount ?? localTotal,
+          isPassed: attemptData.passed ?? isPassed
+        };
+
+      } else {
+        // Old flow: Submit to Quiz Result API
+        res = await quizResultService.submitQuiz(payload);
+        finalResult = res?.data || {};
+
+        // Apply fallback for old logic if server returned incomplete data
+        const needFallback = (!Number.isFinite(Number(finalResult?.score)) || Number(finalResult?.score) === 0) && localCorrect > 0;
+        if (needFallback) {
+          finalResult = {
+            ...finalResult,
+            correctCount: localCorrect,
+            totalCount: localTotal,
+            score: localScore,
+            isPassed: isPassed,
+          };
+        }
       }
 
       setSubmissionResult(finalResult);
       setIsQuizCompleted(true);
       if (timerRef.current) clearInterval(timerRef.current);
+
+      // Trigger callback (for progress saving in parent)
+      if (onFinish) {
+        onFinish(finalResult);
+      }
     } catch (error) {
       console.error("Submit quiz error:", error);
       let errorMessage = error.message;
@@ -205,6 +251,13 @@ export default function QuizExamPage({ quizId }) {
       }
       alert(`Nộp bài thất bại: ${errorMessage}`);
     }
+  };
+
+  const handleRetry = () => {
+    setCurrentQuestionIndex(0);
+    setUserSelections({});
+    setIsQuizCompleted(false);
+    setSubmissionResult(null);
   };
 
   // ================== RENDER ==================
@@ -225,7 +278,22 @@ export default function QuizExamPage({ quizId }) {
               ? "Chúc mừng! Bạn đã vượt qua bài kiểm tra."
               : "Rất tiếc, bạn chưa đạt yêu cầu."}
           </p>
-          <button onClick={() => window.location.reload()}>Làm lại</button>
+          <div style={{ display: "flex", gap: "10px", justifyContent: "center" }}>
+            <button onClick={handleRetry}>Làm lại</button>
+            {submissionResult.isPassed && onNextLesson && (
+              <button
+                className="quiz-next-lesson-btn"
+                onClick={onNextLesson}
+                style={{
+                  backgroundColor: "#F05123",
+                  color: "#fff",
+                  border: "none"
+                }}
+              >
+                Bài tiếp theo
+              </button>
+            )}
+          </div>
         </div>
       </div>
     );

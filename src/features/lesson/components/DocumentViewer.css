@@ -91,3 +91,57 @@
   border-radius: 12px;
   margin-top: 32px;
 }
+
+/* PDF Download Box */
+.document-pdf-container {
+  margin-top: 32px;
+  padding: 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background-color: #f8fafc;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  transition: box-shadow 0.2s;
+}
+
+.document-pdf-container:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.document-pdf-icon {
+  width: 48px;
+  height: 48px;
+  background-color: #fee2e2;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ef4444;
+  font-size: 24px;
+}
+
+.document-pdf-info {
+  flex: 1;
+}
+
+.document-pdf-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 4px;
+}
+
+.document-pdf-link {
+  font-size: 14px;
+  color: #ef4444;
+  text-decoration: none;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.document-pdf-link:hover {
+  text-decoration: underline;
+}

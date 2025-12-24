@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { courseService } from "@utils/courseService";
 import { sessionService } from "@utils/sessionService";
 import { lessonService } from "@utils/lessonService";
+import { userProgressService } from "@utils/userProgressService";
 import { slugify } from "@utils/slugify";
 import { useEffect, useState } from "react"; // Bỏ useMemo cho đơn giản
 
@@ -100,6 +101,51 @@ export default function LessonPage() {
   if (allLessons.length > 0 && currentLessonIndex !== -1) {
     progressText = `${currentLessonIndex + 1}/${allLessons.length} Bài học`;
   }
+
+  // 7. ACCESS CONTROL (SEQUENTIAL)
+  useEffect(() => {
+    if (!course || allLessons.length === 0 || !lessonId) return;
+
+    const checkAccess = async () => {
+      const user = JSON.parse(localStorage.getItem("loggedInUser") || "{}");
+      if (!user.id) return;
+
+      try {
+        // Fetch progress
+        const res = await userProgressService.getByCourse(user.id, course.id);
+        const progressMap = {};
+        (res.data || []).forEach(p => {
+          const pid = String(p.lessonId);
+          if (!progressMap[pid] || p.progressPercent > progressMap[pid]) {
+            progressMap[pid] = p.progressPercent;
+          }
+        });
+
+        const currentIndex = allLessons.findIndex(l => String(l.id) === String(lessonId));
+        if (currentIndex === -1) return;
+
+        // Find first incomplete lesson
+        let firstIncompleteIndex = -1;
+        for (let i = 0; i < allLessons.length; i++) {
+          const lid = String(allLessons[i].id);
+          const p = progressMap[lid] || 0;
+          if (p < 100) {
+            firstIncompleteIndex = i;
+            break;
+          }
+        }
+
+        // If all completed, firstIncompleteIndex is -1.
+        // If firstIncompleteIndex is found, we can only visit index <= firstIncompleteIndex.
+        if (firstIncompleteIndex !== -1 && currentIndex > firstIncompleteIndex) {
+          navigate(`/courses/${courseSlug}/${allLessons[firstIncompleteIndex].id}`, { replace: true });
+        }
+
+      } catch (e) { console.error("Access check failed", e); }
+    };
+    checkAccess();
+  }, [lessonId, allLessons, course, courseSlug, navigate]);
+
   // -----------------------------------------------------------------
 
   const handleNavigation = (dir) => {
@@ -109,6 +155,14 @@ export default function LessonPage() {
       navigate(`/courses/${courseSlug}/${nextLesson.id}`);
     }
   };
+
+  // 7. Enrich lesson data with Context (CourseID, SessionID)
+  const currentSession = sessions.find(s => s.lessons && s.lessons.some(l => l.id === lesson?.id));
+  const enrichedLesson = lesson ? {
+    ...lesson,
+    courseId: course?.id,
+    sessionId: currentSession?.id || lesson.sessionId
+  } : null;
 
   if (loading || !lesson)
     return <div className="lesson-layout">Đang tải bài học...</div>;
@@ -168,22 +222,13 @@ export default function LessonPage() {
         </div>
       </div>
 
-      <LessonContentDisplay item={lesson} />
+      <LessonContentDisplay
+        item={enrichedLesson}
+        progress={progressText}
+        onNextLesson={() => handleNavigation(1)}
+      />
 
-      {/* Truyền progressText xuống component con */}
-      {/* Lưu ý: progressText bây giờ mặc định là "..." chứ không phải rỗng */}
 
-      {lesson.type === "video" && (
-        <VideoPlayer item={lesson} progress={progressText} />
-      )}
-
-      {lesson.type === "document" && (
-        <DocumentViewer item={lesson} progress={progressText} />
-      )}
-
-      {lesson.type === "quiz" && (
-        <QuizComponent item={lesson} progress={progressText} />
-      )}
     </div>
   );
 }

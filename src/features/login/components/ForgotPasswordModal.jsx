@@ -201,10 +201,11 @@ export default function ForgotPasswordModal({ isOpen, onClose }) {
                     {step === 3 && (
                         <>
                             <p className="forgot-instruction">
-                                Tạo mật khẩu mới cho tài khoản của bạn.
+                                Tạo mật khẩu mới an toàn cho tài khoản của bạn.
                             </p>
                             <form onSubmit={handleResetPassword}>
                                 <div className="form-group">
+                                    <label className="field-label">Mật khẩu mới *</label>
                                     <div className="password-input-container">
                                         <input
                                             type={showPassword ? "text" : "password"}
@@ -212,7 +213,7 @@ export default function ForgotPasswordModal({ isOpen, onClose }) {
                                             onChange={(e) => setNewPassword(e.target.value)}
                                             placeholder="Mật khẩu mới"
                                             required
-                                            className="form-input"
+                                            className="form-input password-input"
                                             autoFocus
                                         />
                                         <button
@@ -225,6 +226,7 @@ export default function ForgotPasswordModal({ isOpen, onClose }) {
                                     </div>
                                 </div>
                                 <div className="form-group">
+                                    <label className="field-label">Xác nhận mật khẩu mới *</label>
                                     <div className="password-input-container">
                                         <input
                                             type={showConfirmPassword ? "text" : "password"}
@@ -232,7 +234,7 @@ export default function ForgotPasswordModal({ isOpen, onClose }) {
                                             onChange={(e) => setConfirmPassword(e.target.value)}
                                             placeholder="Xác nhận mật khẩu mới"
                                             required
-                                            className="form-input"
+                                            className="form-input password-input"
                                         />
                                         <button
                                             type="button"
@@ -243,13 +245,26 @@ export default function ForgotPasswordModal({ isOpen, onClose }) {
                                         </button>
                                     </div>
                                 </div>
-                                <div className="modal-actions">
+                                <div className="requirements-card">
+                                    <div className="requirements-title">Yêu cầu mật khẩu</div>
+                                    <ul className="requirements-list">
+                                        <li>Ít nhất 8 ký tự</li>
+                                        <li>Chữ hoa và chữ thường</li>
+                                        <li>Ít nhất 1 chữ số</li>
+                                        <li>Ít nhất 1 ký tự đặc biệt</li>
+                                    </ul>
+                                </div>
+                                <div className="modal-actions reset-actions">
                                     <button type="button" onClick={handleClose} className="btn-cancel">
                                         Hủy
                                     </button>
                                     <button type="submit" disabled={loading} className="btn-submit">
-                                        {loading ? "Đang đổi..." : "Đổi mật khẩu"}
+                                        {loading ? "Đang đổi..." : "Đặt lại mật khẩu"}
                                     </button>
+                                </div>
+                                <div className="note-card">
+                                    <div className="note-title">Lưu ý bảo mật</div>
+                                    <p>Mật khẩu của bạn không nên chia sẻ với bất kỳ ai. Chúng tôi sẽ không bao giờ yêu cầu mật khẩu của bạn qua email hoặc điện thoại.</p>
                                 </div>
                             </form>
                         </>
