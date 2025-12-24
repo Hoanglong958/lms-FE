@@ -325,12 +325,10 @@ export default function QuestionBank() {
 
       {/* Stats Grid */}
       {/* Stats Grid */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 24, marginBottom: 32 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 24, marginBottom: 32 }}>
         {[
           { label: "Tổng câu hỏi", value: stats.total, icon: <FileText size={24} />, color: "#f97316", bg: "#fff7ed" },
-          { label: "Danh mục", value: stats.categories, icon: <Book size={24} />, color: "#3b82f6", bg: "#eff6ff" },
-          { label: "Trắc nghiệm", value: stats.multipleChoice, icon: <CheckSquare size={24} />, color: "#10b981", bg: "#ecfdf5" },
-          { label: "Tự luận", value: stats.essay, icon: <FileEdit size={24} />, color: "#a855f7", bg: "#faf5ff" }
+          { label: "Danh mục", value: stats.categories, icon: <Book size={24} />, color: "#3b82f6", bg: "#eff6ff" }
         ].map((stat, index) => (
           <div key={index} style={{
             borderRadius: 16,
@@ -421,7 +419,6 @@ export default function QuestionBank() {
             <tr>
               <th>Câu hỏi</th>
               <th>Danh mục</th>
-              <th>Loại</th>
               <th>Thao tác</th>
             </tr>
           </thead>
@@ -439,18 +436,6 @@ export default function QuestionBank() {
                 <tr key={q.id}>
                   <td>{q.question}</td>
                   <td>{q.course}</td>
-                  <td>
-                    <span style={{
-                      padding: '4px 10px',
-                      borderRadius: '20px',
-                      background: q.type === 'Trắc nghiệm' ? '#E0F2FE' : '#FEF3C7',
-                      color: q.type === 'Trắc nghiệm' ? '#0284C7' : '#D97706',
-                      fontSize: '12px',
-                      fontWeight: 600
-                    }}>
-                      {q.type}
-                    </span>
-                  </td>
                   <td>
                     <button className="btn-icon" onClick={() => handleView(q)} title="Xem">
                       👁️

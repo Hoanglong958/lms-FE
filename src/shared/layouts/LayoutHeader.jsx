@@ -152,7 +152,7 @@ export default function Header() {
             <a onClick={() => handleNavigate("/lessons")}>
               <img src={lessonIcon} alt="Bài học" /> Bài học
             </a>
-            <a onClick={() => handleNavigate("/posts")}>
+            <a onClick={() => handleNavigate("/baiviet")}>
               <img src={bookIcon} alt="Bài viết" /> Bài viết
             </a>
           </nav>
