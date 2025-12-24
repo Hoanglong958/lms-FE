@@ -3,6 +3,16 @@ import "./QuestionBankBulk.css";
 import { useNavigate } from "react-router-dom";
 import NotificationModal from "@components/NotificationModal/NotificationModal";
 import { questionService } from "@utils/questionService";
+import {
+    Upload,
+    Download,
+    ArrowLeft,
+    CheckCircle2,
+    Info,
+    FileSpreadsheet,
+    FileText,
+    Zap
+} from "lucide-react";
 
 export default function QuestionBankBulk() {
     const navigate = useNavigate();
@@ -45,38 +55,145 @@ export default function QuestionBankBulk() {
 
     return (
         <div className="qb-bulk-container">
-            <div className="qb-header">
-                <h2 className="qb-title">Thêm Câu Hỏi Mới</h2>
-                <p className="qb-desc">Tạo nhiều câu hỏi cùng lúc bằng cách tải lên file Excel</p>
+            {/* Breadcrumb */}
+            <div className="qb-breadcrumb-wrapper">
+                <div className="qb-breadcrumb">
+                    <button onClick={() => navigate("/admin/question-bank")} className="qb-back-link">
+                        <ArrowLeft size={16} /> Ngân hàng câu hỏi
+                    </button>
+                    <span className="qb-sep">/</span>
+                    <span className="qb-current">Thêm hàng loạt</span>
+                </div>
             </div>
 
-            <div className="qb-content-card">
-                <div className="qb-tab-content">
-                    <div className="qb-excel-section">
-                        <div className="qb-import-area">
-                            <div className="qb-file-upload-box">
-                                <label htmlFor="file-upload" className="qb-file-label">
-                                    <span className="qb-icon-folder">📂</span>
-                                    <span className="qb-text-main">Chọn file Excel (.xlsx, .xls)</span>
-                                    <span className="qb-text-sub">{importFile ? importFile.name : "Chưa chọn file"}</span>
-                                </label>
-                                <input
-                                    id="file-upload"
-                                    type="file"
-                                    accept=".xlsx, .xls"
-                                    onChange={(e) => setImportFile(e.target.files[0])}
-                                    style={{ display: 'none' }}
-                                />
+            {/* Page Header */}
+            <div className="qb-page-header">
+                <div className="qb-header-icon">
+                    <Upload size={32} color="#fff" />
+                </div>
+                <div className="qb-header-content">
+                    <h1 className="qb-title">Thêm Câu Hỏi Mới</h1>
+                    <p className="qb-desc">Cập nhật nhanh ngân hàng câu hỏi bằng tệp dữ liệu Excel</p>
+                </div>
+            </div>
+
+            <div className="qb-main-layout">
+                {/* Left Side: Upload Section */}
+                <div className="qb-upload-column">
+                    <div className="qb-main-card">
+                        <div className={`qb - upload - zone ${importFile ? 'has-file' : ''} `}>
+                            <label htmlFor="file-upload" className="qb-upload-label">
+                                <div className="qb-upload-circle">
+                                    <Upload size={48} className="text-orange-500" />
+                                </div>
+                                <h2 className="qb-upload-title">Tải lên tệp Excel của bạn</h2>
+                                <p className="qb-upload-subtitle">Kéo thả hoặc nhấn để chọn tệp</p>
+
+                                <div className="qb-file-types">
+                                    <span>.xlsx</span>
+                                    <span>.xls</span>
+                                </div>
+
+                                {importFile && (
+                                    <div className="qb-selected-file">
+                                        <FileSpreadsheet size={20} className="text-orange-500" />
+                                        <span>{importFile.name}</span>
+                                        <CheckCircle2 size={16} className="text-green-500" />
+                                    </div>
+                                )}
+                            </label>
+                            <input
+                                id="file-upload"
+                                type="file"
+                                accept=".xlsx, .xls"
+                                onChange={(e) => setImportFile(e.target.files[0])}
+                                style={{ display: 'none' }}
+                            />
+                        </div>
+
+                        <div className="qb-card-actions">
+                            <button className="qb-btn-cancel" onClick={() => navigate("/admin/question-bank")}>
+                                Hủy bỏ
+                            </button>
+                            <button
+                                className="qb-btn-import"
+                                onClick={handleImportExcel}
+                                disabled={loading || !importFile}
+                            >
+                                {loading ? (
+                                    <div className="qb-spinner"></div>
+                                ) : (
+                                    <>
+                                        <Zap size={18} />
+                                        <span>Bắt đầu Import</span>
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Template Card */}
+                    <div className="qb-template-card">
+                        <div className="qb-template-icon">
+                            <FileSpreadsheet size={32} color="#fff" />
+                        </div>
+                        <div className="qb-template-content">
+                            <h3>Tệp mẫu Excel</h3>
+                            <p>Tải xuống file mẫu với đầy đủ các tiêu đề cột chuẩn để import dữ liệu đúng định dạng</p>
+                            <button className="qb-btn-template">
+                                <Download size={16} />
+                                <span>Tải tệp mẫu (.xlsx)</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Right Side: Instructions */}
+                <div className="qb-info-column">
+                    <div className="qb-instructions-card">
+                        <div className="qb-instructions-header">
+                            <div className="qb-info-icon-circle">
+                                <Info size={24} color="#fff" />
+                            </div>
+                            <h3>Hướng dẫn</h3>
+                        </div>
+
+                        <div className="qb-steps-list">
+                            <div className="qb-step-item">
+                                <div className="qb-step-number">1</div>
+                                <div className="qb-step-content">
+                                    <h4>Cột Câu hỏi</h4>
+                                    <p>Nội dung câu hỏi cần rõ ràng và đầy đủ.</p>
+                                </div>
+                            </div>
+                            <div className="qb-step-item">
+                                <div className="qb-step-number">2</div>
+                                <div className="qb-step-content">
+                                    <h4>Cột Danh mục</h4>
+                                    <p>Tên danh mục (ví dụ: Java, HTML, CSS).</p>
+                                </div>
+                            </div>
+                            <div className="qb-step-item">
+                                <div className="qb-step-number">3</div>
+                                <div className="qb-step-content">
+                                    <h4>Cột Lựa chọn</h4>
+                                    <p>Ngăn cách các đáp án bằng dấu phẩy (,).</p>
+                                </div>
+                            </div>
+                            <div className="qb-step-item">
+                                <div className="qb-step-number">4</div>
+                                <div className="qb-step-content">
+                                    <h4>Đáp án đúng</h4>
+                                    <p>Phải khớp hoàn toàn với một lựa chọn.</p>
+                                </div>
                             </div>
                         </div>
 
-                        <div className="qb-action-row">
-                            <button className="qb-btn cancel" onClick={() => navigate("/admin/question-bank")}>
-                                Hủy
-                            </button>
-                            <button className="qb-btn submit" onClick={handleImportExcel} disabled={loading}>
-                                {loading ? "Đang xử lý..." : "Import Excel"}
-                            </button>
+                        <div className="qb-warning-box">
+                            <div className="qb-warning-header">
+                                <Info size={16} className="text-orange-600" />
+                                <span><strong>Lưu ý:</strong> Hệ thống sẽ tự động bỏ qua các câu hỏi có định dạng không hợp lệ hoặc thiếu thông tin bắt buộc.</span>
+                            </div>
                         </div>
                     </div>
                 </div>
