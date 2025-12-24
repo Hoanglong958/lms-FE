@@ -17,6 +17,7 @@ const formatDate = (dateString) => {
 };
 
 import { userProgressService } from "@utils/userProgressService"; // Added import
+import { quizAttemptService } from "@utils/quizAttemptService"; // Added import
 
 // Nhận prop 'progress'
 const QuizComponent = ({ item, progress, onNextLesson }) => {
@@ -26,6 +27,7 @@ const QuizComponent = ({ item, progress, onNextLesson }) => {
   const [loading, setLoading] = useState(true);
   const [showHistory, setShowHistory] = useState(false);
   const [descExpanded, setDescExpanded] = useState(false); // Toggle state
+  const [attemptId, setAttemptId] = useState(null); // Store current attempt ID
 
   useEffect(() => {
     if (!item?.id) {
@@ -60,8 +62,36 @@ const QuizComponent = ({ item, progress, onNextLesson }) => {
     fetchQuiz();
   }, [item.id]);
 
-  const handleStartQuiz = () => {
-    setShowQuiz(true);
+  const handleStartQuiz = async () => {
+    try {
+      const userStr = localStorage.getItem("loggedInUser");
+      if (!userStr) {
+        alert("Vui lòng đăng nhập để làm bài");
+        return;
+      }
+      const user = JSON.parse(userStr);
+      const quizId = quiz?.id || item.id;
+
+      const res = await quizAttemptService.startAttempt({
+        quizId: quizId,
+        userId: user.id
+      });
+
+      const data = res.data || {};
+      const newAttemptId = data.attemptId || data.id;
+
+      if (newAttemptId) {
+        setAttemptId(newAttemptId);
+        setShowQuiz(true);
+      } else {
+        // Fallback or error handling
+        console.error("No attempt ID returned", res);
+        alert("Không thể bắt đầu bài làm. Vui lòng thử lại.");
+      }
+    } catch (error) {
+      console.error("Error starting attempt:", error);
+      alert("Lỗi khi bắt đầu làm bài");
+    }
   };
 
   const handleQuizFinish = async (result) => {
@@ -123,6 +153,7 @@ const QuizComponent = ({ item, progress, onNextLesson }) => {
     return (
       <QuizExamPage
         quizId={quiz.quizId || quiz.id || item.id}
+        attemptId={attemptId}
         onFinish={handleQuizFinish}
         onNextLesson={onNextLesson}
       />
