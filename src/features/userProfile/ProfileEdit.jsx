@@ -1,10 +1,8 @@
-import React, { useState, useCallback } from "react";
-import Cropper from "react-easy-crop";
+import React, { useState } from "react";
 import { authService } from "@utils/authService";
 import { uploadService } from "@utils/uploadService";
 import { userService } from "@utils/userService";
 import { SERVER_URL } from "@config";
-import getCroppedImg from "@utils/canvasUtils";
 import NotificationModal from "@components/NotificationModal/NotificationModal";
 import "./ProfileEdit.css";
 
@@ -43,13 +41,6 @@ export default function ProfileEdit() {
 
     const [uploading, setUploading] = useState(false);
 
-    // Cropper State
-    const [imageSrc, setImageSrc] = useState(null);
-    const [crop, setCrop] = useState({ x: 0, y: 0 });
-    const [zoom, setZoom] = useState(1);
-    const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
-    const [showCropModal, setShowCropModal] = useState(false);
-
     const [notification, setNotification] = useState({
         isOpen: false,
         title: "",
@@ -70,39 +61,11 @@ export default function ProfileEdit() {
     };
 
     const onFileChange = async (e) => {
-        if (e.target.files && e.target.files.length > 0) {
-            const file = e.target.files[0];
-            const imageDataUrl = await readFile(file);
-            setImageSrc(imageDataUrl);
-            setShowCropModal(true);
-        }
-    };
+        const file = e.target.files[0];
+        if (!file) return;
 
-    const readFile = (file) => {
-        return new Promise((resolve) => {
-            const reader = new FileReader();
-            reader.addEventListener("load", () => resolve(reader.result), false);
-            reader.readAsDataURL(file);
-        });
-    };
-
-    const onCropComplete = useCallback((croppedArea, croppedAreaPixels) => {
-        setCroppedAreaPixels(croppedAreaPixels);
-    }, []);
-
-    const showCroppedImage = useCallback(async () => {
+        setUploading(true);
         try {
-            setUploading(true);
-            const croppedImageBlob = await getCroppedImg(imageSrc, croppedAreaPixels);
-
-            // Upload blob directly
-            // We need to create a File object from Blob or append blob to FormData in logic
-            // uploadService usually expects a File or Blob. Let's check uploadService usage. 
-            // Usually we append to formData.
-
-            // Create a file from blob to preserve name if needed, or just pass blob
-            const file = new File([croppedImageBlob], "avatar.jpg", { type: "image/jpeg" });
-
             const res = await uploadService.uploadImage(file);
             // Standardized response handling like ManageCourses
             const url = res.data?.url || res.data?.data || res.data;
@@ -110,8 +73,6 @@ export default function ProfileEdit() {
             if (url) {
                 setFormData(prev => ({ ...prev, avatar: url }));
                 showNotification("Thành công", "Cập nhật ảnh đại diện thành công", "success");
-                setShowCropModal(false);
-                setImageSrc(null);
             }
         } catch (e) {
             console.error(e);
@@ -119,11 +80,6 @@ export default function ProfileEdit() {
         } finally {
             setUploading(false);
         }
-    }, [imageSrc, croppedAreaPixels]);
-
-    const handleCloseCrop = () => {
-        setShowCropModal(false);
-        setImageSrc(null);
     };
 
     // Helper to get full avatar URL
@@ -221,38 +177,32 @@ export default function ProfileEdit() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            // Construct payload matching Swagger (PUT /api/v1/users/{id})
-            // Schema: { "fullName": "string", "imageUrl": "string", "role": "string", "isActive": true }
+            // Schema: { "fullName": "string", "phone": "string", "avatar": "string" }
             const payload = {
                 fullName: `${formData.lastName} ${formData.firstName}`.trim(),
-                imageUrl: formData.avatar, // Map avatar state to imageUrl
-                role: user.role || "USER", // Preserve role or default
-                isActive: user.isActive !== undefined ? user.isActive : true, // Preserve active status
-                // Include other fields if API supports them, otherwise they might be ignored or handled separately
-                email: formData.email,
-                phone: formData.phone
+                phone: formData.phone,
+                avatar: formData.avatar
             };
 
-            // Note: userService.updateUser requires ID.
-            if (user.id) {
-                await userService.updateUser(user.id, payload);
+            // Call the correct endpoint for personal profile update
+            await authService.updateProfile(payload);
 
-                // Update local storage to reflect changes immediately
-                // We update using the formData structure for frontend consistency, but ensure we save what we sent
-                const updatedUser = {
-                    ...user,
-                    ...formData,
-                    fullName: payload.fullName,
-                    imageUrl: payload.imageUrl,
-                    avatar: payload.imageUrl // Keep avatar for internal logic if needed
-                };
-                localStorage.setItem("loggedInUser", JSON.stringify(updatedUser));
-                showNotification("Thành công", "Thông tin đã được lưu!", "success");
-            } else {
-                showNotification("Lỗi", "Không tìm thấy ID người dùng", "error");
-            }
+            // Update local storage to reflect changes immediately
+            const updatedUser = {
+                ...user,
+                ...payload,
+                // Ensure field names are consistent for other components
+                imageUrl: payload.avatar 
+            };
+            localStorage.setItem("loggedInUser", JSON.stringify(updatedUser));
+            
+            showNotification("Thành công", "Thông tin đã được lưu!", "success");
         } catch (err) {
-            console.error(err);
+            console.error("Update failed:", err);
+            if (err.response) {
+                console.error("Server response data:", err.response.data);
+                console.error("Server response status:", err.response.status);
+            }
             showNotification("Lỗi", "Cập nhật thất bại", "error");
         }
     };
@@ -367,51 +317,7 @@ export default function ProfileEdit() {
                         <button type="submit" className="save-btn">Lưu thay đổi</button>
                     </div>
 
-                    {/* Crop Modal */}
-                    {showCropModal && (
-                        <div className="crop-modal-overlay">
-                            <div className="crop-modal-container">
-                                <div className="crop-modal-header">
-                                    <h3>Cập nhật ảnh đại diện</h3>
-                                    <button type="button" className="close-btn" onClick={handleCloseCrop}>&times;</button>
-                                </div>
-                                <div className="crop-container">
-                                    <Cropper
-                                        image={imageSrc}
-                                        crop={crop}
-                                        zoom={zoom}
-                                        aspect={1}
-                                        cropShape="round"
-                                        showGrid={false}
-                                        onCropChange={setCrop}
-                                        onCropComplete={onCropComplete}
-                                        onZoomChange={setZoom}
-                                    />
-                                </div>
-                                <div className="crop-controls">
-                                    <div className="zoom-control">
-                                        <label>Thu phóng</label>
-                                        <input
-                                            type="range"
-                                            value={zoom}
-                                            min={1}
-                                            max={3}
-                                            step={0.1}
-                                            aria-labelledby="Zoom"
-                                            onChange={(e) => setZoom(Number(e.target.value))}
-                                            className="zoom-range"
-                                        />
-                                    </div>
-                                    <div className="crop-actions">
-                                        <button type="button" className="btn-cancel" onClick={handleCloseCrop}>Hủy</button>
-                                        <button type="button" className="btn-save" onClick={showCroppedImage} disabled={uploading}>
-                                            {uploading ? "Đang xử lý..." : "Lưu"}
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    )}
+
                 </form>
             </div>
 

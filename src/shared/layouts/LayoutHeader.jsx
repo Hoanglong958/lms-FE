@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { SERVER_URL } from "@config";
 import "./Header.css";
 
 import mankaiLogo from "@assets/logos/mankai-logo.svg";
@@ -45,6 +46,14 @@ export default function Header() {
     navigate("/login", { replace: true });
   };
 
+  const getAvatarSrc = (path) => {
+    if (!path) return avatar;
+    if (path.startsWith("http") || path.startsWith("blob:")) return path;
+    return `${SERVER_URL}${path}`;
+  };
+
+  const userAvatar = getAvatarSrc(user.imageUrl || user.avatar);
+
   return (
     <>
       {/* HEADER CHÍNH */}
@@ -86,13 +95,13 @@ export default function Header() {
               className="user-header-avatar-btn"
               onClick={() => setOpenDropdown((prev) => !prev)}
             >
-              <img src={avatar} alt="Avatar" />
+              <img src={userAvatar} alt="Avatar" style={{ borderRadius: '50%', objectFit: 'cover' }} />
             </button>
             {openDropdown && (
               <div className="user-header-dropdown-menu">
                 <div className="user-header-dropdown-header">
                   <div className="user-header-avatar">
-                    <img src={avatarDropDown} alt="Avatar" />
+                    <img src={userAvatar} alt="Avatar" style={{ borderRadius: '50%', objectFit: 'cover' }} />
                   </div>
                   <div className="user-header-user-info">
                     <div className="user-header-name">{displayName}</div>
@@ -165,9 +174,10 @@ export default function Header() {
             <div className="user-header-user-info-mobile">
               <div className="user-header-avatarlablegroup">
                 <img
-                  src={avatarDropDown}
+                  src={userAvatar}
                   alt="Avatar"
                   className="user-header-avatar-mobile"
+                  style={{ borderRadius: '50%', objectFit: 'cover' }}
                 />
                 <div className="user-header-text-info">
                   <div className="user-header-name">{displayName}</div>
