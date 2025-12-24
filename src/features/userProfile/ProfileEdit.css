@@ -108,6 +108,59 @@
   cursor: not-allowed;
 }
 
+/* ===== AVATAR SECTION ===== */
+.avatar-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 2.5rem;
+}
+
+.avatar-wrapper {
+  position: relative;
+  width: 120px;
+  height: 120px;
+}
+
+.avatar-image {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid #fff;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.camera-btn {
+  position: absolute;
+  bottom: 0px;
+  right: 0px;
+  width: 36px;
+  height: 36px;
+  background: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+  transition: all 0.2s;
+  color: #4a5568;
+  border: 1px solid #e2e8f0;
+}
+
+.camera-btn:hover {
+  transform: scale(1.1);
+  color: #ed8936;
+  border-color: #ed8936;
+}
+
+.upload-status {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  color: #718096;
+}
+
 /* ===== CHANGE PASSWORD BUTTON ===== */
 .change-password-btn {
   display: flex;

@@ -100,15 +100,14 @@ export default function Header() {
                   </div>
                 </div>
 
-                <div className="user-header-dropdown-item">
-                  <button
-                    onClick={() => {
-                      setOpenDropdown(false);
-                      navigate("/profile/edit");
-                    }}
-                  >
-                    Hồ sơ của tôi
-                  </button>
+                <div
+                  className="user-header-dropdown-item"
+                  onClick={() => {
+                    setOpenDropdown(false);
+                    navigate("/profile/edit");
+                  }}
+                >
+                  Hồ sơ của tôi
                 </div>
                 <div className="user-header-dropdown-item" onClick={() => handleNavigate("/home")}>
                   Khóa học của tôi
