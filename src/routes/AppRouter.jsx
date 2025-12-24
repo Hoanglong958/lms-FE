@@ -39,6 +39,7 @@ import ManageLessons from "@admin/Courses/ManageLessons";
 import AdminHomePage from "@pages/AdminHomePage";
 
 import ExamManagement from "@features/Admin/ExamManagement/ExamManagement";
+import QuizManagement from "@features/Admin/ExamManagement/QuizManagement";
 import ExamDetail from "@features/Admin/ExamManagement/ExamDetail";
 import ExamPreview from "@features/Admin/ExamManagement/ExamPreview";
 import AssignmentManagement from "@features/Admin/ExamManagement/AssignmentManagement";
@@ -133,6 +134,7 @@ export default function AppRouter() {
 
             {/* EXAM MANAGEMENT */}
             <Route path="exam" element={<ExamManagement />} />
+            <Route path="quiz" element={<QuizManagement />} />
             <Route path="exam/:examId/detail" element={<ExamDetail />} />
             <Route path="exam/:examId/preview" element={<ExamPreview />} />
 
