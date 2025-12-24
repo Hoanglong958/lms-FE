@@ -62,36 +62,14 @@ const QuizComponent = ({ item, progress, onNextLesson }) => {
     fetchQuiz();
   }, [item.id]);
 
-  const handleStartQuiz = async () => {
-    try {
-      const userStr = localStorage.getItem("loggedInUser");
-      if (!userStr) {
-        alert("Vui lòng đăng nhập để làm bài");
-        return;
-      }
-      const user = JSON.parse(userStr);
-      const quizId = quiz?.id || item.id;
-
-      const res = await quizAttemptService.startAttempt({
-        quizId: quizId,
-        userId: user.id
-      });
-
-      const data = res.data || {};
-      const newAttemptId = data.attemptId || data.id;
-
-      if (newAttemptId) {
-        setAttemptId(newAttemptId);
-        setShowQuiz(true);
-      } else {
-        // Fallback or error handling
-        console.error("No attempt ID returned", res);
-        alert("Không thể bắt đầu bài làm. Vui lòng thử lại.");
-      }
-    } catch (error) {
-      console.error("Error starting attempt:", error);
-      alert("Lỗi khi bắt đầu làm bài");
+  const handleStartQuiz = () => {
+    const userStr = localStorage.getItem("loggedInUser");
+    if (!userStr) {
+      alert("Vui lòng đăng nhập để làm bài");
+      return;
     }
+    // Just show the quiz, attempt creation will happen on submit
+    setShowQuiz(true);
   };
 
   const handleQuizFinish = async (result) => {
@@ -354,23 +332,11 @@ const QuizHistory = ({ quizId }) => {
           return;
         }
 
-        // 2. Fetch all results (Assuming API returns list)
-        // Check if there is an API to get by user, otherwise filter client side
-        // Using existing getResults which might return all. 
-        // If the list is huge, this is not ideal, but following current instructions.
-        const res = await import("@utils/quizResultService").then(m => m.quizResultService.getResults());
+        // 2. Fetch history by user and quiz using the new API
+        const res = await quizAttemptService.getAttemptsByUserAndQuiz(userId, quizId);
+        const myHistory = res.data || [];
 
-        // 3. Filter for this user and this quiz
-        // Note: The structure of response data might be res.data or res
-        const allResults = Array.isArray(res.data) ? res.data : [];
-        console.log("All Results:", allResults);
-        console.log("Filtering by:", { quizId, userId });
-
-        const myHistory = allResults.filter(
-          (r) => r.quizId == quizId && r.userId == userId
-        );
-
-        console.log("Filtered History:", myHistory);
+        console.log("Quiz History:", myHistory);
 
         // Sort by submittedAt desc
         myHistory.sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
@@ -407,17 +373,17 @@ const QuizHistory = ({ quizId }) => {
               <tr key={h.id || index}>
                 <td style={{ padding: "8px", border: "1px solid #eee" }}>{index + 1}</td>
                 <td style={{ padding: "8px", border: "1px solid #eee" }}>
-                  {h.submittedAt ? new Date(h.submittedAt).toLocaleString("vi-VN") : "N/A"}
+                  {h.endTime ? new Date(h.endTime).toLocaleString("vi-VN") : "N/A"}
                 </td>
                 <td style={{ padding: "8px", border: "1px solid #eee" }}>{h.score}</td>
                 <td style={{ padding: "8px", border: "1px solid #eee" }}>
                   <span
                     style={{
-                      color: h.isPassed ? "green" : "red",
+                      color: h.passed ? "green" : "red",
                       fontWeight: "bold",
                     }}
                   >
-                    {h.isPassed ? "Đạt" : "Chưa đạt"}
+                    {h.passed ? "Đạt" : "Chưa đạt"}
                   </span>
                 </td>
               </tr>

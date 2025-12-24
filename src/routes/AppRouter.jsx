@@ -42,6 +42,7 @@ import AdminHomePage from "@pages/AdminHomePage";
 
 import ExamManagement from "@features/Admin/ExamManagement/ExamManagement";
 import QuizManagement from "@features/Admin/ExamManagement/QuizManagement";
+import QuizAttemptsTest from "@features/Admin/ExamManagement/QuizAttemptsTest";
 import ExamDetail from "@features/Admin/ExamManagement/ExamDetail";
 import ExamPreview from "@features/Admin/ExamManagement/ExamPreview";
 import AssignmentManagement from "@features/Admin/ExamManagement/AssignmentManagement";
@@ -50,6 +51,7 @@ import QuestionBank from "@features/Admin/ExamManagement/QuestionBank";
 import QuestionCreate from "@features/Admin/ExamManagement/QuestionCreate";
 import QuestionBankCreate from "@features/Admin/ExamManagement/QuestionBankCreate";
 import QuestionBankBulk from "@features/Admin/ExamManagement/QuestionBankBulk";
+import QuizAttemptsAPIDemo from "@features/Admin/ExamManagement/QuizAttemptsAPIDemo";
 
 import UserManagement from "@features/Admin/UserManagement/user";
 import ClassManagement from "@features/Admin/ClassManagement/class";
@@ -63,6 +65,9 @@ import Roadmap from "@features/Admin/Roadmap/Roadmap";
 import PostManagement from "@features/Admin/PostManagement/PostManagement";
 import PostCreate from "@features/Admin/PostManagement/PostCreate";
 import PostEdit from "@features/Admin/PostManagement/PostEdit";
+import PostsAPIExample from "@features/Admin/PostManagement/PostsAPIExample";
+
+
 
 export default function AppRouter() {
   return (
@@ -139,10 +144,13 @@ export default function AppRouter() {
             {/* EXAM MANAGEMENT */}
             <Route path="exam" element={<ExamManagement />} />
             <Route path="quiz" element={<QuizManagement />} />
+            <Route path="quiz-test" element={<QuizAttemptsTest />} />
+            <Route path="quiz-attempts-demo" element={<QuizAttemptsAPIDemo />} />
             <Route path="exam/:examId/detail" element={<ExamDetail />} />
             <Route path="exam/:examId/preview" element={<ExamPreview />} />
 
             <Route path="exercises" element={<AssignmentManagement />} />
+
 
             <Route path="question-bank" element={<QuestionBank />} />
             <Route path="question-bank/create" element={<QuestionCreate />} />
@@ -165,6 +173,8 @@ export default function AppRouter() {
             <Route path="posts" element={<PostManagement />} />
             <Route path="posts/create" element={<PostCreate />} />
             <Route path="posts/:id/edit" element={<PostEdit />} />
+            <Route path="posts/api-example" element={<PostsAPIExample />} />
+
           </Route>
 
           {/* ADMIN MANAGE LESSONS FROM OUTSIDE */}

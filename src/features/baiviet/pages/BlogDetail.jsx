@@ -3,7 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { postService } from "@utils/postService";
 import { Spin, message } from "antd";
 import dayjs from "dayjs";
-import ReactMarkdown from "react-markdown"; // If content is markdown
+// import ReactMarkdown from "react-markdown"; // If content is markdown
 // If content is HTML, we use dangerouslySetInnerHTML
 
 const BASE = (import.meta.env.BASE_URL || "/");
@@ -17,26 +17,34 @@ export default function BlogDetail() {
 
     useEffect(() => {
         const fetchPost = async () => {
+            if (!id) return;
             setLoading(true);
             try {
-                const response = await postService.getPostById(id);
-                setPost(response.data);
+                let response;
+                // Chỉ gọi API nếu id là số để tránh lỗi 400
+                if (!isNaN(id)) {
+                    response = await postService.getPostById(id);
+                    setPost(response.data);
+                } else {
+                    // Nếu id là slug, tìm kiếm trong danh sách bài viết
+                    const allPosts = await postService.getPosts({ page: 0, size: 100 });
+                    const list = allPosts.data?.content || allPosts.data || [];
+                    const found = list.find(p => p.slug === id || String(p.id) === String(id));
+                    if (found) setPost(found);
+                }
 
-                // Fetch related (just fetch latest 3 posts for now)
-                const relResponse = await postService.getPosts({ size: 3 });
-                const relData = relResponse.data.content || relResponse.data || [];
-                setRelated(relData.filter(p => p.id !== Number(id)).slice(0, 3));
+                // Lấy bài viết liên quan
+                const relResponse = await postService.getPosts({ page: 0, size: 4 });
+                const relData = relResponse.data?.content || relResponse.data || [];
+                setRelated(relData.filter(p => String(p.id) !== String(id)).slice(0, 3));
             } catch (error) {
-                console.error(error);
-                message.error("Không thể tải chi tiết bài viết");
+                console.error("Lỗi khi tải bài viết:", error);
             } finally {
                 setLoading(false);
             }
         };
 
-        if (id) {
-            fetchPost();
-        }
+        fetchPost();
     }, [id]);
 
     if (loading) {

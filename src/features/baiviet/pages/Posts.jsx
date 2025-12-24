@@ -1,28 +1,58 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { postService } from "@utils/postService";
 import "./baiviet.css";
 
 const Posts = () => {
   const BASE = import.meta.env.BASE_URL || "/";
   const fallbackImage = `${BASE}blog-sample.png`;
 
-  const basePosts = Array(9).fill({
+  // Dữ liệu mẫu dự phòng
+  const dummyPosts = Array(6).fill({}).map((_, idx) => ({
+    id: idx + 1,
     title: "Authentication & Authorization trong ReactJS",
     category: "Frontend",
     time: "15 phút đọc",
     views: "1.5k lượt xem",
     image: fallbackImage,
-  });
+  }));
 
+  const [posts, setPosts] = useState(dummyPosts);
+  const [loading, setLoading] = useState(false);
   const [sortKey, setSortKey] = useState("newest");
   const [openSort, setOpenSort] = useState(false);
 
-  const posts = useMemo(() => {
-    const withId = basePosts.map((p, idx) => ({ ...p, id: idx + 1 }));
+  useEffect(() => {
+    const fetchPosts = async () => {
+      try {
+        const response = await postService.getPosts({
+          page: 0,
+          size: 100,
+          sort: sortKey === "newest" ? "createdAt,desc" : "createdAt,asc"
+        });
 
-    return sortKey === "newest"
-      ? [...withId].sort((a, b) => b.id - a.id)
-      : [...withId].sort((a, b) => a.id - b.id);
+        const data = response.data?.content || response.data || [];
+
+        if (Array.isArray(data) && data.length > 0) {
+          const mappedPosts = data.map(p => ({
+            id: p.id,
+            title: p.title,
+            category: (p.tags && p.tags.length > 0) ? p.tags[0] : "Frontend",
+            time: "15 phút đọc",
+            views: "1.5k lượt xem",
+            image: p.imageUrl || fallbackImage,
+          }));
+          setPosts(mappedPosts);
+        } else {
+          setPosts(dummyPosts); // Dùng dummy nếu server trống
+        }
+      } catch (error) {
+        console.error("Failed to fetch posts, using dummy data:", error);
+        setPosts(dummyPosts); // Dùng dummy nếu API lỗi (400, 500...)
+      }
+    };
+
+    fetchPosts();
   }, [sortKey]);
 
   return (
