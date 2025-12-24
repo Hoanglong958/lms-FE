@@ -193,7 +193,27 @@ export default function QuizExamPage({ quizId, attemptId, onFinish, onNextLesson
       let res;
       let finalResult;
 
-      if (attemptId) {
+      // LOGIC CHANGE: If we don't have an attemptId yet, create one now (Lazy Creation)
+      let currentAttemptId = attemptId;
+
+      if (!currentAttemptId) {
+        try {
+          // Create attempt now
+          const startRes = await quizAttemptService.startAttempt({
+            quizId: parseInt(quizIdFromParams),
+            userId: userId
+          });
+          const startData = startRes.data || {};
+          currentAttemptId = startData.attemptId || startData.id;
+          console.log("Lazy-created Attempt ID:", currentAttemptId);
+        } catch (startErr) {
+          console.error("Failed to lazy-start quiz attempt", startErr);
+          // Maybe show specific error?
+          throw startErr;
+        }
+      }
+
+      if (currentAttemptId) {
         // New flow: Submit calculated stats to Quiz Attempt API
         const payloadStats = {
           score: localScore,
@@ -202,7 +222,7 @@ export default function QuizExamPage({ quizId, attemptId, onFinish, onNextLesson
           passed: isPassed
         };
         console.log("Submitting Attempt Payload:", JSON.stringify(payloadStats, null, 2));
-        res = await quizAttemptService.submitAttempt(attemptId, payloadStats);
+        res = await quizAttemptService.submitAttempt(currentAttemptId, payloadStats);
 
         // API returns the attempt object. Map it to local state result format.
         const attemptData = res.data || {};
@@ -214,7 +234,8 @@ export default function QuizExamPage({ quizId, attemptId, onFinish, onNextLesson
         };
 
       } else {
-        // Old flow: Submit to Quiz Result API
+        // Old flow: Submit to Quiz Result API (Fallback if lazy creation failed or logic dictates)
+        console.warn("No attemptId available, falling back to legacy quizResultService");
         res = await quizResultService.submitQuiz(payload);
         finalResult = res?.data || {};
 

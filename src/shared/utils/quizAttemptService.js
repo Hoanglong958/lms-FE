@@ -41,4 +41,9 @@ export const quizAttemptService = {
   getAttemptsByUser(userId) {
     return api.get(`/api/v1/quiz-attempts/by-user/${userId}`);
   },
+
+  // GET /api/v1/quiz-attempts/by-user/{userId}/quiz/{quizId}
+  getAttemptsByUserAndQuiz(userId, quizId) {
+    return api.get(`/api/v1/quiz-attempts/by-user/${userId}/quiz/${quizId}`);
+  },
 };
