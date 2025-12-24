@@ -220,105 +220,243 @@ export default function UserManagement({ currentUserRole = "admin" }) {
 		<div style={styles.page}>
 			<PageStyles />
 
-			{/* Header */}
-			<header style={styles.header}>
-				<div>
-					<h1 style={styles.title}>Quản lý người dùng</h1>
-					<p style={styles.subtitle}>Danh sách người dùng và quản lý quyền truy cập</p>
+			<div style={styles.mainCard}>
+				{/* Header */}
+				<div style={{ marginBottom: 24 }}>
+					<div style={styles.breadcrumbs}>
+						<span style={{ color: "#f97316", fontWeight: 500 }}>Quản lý người dùng</span>
+						<span style={{ margin: "0 8px", color: "#d1d5db" }}>/</span>
+						<span style={{ color: "#6b7280" }}>Dashboard</span>
+						<span style={{ margin: "0 8px", color: "#d1d5db" }}>/</span>
+						<span style={{ color: "#6b7280" }}>Tất cả người dùng</span>
+					</div>
+
+					<header style={styles.header}>
+						<div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+							<div style={styles.headerIcon}>
+								<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+									<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+									<circle cx="9" cy="7" r="4"></circle>
+									<path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+									<path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+								</svg>
+							</div>
+							<div>
+								<h1 style={styles.title}>Quản lý người dùng</h1>
+								<p style={styles.subtitle}>Quản lý tài khoản và phân quyền người dùng</p>
+							</div>
+						</div>
+						<div style={{ display: "flex", gap: 12 }}>
+							<button
+								type="button"
+								style={styles.secondaryButton}
+								onClick={() => {
+									setSearchQuery("");
+									setRoleFilter("all");
+								}}
+							>
+								<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 6 }}>
+									<path d="M23 4v6h-6"></path>
+									<path d="M1 20v-6h6"></path>
+									<path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+								</svg>
+								Làm mới
+							</button>
+							<button
+								type="button"
+								style={styles.primaryButton}
+								onClick={() => setIsAddOpen(true)}
+							>
+								<span style={styles.plusIcon}>+</span> Thêm người dùng
+							</button>
+						</div>
+					</header>
 				</div>
-				<button
-					type="button"
-					style={styles.primaryButton}
-					onClick={() => setIsAddOpen(true)}
-				>
-					<span style={styles.plusIcon}>+</span> Thêm người dùng
-				</button>
-			</header>
 
-			{/* Toolbar */}
-			<section style={styles.toolbar} className="_um-toolbar">
-				<div style={styles.searchWrap} className="_um-search">
-					<span aria-hidden="true" style={styles.searchIcon}>
-						<svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-							<circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="1.6" />
-							<path d="M20 20l-3.5-3.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-						</svg>
-					</span>
-					<input
-						type="text"
-						placeholder="Tìm kiếm người dùng..."
-						value={searchQuery}
-						onChange={(e) => setSearchQuery(e.target.value)}
-						style={styles.searchInput}
-					/>
+				{/* Stats Cards */}
+				<div style={styles.statsGrid}>
+					{[
+						{
+							label: "Tổng người dùng",
+							value: users.length,
+							icon: (
+								<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+									<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+									<circle cx="9" cy="7" r="4"></circle>
+									<path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+									<path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+								</svg>
+							),
+							color: "#f97316", // Orange
+							bg: "#fff7ed"
+						},
+						{
+							label: "Đang hoạt động",
+							value: users.filter(u => u.isActive).length,
+							icon: (
+								<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+									<path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+									<circle cx="8.5" cy="7" r="4"></circle>
+									<polyline points="22 4 12 14.01 9 11.01"></polyline>
+								</svg>
+							),
+							color: "#10b981", // Green
+							bg: "#ecfdf5"
+						},
+						{
+							label: "Giảng viên",
+							value: users.filter(u => u.role === "ROLE_TEACHER").length,
+							icon: (
+								<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+									<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+								</svg>
+							),
+							color: "#3b82f6", // Blue
+							bg: "#eff6ff"
+						},
+						{
+							label: "Học viên",
+							value: users.filter(u => u.role === "ROLE_USER").length,
+							icon: (
+								<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+									<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+									<circle cx="12" cy="7" r="4"></circle>
+								</svg>
+							),
+							color: "#a855f7", // Purple
+							bg: "#faf5ff"
+						}
+					].map((stat, index) => (
+						<div key={index} style={{ ...styles.statCard, backgroundColor: stat.bg, borderColor: "transparent" }}>
+							<div style={{ ...styles.statIconWrapper, backgroundColor: stat.color, color: "#fff" }}>
+								{stat.icon}
+							</div>
+							<div style={styles.statContent}>
+								<div style={styles.statValue}>{stat.value}</div>
+								<div style={styles.statLabel}>{stat.label}</div>
+							</div>
+							<div style={{ position: 'absolute', top: 24, right: 24 }}>
+								<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={stat.color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+									<path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+								</svg>
+							</div>
+						</div>
+					))}
 				</div>
 
-				<label style={styles.filterWrap}>
-					<select
-						value={roleFilter}
-						onChange={(e) => setRoleFilter(e.target.value)}
-						style={styles.select}
-					>
-						<option value="all">Tất cả vai trò</option>
-						<option value="ROLE_ADMIN">Quản trị viên</option>
-						<option value="ROLE_TEACHER">Giảng viên</option>
-						<option value="ROLE_USER">Người dùng</option>
-					</select>
-					<span style={styles.selectChevron} aria-hidden="true">▾</span>
-				</label>
-			</section>
+				{/* Toolbar */}
+				<section style={styles.toolbar} className="_um-toolbar">
+					<div style={{ display: "flex", gap: 12, flex: 1 }}>
+						<div style={styles.searchWrap} className="_um-search">
+							<span aria-hidden="true" style={styles.searchIcon}>
+								<svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+									<circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="1.6" />
+									<path d="M20 20l-3.5-3.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+								</svg>
+							</span>
+							<input
+								type="text"
+								placeholder="Tìm kiếm người dùng..."
+								value={searchQuery}
+								onChange={(e) => setSearchQuery(e.target.value)}
+								style={styles.searchInput}
+							/>
+						</div>
 
-			{/* Table */}
-			<div style={styles.card}>
-				<div style={{ overflowX: "auto" }}>
-					<table style={styles.table}>
-						<thead>
-							<tr>
-								<th style={styles.th}>Họ và tên</th>
-								<th style={styles.th}>Email</th>
-								<th style={styles.th}>Vai trò</th>
-								<th style={styles.th}>Trạng thái</th>
-								<th style={styles.th}>Ngày tham gia</th>
-								<th style={styles.th} />
-							</tr>
-						</thead>
-						<tbody>
-							{filteredUsers.map((u) => (
-								<tr key={u.id} style={styles.tr}>
-									<td style={styles.td}>
-										<div style={styles.nameText}>{u.fullName}</div>
-									</td>
-									<td style={styles.td}>
-										<div style={styles.emailText}>{u.gmail}</div>
-									</td>
-									<td style={styles.td}>
-										<RoleBadge role={u.role} />
-									</td>
-									<td style={styles.td}>
-										<StatusBadge status={u.isActive ? 'active' : 'paused'} />
-									</td>
-									<td style={styles.td}>{u.createdAt ? new Date(u.createdAt).toLocaleDateString('vi-VN') : "---"}</td>
-									<td style={styles.tdAction}>
-										<RowActions
-											onView={() => handleViewUser(u)}
-											onLock={() => handleRequestLock(u)}
-											onEdit={() => setEditingUser(u)}
-											onDelete={() => handleRequestDelete(u)}
-											isActive={u.isActive}
-											role={u.role}
-										/>
-									</td>
-								</tr>
-							))}
-							{filteredUsers.length === 0 && (
+						<label style={styles.filterWrap}>
+							<span style={styles.filterIcon}>
+								<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+									<polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+								</svg>
+							</span>
+							<select
+								value={roleFilter}
+								onChange={(e) => setRoleFilter(e.target.value)}
+								style={styles.select}
+							>
+								<option value="all">Tất cả vai trò</option>
+								<option value="ROLE_ADMIN">Quản trị viên</option>
+								<option value="ROLE_TEACHER">Giảng viên</option>
+								<option value="ROLE_USER">Người dùng</option>
+							</select>
+							<span style={styles.selectChevron} aria-hidden="true">▾</span>
+						</label>
+
+						<label style={styles.filterWrap}>
+							<span style={styles.filterIcon}>
+								<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+									<polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+								</svg>
+							</span>
+							<select
+								style={styles.select}
+								defaultValue="all"
+							>
+								<option value="all">Tất cả trạng thái</option>
+								<option value="active">Hoạt động</option>
+								<option value="inactive">Ngừng hoạt động</option>
+							</select>
+							<span style={styles.selectChevron} aria-hidden="true">▾</span>
+						</label>
+					</div>
+
+					<div style={{ fontSize: 13, color: "#6b7280", fontWeight: 500 }}>
+						Tìm thấy: <span style={{ color: "#f97316", fontWeight: 700, background: "#fff7ed", padding: "2px 8px", borderRadius: 6 }}>{filteredUsers.length}</span> người dùng
+					</div>
+				</section>
+
+				{/* Table */}
+				<div style={styles.card}>
+					<div style={{ overflowX: "auto" }}>
+						<table style={styles.table}>
+							<thead>
 								<tr>
-									<td style={styles.emptyCell} colSpan={8}>
-										Không tìm thấy người dùng phù hợp
-									</td>
+									<th style={styles.th}>HỌ VÀ TÊN</th>
+									<th style={styles.th}>EMAIL</th>
+									<th style={styles.th}>VAI TRÒ</th>
+									<th style={styles.th}>TRẠNG THÁI</th>
+									<th style={styles.th}>NGÀY THAM GIA</th>
+									<th style={styles.th} />
 								</tr>
-							)}
-						</tbody>
-					</table>
+							</thead>
+							<tbody>
+								{filteredUsers.map((u) => (
+									<tr key={u.id} style={styles.tr}>
+										<td style={styles.td}>
+											<div style={styles.nameText}>{u.fullName}</div>
+										</td>
+										<td style={styles.td}>
+											<div style={styles.emailText}>{u.gmail}</div>
+										</td>
+										<td style={styles.td}>
+											<RoleBadge role={u.role} />
+										</td>
+										<td style={styles.td}>
+											<StatusBadge status={u.isActive ? 'active' : 'paused'} />
+										</td>
+										<td style={styles.td}>{u.createdAt ? new Date(u.createdAt).toLocaleDateString('vi-VN') : "---"}</td>
+										<td style={styles.tdAction}>
+											<RowActions
+												onView={() => handleViewUser(u)}
+												onLock={() => handleRequestLock(u)}
+												onEdit={() => setEditingUser(u)}
+												onDelete={() => handleRequestDelete(u)}
+												isActive={u.isActive}
+												role={u.role}
+											/>
+										</td>
+									</tr>
+								))}
+								{filteredUsers.length === 0 && (
+									<tr>
+										<td style={styles.emptyCell} colSpan={8}>
+											Không tìm thấy người dùng phù hợp
+										</td>
+									</tr>
+								)}
+							</tbody>
+						</table>
+					</div>
 				</div>
 			</div>
 
@@ -707,44 +845,83 @@ const styles = {
 	page: {
 		padding: "28px 24px",
 		background: "#f7f8fa",
-		minHeight: "100%"
+		minHeight: "100vh",
+	},
+	// Used for the table container
+	card: {
+		background: "#fff",
+		borderRadius: 16,
+		boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)",
+		marginTop: 24,
+		overflow: "hidden" // For clean borders
+	},
+	// Helper to unwrap mainCard
+	mainCard: {
+		background: "transparent",
+		width: "100%",
+	},
+	breadcrumbs: {
+		display: "flex",
+		alignItems: "center",
+		fontSize: 13,
+		marginBottom: 12
 	},
 	header: {
 		display: "flex",
 		alignItems: "center",
 		justifyContent: "space-between",
-		marginBottom: 16
+		marginBottom: 32
+	},
+	headerIcon: {
+		width: 44,
+		height: 44,
+		borderRadius: 12,
+		background: "linear-gradient(135deg, #f97316 0%, #ea580c 100%)",
+		color: "#fff",
+		display: "flex",
+		alignItems: "center",
+		justifyContent: "center",
+		boxShadow: "0 4px 6px -1px rgba(249, 115, 22, 0.2)"
 	},
 	title: {
-		fontSize: 28,
+		fontSize: 24,
 		fontWeight: 700,
 		color: "#111827",
-		margin: 0
+		margin: 0,
+		lineHeight: "1.2"
 	},
 	subtitle: {
-		margin: "6px 0 0",
+		margin: "4px 0 0",
 		color: "#6b7280",
 		fontSize: 14
 	},
 	primaryButton: {
-		background: "#ef6c00",
+		background: "#ea580c",
 		color: "#fff",
 		border: "none",
-		padding: "10px 16px",
-		borderRadius: 10,
+		padding: "0 20px",
+		height: 40,
+		borderRadius: 8,
 		fontWeight: 600,
 		cursor: "pointer",
-		boxShadow: "0 2px 8px rgba(239,108,0,0.25)"
+		display: "flex",
+		alignItems: "center",
+		fontSize: 14,
+		boxShadow: "0 2px 4px rgba(234,88,12,0.2)"
 	},
 	secondaryButton: {
-		background: "#ffffff",
-		color: "#111827",
+		background: "#fff",
+		color: "#374151",
 		border: "1px solid #e5e7eb",
-		padding: "8px 12px",
-		borderRadius: 10,
+		padding: "0 16px",
+		height: 40,
+		borderRadius: 8,
 		fontWeight: 600,
 		cursor: "pointer",
-		boxShadow: "0 1px 2px rgba(0,0,0,0.04)"
+		display: "flex",
+		alignItems: "center",
+		fontSize: 14,
+		boxShadow: "0 1px 2px rgba(0,0,0,0.05)"
 	},
 	lockButton: {
 		background: "#fff7ed",
@@ -760,27 +937,67 @@ const styles = {
 	},
 	plusIcon: {
 		display: "inline-block",
-		marginRight: 8,
+		marginRight: 6,
 		fontSize: 18,
-		lineHeight: "18px",
-		fontWeight: 700
+		fontWeight: 500
+	},
+	statsGrid: {
+		display: "grid",
+		gridTemplateColumns: "repeat(4, 1fr)",
+		gap: 24,
+		marginBottom: 32
+	},
+	statCard: {
+		borderRadius: 16,
+		padding: "24px",
+		display: "flex",
+		flexDirection: "column",
+		position: "relative",
+		minHeight: 140,
+		justifyContent: "space-between"
+	},
+	statIconWrapper: {
+		width: 48,
+		height: 48,
+		borderRadius: 12,
+		display: "flex",
+		alignItems: "center",
+		justifyContent: "center",
+		marginBottom: 16
+	},
+	statContent: {
+		display: "flex",
+		flexDirection: "column"
+	},
+	statValue: {
+		fontSize: 32,
+		fontWeight: 700,
+		color: "#111827",
+		lineHeight: "1",
+		marginBottom: 8
+	},
+	statLabel: {
+		fontSize: 14,
+		color: "#4b5563",
+		fontWeight: 500
 	},
 	toolbar: {
 		display: "flex",
-		gap: 12,
+		justifyContent: "space-between",
 		alignItems: "center",
-		marginBottom: 16
+		marginBottom: 24,
+		background: "transparent"
 	},
 	searchWrap: {
 		display: "flex",
 		alignItems: "center",
-		background: "#fff",
-		border: "1px solid #e5e7eb",
-		borderRadius: 10,
+		background: "#fff", // White to stand out on gray
+		border: "none",
+		borderRadius: 8,
 		padding: "0 12px",
-		height: 42,
-		minWidth: 360,
-		boxShadow: "0 1px 2px rgba(0,0,0,0.04)"
+		height: 44,
+		flex: 1, // Expand to fill
+		boxShadow: "0 1px 2px 0 rgba(0, 0, 0, 0.05)" // Small shadow like a card
 	},
 	searchIcon: {
 		color: "#9ca3af",
@@ -792,26 +1009,39 @@ const styles = {
 		border: "none",
 		outline: "none",
 		flex: 1,
-		height: 38,
-		fontSize: 14
+		height: 40,
+		fontSize: 14,
+		background: "transparent",
+		color: "#111827"
 	},
 	filterWrap: {
 		position: "relative",
 		display: "inline-flex",
 		alignItems: "center"
 	},
+	filterIcon: {
+		position: "absolute",
+		left: 12,
+		top: "50%",
+		transform: "translateY(-50%)",
+		color: "#9ca3af",
+		pointerEvents: "none",
+		zIndex: 1,
+		display: "flex"
+	},
 	select: {
 		appearance: "none",
 		WebkitAppearance: "none",
 		MozAppearance: "none",
-		background: "#fff",
-		border: "1px solid #e5e7eb",
-		borderRadius: 10,
-		height: 42,
-		padding: "0 36px 0 12px",
+		background: "#f9fafb", // Match search input
+		border: "none",
+		borderRadius: 8,
+		height: 44,
+		padding: "0 36px 0 40px", // Left padding for icon
 		fontSize: 14,
 		color: "#111827",
-		boxShadow: "0 1px 2px rgba(0,0,0,0.04)"
+		cursor: "pointer",
+		boxShadow: "inset 0 0 0 1px #e5e7eb"
 	},
 	selectChevron: {
 		position: "absolute",

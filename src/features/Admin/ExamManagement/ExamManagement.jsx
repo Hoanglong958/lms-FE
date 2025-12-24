@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { FileText, Clock, TrendingUp, CheckCircle2, Search, Activity, ChevronDown } from "lucide-react";
+import { FileText, Clock, TrendingUp, CheckCircle2, Search, Activity, ChevronDown, Sparkles } from "lucide-react";
 import NotificationModal from "@components/NotificationModal/NotificationModal";
 import "./ExamManagement.css";
 import { useNavigate, useOutletContext } from "react-router-dom";
@@ -320,176 +320,52 @@ export default function ExamManagement() {
       <section style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(4, 1fr)',
-        gap: 20,
+        gap: 24,
         marginBottom: 32
       }}>
-        <div style={{
-          background: 'white',
-          borderRadius: 12,
-          padding: 20,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          border: '1px solid #e5e7eb',
-          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
-          transition: 'all 0.2s'
-        }}>
-          <div>
-            <h3 style={{
-              margin: '0 0 8px 0',
-              fontSize: 13,
-              color: '#6b7280',
-              fontWeight: 600,
-              textTransform: 'uppercase',
-              letterSpacing: 0.5
-            }}>Tổng bài thi</h3>
-            <p style={{
-              margin: 0,
-              fontSize: 32,
-              fontWeight: 700,
-              color: '#111827',
-              lineHeight: 1
-            }}>{stats.total}</p>
-          </div>
-          <div style={{
-            width: 40,
-            height: 40,
-            borderRadius: 10,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: '#fff7ed',
-            color: '#f97316'
+        {[
+          { label: "Tổng bài thi", value: stats.total, icon: <FileText size={24} />, color: "#f97316", bg: "#fff7ed" },
+          { label: "Sắp diễn ra", value: stats.upcoming, icon: <Clock size={24} />, color: "#2563eb", bg: "#eff6ff" },
+          { label: "Đang diễn ra", value: stats.ongoing, icon: <TrendingUp size={24} />, color: "#16a34a", bg: "#f0fdf4" },
+          { label: "Hoàn thành", value: stats.completed, icon: <CheckCircle2 size={24} />, color: "#9333ea", bg: "#faf5ff" }
+        ].map((stat, index) => (
+          <div key={index} style={{
+            borderRadius: 16,
+            padding: "24px",
+            display: "flex",
+            flexDirection: "column",
+            position: "relative",
+            minHeight: 140,
+            justifyContent: "space-between",
+            backgroundColor: stat.bg,
+            border: "none"
           }}>
-            <FileText size={20} />
+            <div style={{
+              width: 48,
+              height: 48,
+              borderRadius: 12,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              marginBottom: 16,
+              backgroundColor: stat.color,
+              color: "#fff"
+            }}>
+              {stat.icon}
+            </div>
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              <div style={{ fontSize: 32, fontWeight: 700, color: "#111827", lineHeight: "1", marginBottom: 8 }}>
+                {stat.value}
+              </div>
+              <div style={{ fontSize: 14, color: "#4b5563", fontWeight: 500 }}>
+                {stat.label}
+              </div>
+            </div>
+            <div style={{ position: "absolute", top: 24, right: 24 }}>
+              <Sparkles size={20} color={stat.color} />
+            </div>
           </div>
-        </div>
-
-        <div style={{
-          background: 'white',
-          borderRadius: 12,
-          padding: 20,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          border: '1px solid #e5e7eb',
-          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
-          transition: 'all 0.2s'
-        }}>
-          <div>
-            <h3 style={{
-              margin: '0 0 8px 0',
-              fontSize: 13,
-              color: '#6b7280',
-              fontWeight: 600,
-              textTransform: 'uppercase',
-              letterSpacing: 0.5
-            }}>Sắp diễn ra</h3>
-            <p style={{
-              margin: 0,
-              fontSize: 32,
-              fontWeight: 700,
-              color: '#111827',
-              lineHeight: 1
-            }}>{stats.upcoming}</p>
-          </div>
-          <div style={{
-            width: 40,
-            height: 40,
-            borderRadius: 10,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: '#eff6ff',
-            color: '#2563eb'
-          }}>
-            <Clock size={20} />
-          </div>
-        </div>
-
-        <div style={{
-          background: 'white',
-          borderRadius: 12,
-          padding: 20,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          border: '1px solid #e5e7eb',
-          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
-          transition: 'all 0.2s'
-        }}>
-          <div>
-            <h3 style={{
-              margin: '0 0 8px 0',
-              fontSize: 13,
-              color: '#6b7280',
-              fontWeight: 600,
-              textTransform: 'uppercase',
-              letterSpacing: 0.5
-            }}>Đang diễn ra</h3>
-            <p style={{
-              margin: 0,
-              fontSize: 32,
-              fontWeight: 700,
-              color: '#111827',
-              lineHeight: 1
-            }}>{stats.ongoing}</p>
-          </div>
-          <div style={{
-            width: 40,
-            height: 40,
-            borderRadius: 10,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: '#f0fdf4',
-            color: '#16a34a'
-          }}>
-            <TrendingUp size={20} />
-          </div>
-        </div>
-
-        <div style={{
-          background: 'white',
-          borderRadius: 12,
-          padding: 20,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          border: '1px solid #e5e7eb',
-          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
-          transition: 'all 0.2s'
-        }}>
-          <div>
-            <h3 style={{
-              margin: '0 0 8px 0',
-              fontSize: 13,
-              color: '#6b7280',
-              fontWeight: 600,
-              textTransform: 'uppercase',
-              letterSpacing: 0.5
-            }}>Hoàn thành</h3>
-            <p style={{
-              margin: 0,
-              fontSize: 32,
-              fontWeight: 700,
-              color: '#111827',
-              lineHeight: 1
-            }}>{stats.completed}</p>
-          </div>
-          <div style={{
-            width: 40,
-            height: 40,
-            borderRadius: 10,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: '#faf5ff',
-            color: '#9333ea'
-          }}>
-            <CheckCircle2 size={20} />
-          </div>
-        </div>
+        ))}
       </section>
 
       {/* Filter Bar */}

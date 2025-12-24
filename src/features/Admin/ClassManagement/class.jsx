@@ -586,176 +586,76 @@ export default function ClassManagement() {
       <section style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(4, 1fr)',
-        gap: 20,
+        gap: 24,
         marginBottom: 32
       }}>
-        <div style={{
-          background: 'white',
-          borderRadius: 12,
-          padding: 20,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          border: '1px solid #e5e7eb',
-          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
-          transition: 'all 0.2s'
-        }}>
-          <div>
-            <h3 style={{
-              margin: '0 0 8px 0',
-              fontSize: 13,
-              color: '#6b7280',
-              fontWeight: 600,
-              textTransform: 'uppercase',
-              letterSpacing: 0.5
-            }}>Tổng lớp học</h3>
-            <p style={{
-              margin: 0,
-              fontSize: 32,
-              fontWeight: 700,
-              color: '#111827',
-              lineHeight: 1
-            }}>{stats.totalClasses}</p>
-          </div>
-          <div style={{
-            width: 40,
-            height: 40,
-            borderRadius: 10,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: '#fff7ed',
-            color: '#f97316'
+        {[
+          {
+            label: "Tổng lớp học",
+            value: stats.totalClasses,
+            icon: <School size={24} />,
+            color: "#f97316",
+            bg: "#fff7ed"
+          },
+          {
+            label: "Sắp diễn ra",
+            value: classes.filter(c => c.status === 'upcoming').length,
+            icon: <Clock size={24} />,
+            color: "#2563eb",
+            bg: "#eff6ff"
+          },
+          {
+            label: "Đang học",
+            value: stats.totalActiveClasses,
+            icon: <TrendingUp size={24} />,
+            color: "#16a34a",
+            bg: "#f0fdf4"
+          },
+          {
+            label: "Hoàn thành",
+            value: classes.filter(c => c.status === 'ended').length,
+            icon: <CheckCircle2 size={24} />,
+            color: "#9333ea",
+            bg: "#faf5ff"
+          }
+        ].map((stat, index) => (
+          <div key={index} style={{
+            borderRadius: 16,
+            padding: "24px",
+            display: "flex",
+            flexDirection: "column",
+            position: "relative",
+            minHeight: 140,
+            justifyContent: "space-between",
+            backgroundColor: stat.bg,
+            border: "none"
           }}>
-            <School size={20} />
+            <div style={{
+              width: 48,
+              height: 48,
+              borderRadius: 12,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              marginBottom: 16,
+              backgroundColor: stat.color,
+              color: "#fff"
+            }}>
+              {stat.icon}
+            </div>
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              <div style={{ fontSize: 32, fontWeight: 700, color: "#111827", lineHeight: "1", marginBottom: 8 }}>
+                {stat.value}
+              </div>
+              <div style={{ fontSize: 14, color: "#4b5563", fontWeight: 500 }}>
+                {stat.label}
+              </div>
+            </div>
+            <div style={{ position: "absolute", top: 24, right: 24 }}>
+              <Sparkles size={20} color={stat.color} />
+            </div>
           </div>
-        </div>
-
-        <div style={{
-          background: 'white',
-          borderRadius: 12,
-          padding: 20,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          border: '1px solid #e5e7eb',
-          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
-          transition: 'all 0.2s'
-        }}>
-          <div>
-            <h3 style={{
-              margin: '0 0 8px 0',
-              fontSize: 13,
-              color: '#6b7280',
-              fontWeight: 600,
-              textTransform: 'uppercase',
-              letterSpacing: 0.5
-            }}>Sắp diễn ra</h3>
-            <p style={{
-              margin: 0,
-              fontSize: 32,
-              fontWeight: 700,
-              color: '#111827',
-              lineHeight: 1
-            }}>{classes.filter(c => c.status === 'upcoming').length}</p>
-          </div>
-          <div style={{
-            width: 40,
-            height: 40,
-            borderRadius: 10,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: '#eff6ff',
-            color: '#2563eb'
-          }}>
-            <Clock size={20} />
-          </div>
-        </div>
-
-        <div style={{
-          background: 'white',
-          borderRadius: 12,
-          padding: 20,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          border: '1px solid #e5e7eb',
-          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
-          transition: 'all 0.2s'
-        }}>
-          <div>
-            <h3 style={{
-              margin: '0 0 8px 0',
-              fontSize: 13,
-              color: '#6b7280',
-              fontWeight: 600,
-              textTransform: 'uppercase',
-              letterSpacing: 0.5
-            }}>Đang học</h3>
-            <p style={{
-              margin: 0,
-              fontSize: 32,
-              fontWeight: 700,
-              color: '#111827',
-              lineHeight: 1
-            }}>{stats.totalActiveClasses}</p>
-          </div>
-          <div style={{
-            width: 40,
-            height: 40,
-            borderRadius: 10,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: '#f0fdf4',
-            color: '#16a34a'
-          }}>
-            <TrendingUp size={20} />
-          </div>
-        </div>
-
-        <div style={{
-          background: 'white',
-          borderRadius: 12,
-          padding: 20,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          border: '1px solid #e5e7eb',
-          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
-          transition: 'all 0.2s'
-        }}>
-          <div>
-            <h3 style={{
-              margin: '0 0 8px 0',
-              fontSize: 13,
-              color: '#6b7280',
-              fontWeight: 600,
-              textTransform: 'uppercase',
-              letterSpacing: 0.5
-            }}>Hoàn thành</h3>
-            <p style={{
-              margin: 0,
-              fontSize: 32,
-              fontWeight: 700,
-              color: '#111827',
-              lineHeight: 1
-            }}>{classes.filter(c => c.status === 'ended').length}</p>
-          </div>
-          <div style={{
-            width: 40,
-            height: 40,
-            borderRadius: 10,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: '#faf5ff',
-            color: '#9333ea'
-          }}>
-            <CheckCircle2 size={20} />
-          </div>
-        </div>
+        ))}
       </section>
 
       {/* Filter Bar */}

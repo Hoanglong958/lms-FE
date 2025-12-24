@@ -3,6 +3,7 @@ import "./QuestionBank.css";
 import { useNavigate } from "react-router-dom";
 import NotificationModal from "@components/NotificationModal/NotificationModal";
 import { questionService } from "@utils/questionService.js";
+import { FileText, Book, CheckSquare, FileEdit, Sparkles } from "lucide-react";
 
 export default function QuestionBank() {
   const navigate = useNavigate();
@@ -324,46 +325,50 @@ export default function QuestionBank() {
 
       {/* Stats Grid */}
       {/* Stats Grid */}
-      <div className="stats-grid">
-        {/* Total (Orange) */}
-        <div className="stat-card orange">
-          <div className="stat-icon-wrapper">
-            <i className="fa fa-file-text-o"></i>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 24, marginBottom: 32 }}>
+        {[
+          { label: "Tổng câu hỏi", value: stats.total, icon: <FileText size={24} />, color: "#f97316", bg: "#fff7ed" },
+          { label: "Danh mục", value: stats.categories, icon: <Book size={24} />, color: "#3b82f6", bg: "#eff6ff" },
+          { label: "Trắc nghiệm", value: stats.multipleChoice, icon: <CheckSquare size={24} />, color: "#10b981", bg: "#ecfdf5" },
+          { label: "Tự luận", value: stats.essay, icon: <FileEdit size={24} />, color: "#a855f7", bg: "#faf5ff" }
+        ].map((stat, index) => (
+          <div key={index} style={{
+            borderRadius: 16,
+            padding: "24px",
+            display: "flex",
+            flexDirection: "column",
+            position: "relative",
+            minHeight: 140,
+            justifyContent: "space-between",
+            backgroundColor: stat.bg,
+            border: "none"
+          }}>
+            <div style={{
+              width: 48,
+              height: 48,
+              borderRadius: 12,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              marginBottom: 16,
+              backgroundColor: stat.color,
+              color: "#fff"
+            }}>
+              {stat.icon}
+            </div>
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              <div style={{ fontSize: 32, fontWeight: 700, color: "#111827", lineHeight: "1", marginBottom: 8 }}>
+                {stat.value}
+              </div>
+              <div style={{ fontSize: 14, color: "#4b5563", fontWeight: 500 }}>
+                {stat.label}
+              </div>
+            </div>
+            <div style={{ position: "absolute", top: 24, right: 24 }}>
+              <Sparkles size={20} color={stat.color} />
+            </div>
           </div>
-          <div className="stat-value">{stats.total}</div>
-          <div className="stat-label">Tổng câu hỏi</div>
-          <div className="stat-decoration">✨</div>
-        </div>
-
-        {/* Categories (Blue) */}
-        <div className="stat-card blue">
-          <div className="stat-icon-wrapper">
-            <i className="fa fa-book"></i>
-          </div>
-          <div className="stat-value">{stats.categories}</div>
-          <div className="stat-label">Danh mục</div>
-          <div className="stat-decoration">✨</div>
-        </div>
-
-        {/* Multiple Choice (Green) */}
-        <div className="stat-card green">
-          <div className="stat-icon-wrapper">
-            <i className="fa fa-check-square-o"></i>
-          </div>
-          <div className="stat-value">{stats.multipleChoice}</div>
-          <div className="stat-label">Trắc nghiệm</div>
-          <div className="stat-decoration">✨</div>
-        </div>
-
-        {/* Essay (Purple) */}
-        <div className="stat-card purple">
-          <div className="stat-icon-wrapper">
-            <i className="fa fa-pencil-square-o"></i>
-          </div>
-          <div className="stat-value">{stats.essay}</div>
-          <div className="stat-label">Tự luận</div>
-          <div className="stat-decoration">✨</div>
-        </div>
+        ))}
       </div>
 
       {/* Filter Bar */}

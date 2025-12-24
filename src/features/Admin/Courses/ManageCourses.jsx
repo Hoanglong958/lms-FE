@@ -304,46 +304,50 @@ export default function ManageCourses() {
       </div>
 
       {/* Stats Grid */}
-      <div className={styles.statsGrid}>
-        <div className={styles.statCard}>
-          <div className={styles.statInfo}>
-            <h3>Tổng khóa học</h3>
-            <p className={styles.count}>{stats.total}</p>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 24, marginBottom: 32 }}>
+        {[
+          { label: "Tổng khóa học", value: stats.total, icon: <BookOpen size={24} />, color: "#f97316", bg: "#fff7ed" },
+          { label: "Beginner", value: stats.beginner, icon: <Users size={24} />, color: "#10b981", bg: "#ecfdf5" },
+          { label: "Intermediate", value: stats.intermediate, icon: <TrendingUp size={24} />, color: "#3b82f6", bg: "#eff6ff" },
+          { label: "Advanced", value: stats.advanced, icon: <Award size={24} />, color: "#a855f7", bg: "#faf5ff" }
+        ].map((stat, index) => (
+          <div key={index} style={{
+            borderRadius: 16,
+            padding: "24px",
+            display: "flex",
+            flexDirection: "column",
+            position: "relative",
+            minHeight: 140,
+            justifyContent: "space-between",
+            backgroundColor: stat.bg,
+            border: "none"
+          }}>
+            <div style={{
+              width: 48,
+              height: 48,
+              borderRadius: 12,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              marginBottom: 16,
+              backgroundColor: stat.color,
+              color: "#fff"
+            }}>
+              {stat.icon}
+            </div>
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              <div style={{ fontSize: 32, fontWeight: 700, color: "#111827", lineHeight: "1", marginBottom: 8 }}>
+                {stat.value}
+              </div>
+              <div style={{ fontSize: 14, color: "#4b5563", fontWeight: 500 }}>
+                {stat.label}
+              </div>
+            </div>
+            <div style={{ position: "absolute", top: 24, right: 24 }}>
+              <Sparkles size={20} color={stat.color} />
+            </div>
           </div>
-          <div className={styles.statIcon} style={{ background: '#fff7ed', color: '#f97316' }}>
-            <BookOpen size={20} />
-          </div>
-        </div>
-
-        <div className={styles.statCard}>
-          <div className={styles.statInfo}>
-            <h3>Beginner</h3>
-            <p className={styles.count}>{stats.beginner}</p>
-          </div>
-          <div className={styles.statIcon} style={{ background: '#f0fdf4', color: '#16a34a' }}>
-            <Users size={20} />
-          </div>
-        </div>
-
-        <div className={styles.statCard}>
-          <div className={styles.statInfo}>
-            <h3>Intermediate</h3>
-            <p className={styles.count}>{stats.intermediate}</p>
-          </div>
-          <div className={styles.statIcon} style={{ background: '#eff6ff', color: '#2563eb' }}>
-            <TrendingUp size={20} />
-          </div>
-        </div>
-
-        <div className={styles.statCard}>
-          <div className={styles.statInfo}>
-            <h3>Advanced</h3>
-            <p className={styles.count}>{stats.advanced}</p>
-          </div>
-          <div className={styles.statIcon} style={{ background: '#faf5ff', color: '#9333ea' }}>
-            <Award size={20} />
-          </div>
-        </div>
+        ))}
       </div>
 
       {/* Filter Bar */}
