@@ -15,8 +15,8 @@ export default {
 
   // Plugins (nếu muốn dùng forms, typography, line-clamp,…)
   plugins: [
-    require("@tailwindcss/forms"),
-    require("@tailwindcss/typography"),
-    require("@tailwindcss/aspect-ratio"),
+    import("@tailwindcss/forms"),
+    import("@tailwindcss/typography"),
+    import("@tailwindcss/aspect-ratio"),
   ],
 };

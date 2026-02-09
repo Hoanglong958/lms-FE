@@ -1,23 +1,72 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import "./SearchPage.css";
 import CourseCard from "@components/CourseCard";
-
-const sampleCourses = Array.from({ length: 12 }).map((_, i) => ({
-  id: i + 1,
-  title: i < 9 ? "N1 Chill Class" : "Authentication & Authorization trong ReactJS",
-  image: "/students.jpg",
-  level: i < 9 ? "Beginner" : "Front-End",
-  type: i < 9 ? "Khóa học" : "Bài viết",
-  lessons: i < 9 ? 30 : 12,
-  students: i < 9 ? 520 : 95,
-  price: i < 9 ? "349.000đ" : "Miễn phí",
-}));
+import { courseService } from "@utils/courseService";
+import { postService } from "@utils/postService";
+import { slugify } from "@utils/slugify";
 
 export default function SearchPage() {
   const [query, setQuery] = useState("");
-  const results = sampleCourses.filter((c) =>
-    c.title.toLowerCase().includes(query.toLowerCase())
-  );
+  const [results, setResults] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [searchTitle, setSearchTitle] = useState("");
+
+  const handleSearch = useCallback(async (searchQuery) => {
+    setLoading(true);
+    setSearchTitle(searchQuery);
+    try {
+      const params = { q: searchQuery, size: 20 };
+
+      const [coursesRes, postsRes] = await Promise.all([
+        courseService.getCoursesPaging(params),
+        postService.getPosts(params)
+      ]);
+
+      const courses = (coursesRes.data?.data?.content || coursesRes.data?.content || []).map(c => ({
+        id: `course - ${c.id} `,
+        title: c.title,
+        image: c.imageUrl || "/students.jpg",
+        level: c.level,
+        type: "Khóa học",
+        lessons: c.totalSessions || 0,
+        students: 0,
+        price: "Miễn phí",
+        url: `/ courses / ${slugify(c.title)} `
+      }));
+
+      const posts = (postsRes.data?.data?.content || postsRes.data?.content || []).map(p => ({
+        id: `post - ${p.id} `,
+        title: p.title,
+        image: p.imageUrl || "/students.jpg",
+        level: "Kiến thức",
+        type: "Bài viết",
+        lessons: 1,
+        students: 0,
+        price: "Mới nhất",
+        url: `/ bai - viet / ${p.id} `
+      }));
+
+      setResults([...courses, ...posts]);
+    } catch (error) {
+      console.error("Search failed:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    handleSearch("");
+  }, [handleSearch]);
+
+  const onSearchClick = () => {
+    handleSearch(query);
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      onSearchClick();
+    }
+  };
 
   return (
     <div className="sp-page">
@@ -34,8 +83,11 @@ export default function SearchPage() {
               placeholder="Tìm khóa học, bài viết..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
+              onKeyPress={handleKeyPress}
             />
-            <button className="sp-btn">Tìm</button>
+            <button className="sp-btn" onClick={onSearchClick} disabled={loading}>
+              {loading ? "..." : "Tìm"}
+            </button>
           </div>
         </div>
       </section>
@@ -45,28 +97,29 @@ export default function SearchPage() {
         <div className="sp-container sp-panel">
 
           <div className="sp-results-head">
-            <span> Có <b>{results.length}</b> kết quả cho từ khóa <b>"{query || "Web"}"</b> </span>
-            <span className="sp-sort">Sắp xếp: Mới nhất ▾</span>
+            {loading ? (
+              <span>Đang tìm kiếm kết quả cho <b>"{query}"</b>...</span>
+            ) : (
+              <>
+                <span> Có <b>{results.length}</b> kết quả cho từ khóa <b>"{searchTitle || "Tất cả"}"</b> </span>
+                <span className="sp-sort">Sắp xếp: Mới nhất ▾</span>
+              </>
+            )}
           </div>
 
           <div className="sp-grid">
-            {results.map((course) => (
-              <CourseCard key={course.id} course={course} />
-            ))}
+            {results.length > 0 ? (
+              results.map((item) => (
+                <CourseCard key={item.id} course={item} />
+              ))
+            ) : !loading && (
+              <div style={{ textAlign: 'center', padding: '40px', width: '100%', color: '#6b7280' }}>
+                Không tìm thấy kết quả nào phù hợp.
+              </div>
+            )}
           </div>
         </div>
       </section>
-
-      {/* ==== FOOTER ==== */}
-      <footer className="sp-footer">
-        <div className="sp-container">
-          <div className="sp-footer-box">
-            <img src="/icon-mail.svg" alt="icon" />
-            <p>MINORI ACADEMY - HỌC TẬP ỨNG DỤNG THỰC TẾ</p>
-          </div>
-        </div>
-      </footer>
-
     </div>
   );
 }

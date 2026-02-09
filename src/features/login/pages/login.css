@@ -104,14 +104,34 @@ body {
   box-shadow: 0 0 0 3px rgba(242, 140, 56, 0.15);
 }
 
+.login-form input.input-error {
+  border-color: #ef4444;
+  background: #fef2f2;
+}
+
+.login-form input.input-error:focus {
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
+}
+
+.error-message {
+  color: #ef4444;
+  font-size: 12px;
+  margin-top: 4px;
+  font-weight: 500;
+  display: block;
+  text-align: left;
+}
+
 .password-input-container1 {
   position: relative;
   width: 100%;
 }
 
 .password-input-container1 input {
-  padding-left: 40px; /* Space for lock icon */
-  padding-right: 40px; /* Space for eye icon */
+  padding-left: 40px;
+  /* Space for lock icon */
+  padding-right: 40px;
+  /* Space for eye icon */
 }
 
 .password-icon {
@@ -137,7 +157,8 @@ body {
   transform: translateY(-50%);
   background: transparent;
   border: none;
-  color: #666; /* Darker grey by default */
+  color: #666;
+  /* Darker grey by default */
   cursor: pointer;
   padding: 4px;
   display: flex;
@@ -149,11 +170,13 @@ body {
   box-shadow: none;
   height: auto;
   border-radius: 50%;
-  z-index: 10; /* Ensure it is on top */
+  z-index: 10;
+  /* Ensure it is on top */
 }
 
 .login-form .password-toggle-btn:hover {
-  color: #333; /* Slightly darker on hover */
+  color: #333;
+  /* Slightly darker on hover */
   background: transparent;
   transform: translateY(-50%);
   box-shadow: none;
@@ -299,11 +322,9 @@ body {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    180deg,
-    rgba(0, 0, 0, 0) 60%,
-    rgba(0, 0, 0, 0.25) 100%
-  );
+  background: linear-gradient(180deg,
+      rgba(0, 0, 0, 0) 60%,
+      rgba(0, 0, 0, 0.25) 100%);
   pointer-events: none;
 }
 

@@ -1,0 +1,153 @@
+.teacher-sidebar {
+  position: sticky;
+  width: 250px;
+  height: 100vh;
+  background-color: #ffffff;
+  border-right: 1px solid #e5e7eb;
+  flex-shrink: 0;
+  flex-direction: column;
+  justify-content: space-between;
+  top: 0;
+  left: 0;
+  padding: 22px 20px;
+  box-sizing: border-box;
+  font-family: "Inter", sans-serif;
+  box-shadow: 2px 0 6px rgba(0, 0, 0, 0.03);
+  display: flex;
+}
+
+.teacher-sidebar-header {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.teacher-sidebar-logo {
+  width: 50px;
+  margin-bottom: 8px;
+}
+
+.teacher-sidebar-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #f97316;
+  margin: 0;
+}
+
+.teacher-sidebar-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.teacher-sidebar-item {
+  color: #1f2937;
+  text-decoration: none;
+  padding: 12px 14px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.teacher-sidebar-item i {
+  font-size: 16px;
+  color: #4b5563;
+  width: 20px;
+  text-align: center;
+}
+
+.teacher-sidebar-item:hover {
+  background-color: #fff8f2;
+  color: #f97316;
+}
+
+.teacher-sidebar-item:hover i {
+  color: #f97316;
+}
+
+.teacher-sidebar-item.active {
+  background-color: #fff7ed;
+  color: #ea580c;
+  font-weight: 700;
+}
+
+.teacher-sidebar-item.active i {
+  color: #ea580c;
+}
+
+.teacher-sidebar-footer {
+  border-top: 1px solid #e5e7eb;
+  padding-top: 18px;
+  margin-top: auto;
+}
+
+.teacher-footer-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.teacher-user-avatar {
+  width: 36px;
+  height: 36px;
+  background-color: #f97316;
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+}
+
+.teacher-user-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.teacher-user-name {
+  font-weight: 600;
+  margin: 0;
+  color: #111827;
+  font-size: 13px;
+}
+
+.teacher-user-email {
+  font-size: 11px;
+  color: #6b7280;
+  margin: 0;
+}
+
+.teacher-sidebar-logout {
+  margin-top: 12px;
+}
+
+.teacher-sidebar-logout .logout-btn {
+  background-color: #ef4444;
+  color: #fff;
+  border: none;
+  width: 100%;
+  cursor: pointer;
+}
+
+.teacher-sidebar-logout .logout-btn i {
+  color: #fff;
+}
+
+.teacher-sidebar-logout .logout-btn:hover {
+  background-color: #dc2626;
+}
+
+@media (max-width: 640px) {
+  .teacher-sidebar {
+    position: fixed;
+    left: -250px;
+    z-index: 1001;
+    transition: left 0.3s ease;
+  }
+  .teacher-sidebar.open {
+    left: 0;
+  }
+}

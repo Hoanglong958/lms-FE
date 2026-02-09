@@ -63,6 +63,10 @@ import PostManagement from "@features/Admin/PostManagement/PostManagement";
 import PostCreate from "@features/Admin/PostManagement/PostCreate";
 import PostEdit from "@features/Admin/PostManagement/PostEdit";
 
+// ================= TEACHER =================
+import TeacherLayout from "@layouts/TeacherLayout";
+import TeacherDashboard from "@features/Teacher/Dashboard/TeacherDashboard";
+
 export default function AppRouter() {
   return (
     <>
@@ -93,7 +97,7 @@ export default function AppRouter() {
             {/* BLOG */}
             <Route path="/bai-viet" element={<BlogList />} />
             <Route path="/bai-viet/:id" element={<BlogDetail />} />
-            <Route path="/baiviet" element={<Posts />} />
+            <Route path="/baiviet" element={<Navigate to="/bai-viet" replace />} />
 
             <Route path="/search" element={<SearchPage />} />
 
@@ -170,6 +174,22 @@ export default function AppRouter() {
             path="/admin/courses/:courseSlug"
             element={<ManageLessons />}
           />
+        </Route>
+
+        {/* ================= TEACHER ROUTES ================= */}
+        <Route element={<PrivateRoute role="ROLE_TEACHER" />}>
+          <Route path="/teacher" element={<TeacherLayout />}>
+            <Route index element={<Navigate to="dashboard" replace />} />
+            <Route path="dashboard" element={<TeacherDashboard />} />
+
+            {/* Reuse Admin components for now, but prefix with /teacher */}
+            <Route path="classes" element={<ClassManagement />} />
+            <Route path="classes/:id" element={<ClassDetail />} />
+            <Route path="courses" element={<ManageCourses />} />
+            <Route path="exam" element={<ExamManagement />} />
+            <Route path="question-bank" element={<QuestionBank />} />
+            <Route path="posts" element={<PostManagement />} />
+          </Route>
         </Route>
 
         {/* NOT FOUND → LOGIN */}

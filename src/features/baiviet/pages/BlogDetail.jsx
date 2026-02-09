@@ -3,8 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { postService } from "@utils/postService";
 import { Spin, message } from "antd";
 import dayjs from "dayjs";
-import ReactMarkdown from "react-markdown"; // If content is markdown
-// If content is HTML, we use dangerouslySetInnerHTML
+import "./baiviet.css";
 
 const BASE = (import.meta.env.BASE_URL || "/");
 const fallbackImage = `${BASE}blog-sample.png`;
@@ -22,10 +21,9 @@ export default function BlogDetail() {
                 const response = await postService.getPostById(id);
                 setPost(response.data);
 
-                // Fetch related (just fetch latest 3 posts for now)
-                const relResponse = await postService.getPosts({ size: 3 });
+                const relResponse = await postService.getPosts({ size: 4 });
                 const relData = relResponse.data.content || relResponse.data || [];
-                setRelated(relData.filter(p => p.id !== Number(id)).slice(0, 3));
+                setRelated(relData.filter(p => p.id !== Number(id)).slice(0, 4));
             } catch (error) {
                 console.error(error);
                 message.error("Không thể tải chi tiết bài viết");
@@ -36,6 +34,7 @@ export default function BlogDetail() {
 
         if (id) {
             fetchPost();
+            window.scrollTo(0, 0);
         }
     }, [id]);
 
@@ -48,60 +47,83 @@ export default function BlogDetail() {
     }
 
     return (
-        <div className="min-h-screen" style={{ background: "#FFFFFF", opacity: 1 }}>
-            <div className="pb-6 bd-container" style={{ width: "100%", maxWidth: 1440, minHeight: "100vh", margin: "0 auto", background: "#FFFFFF", paddingTop: 26 }}>
-                <div
-                    className="pb-8 border-b border-gray-200 mb-8 bd-header"
-                    style={{ maxWidth: 789, margin: "0 auto", padding: "0 20px" }}
-                >
-                    <div className="mb-3" style={{ fontSize: 12, color: "#6B7280" }}>
-                        <Link to="/" style={{ color: "#6B7280" }}>Trang chủ</Link>
-                        <span style={{ margin: "0 6px" }}>/</span>
-                        <Link to="/bai-viet" style={{ color: "#6B7280" }}>Bài viết</Link>
-                        <span style={{ margin: "0 6px" }}>/</span>
-                        <span style={{ color: "#111827" }}>Chi tiết bài viết</span>
-                    </div>
-                    <h1 className="text-[28px] leading-8 font-bold text-gray-900 mb-4">{post.title}</h1>
-                    <div className="flex items-center gap-4 text-xs text-gray-500">
-                        <span className="px-2 py-0.5 rounded bg-orange-50 text-orange-600 border border-orange-100">
-                            {post.tags && post.tags.length > 0 ? post.tags[0] : "General"}
-                        </span>
-                        <span>📅 {dayjs(post.createdAt).format("DD/MM/YYYY")}</span>
-                        {/* <span>⏱️ {post.time}</span> */}
-                    </div>
+        <div className="baiviet-wrapper" style={{ background: "#f8f9fa", minHeight: "100vh" }}>
+            {/* BANNER (Optional, or just a simpler header) */}
+            <div className="baiviet-banner" style={{ padding: "40px 0" }}>
+                <div className="baiviet-banner-content">
+                    <p className="breadcrumb">
+                        <Link to="/" className="crumb">Trang chủ</Link>
+                        <span className="separator"> / </span>
+                        <Link to="/bai-viet" className="crumb">Bài viết</Link>
+                        <span className="separator"> / </span>
+                        <span className="crumb active">Chi tiết</span>
+                    </p>
+                    <h1 style={{ fontSize: "28px" }}>Chi tiết bài viết</h1>
                 </div>
+            </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 bd-grid" style={{ maxWidth: 1200, margin: "0 auto", padding: "0 20px" }}>
-                    <article className="lg:col-span-2 bg-white rounded-xl shadow-sm p-6 bd-article">
-                        {/* Render content safely */}
-                        <div className="text-gray-700 space-y-4 blog-content" style={{ fontSize: 14, lineHeight: "28px" }}>
-                            {/* Assuming content is HTML from an editor */}
-                            <div dangerouslySetInnerHTML={{ __html: post.content }} />
+            <div className="baiviet-container" style={{ marginTop: "30px", maxWidth: "1100px" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: "30px" }} className="blog-detail-grid">
+                    <article style={{ background: "#fff", padding: "30px", borderRadius: "12px", boxShadow: "0 2px 10px rgba(0,0,0,0.05)" }}>
+                        <div className="post-meta" style={{ marginBottom: "20px" }}>
+                            <span style={{
+                                color: "#ff6a00",
+                                fontWeight: "600",
+                                fontSize: "14px",
+                                textTransform: "uppercase",
+                                display: "block",
+                                marginBottom: "8px"
+                            }}>
+                                {post.tags && post.tags.length > 0 ? post.tags[0] : "Lập trình"}
+                            </span>
+                            <h2 style={{ fontSize: "26px", fontWeight: "700", lineHeight: "1.3", marginBottom: "12px" }}>{post.title}</h2>
+                            <div style={{ fontSize: "13px", color: "#888" }}>
+                                📅 Đăng ngày: {dayjs(post.createdAt).format("DD/MM/YYYY")}
+                            </div>
                         </div>
+
+                        {post.image && (
+                            <img
+                                src={post.image}
+                                alt={post.title}
+                                style={{ width: "100%", borderRadius: "8px", marginBottom: "25px", objectFit: "cover", maxHeight: "400px" }}
+                            />
+                        )}
+
+                        <div
+                            className="blog-content"
+                            style={{
+                                fontSize: "16px",
+                                lineHeight: "1.8",
+                                color: "#333"
+                            }}
+                            dangerouslySetInnerHTML={{ __html: post.content }}
+                        />
                     </article>
 
-                    <aside className="bg-white rounded-xl shadow-sm p-6">
-                        <h3 className="font-semibold mb-4">Bài viết khác</h3>
-                        <div className="space-y-4">
-                            {related.map((r) => (
-                                <Link key={r.id} to={`/bai-viet/${r.id}`} className="flex gap-3 p-3 rounded-lg border border-gray-100 hover:shadow transition">
-                                    <img
-                                        src={r.image || fallbackImage}
-                                        onError={(e) => { e.currentTarget.src = fallbackImage; }}
-                                        alt={r.title}
-                                        className="w-28 h-20 object-cover rounded-md"
-                                    />
-                                    <div className="min-w-0">
-                                        <div className="text-[11px] text-orange-600 mb-1">
-                                            {r.tags && r.tags.length > 0 ? r.tags[0] : "General"}
+                    <aside>
+                        <div style={{ background: "#fff", padding: "20px", borderRadius: "12px", boxShadow: "0 2px 10px rgba(0,0,0,0.05)" }}>
+                            <h3 style={{ fontSize: "18px", fontWeight: "600", marginBottom: "20px", borderBottom: "2px solid #ff6a00", paddingBottom: "10px" }}>
+                                Bài viết mới nhất
+                            </h3>
+                            <div style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
+                                {related.map((r) => (
+                                    <Link key={r.id} to={`/bai-viet/${r.id}`} style={{ textDecoration: "none", color: "inherit", display: "flex", gap: "10px" }}>
+                                        <img
+                                            src={r.image || fallbackImage}
+                                            alt={r.title}
+                                            style={{ width: "80px", height: "60px", objectFit: "cover", borderRadius: "6px" }}
+                                            onError={(e) => (e.currentTarget.src = fallbackImage)}
+                                        />
+                                        <div style={{ flex: 1 }}>
+                                            <h4 style={{ fontSize: "14px", fontWeight: "600", margin: "0 0 4px 0", lineHeight: "1.4", overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>
+                                                {r.title}
+                                            </h4>
+                                            <span style={{ fontSize: "11px", color: "#999" }}>{dayjs(r.createdAt).format("DD/MM/YYYY")}</span>
                                         </div>
-                                        <div className="text-[14px] font-semibold text-gray-800 leading-snug line-clamp-2">{r.title}</div>
-                                        <div className="flex items-center gap-3 text-[11px] text-gray-500 mt-2">
-                                            <span>📅 {dayjs(r.createdAt).format("DD/MM/YYYY")}</span>
-                                        </div>
-                                    </div>
-                                </Link>
-                            ))}
+                                    </Link>
+                                ))}
+                            </div>
                         </div>
                     </aside>
                 </div>

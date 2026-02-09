@@ -29,7 +29,7 @@ export default function LessonPage() {
       const c = res.data.find(
         (c) => slugify(c.title) === courseSlug || c.slug === courseSlug
       );
-      if (!c) return navigate("/courses");
+      if (!c) return navigate("/home");
       setCourse(c);
     });
   }, [courseSlug, navigate]);

@@ -72,7 +72,7 @@ export default function Header() {
                 <img src={homeIcon} alt="Home" />
                 <span>Trang Chủ</span>
               </div>
-              <div className="user-header-menu-item" onClick={() => navigate("/baiviet")}>
+              <div className="user-header-menu-item" onClick={() => navigate("/bai-viet")}>
                 <img src={bookIcon} alt="Posts" />
                 <span>Bài Viết</span>
               </div>
@@ -161,7 +161,7 @@ export default function Header() {
             <a onClick={() => handleNavigate("/lessons")}>
               <img src={lessonIcon} alt="Bài học" /> Bài học
             </a>
-            <a onClick={() => handleNavigate("/posts")}>
+            <a onClick={() => handleNavigate("/bai-viet")}>
               <img src={bookIcon} alt="Bài viết" /> Bài viết
             </a>
           </nav>
