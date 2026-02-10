@@ -66,6 +66,8 @@ import PostEdit from "@features/Admin/PostManagement/PostEdit";
 // ================= TEACHER =================
 import TeacherLayout from "@layouts/TeacherLayout";
 import TeacherDashboard from "@features/Teacher/Dashboard/TeacherDashboard";
+import TeacherClassList from "@features/Teacher/ClassManagement/TeacherClassList";
+import TeacherClassDetail from "@features/Teacher/ClassManagement/TeacherClassDetail";
 
 export default function AppRouter() {
   return (
@@ -182,13 +184,19 @@ export default function AppRouter() {
             <Route index element={<Navigate to="dashboard" replace />} />
             <Route path="dashboard" element={<TeacherDashboard />} />
 
-            {/* Reuse Admin components for now, but prefix with /teacher */}
-            <Route path="classes" element={<ClassManagement />} />
-            <Route path="classes/:id" element={<ClassDetail />} />
-            <Route path="courses" element={<ManageCourses />} />
+            {/* Class Management */}
+            <Route path="classes" element={<TeacherClassList />} />
+            <Route path="classes/:id" element={<TeacherClassDetail />} />
+
+            {/* Lesson Management */}
+            <Route path="lessons/:courseId" element={<ManageLessons />} />
+
+            {/* Reuse Admin components for compatible features */}
             <Route path="exam" element={<ExamManagement />} />
             <Route path="question-bank" element={<QuestionBank />} />
             <Route path="posts" element={<PostManagement />} />
+            <Route path="posts/create" element={<PostCreate />} />
+            <Route path="posts/:id/edit" element={<PostEdit />} />
           </Route>
         </Route>
 

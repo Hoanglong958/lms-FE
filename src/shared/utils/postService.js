@@ -29,4 +29,9 @@ export const postService = {
     deletePost(id) {
         return api.delete(`/api/v1/posts/${id}`);
     },
+
+    // GET /api/v1/posts/tags
+    getTags() {
+        return api.get("/api/v1/posts/tags");
+    }
 };

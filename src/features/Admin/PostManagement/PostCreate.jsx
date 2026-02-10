@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Form, Input, Button, Select, message, Space, Card, Row, Col, Typography, Breadcrumb, Divider } from "antd";
 import { ArrowLeftOutlined, SaveOutlined } from "@ant-design/icons";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import { postService } from "@utils/postService";
 
 const { Title, Text } = Typography;
@@ -10,7 +10,11 @@ const { TextArea } = Input;
 export default function PostCreate() {
     const [form] = Form.useForm();
     const navigate = useNavigate();
+    const location = useLocation();
     const [loading, setLoading] = useState(false);
+
+    const isTeacher = location.pathname.startsWith("/teacher");
+    const basePath = isTeacher ? "/teacher/posts" : "/admin/posts";
 
     // Simple slugify helper
     const generateSlug = (str) => {
@@ -47,7 +51,7 @@ export default function PostCreate() {
 
             await postService.createPost(payload);
             message.success("Tạo bài viết thành công!");
-            navigate("/admin/posts");
+            navigate(basePath);
         } catch (error) {
             console.error(error);
             message.error("Tạo bài viết thất bại!");
@@ -60,12 +64,12 @@ export default function PostCreate() {
         <div className="p-6 min-h-screen bg-gray-50/50">
             {/* Header */}
             <div className="mb-6">
-                <Breadcrumb items={[{ title: 'Admin' }, { title: 'Bài viết', href: '/admin/posts' }, { title: 'Tạo mới' }]} className="mb-2" />
+                <Breadcrumb items={[{ title: isTeacher ? 'Teacher' : 'Admin' }, { title: 'Bài viết', href: basePath }, { title: 'Tạo mới' }]} className="mb-2" />
                 <div className="flex items-center gap-3">
                     <Button
                         icon={<ArrowLeftOutlined />}
                         shape="circle"
-                        onClick={() => navigate("/admin/posts")}
+                        onClick={() => navigate(basePath)}
                         className="border-gray-300 hover:border-orange-500 hover:text-orange-500"
                     />
                     <Title level={2} style={{ margin: 0 }}>Viết bài mới</Title>

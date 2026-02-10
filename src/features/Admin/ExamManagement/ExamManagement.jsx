@@ -11,7 +11,9 @@ import ExamTable from "./ExamTable";
 export default function ExamManagement() {
   const navigate = useNavigate();
   const user = (() => { try { return JSON.parse(localStorage.getItem("loggedInUser") || "{}"); } catch { return {}; } })();
-  const isAdmin = String(user?.role || "").toUpperCase() === "ROLE_ADMIN";
+  const userRole = String(user?.role || "").toUpperCase();
+  const canManage = userRole === "ROLE_ADMIN" || userRole === "ROLE_TEACHER";
+  const isAdmin = userRole === "ROLE_ADMIN"; // Keep for specific admin-only checks if any
 
   const [exams, setExams] = useState([]);
   const [search, setSearch] = useState("");
@@ -166,8 +168,8 @@ export default function ExamManagement() {
 
   const handleDelete = (exam) => {
     (async () => {
-      if (!isAdmin) {
-        alert("Bạn không có quyền xóa kỳ thi. Vui lòng đăng nhập tài khoản ADMIN.");
+      if (!canManage) {
+        alert("Bạn không có quyền xóa kỳ thi.");
         return;
       }
       const ok = window.confirm(`Bạn có chắc muốn xóa "${exam.name}" không?`);
@@ -606,7 +608,7 @@ export default function ExamManagement() {
         loading={loading}
         onEdit={handleEdit}
         onDelete={handleDeleteById}
-        canDelete={isAdmin}
+        canDelete={canManage}
         onViewDetail={(id) => {
           navigate(`/admin/exam/${id}/detail`);
         }}

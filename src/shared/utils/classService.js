@@ -21,6 +21,7 @@ export const classService = {
   // Backward compatibility helpers (legacy names still used in some files)
   getAllClasses: (params) => getClasses(params),
   createClass: (data) => addClass(data),
+  getMyClasses: () => api.get(`${CLASS_BASE_PATH}/my-classes`),
 };
 
 export default classService;

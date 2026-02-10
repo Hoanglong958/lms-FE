@@ -16,7 +16,7 @@ export default function PostManagement() {
     const fetchPosts = async () => {
         setLoading(true);
         try {
-            const response = await postService.getPosts({ page: 0, size: 100 });
+            const response = await postService.getPosts({ page: 0, size: 100, status: "ALL" });
             const raw = response?.data;
             let data = [];
             if (Array.isArray(raw)) data = raw;
@@ -64,6 +64,7 @@ export default function PostManagement() {
         total: posts.length,
         published: posts.filter(p => p.status === 'PUBLISHED').length,
         draft: posts.filter(p => p.status === 'DRAFT').length,
+        archived: posts.filter(p => p.status === 'ARCHIVED').length,
         recent: posts.filter(p => {
             const created = dayjs(p.createdAt);
             return created.isAfter(dayjs().subtract(7, 'day'));
@@ -420,6 +421,7 @@ export default function PostManagement() {
                         <option value="ALL">Tất cả trạng thái</option>
                         <option value="PUBLISHED">Đã xuất bản</option>
                         <option value="DRAFT">Bản nháp</option>
+                        <option value="ARCHIVED">Lưu trữ</option>
                     </select>
                     <ChevronDown style={{
                         position: 'absolute',
@@ -602,12 +604,12 @@ export default function PostManagement() {
                                         <span style={{
                                             padding: '4px 12px',
                                             borderRadius: 20,
-                                            background: post.status === "PUBLISHED" ? '#dcfce7' : '#fef3c7',
-                                            color: post.status === "PUBLISHED" ? '#16a34a' : '#d97706',
+                                            background: post.status === "PUBLISHED" ? '#dcfce7' : post.status === "DRAFT" ? '#fef3c7' : '#f1f5f9',
+                                            color: post.status === "PUBLISHED" ? '#16a34a' : post.status === "DRAFT" ? '#d97706' : '#64748b',
                                             fontSize: 12,
                                             fontWeight: 600
                                         }}>
-                                            {post.status === "PUBLISHED" ? "Xuất bản" : "Nháp"}
+                                            {post.status === "PUBLISHED" ? "Xuất bản" : post.status === "DRAFT" ? "Nháp" : "Lưu trữ"}
                                         </span>
                                     </td>
                                     <td style={{ padding: '16px 24px', color: '#6b7280', fontSize: 14 }}>

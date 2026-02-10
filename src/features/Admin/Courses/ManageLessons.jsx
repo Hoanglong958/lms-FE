@@ -12,7 +12,7 @@ import dayjs from "dayjs";
 import { FolderPlus, Book, ListOrdered, X, Save } from "lucide-react";
 
 export default function ManageLessons() {
-  const { courseSlug } = useParams();
+  const { courseSlug, courseId } = useParams();
   const navigate = useNavigate();
   const [course, setCourse] = useState(null);
   const [sessions, setSessions] = useState([]);
@@ -27,15 +27,21 @@ export default function ManageLessons() {
   useEffect(() => {
     const loadCourse = async () => {
       try {
-        const res = await courseService.getCourses();
-        const c = res.data.find((c) => slugify(c.title) === courseSlug);
-        setCourse(c);
+        if (courseId) {
+          const res = await courseService.getCourseDetail(courseId);
+          setCourse(res.data?.data || res.data);
+        } else if (courseSlug) {
+          const res = await courseService.getCourses();
+          const c = res.data.find((c) => slugify(c.title) === courseSlug);
+          setCourse(c);
+        }
       } catch (err) {
-        navigate("/admin/courses");
+        // Handle error - maybe stay on page or navigate back depending on context
+        console.error("Failed to load course", err);
       }
     };
-    if (courseSlug) loadCourse();
-  }, [courseSlug]);
+    if (courseSlug || courseId) loadCourse();
+  }, [courseSlug, courseId]);
 
   useEffect(() => {
     if (!course?.id) return;
@@ -113,7 +119,13 @@ export default function ManageLessons() {
         title={`Quản lý nội dung cho: ${course?.title || ""}`}
         subtitle={course?.description || ""}
         onMenuToggle={toggleSidebar}
-        onBack={() => navigate(`/admin/courses`)}
+        onBack={() => {
+          if (courseId) {
+            navigate(-1); // Go back to where we came from (likely ClassDetail)
+          } else {
+            navigate(`/admin/courses`);
+          }
+        }}
         actions={
           <button
             onClick={handleAddSession}
