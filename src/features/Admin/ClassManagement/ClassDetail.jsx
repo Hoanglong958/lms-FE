@@ -6,8 +6,25 @@ import { classCourseService } from "@utils/classCourseService";
 import { classTeacherService } from "@utils/classTeacherService";
 import { classStudentService } from "@utils/classStudentService";
 import { userService } from "@utils/userService";
+import { attendanceService } from "@utils/attendanceService";
+import { periodService } from "@utils/periodService";
 import "./ClassDetail.css";
 import ClassDetailModal from "./ClassDetailModal";
+
+const timeObjToString = (t) => {
+    if (!t) return "00:00:00";
+    if (typeof t === "string") {
+        if (t.includes(":") && t.split(":").length === 2) return `${t}:00`;
+        return t;
+    }
+    if (typeof t === "object") {
+        const hh = String(t.hour ?? 0).padStart(2, "0");
+        const mm = String(t.minute ?? 0).padStart(2, "0");
+        const ss = String(t.second ?? 0).padStart(2, "0");
+        return `${hh}:${mm}:${ss}`;
+    }
+    return "00:00:00";
+};
 
 export default function ClassDetail({ classData: propClassData, onBack }) {
     const { state } = useLocation();
@@ -111,7 +128,96 @@ export default function ClassDetail({ classData: propClassData, onBack }) {
         new Date().toISOString().split("T")[0]
     );
     const [attendance, setAttendance] = useState({});
-    const [attendanceShift, setAttendanceShift] = useState("morning");
+    const [periods, setPeriods] = useState([]);
+    const [attendanceShift, setAttendanceShift] = useState("");
+    const [sessions, setSessions] = useState([]); // All sessions for this class
+    const [isLoadingAttendance, setIsLoadingAttendance] = useState(false);
+
+    // Load shifts
+    useEffect(() => {
+        const fetchPeriods = async () => {
+            try {
+                const res = await periodService.getAll();
+                const data = res.data ?? [];
+                const loaded = Array.isArray(data) ? data : data?.data ?? data?.content ?? [];
+                setPeriods(loaded);
+                if (loaded.length > 0) {
+                    setAttendanceShift(String(loaded[0].id));
+                }
+            } catch (err) {
+                console.error("Load periods failed", err);
+            }
+        };
+        fetchPeriods();
+    }, []);
+
+    // Load available sessions for this class
+    const loadSessions = async () => {
+        if (!id) return;
+        try {
+            const res = await attendanceService.listSessionsByClass(id);
+            setSessions(res.data || []);
+        } catch (error) {
+            console.error("Failed to load sessions:", error);
+        }
+    };
+
+    useEffect(() => {
+        if (id) loadSessions();
+    }, [id]);
+
+    // Load attendance data for selected date and shift
+    const loadAttendanceData = async () => {
+        if (!id || !attendanceDate || !attendanceShift || periods.length === 0) return;
+
+        try {
+            setIsLoadingAttendance(true);
+            // 1. Fetch existing records for this class and date
+            const res = await attendanceService.getAttendanceByClassAndDate(id, attendanceDate);
+            const records = res.data || [];
+
+            // 2. Find the selected period
+            const selectedPeriod = periods.find(p => String(p.id) === String(attendanceShift));
+            if (!selectedPeriod) return;
+
+            const startTimeStr = timeObjToString(selectedPeriod.startTime);
+            const endTimeStr = timeObjToString(selectedPeriod.endTime);
+
+            // 3. Find if a session exists for this date and shift
+            const existingSession = sessions.find(s =>
+                s.sessionDate === attendanceDate &&
+                s.startTime === startTimeStr &&
+                s.endTime === endTimeStr
+            );
+
+            if (existingSession && records.length > 0) {
+                // Map records to local state
+                const newAttendance = {};
+                records.forEach(r => {
+                    const status = r.status.toLowerCase();
+                    newAttendance[r.studentId] = status === 'present' ? 'present' : status === 'excused' ? 'excused' : 'absent';
+                });
+                setAttendance(newAttendance);
+            } else {
+                // If no session/records, reset to default (all present)
+                const initialAttendance = {};
+                (studentsList || []).forEach((student) => {
+                    initialAttendance[student.id] = "present";
+                });
+                setAttendance(initialAttendance);
+            }
+        } catch (error) {
+            console.error("Failed to load attendance data:", error);
+        } finally {
+            setIsLoadingAttendance(false);
+        }
+    };
+
+    useEffect(() => {
+        if (id && attendanceDate && attendanceShift && periods.length > 0) {
+            loadAttendanceData();
+        }
+    }, [id, attendanceDate, attendanceShift, periods, sessions]);
 
 
     const [showAttendance, setShowAttendance] = useState(true);
@@ -306,8 +412,78 @@ export default function ClassDetail({ classData: propClassData, onBack }) {
         }));
     };
 
-    const handleSaveAttendance = () => {
-        alert("Đã lưu điểm danh thành công!");
+    const handleSaveAttendance = async () => {
+        if (!classData?.id) {
+            alert("Không tìm thấy thông tin lớp học!");
+            return;
+        }
+
+        try {
+            setLoading(true);
+
+            // 1. Validate schedule exists for this date
+            const validationRes = await attendanceService.validateScheduleDate(classData.id, attendanceDate);
+            if (!validationRes.data?.hasSchedule) {
+                alert(`Ngày ${attendanceDate} không có lịch học. Vui lòng chọn ngày có trong thời khóa biểu.`);
+                return;
+            }
+
+            // 2. Create attendance session for this date and shift
+            const selectedPeriod = periods.find(p => String(p.id) === String(attendanceShift));
+            if (!selectedPeriod) {
+                alert("Vui lòng chọn ca học!");
+                return;
+            }
+
+            const startTime = timeObjToString(selectedPeriod.startTime);
+            const endTime = timeObjToString(selectedPeriod.endTime);
+
+            // Check if a session already exists for this date and shift
+            const existingSession = sessions.find(s =>
+                s.sessionDate === attendanceDate &&
+                s.startTime === startTime &&
+                s.endTime === endTime
+            );
+
+            let sessionId;
+            if (existingSession) {
+                sessionId = existingSession.attendanceSessionId || existingSession.id;
+            } else {
+                const createRes = await attendanceService.createSession({
+                    classId: parseInt(classData.id),
+                    title: `Điểm danh ${attendanceDate} - ${selectedPeriod.name}`,
+                    sessionDate: attendanceDate,
+                    startTime: startTime,
+                    endTime: endTime,
+                    status: "UPCOMING"
+                });
+                const session = createRes.data?.data || createRes.data || createRes;
+                sessionId = session.attendanceSessionId || session.id;
+            }
+
+            // 3. Prepare attendance records
+            const records = Object.entries(attendance).map(([studentId, status]) => ({
+                attendanceSessionId: sessionId,
+                studentId: parseInt(studentId),
+                status: status === 'present' ? 'PRESENT' : status === 'excused' ? 'EXCUSED' : 'ABSENT',
+                note: ""
+            }));
+
+            // 4. Save attendance records
+            await attendanceService.markAttendanceBulk(sessionId, records);
+
+            alert("Đã lưu điểm danh thành công!");
+        } catch (error) {
+            console.error("Failed to save attendance:", error);
+            if (error.response?.status === 400 && error.response?.data?.message) {
+                alert(error.response.data.message);
+            } else {
+                alert("Lỗi khi lưu điểm danh: " + (error.message || "Unknown error"));
+            }
+        } finally {
+            setLoading(false);
+            loadSessions(); // Refresh sessions list
+        }
     };
 
     const handleTagClick = (type) => {
@@ -447,7 +623,34 @@ export default function ClassDetail({ classData: propClassData, onBack }) {
                         </div>
 
                         {/* Attendance Table */}
-                        <div className="cd-table-card">
+                        <div className="cd-table-card" style={{ position: 'relative' }}>
+                            {isLoadingAttendance && (
+                                <div style={{
+                                    position: 'absolute',
+                                    inset: 0,
+                                    background: 'rgba(255, 255, 255, 0.7)',
+                                    zIndex: 10,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    borderRadius: '12px'
+                                }}>
+                                    <div className="cd-loading-spinner" style={{
+                                        width: '32px',
+                                        height: '32px',
+                                        border: '3px solid #f3f3f3',
+                                        borderTop: '3px solid #3498db',
+                                        borderRadius: '50%',
+                                        animation: 'cd-spin 1s linear infinite'
+                                    }}></div>
+                                    <style>{`
+                                        @keyframes cd-spin {
+                                            0% { transform: rotate(0deg); }
+                                            100% { transform: rotate(360deg); }
+                                        }
+                                    `}</style>
+                                </div>
+                            )}
                             <div className="cd-table-header">
                                 <div className="cd-table-title">Điểm danh lớp học</div>
                                 <div className="cd-header-actions">
@@ -468,9 +671,12 @@ export default function ClassDetail({ classData: propClassData, onBack }) {
                                             value={attendanceShift}
                                             onChange={(e) => setAttendanceShift(e.target.value)}
                                         >
-                                            <option value="morning">Ca Sáng (8:00 - 11:30)</option>
-                                            <option value="afternoon">Ca Chiều (13:30 - 17:00)</option>
-                                            <option value="evening">Ca Tối (18:30 - 21:30)</option>
+                                            {periods.length === 0 && <option value="">Đang tải ca học...</option>}
+                                            {periods.map(p => (
+                                                <option key={p.id} value={p.id}>
+                                                    {p.name} ({timeObjToString(p.startTime)} - {timeObjToString(p.endTime)})
+                                                </option>
+                                            ))}
                                         </select>
                                     </div>
 

@@ -1,0 +1,357 @@
+/* Attendance Modern UI Styles */
+:root {
+    --att-primary: #f97316;
+    --att-primary-hover: #ea580c;
+    --att-present: #22c55e;
+    --att-excused: #eab308;
+    --att-unexcused: #ef4444;
+    --att-bg: #ffffff;
+    --att-bg-alt: #f8fafc;
+    --att-border: #e2e8f0;
+    --att-text: #1e293b;
+    --att-text-muted: #64748b;
+    --att-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --att-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
+
+.attendance-container {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Stats Summary */
+.att-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+}
+
+.att-stat-card {
+    background: var(--att-bg);
+    padding: 20px;
+    border-radius: 16px;
+    border: 1px solid var(--att-border);
+    box-shadow: var(--att-shadow);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.att-stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--att-shadow-lg);
+}
+
+.att-stat-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--att-text-muted);
+}
+
+.att-stat-value {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--att-text);
+}
+
+.att-stat-card.present {
+    border-left: 5px solid var(--att-present);
+}
+
+.att-stat-card.excused {
+    border-left: 5px solid var(--att-excused);
+}
+
+.att-stat-card.unexcused {
+    border-left: 5px solid var(--att-unexcused);
+}
+
+/* Session Management */
+.att-session-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    background: var(--att-bg);
+    padding: 20px 24px;
+    border-radius: 16px;
+    border: 1px solid var(--att-border);
+    box-shadow: var(--att-shadow);
+}
+
+.att-session-title h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--att-text);
+}
+
+.att-session-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+/* Buttons */
+.att-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1px solid var(--att-border);
+    background: var(--att-bg);
+    color: var(--att-text);
+}
+
+.att-btn:hover {
+    background: var(--att-bg-alt);
+    border-color: #cbd5e1;
+}
+
+.att-btn-primary {
+    background: linear-gradient(135deg, var(--att-primary) 0%, #ea580c 100%);
+    color: white;
+    border: none;
+    box-shadow: 0 4px 12px rgba(249, 115, 22, 0.2);
+}
+
+.att-btn-primary:hover {
+    background: linear-gradient(135deg, #ea580c 0%, #d97706 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(249, 115, 22, 0.3);
+}
+
+/* Table */
+.att-table-container {
+    background: var(--att-bg);
+    border-radius: 16px;
+    border: 1px solid var(--att-border);
+    box-shadow: var(--att-shadow);
+    overflow: hidden;
+}
+
+.att-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.att-table th {
+    background: var(--att-bg-alt);
+    text-align: left;
+    padding: 16px 24px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--att-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--att-border);
+}
+
+.att-table td {
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--att-border);
+    vertical-align: middle;
+}
+
+.att-table tr:last-child td {
+    border-bottom: none;
+}
+
+.att-student-cell {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.att-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: #f1f5f9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    color: var(--att-primary);
+    font-size: 16px;
+}
+
+.att-student-main div:first-child {
+    font-weight: 700;
+    color: var(--att-text);
+    font-size: 15px;
+}
+
+.att-student-main div:last-child {
+    font-size: 12px;
+    color: var(--att-text-muted);
+    margin-top: 2px;
+}
+
+/* Status Buttons */
+.att-options {
+    display: flex;
+    gap: 8px;
+}
+
+.att-opt-btn {
+    padding: 8px 14px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1.5px solid var(--att-border);
+    background: transparent;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--att-text-muted);
+}
+
+.att-opt-btn .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #94a3b8;
+}
+
+.att-opt-btn.present:hover,
+.att-opt-btn.present.active {
+    border-color: var(--att-present);
+    color: var(--att-present);
+}
+
+.att-opt-btn.present.active {
+    background: #f0fdf4;
+}
+
+.att-opt-btn.present .dot {
+    background: var(--att-present);
+}
+
+.att-opt-btn.excused:hover,
+.att-opt-btn.excused.active {
+    border-color: var(--att-excused);
+    color: var(--att-excused);
+}
+
+.att-opt-btn.excused.active {
+    background: #fefce8;
+}
+
+.att-opt-btn.excused .dot {
+    background: var(--att-excused);
+}
+
+.att-opt-btn.unexcused:hover,
+.att-opt-btn.unexcused.active {
+    border-color: var(--att-unexcused);
+    color: var(--att-unexcused);
+}
+
+.att-opt-btn.unexcused.active {
+    background: #fef2f2;
+}
+
+.att-opt-btn.unexcused .dot {
+    background: var(--att-unexcused);
+}
+
+/* Form Elements */
+.att-input {
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1px solid var(--att-border);
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.att-input:focus {
+    border-color: var(--att-primary);
+}
+
+.att-select {
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--att-border);
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--att-text);
+    outline: none;
+    cursor: pointer;
+}
+
+/* Modal for New Session */
+.att-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    animation: fadeIn 0.2s ease-out;
+}
+
+.att-modal {
+    background: white;
+    border-radius: 20px;
+    width: 100%;
+    max-width: 480px;
+    padding: 32px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+.att-modal h2 {
+    margin: 0 0 24px 0;
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--att-text);
+    text-align: center;
+}
+
+.att-form-group {
+    margin-bottom: 20px;
+}
+
+.att-form-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--att-text-muted);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+.att-modal-footer {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 32px;
+}

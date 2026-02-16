@@ -6,6 +6,7 @@ import { classCourseService } from "@utils/classCourseService";
 import { examService } from "@utils/examService"; // We might need this, or create a specific service
 import { Users, BookOpen, ClipboardCheck, Calendar, Clock, ChevronLeft } from "lucide-react";
 import "../Dashboard/TeacherDashboard.css"; // Reuse dashboard styles
+import TeacherAttendanceTab from "./TeacherAttendanceTab";
 
 export default function TeacherClassDetail() {
     const { id } = useParams();
@@ -109,6 +110,7 @@ export default function TeacherClassDetail() {
             <div className="teacher-tabs" style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
                 <TabButton active={activeTab === 'courses'} onClick={() => setActiveTab('courses')} icon={<BookOpen size={18} />} label="Khóa học & Bài giảng" />
                 <TabButton active={activeTab === 'students'} onClick={() => setActiveTab('students')} icon={<Users size={18} />} label="Học viên" />
+                <TabButton active={activeTab === 'attendance'} onClick={() => setActiveTab('attendance')} icon={<ClipboardCheck size={18} />} label="Điểm danh" />
                 <TabButton active={activeTab === 'exams'} onClick={() => setActiveTab('exams')} icon={<ClipboardCheck size={18} />} label="Bài kiểm tra" />
             </div>
 
@@ -189,6 +191,10 @@ export default function TeacherClassDetail() {
                             Đến trang Quản lý Bài kiểm tra
                         </button>
                     </div>
+                )}
+
+                {activeTab === 'attendance' && (
+                    <TeacherAttendanceTab classId={id} students={students} />
                 )}
             </div>
         </div>

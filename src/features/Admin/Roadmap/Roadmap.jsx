@@ -359,19 +359,32 @@ export default function Roadmap() {
         const weekKeyStart = start.getTime();
         const weekKeyEnd = start.getTime() + 7 * 24 * 60 * 60 * 1000;
 
+        const toDateStr = (d) => {
+            if (d instanceof Date) {
+                const y = d.getFullYear();
+                const m = String(d.getMonth() + 1).padStart(2, '0');
+                const day = String(d.getDate()).padStart(2, '0');
+                return `${y}-${m}-${day}`;
+            }
+            return String(d).substring(0, 10);
+        };
+
+        const weekStartStr = toDateStr(start);
+        const weekEndStr = toDateStr(new Date(start.getTime() + 7 * 24 * 60 * 60 * 1000));
+
         // 1. Populate from Schedule Items (Existing Database Slots)
         scheduleItems.forEach((item) => {
-            const itemDate = new Date(item.date);
-            if (itemDate.getTime() >= weekKeyStart && itemDate.getTime() < weekKeyEnd) {
+            const itemDateStr = toDateStr(item.date);
+            if (itemDateStr >= weekStartStr && itemDateStr < weekEndStr) {
                 // Day Index
-                const d1 = new Date(itemDate); d1.setHours(0, 0, 0, 0);
-                const d2 = new Date(start); d2.setHours(0, 0, 0, 0);
+                const d1 = new Date(itemDateStr + 'T00:00:00');
+                const d2 = new Date(weekStartStr + 'T00:00:00');
                 const dy = Math.round((d1 - d2) / (1000 * 60 * 60 * 24));
 
                 if (dy >= 0 && dy <= 6) {
                     if (!sch[dy]) sch[dy] = {};
 
-                    const dateStr = getLocalYYYYMMDD(itemDate);
+                    const dateStr = itemDateStr;
                     const key = `${dateStr}_${item.periodId}`;
                     const assignment = slotAssignments[key];
 
@@ -427,8 +440,7 @@ export default function Roadmap() {
                 if (dy >= 0 && dy <= 6) {
                     if (!sch[dy]) sch[dy] = {};
                     const isDbSlot = scheduleItems.some(item => {
-                        const iDate = new Date(item.date);
-                        return iDate.getTime() === date.getTime() && item.periodId === periodId;
+                        return toDateStr(item.date) === toDateStr(date) && item.periodId === periodId;
                     });
 
                     if (!isDbSlot) {

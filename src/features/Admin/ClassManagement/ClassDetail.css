@@ -870,9 +870,7 @@
     transform: rotate(90deg);
 }
 
-   
 
-/* Clickable Info Tags */
 .cd-info-tags .cd-info-tag {
     cursor: pointer;
     transition: all 0.2s ease;

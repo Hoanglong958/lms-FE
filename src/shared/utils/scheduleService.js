@@ -41,4 +41,9 @@ export const scheduleService = {
   updateItem: (itemId, data) => {
     return api.put(`/api/v1/schedules/schedule-items/${itemId}`, data);
   },
+
+  // PUT /api/v1/schedules/week - cập nhật lịch theo tuần
+  updateWeekSchedule: (data) => {
+    return api.put("/api/v1/schedules/week", data);
+  },
 };
