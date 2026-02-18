@@ -61,8 +61,19 @@ export default function DashboardUser() {
       description: "Xem danh sách các lớp học, thời khoá biểu và theo dõi tiến độ học tập của bạn",
       path: "/classes"
     },
-
-
+    {
+      id: 5,
+      icon: (
+        <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M42 12V32C42 38 40 40 34 40H14C8 40 6 38 6 32V12C6 6 8 4 14 4H34C40 4 42 6 42 12Z" fill="#F37142" />
+          <path d="M16 18H32" stroke="white" strokeWidth="3" strokeLinecap="round" />
+          <path d="M16 26H26" stroke="white" strokeWidth="3" strokeLinecap="round" />
+        </svg>
+      ),
+      title: "Đăng ký khóa học",
+      description: "Đăng ký các khóa học mới và quản lý học phí của bạn",
+      path: "/registrations"
+    },
   ];
 
   return (

@@ -237,9 +237,9 @@ export default function Login() {
               </button>
             </p>
 
-            <p className="register-link">
+            {/* <p className="register-link">
               Chưa có tài khoản? <Link to="/register">Đăng ký</Link>
-            </p>
+            </p> */}
           </form>
         </div>
 

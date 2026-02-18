@@ -76,6 +76,10 @@ export default function Header() {
                 <img src={bookIcon} alt="Posts" />
                 <span>Bài Viết</span>
               </div>
+              <div className="user-header-menu-item" onClick={() => handleNavigate("/chat")}>
+                <img src={notiIcon} alt="Chat" style={{ filter: 'hue-rotate(180deg)' }} />
+                <span>Trò chuyện</span>
+              </div>
             </div>
           </nav>
         </div>
@@ -163,6 +167,9 @@ export default function Header() {
             </a>
             <a onClick={() => handleNavigate("/bai-viet")}>
               <img src={bookIcon} alt="Bài viết" /> Bài viết
+            </a>
+            <a onClick={() => handleNavigate("/chat")}>
+              <img src={notiIcon} alt="Trò chuyện" style={{ filter: 'hue-rotate(180deg)' }} /> Trò chuyện
             </a>
           </nav>
           <div className="user-header-divider-mobile"></div>

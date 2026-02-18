@@ -144,8 +144,12 @@ export default function ManageCourses() {
   const loadCourses = async () => {
     try {
       const res = await courseService.getCourses();
-      setCourses(res.data);
-    } catch { }
+      // Handle ResponseWrapper structure
+      const data = res.data?.data || res.data || [];
+      setCourses(Array.isArray(data) ? data : []);
+    } catch {
+      setCourses([]);
+    }
   };
 
   useEffect(() => {
@@ -228,7 +232,9 @@ export default function ManageCourses() {
 
   // Filtering
   const normalizedSearch = searchTerm.trim().toLowerCase();
-  const displayedCourses = courses.filter((course) => {
+  const courseList = Array.isArray(courses) ? courses : [];
+  const displayedCourses = courseList.filter((course) => {
+    if (!course) return false;
     // Filter by search term
     const matchesSearch = !normalizedSearch ||
       [course.title, course.description]
@@ -270,10 +276,10 @@ export default function ManageCourses() {
 
   // Stats calculation
   const stats = {
-    total: courses.length,
-    beginner: courses.filter(c => c.level === 'BEGINNER').length,
-    intermediate: courses.filter(c => c.level === 'INTERMEDIATE').length,
-    advanced: courses.filter(c => c.level === 'ADVANCED').length
+    total: courseList.length,
+    beginner: courseList.filter(c => c.level === 'BEGINNER').length,
+    intermediate: courseList.filter(c => c.level === 'INTERMEDIATE').length,
+    advanced: courseList.filter(c => c.level === 'ADVANCED').length
   };
 
   return (

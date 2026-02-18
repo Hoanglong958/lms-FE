@@ -111,6 +111,16 @@ export default function TeacherSidebar({ isOpen, onClose }) {
                         <i className="fa-solid fa-newspaper"></i>
                         Bài viết & Blog
                     </NavLink>
+
+                    <NavLink
+                        to="/teacher/chat"
+                        className={({ isActive }) =>
+                            isActive ? "teacher-sidebar-item active" : "teacher-sidebar-item"
+                        }
+                    >
+                        <i className="fa-solid fa-comments"></i>
+                        Trò chuyện
+                    </NavLink>
                 </nav>
             </div>
 

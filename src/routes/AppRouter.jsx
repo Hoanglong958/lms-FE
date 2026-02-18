@@ -18,7 +18,7 @@ import SearchPage from "@features/search/pages/SearchPage";
 import LessonPage from "@features/lesson/pages/LessonPage";
 import QuizExamPage from "@features/lesson/components/QuizExamPage";
 import Login from "@features/login/pages/login";
-import Register from "@features/login/pages/Register";
+// import Register from "@features/login/pages/Register";
 
 // ⭐ USER CLASS PAGE
 import ClassesPage from "@pages/ClassesPage";
@@ -30,6 +30,8 @@ import ClassRoadmapPage from "@pages/ClassRoadmapPage";
 import JavaExamPage from "@pages/JavaExamPage";
 import JavaExamResult from "@pages/JavaExamResult";
 import JavaExamCard from "@pages/JavaExamCard";
+import CourseRegistration from "@features/Registration/CourseRegistration";
+import ChatLayout from "@features/Chat/ChatLayout";
 
 // ================= ADMIN =================
 import DashboardPage from "@features/Admin/Dashboard/DashboardPage";
@@ -62,6 +64,7 @@ import Roadmap from "@features/Admin/Roadmap/Roadmap";
 import PostManagement from "@features/Admin/PostManagement/PostManagement";
 import PostCreate from "@features/Admin/PostManagement/PostCreate";
 import PostEdit from "@features/Admin/PostManagement/PostEdit";
+import AdminRegistrations from "@features/Admin/Registrations/AdminRegistrations";
 
 // ================= TEACHER =================
 import TeacherLayout from "@layouts/TeacherLayout";
@@ -81,7 +84,7 @@ export default function AppRouter() {
         {/* ================= AUTH ROUTES ================= */}
         <Route element={<AuthLayout />}>
           <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
+          {/* <Route path="/register" element={<Register />} /> */}
         </Route>
 
         {/* ================= USER ROUTES ================= */}
@@ -112,6 +115,8 @@ export default function AppRouter() {
             <Route path="/java-exam/start" element={<JavaExamPage />} />
             <Route path="/java-exam/result" element={<JavaExamResult />} />
             <Route path="/profile/edit" element={<ProfileEdit />} />
+            <Route path="/registrations" element={<CourseRegistration />} />
+            <Route path="/chat" element={<ChatLayout />} />
           </Route>
 
           {/* COURSE LESSONS */}
@@ -169,6 +174,7 @@ export default function AppRouter() {
             <Route path="posts" element={<PostManagement />} />
             <Route path="posts/create" element={<PostCreate />} />
             <Route path="posts/:id/edit" element={<PostEdit />} />
+            <Route path="registrations" element={<AdminRegistrations />} />
           </Route>
 
           {/* ADMIN MANAGE LESSONS FROM OUTSIDE */}
@@ -197,6 +203,7 @@ export default function AppRouter() {
             <Route path="posts" element={<PostManagement />} />
             <Route path="posts/create" element={<PostCreate />} />
             <Route path="posts/:id/edit" element={<PostEdit />} />
+            <Route path="chat" element={<ChatLayout />} />
           </Route>
         </Route>
 

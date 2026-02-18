@@ -9,6 +9,10 @@ const __dirname = path.dirname(__filename);
 
 // https://vite.dev/config/
 export default defineConfig({
+  define: {
+    global: 'globalThis',
+    "process.env": {},
+  },
   plugins: [react(), svgr()],
   resolve: {
     alias: {

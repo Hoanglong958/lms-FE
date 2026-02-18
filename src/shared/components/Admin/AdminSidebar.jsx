@@ -130,6 +130,15 @@ export default function AdminSidebar({ isOpen, onClose }) {
             <i className="fa-solid fa-newspaper"></i>
             Quản lý bài viết
           </NavLink>
+          <NavLink
+            to="/admin/registrations"
+            className={({ isActive }) =>
+              isActive ? "admin-sidebar-item active" : "admin-sidebar-item"
+            }
+          >
+            <i className="fa-solid fa-money-bill-wave"></i>
+            Quản lý học phí
+          </NavLink>
 
         </nav>
       </div>

@@ -1,0 +1,38 @@
+.admin-registrations-container {
+    padding: 24px;
+    background: white;
+    border-radius: 8px;
+    min-height: 80vh;
+}
+
+.reg-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.reg-table th,
+.reg-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+.reg-table th {
+    background: #f8f9fa;
+    color: #555;
+}
+
+.btn-confirm {
+    background: #10B981;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.btn-confirm:hover {
+    background: #059669;
+}
