@@ -34,6 +34,18 @@ export const chatService = {
         return api.post(`${CHAT_API}/rooms/${roomId}/read-all`, null, { params: { userId } });
     },
 
+    sendFile(roomId, senderId, file) {
+        const formData = new FormData();
+        formData.append("roomId", roomId);
+        formData.append("senderId", senderId);
+        formData.append("file", file);
+        return api.post(`${CHAT_API}/messages/file`, formData, {
+            headers: {
+                "Content-Type": "multipart/form-data",
+            },
+        });
+    },
+
     // WebSocket
     connect(onMessageReceived, onTypingReceived) {
         const socket = new SockJS(WS_URL);
