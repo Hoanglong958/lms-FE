@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { Form, Input, Button, Select, message, Space, Card, Row, Col, Typography, Breadcrumb, Divider, Spin } from "antd";
-import { ArrowLeftOutlined, SaveOutlined } from "@ant-design/icons";
+import { Form, Input, Button, Select, message, Card, Row, Col, Typography, Breadcrumb, Divider, Spin } from "antd";
+import { ArrowLeftOutlined, SaveOutlined, PictureOutlined } from "@ant-design/icons";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { postService } from "@utils/postService";
+import { CKEditor } from '@ckeditor/ckeditor5-react';
+import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
 
 const { Title, Text } = Typography;
-const { TextArea } = Input;
 
 export default function PostEdit() {
     const [form] = Form.useForm();
@@ -14,6 +15,7 @@ export default function PostEdit() {
     const { id } = useParams();
     const [loading, setLoading] = useState(false);
     const [fetching, setFetching] = useState(true);
+    const [editorContent, setEditorContent] = useState("");
 
     const isTeacher = location.pathname.startsWith("/teacher");
     const basePath = isTeacher ? "/teacher/posts" : "/admin/posts";
@@ -35,13 +37,161 @@ export default function PostEdit() {
     const handleTitleChange = (e) => {
         const title = e.target.value;
         const slug = generateSlug(title);
-        // Only auto-update slug if it was empty or matches old title slug pattern
-        // For editing, usually better to let user manually change slug if they want
-        // ensuring they don't accidentally break old links.
-        // But for simplicity/convenience:
         if (!form.getFieldValue("slug")) {
             form.setFieldsValue({ slug });
         }
+    };
+
+    // Custom upload adapter cho Base64
+    class Base64UploadAdapter {
+        constructor(loader) {
+            this.loader = loader;
+        }
+
+        async upload() {
+            const file = await this.loader.file;
+            
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                
+                reader.onload = () => {
+                    resolve({
+                        default: reader.result // Chuỗi Base64
+                    });
+                };
+                
+                reader.onerror = error => {
+                    reject(error);
+                };
+                
+                reader.onabort = () => {
+                    reject();
+                };
+                
+                reader.readAsDataURL(file);
+            });
+        }
+
+        abort() {
+            // Không cần xử lý
+        }
+    }
+
+    // Plugin cho CKEditor
+    function Base64UploadAdapterPlugin(editor) {
+        editor.plugins.get('FileRepository').createUploadAdapter = (loader) => {
+            return new Base64UploadAdapter(loader);
+        };
+    }
+
+    // Xử lý paste ảnh
+    const handlePaste = (evt, editor) => {
+        const items = evt.data.dataTransfer?.items || [];
+        
+        for (let i = 0; i < items.length; i++) {
+            const item = items[i];
+            
+            if (item.type.indexOf('image') !== -1) {
+                const file = item.getAsFile();
+                
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const base64Image = e.target.result;
+                    
+                    editor.model.change(writer => {
+                        const imageElement = writer.createElement('image', {
+                            src: base64Image
+                        });
+                        editor.model.insertContent(imageElement, editor.model.document.selection);
+                    });
+                };
+                reader.readAsDataURL(file);
+                
+                evt.stopPropagation();
+                evt.preventDefault();
+                break;
+            }
+        }
+    };
+
+    // Cấu hình CKEditor
+    const editorConfiguration = {
+        extraPlugins: [Base64UploadAdapterPlugin],
+        toolbar: {
+            items: [
+                'heading',
+                '|',
+                'bold',
+                'italic',
+                'link',
+                'bulletedList',
+                'numberedList',
+                '|',
+                'outdent',
+                'indent',
+                '|',
+                'imageUpload',
+                'blockQuote',
+                'insertTable',
+                'mediaEmbed',
+                'undo',
+                'redo',
+                '|',
+                'alignment',
+                'fontColor',
+                'fontSize',
+                'highlight',
+                'codeBlock',
+                '|',
+                'sourceEditing'
+            ]
+        },
+        image: {
+            toolbar: [
+                'imageTextAlternative',
+                'imageStyle:inline',
+                'imageStyle:block',
+                'imageStyle:side',
+                '|',
+                'imageResize',
+                '|',
+                'toggleImageCaption'
+            ],
+            styles: [
+                'full',
+                'side',
+                'alignLeft',
+                'alignCenter',
+                'alignRight'
+            ],
+            resizeOptions: [
+                {
+                    name: 'imageResize:original',
+                    value: null,
+                    label: 'Original'
+                },
+                {
+                    name: 'imageResize:50',
+                    value: '50',
+                    label: '50%'
+                },
+                {
+                    name: 'imageResize:75',
+                    value: '75',
+                    label: '75%'
+                }
+            ],
+            resizeUnit: '%'
+        },
+        table: {
+            contentToolbar: [
+                'tableColumn',
+                'tableRow',
+                'mergeTableCells'
+            ]
+        },
+        language: 'vi',
+        placeholder: 'Chỉnh sửa nội dung bài viết...',
     };
 
     useEffect(() => {
@@ -50,11 +200,13 @@ export default function PostEdit() {
                 const response = await postService.getPostById(id);
                 const post = response.data;
 
-                // Set data to state first, let Form use initialValues when it mounts
+                // Set nội dung cho editor
+                setEditorContent(post.content || '');
+
+                // Set data cho form
                 setInitialValues({
                     title: post.title,
                     slug: post.slug,
-                    content: post.content,
                     status: post.status,
                     tagNames: post.tags || []
                 });
@@ -69,7 +221,7 @@ export default function PostEdit() {
         fetchPost();
     }, [id, navigate]);
 
-    // Reset form when initialValues changes (important for re-visiting the page)
+    // Reset form khi initialValues thay đổi
     useEffect(() => {
         if (initialValues) {
             form.setFieldsValue(initialValues);
@@ -85,8 +237,8 @@ export default function PostEdit() {
             const payload = {
                 title: values.title,
                 slug: values.slug,
-                content: values.content,
-                authorId: user.id || 1, // Keep author ID logic or use existing author
+                content: editorContent, // Dùng content từ CKEditor
+                authorId: user.id || 1,
                 tagNames: values.tagNames || [],
                 status: values.status,
             };
@@ -114,7 +266,7 @@ export default function PostEdit() {
         <div className="p-6 min-h-screen bg-gray-50/50">
             {/* Header */}
             <div className="mb-6">
-                <Breadcrumb items={[{ title: isTeacher ? 'Teacher' : 'Admin' }, { title: 'Bài viết', href: basePath }, { title: 'Chỉnh sửa' }]} className="mb-2" />
+               
                 <div className="flex items-center gap-3">
                     <Button
                         icon={<ArrowLeftOutlined />}
@@ -154,23 +306,45 @@ export default function PostEdit() {
                                 rules={[{ required: true, message: "Vui lòng nhập slug" }]}
                                 help="Đường dẫn URL thân thiện với SEO."
                             >
-                                <Input prefix={<span className="text-gray-400">/bai-viet/</span>} placeholder="url-bai-viet" className="bg-gray-50" />
+                                <Input 
+                                    prefix={<span className="text-gray-400">/bai-viet/</span>} 
+                                    placeholder="url-bai-viet" 
+                                    className="bg-gray-50" 
+                                />
                             </Form.Item>
 
                             <Divider />
 
                             <Form.Item
                                 label={<span className="font-semibold text-gray-700">Nội dung bài viết</span>}
-                                name="content"
+                                required
                                 rules={[{ required: true, message: "Vui lòng nhập nội dung" }]}
                             >
-                                <TextArea
-                                    rows={18}
-                                    placeholder="Viết nội dung của bạn ở đây... (Hỗ trợ HTML/Markdown)"
-                                    className="text-base leading-relaxed"
-                                    showCount
-                                />
+                                <div className="border rounded-lg overflow-hidden">
+                                    <CKEditor
+                                        editor={ClassicEditor}
+                                        config={editorConfiguration}
+                                        data={editorContent}
+                                        onReady={(editor) => {
+                                            // Xử lý paste ảnh
+                                            editor.editing.view.document.on('paste', (evt, data) => {
+                                                handlePaste(evt, editor);
+                                            });
+                                        }}
+                                        onChange={(event, editor) => {
+                                            const data = editor.getData();
+                                            setEditorContent(data);
+                                            // Validate nếu cần
+                                            form.validateFields(['content']).catch(() => {});
+                                        }}
+                                    />
+                                </div>
+                                
+                                
+                                
+                                
                             </Form.Item>
+
                         </Card>
                     </Col>
 
@@ -232,6 +406,54 @@ export default function PostEdit() {
                     </Col>
                 </Row>
             </Form>
+
+            {/* CSS */}
+            <style jsx>{`
+                :global(.ck.ck-editor__editable_inline) {
+                    min-height: 400px;
+                    max-height: 600px;
+                }
+                
+                :global(.ck.ck-editor) {
+                    width: 100%;
+                }
+                
+                :global(.ck.ck-toolbar) {
+                    border-radius: 8px 8px 0 0 !important;
+                }
+                
+                :global(.ck.ck-editor__main > .ck-editor__editable) {
+                    border-radius: 0 0 8px 8px !important;
+                }
+                
+                /* Style cho ảnh trong editor */
+                :global(.ck-content .image) {
+                    margin: 20px auto;
+                }
+                
+                :global(.ck-content .image img) {
+                    max-width: 100%;
+                    height: auto;
+                    border-radius: 8px;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                }
+                
+                /* Style cho ảnh align */
+                :global(.ck-content .image-style-align-left) {
+                    float: left;
+                    margin-right: 20px;
+                }
+                
+                :global(.ck-content .image-style-align-right) {
+                    float: right;
+                    margin-left: 20px;
+                }
+                
+                :global(.ck-content .image-style-align-center) {
+                    margin-left: auto;
+                    margin-right: auto;
+                }
+            `}</style>
         </div>
     );
 }

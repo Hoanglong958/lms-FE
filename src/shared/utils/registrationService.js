@@ -21,5 +21,13 @@ export const registrationService = {
 
     getBankInfo: async () => {
         return await api.get(`${API_URL}/bank-info`);
+    },
+
+    exportExcel: async () => {
+        return await api.get(`${API_URL}/export/excel`, { responseType: 'blob' });
+    },
+
+    exportPdf: async (registrationId) => {
+        return await api.get(`${API_URL}/${registrationId}/export/pdf`, { responseType: 'blob' });
     }
 };
