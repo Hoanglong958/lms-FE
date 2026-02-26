@@ -47,12 +47,34 @@ export default function ChatWindow({ room, currentUser }) {
             subscriptionRef.current.unsubscribe();
         }
         subscriptionRef.current = chatService.subscribeToRoom(room.id, (message) => {
-            setMessages((prev) => [...prev, message]);
+            setMessages((prev) => {
+                // 1. Check if this exact message (by ID) already exists
+                if (message.id && prev.some((m) => m.id === message.id)) {
+                    return prev;
+                }
+
+                // 2. Check if this is a reconciliation for an optimistic message
+                // We match by sender, type, and content (or temporary identifier)
+                const optimisticIndex = prev.findIndex(m =>
+                    m.isOptimistic &&
+                    m.senderId === message.senderId &&
+                    m.type === message.type &&
+                    (m.content === message.content || (m.type !== 'TEXT' && m.fileName === message.content))
+                );
+
+                if (optimisticIndex !== -1) {
+                    const newMessages = [...prev];
+                    newMessages[optimisticIndex] = message; // Replace with server version
+                    return newMessages;
+                }
+
+                return [...prev, message];
+            });
         });
     };
 
     const handleSend = () => {
-        if (!inputText.trim()) return;
+        if (!inputText.trim() || isUploading) return;
 
         const messageData = {
             roomId: room.id,
@@ -61,20 +83,63 @@ export default function ChatWindow({ room, currentUser }) {
             type: "TEXT"
         };
 
-        chatService.sendMessage(messageData);
+        // Optimistic Update
+        const optimisticMsg = {
+            ...messageData,
+            id: `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            createdAt: new Date().toISOString(),
+            isOptimistic: true
+        };
+        setMessages(prev => [...prev, optimisticMsg]);
         setInputText("");
+
+        chatService.sendMessage(messageData);
     };
 
     const handleFileUpload = async (e, type) => {
         const file = e.target.files[0];
-        if (!file) return;
+        if (!file || isUploading) return;
 
         setIsUploading(true);
+        // Optimistic Preview
+        const previewUrl = type === 'image' ? URL.createObjectURL(file) : null;
+        const optimisticMsg = {
+            roomId: room.id,
+            senderId: currentUser.id,
+            content: file.name,
+            fileName: file.name, // Helper for matching
+            type: type === 'image' ? 'IMAGE' : 'FILE',
+            fileUrl: previewUrl,
+            id: `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            createdAt: new Date().toISOString(),
+            isOptimistic: true
+        };
+        setMessages(prev => [...prev, optimisticMsg]);
+
         try {
-            await chatService.sendFile(room.id, currentUser.id, file);
-            // The message will be received via WebSocket after successful upload
+            const res = await chatService.sendFile(room.id, currentUser.id, file);
+            if (res.data) {
+                setMessages((prev) => {
+                    // 1. Check if the WebSocket message already arrived and replaced it
+                    if (prev.some(m => m.id === res.data.id)) {
+                        return prev.filter(m => m.id !== optimisticMsg.id);
+                    }
+
+                    // 2. Otherwise replace the specific optimistic message
+                    const index = prev.findIndex(m => m.id === optimisticMsg.id);
+                    if (index !== -1) {
+                        const newMessages = [...prev];
+                        newMessages[index] = res.data;
+                        return newMessages;
+                    }
+
+                    return [...prev, res.data];
+                });
+            }
         } catch (err) {
             console.error("Failed to upload file", err);
+            // Remove optimistic message on failure
+            setMessages(prev => prev.filter(m => m.id !== optimisticMsg.id));
             alert("Failed to upload file. Please try again.");
         } finally {
             setIsUploading(false);
@@ -87,6 +152,18 @@ export default function ChatWindow({ room, currentUser }) {
             e.preventDefault();
             handleSend();
         }
+    };
+
+    const getRoomName = () => {
+        if (!room) return "Conversation";
+        if (room.type === "ONE_TO_ONE") {
+            if (currentUser && room.members) {
+                const other = room.members.find(m => m.userId !== currentUser.id);
+                if (other) return other.user?.fullName || other.user?.username || "Chat Room";
+            }
+            return room.name || "Chat Room";
+        }
+        return room.name;
     };
 
     if (!room) {
@@ -102,13 +179,13 @@ export default function ChatWindow({ room, currentUser }) {
         <div className="chat-window">
             <div className="chat-header">
                 <img
-                    src={room.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(room.name || "Room")}&background=random`}
+                    src={room.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(getRoomName())}&background=random`}
                     alt="Avatar"
                     className="conversation-avatar"
                     style={{ width: "40px", height: "40px" }}
                 />
                 <div className="chat-header-info">
-                    <div className="chat-header-name">{room.name || "Conversation"}</div>
+                    <div className="chat-header-name">{getRoomName()}</div>
                     <div className="chat-header-status">Online</div>
                 </div>
             </div>

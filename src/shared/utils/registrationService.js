@@ -17,5 +17,9 @@ export const registrationService = {
 
     confirmPayment: async (registrationId) => {
         return await api.patch(`${API_URL}/${registrationId}/confirm-payment`);
+    },
+
+    getBankInfo: async () => {
+        return await api.get(`${API_URL}/bank-info`);
     }
 };

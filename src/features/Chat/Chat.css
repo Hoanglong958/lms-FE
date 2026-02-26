@@ -210,6 +210,14 @@
     text-align: right;
 }
 
+.message-bubble-wrapper.is-optimistic {
+    opacity: 0.6;
+}
+
+.message-bubble-wrapper.is-optimistic .message-bubble {
+    border: 1px dashed rgba(0, 0, 0, 0.1);
+}
+
 .chat-input-area {
     padding: 1rem 1.5rem;
     border-top: 1px solid #f0f0f0;

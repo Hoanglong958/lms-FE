@@ -3,6 +3,7 @@ import { registrationService } from "@utils/registrationService";
 import { courseService } from "@utils/courseService";
 import { SERVER_URL } from "@config";
 import NotificationModal from "@components/NotificationModal/NotificationModal";
+import PaymentModal from "./PaymentModal";
 import "./CourseRegistration.css";
 
 export default function CourseRegistration() {
@@ -10,56 +11,133 @@ export default function CourseRegistration() {
     const [myRegistrations, setMyRegistrations] = useState([]);
     const [loading, setLoading] = useState(true);
     const [notification, setNotification] = useState({ isOpen: false, title: "", message: "", type: "info" });
+    const [paymentReg, setPaymentReg] = useState(null); // registration currently being paid
 
     useEffect(() => { fetchData(); }, []);
 
     const fetchData = async () => {
         try {
-            const [cRes, mRes] = await Promise.all([courseService.getCourses(), registrationService.getMyRegistrations()]);
+            const [cRes, mRes] = await Promise.all([
+                courseService.getCourses(),
+                registrationService.getMyRegistrations()
+            ]);
             setCourses(cRes.data?.data?.content || cRes.data?.data || []);
             setMyRegistrations(mRes.data?.data || []);
-        } catch (err) { console.error(err); } finally { setLoading(false); }
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleRegister = async (courseId) => {
         try {
-            await registrationService.register(courseId);
-            setNotification({ isOpen: true, title: "Thành công", message: "Đã đăng ký! Vui lòng nộp học phí.", type: "success" });
-            fetchData();
+            const res = await registrationService.register(courseId);
+            const reg = res.data?.data;
+            setNotification({
+                isOpen: true,
+                title: "Đăng ký thành công!",
+                message: "Vui lòng thanh toán học phí để được xếp vào lớp học.",
+                type: "success"
+            });
+            await fetchData();
+            // Auto-open payment modal for new registration
+            if (reg) setPaymentReg(reg);
         } catch (err) {
-            setNotification({ isOpen: true, title: "Lỗi", message: err.response?.data?.data || "Lỗi đăng ký", type: "error" });
+            setNotification({
+                isOpen: true,
+                title: "Lỗi",
+                message: err.response?.data?.data || "Lỗi đăng ký",
+                type: "error"
+            });
         }
     };
 
     const isRegistered = (id) => myRegistrations.some(r => r.courseId === id);
     const getReg = (id) => myRegistrations.find(r => r.courseId === id);
 
-    if (loading) return <div>Loading...</div>;
+    const getStatusLabel = (status) => {
+        switch (status) {
+            case "PAID": return { label: "✓ Đã nộp học phí", className: "status-paid" };
+            case "CANCELLED": return { label: "✗ Đã hủy", className: "status-cancelled" };
+            default: return { label: "⏳ Chờ thanh toán", className: "status-pending" };
+        }
+    };
+
+    if (loading) return (
+        <div className="course-registration-container">
+            <div className="registration-loading">Đang tải danh sách khóa học...</div>
+        </div>
+    );
 
     return (
         <div className="course-registration-container">
-            <h2>Đăng ký khóa học</h2>
-            <div className="registration-grid">
-                {(Array.isArray(courses) ? courses : []).map(c => (
-                    <div className="reg-course-card" key={c.id}>
-                        <div className="course-img">
-                            <img src={c.imageUrl ? (c.imageUrl.startsWith("http") ? c.imageUrl : `${SERVER_URL}${c.imageUrl}`) : "https://placehold.co/600x400"} alt={c.title} />
-                        </div>
-                        <div className="course-details">
-                            <h3>{c.title}</h3>
-                            <p className="fee">{new Intl.NumberFormat('vi-VN').format(c.tuitionFee || 0)} VNĐ</p>
-                            {isRegistered(c.id) ? (
-                                <span className={`status-badge status-${getReg(c.id).paymentStatus.toLowerCase()}`}>
-                                    {getReg(c.id).paymentStatus === "PENDING" ? "Chờ thanh toán" : "Đã nộp học phí"}
-                                </span>
-                            ) : (
-                                <button className="btn-register" onClick={() => handleRegister(c.id)}>Đăng ký</button>
-                            )}
-                        </div>
-                    </div>
-                ))}
+            <div className="registration-header">
+                <h2>Đăng ký khóa học</h2>
+                <p className="registration-subtitle">Chọn khóa học phù hợp và thanh toán học phí để bắt đầu học</p>
             </div>
-            <NotificationModal isOpen={notification.isOpen} onClose={() => setNotification(n => ({ ...n, isOpen: false }))} {...notification} />
+
+            <div className="registration-grid">
+                {(Array.isArray(courses) ? courses : []).map(c => {
+                    const reg = getReg(c.id);
+                    const { label, className } = reg ? getStatusLabel(reg.paymentStatus) : {};
+                    return (
+                        <div className="reg-course-card" key={c.id}>
+                            <div className="course-img">
+                                <img
+                                    src={c.imageUrl
+                                        ? (c.imageUrl.startsWith("http") ? c.imageUrl : `${SERVER_URL}${c.imageUrl}`)
+                                        : "https://placehold.co/600x400"}
+                                    alt={c.title}
+                                />
+                                {c.tuitionFee > 0 && (
+                                    <div className="course-price-badge">
+                                        {new Intl.NumberFormat("vi-VN").format(c.tuitionFee)} VNĐ
+                                    </div>
+                                )}
+                            </div>
+                            <div className="course-details">
+                                <h3>{c.title}</h3>
+                                <p className="course-desc">{c.description || "Không có mô tả"}</p>
+
+                                <div className="course-card-footer">
+                                    {reg ? (
+                                        <div className="reg-status-block">
+                                            <span className={`status-badge ${className}`}>{label}</span>
+                                            {reg.paymentStatus === "PENDING" && (
+                                                <button
+                                                    className="btn-pay"
+                                                    onClick={() => setPaymentReg(reg)}
+                                                >
+                                                    💳 Thanh toán ngay
+                                                </button>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <button className="btn-register" onClick={() => handleRegister(c.id)}>
+                                            Đăng ký ngay
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+
+            {/* Payment Modal */}
+            {paymentReg && (
+                <PaymentModal
+                    registration={paymentReg}
+                    onClose={() => setPaymentReg(null)}
+                />
+            )}
+
+            <NotificationModal
+                isOpen={notification.isOpen}
+                onClose={() => setNotification(n => ({ ...n, isOpen: false }))}
+                {...notification}
+            />
         </div>
     );
 }

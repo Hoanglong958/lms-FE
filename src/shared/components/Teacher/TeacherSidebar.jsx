@@ -70,16 +70,7 @@ export default function TeacherSidebar({ isOpen, onClose }) {
                         Lớp học của tôi
                     </NavLink>
 
-                    {/* Quản lý khóa học */}
-                    <NavLink
-                        to="/teacher/courses"
-                        className={({ isActive }) =>
-                            isActive ? "teacher-sidebar-item active" : "teacher-sidebar-item"
-                        }
-                    >
-                        <i className="fa-solid fa-book"></i>
-                        Khóa học & Bài giảng
-                    </NavLink>
+                    
 
                     {/* Bài kiểm tra */}
                     <NavLink

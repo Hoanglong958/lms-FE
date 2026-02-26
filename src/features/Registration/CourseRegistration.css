@@ -4,69 +4,185 @@
     margin: 0 auto;
 }
 
+/* ─── Header ─── */
+.registration-header {
+    margin-bottom: 0.5rem;
+}
+
+.registration-header h2 {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: #1a202c;
+    margin: 0 0 6px;
+}
+
+.registration-subtitle {
+    color: #718096;
+    font-size: 0.95rem;
+    margin: 0;
+}
+
+.registration-loading {
+    text-align: center;
+    padding: 60px;
+    color: #718096;
+    font-size: 1rem;
+}
+
+/* ─── Grid ─── */
 .registration-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 2rem;
+    gap: 1.5rem;
     margin-top: 2rem;
 }
 
+/* ─── Card ─── */
 .reg-course-card {
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
     overflow: hidden;
-    transition: transform 0.2s;
+    transition: transform 0.2s, box-shadow 0.2s;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #e2e8f0;
 }
 
 .reg-course-card:hover {
-    transform: translateY(-5px);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+/* ─── Image ─── */
+.course-img {
+    position: relative;
+    overflow: hidden;
 }
 
 .course-img img {
     width: 100%;
     height: 180px;
     object-fit: cover;
+    display: block;
+    transition: transform 0.3s;
 }
 
+.reg-course-card:hover .course-img img {
+    transform: scale(1.04);
+}
+
+.course-price-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: linear-gradient(135deg, #F37142, #e05530);
+    color: #fff;
+    font-size: 0.8rem;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 20px;
+    box-shadow: 0 2px 8px rgba(243, 113, 66, 0.4);
+}
+
+/* ─── Details ─── */
 .course-details {
-    padding: 1.5rem;
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
 }
 
 .course-details h3 {
-    margin: 0 0 0.5rem 0;
-    font-size: 1.25rem;
-    color: #333;
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #1a202c;
+    line-height: 1.4;
+}
+
+.course-desc {
+    font-size: 0.85rem;
+    color: #718096;
+    margin: 0;
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 
 .fee {
-    font-weight: bold;
+    font-weight: 700;
     color: #F37142;
-    font-size: 1.1rem;
-    margin-bottom: 1.5rem;
+    font-size: 1rem;
+    margin: 0;
 }
 
+/* ─── Footer ─── */
+.course-card-footer {
+    margin-top: auto;
+    padding-top: 12px;
+}
+
+/* ─── Register Button ─── */
 .btn-register {
     width: 100%;
-    padding: 0.75rem;
-    background: #F37142;
+    padding: 10px;
+    background: linear-gradient(135deg, #F37142, #e05530);
     color: white;
     border: none;
-    border-radius: 6px;
-    font-weight: 600;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 0.9rem;
     cursor: pointer;
-    transition: background 0.2s;
+    transition: all 0.2s;
+    box-shadow: 0 3px 10px rgba(243, 113, 66, 0.3);
 }
 
 .btn-register:hover {
-    background: #dd673c;
+    transform: translateY(-1px);
+    box-shadow: 0 5px 14px rgba(243, 113, 66, 0.45);
 }
 
-.status-badge {
-    display: inline-block;
-    padding: 0.5rem 1rem;
-    border-radius: 20px;
+/* ─── Registration Status Block ─── */
+.reg-status-block {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+}
+
+/* ─── Pay Button ─── */
+.btn-pay {
+    width: 100%;
+    padding: 10px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-weight: 700;
     font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 3px 10px rgba(99, 102, 241, 0.3);
+}
+
+.btn-pay:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 5px 14px rgba(99, 102, 241, 0.45);
+}
+
+/* ─── Status Badges ─── */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.82rem;
     font-weight: 600;
 }
 
@@ -83,4 +199,15 @@
 .status-cancelled {
     background: #FEE2E2;
     color: #991B1B;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+    .course-registration-container {
+        padding: 1rem;
+    }
+
+    .registration-grid {
+        grid-template-columns: 1fr;
+    }
 }

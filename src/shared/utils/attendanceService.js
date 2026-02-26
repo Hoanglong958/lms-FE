@@ -69,6 +69,16 @@ const validateScheduleDate = (classId, date) => api.get(`${BASE_PATH}/classes/${
  */
 const getAttendanceByClassAndDate = (classId, date) => api.get(`${BASE_PATH}/classes/${classId}/attendance?date=${date}`);
 
+/**
+ * Lấy danh sách ngày có lịch học trong tháng
+ * @param {number} classId 
+ * @param {number} year 
+ * @param {number} month 
+ * @returns {Promise}
+ */
+const getScheduledDates = (classId, year, month) =>
+    api.get(`${BASE_PATH}/classes/${classId}/schedule-dates?year=${year}&month=${month}`);
+
 export const attendanceService = {
     createSession,
     listSessionsByClass,
@@ -78,7 +88,8 @@ export const attendanceService = {
     summarizeByClass,
     summarizeByCourse,
     validateScheduleDate,
-    getAttendanceByClassAndDate
+    getAttendanceByClassAndDate,
+    getScheduledDates
 };
 
 export default attendanceService;

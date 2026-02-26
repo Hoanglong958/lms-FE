@@ -108,7 +108,7 @@ export default function TeacherClassDetail() {
 
             {/* Tabs */}
             <div className="teacher-tabs" style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
-                <TabButton active={activeTab === 'courses'} onClick={() => setActiveTab('courses')} icon={<BookOpen size={18} />} label="Khóa học & Bài giảng" />
+                
                 <TabButton active={activeTab === 'students'} onClick={() => setActiveTab('students')} icon={<Users size={18} />} label="Học viên" />
                 <TabButton active={activeTab === 'attendance'} onClick={() => setActiveTab('attendance')} icon={<ClipboardCheck size={18} />} label="Điểm danh" />
                 <TabButton active={activeTab === 'exams'} onClick={() => setActiveTab('exams')} icon={<ClipboardCheck size={18} />} label="Bài kiểm tra" />

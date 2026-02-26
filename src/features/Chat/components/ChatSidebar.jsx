@@ -20,7 +20,7 @@ export default function ChatSidebar({ rooms, selectedRoom, onSelectRoom, current
             // Find the other member
             if (currentUser && room.members) {
                 const other = room.members.find(m => m.userId !== currentUser.id);
-                if (other) return other.fullName || other.username;
+                if (other) return other.user?.fullName || other.user?.username || "Chat Room";
             }
             return room.name || "Chat Room";
         }

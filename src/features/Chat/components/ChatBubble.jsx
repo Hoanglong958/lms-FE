@@ -24,11 +24,11 @@ export default function ChatBubble({ message, isMe }) {
     };
 
     return (
-        <div className={`message-bubble-wrapper ${isMe ? "sent" : "received"}`}>
+        <div className={`message-bubble-wrapper ${isMe ? "sent" : "received"} ${message.isOptimistic ? "is-optimistic" : ""}`}>
             <div className="message-bubble">
                 {renderContent()}
                 <span className="message-time">
-                    {dayjs(message.createdAt).format("HH:mm")}
+                    {message.createdAt ? dayjs(message.createdAt).format("HH:mm") : "Sending..."}
                 </span>
             </div>
         </div>
