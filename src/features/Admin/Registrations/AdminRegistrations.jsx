@@ -4,7 +4,7 @@ import NotificationModal from "@components/NotificationModal/NotificationModal";
 import {
     Search,
     Filter,
-    CheckCircle,
+    CheckCircle2,
     Clock,
     XCircle,
     Banknote,
@@ -17,9 +17,13 @@ import {
     Printer,
     FileText,
     Mail,
-    Phone
+    Phone,
+    Users,
+    Activity,
+    TrendingUp,
+    Calendar,
+    User
 } from "lucide-react";
-import "./AdminRegistrations.css";
 
 export default function AdminRegistrations() {
     const [registrations, setRegistrations] = useState([]);
@@ -226,120 +230,381 @@ export default function AdminRegistrations() {
 
     if (loading) {
         return (
-            <div className="admin-reg-loading">
-                <div className="loading-spinner"></div>
-                <p>Đang tải dữ liệu...</p>
+            <div style={{ padding: '24px', background: '#f9fafb', minHeight: '100vh' }}>
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                        <div style={{ 
+                            width: 48, 
+                            height: 48, 
+                            background: 'linear-gradient(135deg, #10b981, #059669)', 
+                            borderRadius: 12, 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            justifyContent: 'center', 
+                            color: 'white', 
+                            boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)', 
+                            flexShrink: 0 
+                        }}>
+                            <Banknote size={24} />
+                        </div>
+                        <p style={{ fontSize: 18, fontWeight: 600, color: '#111827', margin: '16px 0' }}>Đang tải dữ liệu...</p>
+                    </div>
+                </div>
             </div>
         );
     }
 
     return (
-        <div className="admin-registrations-container">
-            {/* Breadcrumbs */}
-            <div className="admin-breadcrumbs">
-                <span className="breadcrumb-active">Quản lý đóng học phí</span>
-                <span className="breadcrumb-separator"> / </span>
-                <span className="breadcrumb-item">Dashboard</span>
-                <span className="breadcrumb-separator"> / </span>
-                <span className="breadcrumb-item">Tất cả giao dịch</span>
-            </div>
-
-            {/* Header Section */}
-            <div className="admin-reg-header">
-                <div className="header-left">
-                    <div className="header-icon-box">
-                        <FileText size={24} />
+        <div style={{ padding: '24px', background: '#f9fafb', minHeight: '100vh' }}>
+            {/* Header */}
+            <header style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: 32
+            }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                    <div style={{
+                        width: 48,
+                        height: 48,
+                        background: 'linear-gradient(135deg, #10b981, #059669)',
+                        borderRadius: 12,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: 'white',
+                        boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
+                        flexShrink: 0
+                    }}>
+                        <Banknote size={24} />
                     </div>
-                    <div className="header-title-content">
-                        <h1>Quản lý đóng học phí</h1>
-                        <p className="header-subtitle">
+                    <div>
+                        <h1 style={{
+                            fontSize: 24,
+                            fontWeight: 700,
+                            color: '#111827',
+                            margin: '0 0 4px 0',
+                            lineHeight: 1.2
+                        }}>Quản lý đóng học phí</h1>
+                        <p style={{
+                            fontSize: 14,
+                            color: '#6b7280',
+                            margin: 0,
+                            fontWeight: 500
+                        }}>
                             Xác nhận thanh toán và quản lý đăng ký khóa học
                         </p>
                     </div>
                 </div>
 
-                <div className="header-actions">
-                    <button className="btn-refresh" onClick={fetchAll}>
+                <div style={{ display: 'flex', gap: 12 }}>
+                    <button
+                        onClick={fetchAll}
+                        style={{
+                            background: 'white',
+                            color: '#10b981',
+                            border: '1px solid #e5e7eb',
+                            padding: '10px 20px',
+                            borderRadius: 8,
+                            fontWeight: 600,
+                            fontSize: 14,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 8,
+                            transition: 'all 0.2s'
+                        }}
+                        onMouseEnter={(e) => {
+                            e.currentTarget.style.background = '#f0fdf4';
+                            e.currentTarget.style.borderColor = '#86efac';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.currentTarget.style.background = 'white';
+                            e.currentTarget.style.borderColor = '#e5e7eb';
+                        }}
+                    >
                         <RefreshCw size={16} />
-                        <span className="btn-text">Làm mới</span>
+                        Làm mới
                     </button>
-                    <button className="btn-export" onClick={handleExportExcel}>
+                    <button
+                        onClick={handleExportExcel}
+                        style={{
+                            background: '#10b981',
+                            color: 'white',
+                            border: 'none',
+                            padding: '10px 20px',
+                            borderRadius: 8,
+                            fontWeight: 600,
+                            fontSize: 14,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 8,
+                            boxShadow: '0 2px 4px rgba(16, 185, 129, 0.2)',
+                            transition: 'all 0.2s'
+                        }}
+                        onMouseEnter={(e) => {
+                            e.currentTarget.style.background = '#059669';
+                            e.currentTarget.style.boxShadow = '0 4px 8px rgba(16, 185, 129, 0.3)';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.currentTarget.style.background = '#10b981';
+                            e.currentTarget.style.boxShadow = '0 2px 4px rgba(16, 185, 129, 0.2)';
+                        }}
+                    >
                         <Download size={16} />
-                        <span className="btn-text">Xuất Excel</span>
+                        Xuất Excel
                     </button>
                 </div>
-            </div>
+            </header>
 
-            {/* Stats Cards */}
-            <div className="stats-grid">
-                <div className="stat-card">
-                    <div className="stat-icon total">
-                        <Banknote size={24} />
+            {/* Stats Grid */}
+            <section style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(4, 1fr)',
+                gap: 20,
+                marginBottom: 32
+            }}>
+                <div style={{
+                    background: 'white',
+                    borderRadius: 12,
+                    padding: 20,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    border: '1px solid #e5e7eb',
+                    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+                    transition: 'all 0.2s'
+                }}>
+                    <div>
+                        <h3 style={{
+                            margin: '0 0 8px 0',
+                            fontSize: 13,
+                            color: '#6b7280',
+                            fontWeight: 600,
+                            textTransform: 'uppercase',
+                            letterSpacing: 0.5
+                        }}>Tổng đăng ký</h3>
+                        <p style={{
+                            margin: 0,
+                            fontSize: 32,
+                            fontWeight: 700,
+                            color: '#111827',
+                            lineHeight: 1
+                        }}>{stats.total}</p>
                     </div>
-                    <div className="stat-info">
-                        <span className="stat-label">Tổng đăng ký</span>
-                        <span className="stat-value">{stats.total}</span>
+                    <div style={{
+                        width: 40,
+                        height: 40,
+                        borderRadius: 10,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        background: '#f0fdf4',
+                        color: '#10b981'
+                    }}>
+                        <Users size={20} />
                     </div>
                 </div>
 
-                <div className="stat-card">
-                    <div className="stat-icon pending">
-                        <Clock size={24} />
+                <div style={{
+                    background: 'white',
+                    borderRadius: 12,
+                    padding: 20,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    border: '1px solid #e5e7eb',
+                    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+                    transition: 'all 0.2s'
+                }}>
+                    <div>
+                        <h3 style={{
+                            margin: '0 0 8px 0',
+                            fontSize: 13,
+                            color: '#6b7280',
+                            fontWeight: 600,
+                            textTransform: 'uppercase',
+                            letterSpacing: 0.5
+                        }}>Chờ xác nhận</h3>
+                        <p style={{
+                            margin: 0,
+                            fontSize: 32,
+                            fontWeight: 700,
+                            color: '#111827',
+                            lineHeight: 1
+                        }}>{stats.pending}</p>
                     </div>
-                    <div className="stat-info">
-                        <span className="stat-label">Chờ xác nhận</span>
-                        <span className="stat-value">{stats.pending}</span>
+                    <div style={{
+                        width: 40,
+                        height: 40,
+                        borderRadius: 10,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        background: '#fef3c7',
+                        color: '#f59e0b'
+                    }}>
+                        <Clock size={20} />
                     </div>
                 </div>
 
-                <div className="stat-card">
-                    <div className="stat-icon paid">
-                        <CheckCircle size={24} />
+                <div style={{
+                    background: 'white',
+                    borderRadius: 12,
+                    padding: 20,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    border: '1px solid #e5e7eb',
+                    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+                    transition: 'all 0.2s'
+                }}>
+                    <div>
+                        <h3 style={{
+                            margin: '0 0 8px 0',
+                            fontSize: 13,
+                            color: '#6b7280',
+                            fontWeight: 600,
+                            textTransform: 'uppercase',
+                            letterSpacing: 0.5
+                        }}>Đã thanh toán</h3>
+                        <p style={{
+                            margin: 0,
+                            fontSize: 32,
+                            fontWeight: 700,
+                            color: '#111827',
+                            lineHeight: 1
+                        }}>{stats.paid}</p>
                     </div>
-                    <div className="stat-info">
-                        <span className="stat-label">Đã thanh toán</span>
-                        <span className="stat-value">{stats.paid}</span>
+                    <div style={{
+                        width: 40,
+                        height: 40,
+                        borderRadius: 10,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        background: '#dcfce7',
+                        color: '#16a34a'
+                    }}>
+                        <CheckCircle2 size={20} />
                     </div>
                 </div>
 
-                <div className="stat-card">
-                    <div className="stat-icon revenue">
-                        <Banknote size={24} />
+                <div style={{
+                    background: 'white',
+                    borderRadius: 12,
+                    padding: 20,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    border: '1px solid #e5e7eb',
+                    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+                    transition: 'all 0.2s'
+                }}>
+                    <div>
+                        <h3 style={{
+                            margin: '0 0 8px 0',
+                            fontSize: 13,
+                            color: '#6b7280',
+                            fontWeight: 600,
+                            textTransform: 'uppercase',
+                            letterSpacing: 0.5
+                        }}>Doanh thu</h3>
+                        <p style={{
+                            margin: 0,
+                            fontSize: 32,
+                            fontWeight: 700,
+                            color: '#111827',
+                            lineHeight: 1
+                        }}>{formatAmount(stats.totalAmount)}</p>
                     </div>
-                    <div className="stat-info">
-                        <span className="stat-label">Doanh thu</span>
-                        <span className="stat-value">{formatAmount(stats.totalAmount)}</span>
+                    <div style={{
+                        width: 40,
+                        height: 40,
+                        borderRadius: 10,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        background: '#f0f9ff',
+                        color: '#0ea5e9'
+                    }}>
+                        <TrendingUp size={20} />
                     </div>
                 </div>
-            </div>
+            </section>
 
             {/* Bank Info Banner */}
             {bankInfo && (
-                <div className="bank-info-banner">
-                    <div className="bank-info-icon">
+                <div style={{
+                    background: 'white',
+                    borderRadius: 12,
+                    padding: '16px 24px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 16,
+                    marginBottom: 24,
+                    border: '1px solid #e5e7eb',
+                    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)'
+                }}>
+                    <div style={{
+                        width: 40,
+                        height: 40,
+                        borderRadius: 10,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        background: '#f0fdf4',
+                        color: '#10b981'
+                    }}>
                         <Banknote size={20} />
                     </div>
-                    <div className="bank-info-content">
-                        <div className="bank-info-row">
+                    <div style={{ flex: 1 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 4 }}>
                             <strong>{bankInfo.bankName}</strong>
-                            <span className="bank-separator">•</span>
-                            <span>STK: <code>{bankInfo.accountNo}</code></span>
-                            <span className="bank-separator">•</span>
+                            <span style={{ color: '#9ca3af' }}>•</span>
+                            <span>STK: <code style={{ 
+                                background: '#f3f4f6', 
+                                padding: '2px 6px', 
+                                borderRadius: 4, 
+                                fontSize: 12 
+                            }}>{bankInfo.accountNo}</code></span>
+                            <span style={{ color: '#9ca3af' }}>•</span>
                             <span>Chủ TK: <strong>{bankInfo.accountName}</strong></span>
                         </div>
-                        <p className="bank-info-hint">
+                        <p style={{ 
+                            margin: 0, 
+                            fontSize: 12, 
+                            color: '#6b7280' 
+                        }}>
                             💡 Đối chiếu nội dung chuyển khoản với cột "Mã TT" để xác nhận
                         </p>
                     </div>
                 </div>
             )}
 
-            {/* Toolbar */}
-            <div className="admin-reg-toolbar">
-                <div className="search-wrapper">
-                    <Search className="search-icon" size={18} />
+            {/* Filter Bar */}
+            <section style={{
+                background: 'white',
+                borderRadius: 12,
+                padding: '16px 24px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 20,
+                marginBottom: 24,
+                border: '1px solid #e5e7eb',
+                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)'
+            }}>
+                <div style={{ flex: 1, position: 'relative' }}>
+                    <Search style={{
+                        position: 'absolute',
+                        left: 14,
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        color: '#9ca3af',
+                        pointerEvents: 'none'
+                    }} size={18} />
                     <input
-                        className="search-input"
                         type="text"
                         placeholder="Tìm kiếm theo tên, email, SĐT, khóa học, mã TT..."
                         value={search}
@@ -347,18 +612,31 @@ export default function AdminRegistrations() {
                             setSearch(e.target.value);
                             setCurrentPage(1);
                         }}
+                        style={{
+                            width: '100%',
+                            padding: '10px 16px 10px 42px',
+                            border: '1px solid #e5e7eb',
+                            borderRadius: 8,
+                            fontSize: 14
+                        }}
                     />
                 </div>
 
-                <div className="toolbar-actions">
-                    <div className="filter-group">
-                        <Filter className="filter-icon" size={18} />
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <Filter size={18} style={{ color: '#6b7280' }} />
                         <select
-                            className="filter-select"
                             value={filter}
                             onChange={e => {
                                 setFilter(e.target.value);
                                 setCurrentPage(1);
+                            }}
+                            style={{
+                                padding: '8px 12px',
+                                border: '1px solid #e5e7eb',
+                                borderRadius: 8,
+                                fontSize: 14,
+                                background: 'white'
                             }}
                         >
                             <option value="ALL">Tất cả trạng thái</option>
@@ -370,60 +648,206 @@ export default function AdminRegistrations() {
 
                     {selectedRows.length > 0 && (
                         <button
-                            className="btn-bulk-confirm"
                             onClick={handleBulkConfirm}
+                            style={{
+                                background: '#10b981',
+                                color: 'white',
+                                border: 'none',
+                                padding: '8px 16px',
+                                borderRadius: 8,
+                                fontWeight: 600,
+                                fontSize: 14,
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 8,
+                                boxShadow: '0 2px 4px rgba(16, 185, 129, 0.2)'
+                            }}
                         >
-                            <CheckCircle size={16} />
+                            <CheckCircle2 size={16} />
                             Xác nhận ({selectedRows.length})
                         </button>
                     )}
                 </div>
-            </div>
+            </section>
 
             {/* Table */}
-            <div className="table-container">
-                <table className="reg-table">
-                    <thead>
+            <div style={{
+                background: 'white',
+                borderRadius: 12,
+                border: '1px solid #e5e7eb',
+                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+                overflow: 'hidden'
+            }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                    <thead style={{ background: '#f9fafb' }}>
                         <tr>
-                            <th className="th-checkbox">
+                            <th style={{ 
+                                padding: '12px 16px', 
+                                textAlign: 'left', 
+                                fontSize: 12, 
+                                fontWeight: 600, 
+                                color: '#6b7280', 
+                                textTransform: 'uppercase', 
+                                letterSpacing: 0.5,
+                                borderBottom: '1px solid #e5e7eb'
+                            }}>
                                 <input
                                     type="checkbox"
                                     checked={selectedRows.length === paginatedData.length && paginatedData.length > 0}
                                     onChange={toggleAllRows}
+                                    style={{ cursor: 'pointer' }}
                                 />
                             </th>
-                            <th className="th-sortable" onClick={() => handleSort("id")}>
+                            <th style={{ 
+                                padding: '12px 16px', 
+                                textAlign: 'left', 
+                                fontSize: 12, 
+                                fontWeight: 600, 
+                                color: '#6b7280', 
+                                textTransform: 'uppercase', 
+                                letterSpacing: 0.5,
+                                borderBottom: '1px solid #e5e7eb',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 4
+                            }} onClick={() => handleSort("id")}>
                                 ID <ArrowUpDown size={14} />
                             </th>
-                            <th className="th-sortable" onClick={() => handleSort("studentName")}>
+                            <th style={{ 
+                                padding: '12px 16px', 
+                                textAlign: 'left', 
+                                fontSize: 12, 
+                                fontWeight: 600, 
+                                color: '#6b7280', 
+                                textTransform: 'uppercase', 
+                                letterSpacing: 0.5,
+                                borderBottom: '1px solid #e5e7eb',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 4
+                            }} onClick={() => handleSort("studentName")}>
                                 Sinh viên <ArrowUpDown size={14} />
                             </th>
-                            <th>Khóa học</th>
-                            <th className="th-sortable" onClick={() => handleSort("amount")}>
+                            <th style={{ 
+                                padding: '12px 16px', 
+                                textAlign: 'left', 
+                                fontSize: 12, 
+                                fontWeight: 600, 
+                                color: '#6b7280', 
+                                textTransform: 'uppercase', 
+                                letterSpacing: 0.5,
+                                borderBottom: '1px solid #e5e7eb'
+                            }}>Khóa học</th>
+                            <th style={{ 
+                                padding: '12px 16px', 
+                                textAlign: 'left', 
+                                fontSize: 12, 
+                                fontWeight: 600, 
+                                color: '#6b7280', 
+                                textTransform: 'uppercase', 
+                                letterSpacing: 0.5,
+                                borderBottom: '1px solid #e5e7eb',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 4
+                            }} onClick={() => handleSort("amount")}>
                                 Học phí <ArrowUpDown size={14} />
                             </th>
-                            <th>Mã chuyển khoản</th>
-                            <th className="th-sortable" onClick={() => handleSort("registrationDate")}>
+                            <th style={{ 
+                                padding: '12px 16px', 
+                                textAlign: 'left', 
+                                fontSize: 12, 
+                                fontWeight: 600, 
+                                color: '#6b7280', 
+                                textTransform: 'uppercase', 
+                                letterSpacing: 0.5,
+                                borderBottom: '1px solid #e5e7eb'
+                            }}>Mã chuyển khoản</th>
+                            <th style={{ 
+                                padding: '12px 16px', 
+                                textAlign: 'left', 
+                                fontSize: 12, 
+                                fontWeight: 600, 
+                                color: '#6b7280', 
+                                textTransform: 'uppercase', 
+                                letterSpacing: 0.5,
+                                borderBottom: '1px solid #e5e7eb',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 4
+                            }} onClick={() => handleSort("registrationDate")}>
                                 Ngày ĐK <ArrowUpDown size={14} />
                             </th>
-                            <th className="th-sortable" onClick={() => handleSort("paymentDate")}>
+                            <th style={{ 
+                                padding: '12px 16px', 
+                                textAlign: 'left', 
+                                fontSize: 12, 
+                                fontWeight: 600, 
+                                color: '#6b7280', 
+                                textTransform: 'uppercase', 
+                                letterSpacing: 0.5,
+                                borderBottom: '1px solid #e5e7eb',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 4
+                            }} onClick={() => handleSort("paymentDate")}>
                                 Ngày nộp <ArrowUpDown size={14} />
                             </th>
-                            <th>Trạng thái</th>
-                            <th>Thao tác</th>
+                            <th style={{ 
+                                padding: '12px 16px', 
+                                textAlign: 'left', 
+                                fontSize: 12, 
+                                fontWeight: 600, 
+                                color: '#6b7280', 
+                                textTransform: 'uppercase', 
+                                letterSpacing: 0.5,
+                                borderBottom: '1px solid #e5e7eb'
+                            }}>Trạng thái</th>
+                            <th style={{ 
+                                padding: '12px 16px', 
+                                textAlign: 'left', 
+                                fontSize: 12, 
+                                fontWeight: 600, 
+                                color: '#6b7280', 
+                                textTransform: 'uppercase', 
+                                letterSpacing: 0.5,
+                                borderBottom: '1px solid #e5e7eb'
+                            }}>Thao tác</th>
                         </tr>
                     </thead>
                     <tbody>
                         {paginatedData.length === 0 ? (
                             <tr>
-                                <td colSpan={10} className="empty-state">
-                                    <div className="empty-state-content">
-                                        <Search size={48} />
-                                        <p>Không tìm thấy kết quả phù hợp</p>
-                                        <button onClick={() => {
-                                            setSearch("");
-                                            setFilter("ALL");
-                                        }}>
+                                <td colSpan={10} style={{ 
+                                    padding: '48px', 
+                                    textAlign: 'center',
+                                    borderBottom: '1px solid #e5e7eb'
+                                }}>
+                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+                                        <Search size={48} style={{ color: '#9ca3af' }} />
+                                        <p style={{ margin: 0, color: '#6b7280', fontSize: 16 }}>Không tìm thấy kết quả phù hợp</p>
+                                        <button
+                                            onClick={() => {
+                                                setSearch("");
+                                                setFilter("ALL");
+                                            }}
+                                            style={{
+                                                background: '#10b981',
+                                                color: 'white',
+                                                border: 'none',
+                                                padding: '8px 16px',
+                                                borderRadius: 8,
+                                                fontWeight: 600,
+                                                fontSize: 14,
+                                                cursor: 'pointer'
+                                            }}
+                                        >
                                             Xóa bộ lọc
                                         </button>
                                     </div>
@@ -433,80 +857,151 @@ export default function AdminRegistrations() {
                             paginatedData.map(r => (
                                 <tr
                                     key={r.id}
-                                    className={r.paymentStatus === "PENDING" ? "row-pending" : ""}
+                                    style={{ 
+                                        borderBottom: '1px solid #e5e7eb',
+                                        background: r.paymentStatus === "PENDING" ? '#fff7ed' : 'white'
+                                    }}
                                 >
-                                    <td className="td-checkbox">
+                                    <td style={{ padding: '12px 16px' }}>
                                         <input
                                             type="checkbox"
                                             checked={selectedRows.includes(r.id)}
                                             onChange={() => toggleRowSelection(r.id)}
                                             disabled={r.paymentStatus !== "PENDING"}
+                                            style={{ cursor: 'pointer' }}
                                         />
                                     </td>
-                                    <td className="td-id">#{r.id}</td>
-                                    <td>
-                                        <div className="student-info">
-                                            <div className="student-avatar">
+                                    <td style={{ padding: '12px 16px', fontSize: 14, color: '#111827' }}>#{r.id}</td>
+                                    <td style={{ padding: '12px 16px' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                                            <div style={{
+                                                width: 32,
+                                                height: 32,
+                                                borderRadius: '50%',
+                                                background: '#f3f4f6',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                fontSize: 12,
+                                                fontWeight: 600,
+                                                color: '#6b7280'
+                                            }}>
                                                 {(r.studentName || "U").charAt(0).toUpperCase()}
                                             </div>
-                                            <div className="student-details">
-                                                <span className="student-name">{r.studentName}</span>
-                                                <div className="student-contact-small">
-                                                    <span className="contact-item"><Mail size={12} /> {r.studentEmail}</span>
-                                                    <span className="contact-item"><Phone size={12} /> {r.studentPhone}</span>
+                                            <div>
+                                                <div style={{ fontSize: 14, fontWeight: 600, color: '#111827', marginBottom: 2 }}>
+                                                    {r.studentName}
+                                                </div>
+                                                <div style={{ display: 'flex', gap: 12, fontSize: 12, color: '#6b7280' }}>
+                                                    <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                                                        <Mail size={12} /> {r.studentEmail}
+                                                    </span>
+                                                    <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                                                        <Phone size={12} /> {r.studentPhone}
+                                                    </span>
                                                 </div>
                                             </div>
                                         </div>
                                     </td>
-                                    <td className="td-course">
-                                        <span className="course-title" title={r.courseTitle}>
+                                    <td style={{ padding: '12px 16px', fontSize: 14, color: '#111827' }}>
+                                        <span title={r.courseTitle}>
                                             {r.courseTitle}
                                         </span>
                                     </td>
-                                    <td className="td-amount">{formatAmount(r.amount)}</td>
-                                    <td>
-                                        <code className="transfer-ref">{r.transferRef || "—"}</code>
+                                    <td style={{ padding: '12px 16px', fontSize: 14, fontWeight: 600, color: '#111827' }}>
+                                        {formatAmount(r.amount)}
                                     </td>
-                                    <td>{formatDate(r.registrationDate)}</td>
-                                    <td>{formatDate(r.paymentDate)}</td>
-                                    <td>
-                                        <span className={`status-badge status-${r.paymentStatus.toLowerCase()}`}>
+                                    <td style={{ padding: '12px 16px' }}>
+                                        <code style={{
+                                            background: '#f3f4f6',
+                                            padding: '2px 6px',
+                                            borderRadius: 4,
+                                            fontSize: 12,
+                                            color: '#374151'
+                                        }}>{r.transferRef || "—"}</code>
+                                    </td>
+                                    <td style={{ padding: '12px 16px', fontSize: 14, color: '#6b7280' }}>
+                                        {formatDate(r.registrationDate)}
+                                    </td>
+                                    <td style={{ padding: '12px 16px', fontSize: 14, color: '#6b7280' }}>
+                                        {formatDate(r.paymentDate)}
+                                    </td>
+                                    <td style={{ padding: '12px 16px' }}>
+                                        <span style={{
+                                            padding: '4px 8px',
+                                            borderRadius: 6,
+                                            fontSize: 12,
+                                            fontWeight: 600,
+                                            background: r.paymentStatus === "PAID" ? '#dcfce7' : 
+                                                       r.paymentStatus === "PENDING" ? '#fef3c7' : '#fee2e2',
+                                            color: r.paymentStatus === "PAID" ? '#166534' : 
+                                                   r.paymentStatus === "PENDING" ? '#92400e' : '#991b1b'
+                                        }}>
                                             {r.paymentStatus === "PAID" && "✓ Đã thanh toán"}
                                             {r.paymentStatus === "PENDING" && "⏳ Chờ xác nhận"}
                                             {r.paymentStatus === "CANCELLED" && "✗ Đã hủy"}
                                         </span>
                                     </td>
-                                    <td className="td-actions">
-                                        <button
-                                            className="btn-view"
-                                            onClick={() => {/* Xem chi tiết */ }}
-                                            title="Xem chi tiết"
-                                        >
-                                            <Eye size={16} />
-                                        </button>
-
-                                        {r.paymentStatus === "PENDING" && (
+                                    <td style={{ padding: '12px 16px' }}>
+                                        <div style={{ display: 'flex', gap: 8 }}>
                                             <button
-                                                className="btn-confirm"
-                                                onClick={() => handleConfirm(r.id)}
-                                                disabled={confirming === r.id}
-                                                title="Xác nhận thanh toán"
+                                                onClick={() => {/* Xem chi tiết */ }}
+                                                title="Xem chi tiết"
+                                                style={{
+                                                    background: 'white',
+                                                    border: '1px solid #e5e7eb',
+                                                    borderRadius: 6,
+                                                    padding: '6px',
+                                                    cursor: 'pointer',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center'
+                                                }}
                                             >
-                                                {confirming === r.id ? (
-                                                    <span className="loading-dots">...</span>
-                                                ) : (
-                                                    <CheckCircle size={16} />
-                                                )}
+                                                <Eye size={16} style={{ color: '#6b7280' }} />
                                             </button>
-                                        )}
 
-                                        <button
-                                            className="btn-print"
-                                            onClick={() => handlePrintInvoice(r.id)}
-                                            title="In hóa đơn"
-                                        >
-                                            <Printer size={16} />
-                                        </button>
+                                            {r.paymentStatus === "PENDING" && (
+                                                <button
+                                                    onClick={() => handleConfirm(r.id)}
+                                                    disabled={confirming === r.id}
+                                                    title="Xác nhận thanh toán"
+                                                    style={{
+                                                        background: confirming === r.id ? '#9ca3af' : '#10b981',
+                                                        border: 'none',
+                                                        borderRadius: 6,
+                                                        padding: '6px',
+                                                        cursor: confirming === r.id ? 'not-allowed' : 'pointer',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center'
+                                                    }}
+                                                >
+                                                    {confirming === r.id ? (
+                                                        <span style={{ color: 'white', fontSize: 12 }}>...</span>
+                                                    ) : (
+                                                        <CheckCircle2 size={16} style={{ color: 'white' }} />
+                                                    )}
+                                                </button>
+                                            )}
+
+                                            <button
+                                                onClick={() => handlePrintInvoice(r.id)}
+                                                title="In hóa đơn"
+                                                style={{
+                                                    background: 'white',
+                                                    border: '1px solid #e5e7eb',
+                                                    borderRadius: 6,
+                                                    padding: '6px',
+                                                    cursor: 'pointer',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center'
+                                                }}
+                                            >
+                                                <Printer size={16} style={{ color: '#6b7280' }} />
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))
@@ -517,18 +1012,33 @@ export default function AdminRegistrations() {
 
             {/* Pagination */}
             {filtered.length > 0 && (
-                <div className="pagination">
-                    <div className="pagination-info">
+                <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginTop: 24,
+                    padding: '16px 0'
+                }}>
+                    <div style={{ fontSize: 14, color: '#6b7280' }}>
                         Hiển thị {(currentPage - 1) * pageSize + 1} -{" "}
                         {Math.min(currentPage * pageSize, filtered.length)} trong số{" "}
                         {filtered.length} kết quả
                     </div>
 
-                    <div className="pagination-controls">
+                    <div style={{ display: 'flex', gap: 8 }}>
                         <button
-                            className="pagination-btn"
                             onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                             disabled={currentPage === 1}
+                            style={{
+                                background: 'white',
+                                border: '1px solid #e5e7eb',
+                                borderRadius: 8,
+                                padding: '8px 12px',
+                                cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                opacity: currentPage === 1 ? 0.5 : 1
+                            }}
                         >
                             <ChevronLeft size={16} />
                         </button>
@@ -548,8 +1058,17 @@ export default function AdminRegistrations() {
                             return (
                                 <button
                                     key={pageNum}
-                                    className={`pagination-btn ${currentPage === pageNum ? "active" : ""}`}
                                     onClick={() => setCurrentPage(pageNum)}
+                                    style={{
+                                        background: currentPage === pageNum ? '#10b981' : 'white',
+                                        color: currentPage === pageNum ? 'white' : '#374151',
+                                        border: '1px solid #e5e7eb',
+                                        borderRadius: 8,
+                                        padding: '8px 12px',
+                                        cursor: 'pointer',
+                                        fontSize: 14,
+                                        fontWeight: currentPage === pageNum ? 600 : 400
+                                    }}
                                 >
                                     {pageNum}
                                 </button>
@@ -557,9 +1076,18 @@ export default function AdminRegistrations() {
                         })}
 
                         <button
-                            className="pagination-btn"
                             onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                             disabled={currentPage === totalPages}
+                            style={{
+                                background: 'white',
+                                border: '1px solid #e5e7eb',
+                                borderRadius: 8,
+                                padding: '8px 12px',
+                                cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                opacity: currentPage === totalPages ? 0.5 : 1
+                            }}
                         >
                             <ChevronRight size={16} />
                         </button>
