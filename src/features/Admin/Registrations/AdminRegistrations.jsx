@@ -107,11 +107,14 @@ export default function AdminRegistrations() {
     const handleConfirm = async (id) => {
         setConfirming(id);
         try {
-            await registrationService.confirmPayment(id);
+            const response = await registrationService.confirmPayment(id);
+            const enrolledClassName = response.data?.data?.enrolledClassName;
             setNotification({
                 isOpen: true,
                 title: "Thành công!",
-                message: "Đã xác nhận thanh toán và thêm sinh viên vào lớp.",
+                message: enrolledClassName
+                    ? `Đã xác nhận thanh toán và thêm sinh viên vào lớp "${enrolledClassName}".`
+                    : "Đã xác nhận thanh toán. Không tìm thấy lớp học nào cho khóa học này.",
                 type: "success"
             });
             fetchAll();
