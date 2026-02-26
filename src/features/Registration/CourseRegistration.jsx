@@ -37,12 +37,12 @@ export default function CourseRegistration() {
             setNotification({
                 isOpen: true,
                 title: "Đăng ký thành công!",
-                message: "Vui lòng thanh toán học phí để được xếp vào lớp học.",
+                message: "Khóa học đã được thêm vào mục chờ thanh toán. Vui lòng thanh toán học phí để được xếp vào lớp.",
                 type: "success"
             });
             await fetchData();
-            // Auto-open payment modal for new registration
-            if (reg) setPaymentReg(reg);
+            // Removed auto-open payment modal to encourage bulk payment
+            // if (reg) setPaymentReg(reg);
         } catch (err) {
             setNotification({
                 isOpen: true,

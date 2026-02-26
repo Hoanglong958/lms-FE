@@ -31,6 +31,7 @@ import JavaExamPage from "@pages/JavaExamPage";
 import JavaExamResult from "@pages/JavaExamResult";
 import JavaExamCard from "@pages/JavaExamCard";
 import CourseRegistration from "@features/Registration/CourseRegistration";
+import MyPayments from "@features/Registration/MyPayments";
 import ChatLayout from "@features/Chat/ChatLayout";
 
 // ================= ADMIN =================
@@ -116,6 +117,7 @@ export default function AppRouter() {
             <Route path="/java-exam/result" element={<JavaExamResult />} />
             <Route path="/profile/edit" element={<ProfileEdit />} />
             <Route path="/registrations" element={<CourseRegistration />} />
+            <Route path="/my-payments" element={<MyPayments />} />
             <Route path="/chat" element={<ChatLayout />} />
           </Route>
 

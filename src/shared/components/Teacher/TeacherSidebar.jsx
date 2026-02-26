@@ -1,5 +1,6 @@
 import { NavLink } from "react-router-dom";
 import { useState, useEffect } from "react";
+import NotificationDropdown from "@components/Notification/NotificationDropdown";
 import "./TeacherSidebar.css";
 
 export default function TeacherSidebar({ isOpen, onClose }) {
@@ -44,7 +45,8 @@ export default function TeacherSidebar({ isOpen, onClose }) {
                 {/* Header */}
                 <div className="teacher-sidebar-header">
                     <img src="/logo.png" alt="Logo" className="teacher-sidebar-logo" />
-                    <h2 className="teacher-sidebar-title">Teacher Portal</h2>
+                    <h2 className="teacher-sidebar-title" style={{ flex: 1, margin: 0 }}>Teacher Portal</h2>
+                    <NotificationDropdown />
                 </div>
 
                 {/* Menu */}
@@ -70,7 +72,7 @@ export default function TeacherSidebar({ isOpen, onClose }) {
                         Lớp học của tôi
                     </NavLink>
 
-                    
+
 
                     {/* Bài kiểm tra */}
                     <NavLink

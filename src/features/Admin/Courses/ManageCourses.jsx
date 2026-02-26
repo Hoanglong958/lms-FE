@@ -36,6 +36,7 @@ const initialFormData = {
   description: "",
   level: "",
   totalSessions: 0,
+  tuitionFee: 0,
   imageUrl: "",
 };
 
@@ -89,6 +90,9 @@ function CourseRow({ course, onEdit, onDelete }) {
         </span>
       </td>
       <td>{course.totalSessions || 0}</td>
+      <td style={{ fontWeight: 600, color: '#0f172a' }}>
+        {new Intl.NumberFormat("vi-VN").format(course.tuitionFee || 0)} ₫
+      </td>
       <td className={styles.colActions}>
         <div className={styles.rowActions} style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
           <button
@@ -184,6 +188,7 @@ export default function ManageCourses() {
       description: course.description,
       level: course.level || "",
       totalSessions: course.totalSessions || 0,
+      tuitionFee: course.tuitionFee || 0,
       imageUrl: course.imageUrl || "",
     });
     setErrors({});
@@ -261,6 +266,7 @@ export default function ManageCourses() {
         formData.description !== initialFormData.description ||
         formData.level !== initialFormData.level ||
         String(formData.totalSessions) !== String(initialFormData.totalSessions) ||
+        String(formData.tuitionFee) !== String(initialFormData.tuitionFee) ||
         formData.imageUrl !== initialFormData.imageUrl
       );
     }
@@ -270,6 +276,7 @@ export default function ManageCourses() {
       formData.description !== currentCourse.description ||
       (formData.level || "") !== (currentCourse.level || "") ||
       String(formData.totalSessions) !== String(currentCourse.totalSessions || 0) ||
+      String(formData.tuitionFee) !== String(currentCourse.tuitionFee || 0) ||
       (formData.imageUrl || "") !== (currentCourse.imageUrl || "")
     );
   }, [formData, currentCourse]);
@@ -392,6 +399,7 @@ export default function ManageCourses() {
               <th className={styles.colDesc}>Mô tả</th>
               <th>Cấp độ</th>
               <th>Tổng buổi</th>
+              <th>Học phí</th>
               <th className={styles.colActions}>Thao tác</th>
             </tr>
           </thead>
@@ -597,6 +605,26 @@ export default function ManageCourses() {
                           <Activity size={12} /> {errors.level}
                         </div>
                       )}
+                    </div>
+                  </div>
+
+                  {/* Tuition Fee */}
+                  <div className={styles.customInputGroup}>
+                    <div className={styles.customLabel}>
+                      <Zap />
+                      Học phí (VNĐ)
+                    </div>
+                    <div className={styles.inputWrapper}>
+                      <input
+                        type="number"
+                        name="tuitionFee"
+                        className={styles.customInput}
+                        value={formData.tuitionFee}
+                        onChange={handleInputChange}
+                        placeholder="0"
+                        min="0"
+                        step="1000"
+                      />
                     </div>
                   </div>
                 </div>

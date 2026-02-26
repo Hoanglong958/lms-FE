@@ -14,6 +14,7 @@ import logoutIcon from "@assets/icons/logout-icon.svg";
 import lessonIcon from "@assets/icons/lesson-icon.svg";
 import menuIcon from "@assets/icons/menu-icon.svg";
 import logoutIcon2 from "@assets/icons/logout-icon-2.svg";
+import NotificationDropdown from "@components/Notification/NotificationDropdown";
 
 export default function Header() {
   const navigate = useNavigate();
@@ -88,9 +89,7 @@ export default function Header() {
           <button className="user-header-icon-btn" onClick={() => navigate("/search")}>
             <img src={searchIcon} alt="Search" />
           </button>
-          <button className="user-header-icon-btn">
-            <img src={notiIcon} alt="Notification" />
-          </button>
+          <NotificationDropdown />
           <div
             className="user-header-avatar-dropdown"
             onMouseLeave={() => setOpenDropdown(false)}
@@ -124,6 +123,9 @@ export default function Header() {
                 </div>
                 <div className="user-header-dropdown-item" onClick={() => handleNavigate("/home")}>
                   Khóa học của tôi
+                </div>
+                <div className="user-header-dropdown-item" onClick={() => handleNavigate("/my-payments")}>
+                  Thanh toán của tôi
                 </div>
 
                 {/* 🔒 Đăng xuất */}
