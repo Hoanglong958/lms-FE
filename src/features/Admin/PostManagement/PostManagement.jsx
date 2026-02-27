@@ -82,7 +82,7 @@ export default function PostManagement() {
         if (!Array.isArray(tags) || tags.length === 0) {
             return <span style={{ color: '#9ca3af', fontSize: 13, fontStyle: 'italic' }}>Chưa có tag</span>;
         }
-        
+
         return (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
                 {tags.map((tag) => (
@@ -113,11 +113,7 @@ export default function PostManagement() {
                 marginBottom: 16,
                 fontWeight: 500
             }}>
-                <span style={{ color: '#f97316', fontWeight: 600 }}>Quản lý bài viết</span>
-                <span style={{ color: '#d1d5db', margin: '0 4px' }}> / </span>
-                <span style={{ color: '#9ca3af' }}>Dashboard</span>
-                <span style={{ color: '#d1d5db', margin: '0 4px' }}> / </span>
-                <span style={{ color: '#374151', fontWeight: 600 }}>Tất cả bài viết</span>
+
             </div>
 
             {/* Header */}
@@ -613,8 +609,8 @@ export default function PostManagement() {
                                             }}>
                                                 {(post.author?.fullName || "A").charAt(0).toUpperCase()}
                                             </div>
-                                            <span style={{ 
-                                                fontSize: 14, 
+                                            <span style={{
+                                                fontSize: 14,
                                                 color: '#374151',
                                                 overflow: 'hidden',
                                                 textOverflow: 'ellipsis',
@@ -658,20 +654,11 @@ export default function PostManagement() {
                                                 display: 'inline-flex',
                                                 alignItems: 'center',
                                                 justifyContent: 'center',
-                                                color: '#3b82f6',
                                                 transition: 'all 0.2s'
                                             }}
                                             title="Sửa"
-                                            onMouseEnter={(e) => {
-                                                e.currentTarget.style.background = '#3b82f6';
-                                                e.currentTarget.style.color = 'white';
-                                            }}
-                                            onMouseLeave={(e) => {
-                                                e.currentTarget.style.background = '#f1f5f9';
-                                                e.currentTarget.style.color = '#3b82f6';
-                                            }}
                                         >
-                                            <Edit size={16} />
+                                            ✏️
                                         </button>
                                         <button
                                             onClick={() => handleDelete(post.id)}
@@ -685,20 +672,11 @@ export default function PostManagement() {
                                                 display: 'inline-flex',
                                                 alignItems: 'center',
                                                 justifyContent: 'center',
-                                                color: '#ef4444',
                                                 transition: 'all 0.2s'
                                             }}
                                             title="Xóa"
-                                            onMouseEnter={(e) => {
-                                                e.currentTarget.style.background = '#ef4444';
-                                                e.currentTarget.style.color = 'white';
-                                            }}
-                                            onMouseLeave={(e) => {
-                                                e.currentTarget.style.background = '#fee2e2';
-                                                e.currentTarget.style.color = '#ef4444';
-                                            }}
                                         >
-                                            <Trash2 size={16} />
+                                            🗑️
                                         </button>
                                     </td>
                                 </tr>
@@ -758,7 +736,7 @@ export default function PostManagement() {
                         </button>
                     </div>
                 </div>
-            </section>
-        </div>
+            </section >
+        </div >
     );
 }

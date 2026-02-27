@@ -291,14 +291,7 @@ export default function ManageCourses() {
 
   return (
     <div className={styles.page}>
-      {/* Breadcrumbs */}
-      <div className={styles.breadcrumbs}>
-        <span className={styles.breadcrumbOrange}>Quản lý khóa học</span>
-        <span className={styles.breadcrumbSeparator}> / </span>
-        <span className={styles.breadcrumbGray}>Dashboard</span>
-        <span className={styles.breadcrumbSeparator}> / </span>
-        <span className={styles.breadcrumbDark}>Khóa học</span>
-      </div>
+      
 
       {/* Header */}
       <div className={styles.headerTop}>

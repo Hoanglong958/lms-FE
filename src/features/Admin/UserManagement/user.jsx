@@ -1,11 +1,7 @@
 import React, { useMemo, useState, useEffect, useRef } from "react";
-// GIẢ ĐỊNH: userService.js đã implement các API createUser, updateUser, deleteUser, toggleStatus
 import { userService } from "@utils/userService";
 import NotificationModal from "@components/NotificationModal/NotificationModal";
-
-// GIẢ ĐỊNH: Các component khác (AddUserModal, EditUserModal, ConfirmModal, 
-// RoleBadge, StatusBadge, RowActions, PageStyles, getInitials, styles, modalStyles) tồn tại
-// ... (Các imports giả định, styles, helper components)
+import { ShieldUser } from "lucide-react";
 
 
 export default function UserManagement({ currentUserRole = "admin" }) {
@@ -220,12 +216,54 @@ export default function UserManagement({ currentUserRole = "admin" }) {
 		<div style={styles.page}>
 			<PageStyles />
 
-			{/* Header */}
 			<header style={styles.header}>
-				<div>
-					<h1 style={styles.title}>Quản lý người dùng</h1>
-					<p style={styles.subtitle}>Danh sách người dùng và quản lý quyền truy cập</p>
+				<div style={{ display: 'flex', alignItems: 'center', gap: 16, flex: 1 }}>
+
+					{/* Icon Box */}
+					<div
+						style={{
+							width: 48,
+							height: 48,
+							background: 'linear-gradient(135deg,  #f97316, #ea580c)',
+							borderRadius: 12,
+							display: 'flex',
+							alignItems: 'center',
+							justifyContent: 'center',
+							color: 'white',
+							boxShadow: '0 4px 12px rgba(37, 99, 235, 0.3)',
+							flexShrink: 0
+						}}
+					>
+						<ShieldUser size={24} />
+					</div>
+
+					{/* Text */}
+					<div>
+						<h1
+							style={{
+								fontSize: 24,
+								fontWeight: 700,
+								color: '#111827',
+								margin: '0 0 4px 0',
+								lineHeight: 1.2
+							}}
+						>
+							Quản lý người dùng
+						</h1>
+
+						<p
+							style={{
+								fontSize: 14,
+								color: '#6b7280',
+								margin: 0,
+								fontWeight: 500
+							}}
+						>
+							Danh sách người dùng và quản lý quyền truy cập
+						</p>
+					</div>
 				</div>
+
 				<button
 					type="button"
 					style={styles.primaryButton}
@@ -351,7 +389,7 @@ export default function UserManagement({ currentUserRole = "admin" }) {
 						message={`Bạn có chắc chắn muốn xóa người dùng '${confirmDelete.fullName}'?`}
 						onCancel={() => setConfirmDelete(null)}
 						onConfirm={handleConfirmDelete}
-						confirmLabel="Xóa"
+						confirmLabel="🗑️ Xóa"
 					/>
 				)
 			}
@@ -364,7 +402,7 @@ export default function UserManagement({ currentUserRole = "admin" }) {
 						message={`Bạn có chắc chắn muốn ${confirmLock.isActive ? 'khóa' : 'mở khóa'} tài khoản '${confirmLock.fullName}'?`}
 						onCancel={() => setConfirmLock(null)}
 						onConfirm={handleConfirmLock}
-						confirmLabel={confirmLock.isActive ? 'Khóa' : 'Mở khóa'}
+						confirmLabel={confirmLock.isActive ? '🔒 Khóa' : '🔓 Mở khóa'}
 						// Ensure style object is valid
 						confirmStyle={confirmLock.isActive ? { ...modalStyles.dangerBtn } : { ...modalStyles.primaryBtn }}
 					/>
@@ -545,7 +583,7 @@ function EditUserModal({ user, onClose, onSubmit, allowedRoles }) {
 							Hủy
 						</button>
 						<button type="submit" style={styles.primaryButton}>
-							Lưu thay đổi
+							✏️ Lưu thay đổi
 						</button>
 					</div>
 				</form>
@@ -619,19 +657,9 @@ function RowActions({ onView, onLock, onEdit, onDelete, isActive, role }) {
 					aria-label={isActive ? "Khóa tài khoản" : "Mở khóa tài khoản"}
 					title={isActive ? "Khóa tài khoản" : "Mở khóa tài khoản"}
 					onClick={() => onLock && onLock()}
-					style={{ ...styles.iconButton, marginLeft: 6, color: isActive ? "#6b7280" : "#ef4444" }}
+					style={{ ...styles.iconButton, marginLeft: 6 }}
 				>
-					{isActive ? (
-						<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-							<rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-							<path d="M7 11V7a5 5 0 0 1 9.9-1"></path>
-						</svg>
-					) : (
-						<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-							<rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-							<path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-						</svg>
-					)}
+					{isActive ? "🔒" : "🔓"}
 				</button>
 			)}
 
@@ -642,12 +670,9 @@ function RowActions({ onView, onLock, onEdit, onDelete, isActive, role }) {
 					aria-label="Chỉnh sửa"
 					title="Chỉnh sửa"
 					onClick={() => onEdit && onEdit()}
-					style={{ ...styles.iconButton, marginLeft: 6, color: "#3b82f6" }}
+					style={{ ...styles.iconButton, marginLeft: 6 }}
 				>
-					<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-						<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-						<path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-					</svg>
+					✏️
 				</button>
 			)}
 
@@ -658,14 +683,9 @@ function RowActions({ onView, onLock, onEdit, onDelete, isActive, role }) {
 					aria-label="Xóa"
 					title="Xóa"
 					onClick={() => onDelete && onDelete()}
-					style={{ ...styles.iconButton, marginLeft: 6, color: "#ef4444" }}
+					style={{ ...styles.iconButton, marginLeft: 6 }}
 				>
-					<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-						<polyline points="3 6 5 6 21 6"></polyline>
-						<path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-						<line x1="10" y1="11" x2="10" y2="17"></line>
-						<line x1="14" y1="11" x2="14" y2="17"></line>
-					</svg>
+					🗑️
 				</button>
 			)}
 

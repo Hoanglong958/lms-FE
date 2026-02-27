@@ -240,11 +240,7 @@ export default function ExamManagement() {
         marginBottom: 16,
         fontWeight: 500
       }}>
-        <span style={{ color: '#f97316', fontWeight: 600 }}>Quản lý bài kiểm tra</span>
-        <span style={{ color: '#d1d5db', margin: '0 4px' }}> / </span>
-        <span style={{ color: '#9ca3af' }}>Dashboard</span>
-        <span style={{ color: '#d1d5db', margin: '0 4px' }}> / </span>
-        <span style={{ color: '#374151', fontWeight: 600 }}>Tất cả bài thi</span>
+        
       </div>
 
       {/* Header */}

@@ -236,17 +236,17 @@ export default function AdminRegistrations() {
             <div style={{ padding: '24px', background: '#f9fafb', minHeight: '100vh' }}>
                 <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                        <div style={{ 
-                            width: 48, 
-                            height: 48, 
-                            background: 'linear-gradient(135deg, #10b981, #059669)', 
-                            borderRadius: 12, 
-                            display: 'flex', 
-                            alignItems: 'center', 
-                            justifyContent: 'center', 
-                            color: 'white', 
-                            boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)', 
-                            flexShrink: 0 
+                        <div style={{
+                            width: 48,
+                            height: 48,
+                            background: 'linear-gradient(135deg, #10b981, #059669)',
+                            borderRadius: 12,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: 'white',
+                            boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
+                            flexShrink: 0
                         }}>
                             <Banknote size={24} />
                         </div>
@@ -566,19 +566,19 @@ export default function AdminRegistrations() {
                         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 4 }}>
                             <strong>{bankInfo.bankName}</strong>
                             <span style={{ color: '#9ca3af' }}>•</span>
-                            <span>STK: <code style={{ 
-                                background: '#f3f4f6', 
-                                padding: '2px 6px', 
-                                borderRadius: 4, 
-                                fontSize: 12 
+                            <span>STK: <code style={{
+                                background: '#f3f4f6',
+                                padding: '2px 6px',
+                                borderRadius: 4,
+                                fontSize: 12
                             }}>{bankInfo.accountNo}</code></span>
                             <span style={{ color: '#9ca3af' }}>•</span>
                             <span>Chủ TK: <strong>{bankInfo.accountName}</strong></span>
                         </div>
-                        <p style={{ 
-                            margin: 0, 
-                            fontSize: 12, 
-                            color: '#6b7280' 
+                        <p style={{
+                            margin: 0,
+                            fontSize: 12,
+                            color: '#6b7280'
                         }}>
                             💡 Đối chiếu nội dung chuyển khoản với cột "Mã TT" để xác nhận
                         </p>
@@ -667,8 +667,7 @@ export default function AdminRegistrations() {
                                 boxShadow: '0 2px 4px rgba(16, 185, 129, 0.2)'
                             }}
                         >
-                            <CheckCircle2 size={16} />
-                            Xác nhận ({selectedRows.length})
+                            ✅ Xác nhận ({selectedRows.length})
                         </button>
                     )}
                 </div>
@@ -685,13 +684,13 @@ export default function AdminRegistrations() {
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                     <thead style={{ background: '#f9fafb' }}>
                         <tr>
-                            <th style={{ 
-                                padding: '12px 16px', 
-                                textAlign: 'left', 
-                                fontSize: 12, 
-                                fontWeight: 600, 
-                                color: '#6b7280', 
-                                textTransform: 'uppercase', 
+                            <th style={{
+                                padding: '12px 16px',
+                                textAlign: 'left',
+                                fontSize: 12,
+                                fontWeight: 600,
+                                color: '#6b7280',
+                                textTransform: 'uppercase',
                                 letterSpacing: 0.5,
                                 borderBottom: '1px solid #e5e7eb'
                             }}>
@@ -702,13 +701,13 @@ export default function AdminRegistrations() {
                                     style={{ cursor: 'pointer' }}
                                 />
                             </th>
-                            <th style={{ 
-                                padding: '12px 16px', 
-                                textAlign: 'left', 
-                                fontSize: 12, 
-                                fontWeight: 600, 
-                                color: '#6b7280', 
-                                textTransform: 'uppercase', 
+                            <th style={{
+                                padding: '12px 16px',
+                                textAlign: 'left',
+                                fontSize: 12,
+                                fontWeight: 600,
+                                color: '#6b7280',
+                                textTransform: 'uppercase',
                                 letterSpacing: 0.5,
                                 borderBottom: '1px solid #e5e7eb',
                                 cursor: 'pointer',
@@ -718,13 +717,13 @@ export default function AdminRegistrations() {
                             }} onClick={() => handleSort("id")}>
                                 ID <ArrowUpDown size={14} />
                             </th>
-                            <th style={{ 
-                                padding: '12px 16px', 
-                                textAlign: 'left', 
-                                fontSize: 12, 
-                                fontWeight: 600, 
-                                color: '#6b7280', 
-                                textTransform: 'uppercase', 
+                            <th style={{
+                                padding: '12px 16px',
+                                textAlign: 'left',
+                                fontSize: 12,
+                                fontWeight: 600,
+                                color: '#6b7280',
+                                textTransform: 'uppercase',
                                 letterSpacing: 0.5,
                                 borderBottom: '1px solid #e5e7eb',
                                 cursor: 'pointer',
@@ -734,23 +733,23 @@ export default function AdminRegistrations() {
                             }} onClick={() => handleSort("studentName")}>
                                 Sinh viên <ArrowUpDown size={14} />
                             </th>
-                            <th style={{ 
-                                padding: '12px 16px', 
-                                textAlign: 'left', 
-                                fontSize: 12, 
-                                fontWeight: 600, 
-                                color: '#6b7280', 
-                                textTransform: 'uppercase', 
+                            <th style={{
+                                padding: '12px 16px',
+                                textAlign: 'left',
+                                fontSize: 12,
+                                fontWeight: 600,
+                                color: '#6b7280',
+                                textTransform: 'uppercase',
                                 letterSpacing: 0.5,
                                 borderBottom: '1px solid #e5e7eb'
                             }}>Khóa học</th>
-                            <th style={{ 
-                                padding: '12px 16px', 
-                                textAlign: 'left', 
-                                fontSize: 12, 
-                                fontWeight: 600, 
-                                color: '#6b7280', 
-                                textTransform: 'uppercase', 
+                            <th style={{
+                                padding: '12px 16px',
+                                textAlign: 'left',
+                                fontSize: 12,
+                                fontWeight: 600,
+                                color: '#6b7280',
+                                textTransform: 'uppercase',
                                 letterSpacing: 0.5,
                                 borderBottom: '1px solid #e5e7eb',
                                 cursor: 'pointer',
@@ -760,23 +759,23 @@ export default function AdminRegistrations() {
                             }} onClick={() => handleSort("amount")}>
                                 Học phí <ArrowUpDown size={14} />
                             </th>
-                            <th style={{ 
-                                padding: '12px 16px', 
-                                textAlign: 'left', 
-                                fontSize: 12, 
-                                fontWeight: 600, 
-                                color: '#6b7280', 
-                                textTransform: 'uppercase', 
+                            <th style={{
+                                padding: '12px 16px',
+                                textAlign: 'left',
+                                fontSize: 12,
+                                fontWeight: 600,
+                                color: '#6b7280',
+                                textTransform: 'uppercase',
                                 letterSpacing: 0.5,
                                 borderBottom: '1px solid #e5e7eb'
                             }}>Mã chuyển khoản</th>
-                            <th style={{ 
-                                padding: '12px 16px', 
-                                textAlign: 'left', 
-                                fontSize: 12, 
-                                fontWeight: 600, 
-                                color: '#6b7280', 
-                                textTransform: 'uppercase', 
+                            <th style={{
+                                padding: '12px 16px',
+                                textAlign: 'left',
+                                fontSize: 12,
+                                fontWeight: 600,
+                                color: '#6b7280',
+                                textTransform: 'uppercase',
                                 letterSpacing: 0.5,
                                 borderBottom: '1px solid #e5e7eb',
                                 cursor: 'pointer',
@@ -786,13 +785,13 @@ export default function AdminRegistrations() {
                             }} onClick={() => handleSort("registrationDate")}>
                                 Ngày ĐK <ArrowUpDown size={14} />
                             </th>
-                            <th style={{ 
-                                padding: '12px 16px', 
-                                textAlign: 'left', 
-                                fontSize: 12, 
-                                fontWeight: 600, 
-                                color: '#6b7280', 
-                                textTransform: 'uppercase', 
+                            <th style={{
+                                padding: '12px 16px',
+                                textAlign: 'left',
+                                fontSize: 12,
+                                fontWeight: 600,
+                                color: '#6b7280',
+                                textTransform: 'uppercase',
                                 letterSpacing: 0.5,
                                 borderBottom: '1px solid #e5e7eb',
                                 cursor: 'pointer',
@@ -802,23 +801,23 @@ export default function AdminRegistrations() {
                             }} onClick={() => handleSort("paymentDate")}>
                                 Ngày nộp <ArrowUpDown size={14} />
                             </th>
-                            <th style={{ 
-                                padding: '12px 16px', 
-                                textAlign: 'left', 
-                                fontSize: 12, 
-                                fontWeight: 600, 
-                                color: '#6b7280', 
-                                textTransform: 'uppercase', 
+                            <th style={{
+                                padding: '12px 16px',
+                                textAlign: 'left',
+                                fontSize: 12,
+                                fontWeight: 600,
+                                color: '#6b7280',
+                                textTransform: 'uppercase',
                                 letterSpacing: 0.5,
                                 borderBottom: '1px solid #e5e7eb'
                             }}>Trạng thái</th>
-                            <th style={{ 
-                                padding: '12px 16px', 
-                                textAlign: 'left', 
-                                fontSize: 12, 
-                                fontWeight: 600, 
-                                color: '#6b7280', 
-                                textTransform: 'uppercase', 
+                            <th style={{
+                                padding: '12px 16px',
+                                textAlign: 'left',
+                                fontSize: 12,
+                                fontWeight: 600,
+                                color: '#6b7280',
+                                textTransform: 'uppercase',
                                 letterSpacing: 0.5,
                                 borderBottom: '1px solid #e5e7eb'
                             }}>Thao tác</th>
@@ -827,8 +826,8 @@ export default function AdminRegistrations() {
                     <tbody>
                         {paginatedData.length === 0 ? (
                             <tr>
-                                <td colSpan={10} style={{ 
-                                    padding: '48px', 
+                                <td colSpan={10} style={{
+                                    padding: '48px',
                                     textAlign: 'center',
                                     borderBottom: '1px solid #e5e7eb'
                                 }}>
@@ -860,7 +859,7 @@ export default function AdminRegistrations() {
                             paginatedData.map(r => (
                                 <tr
                                     key={r.id}
-                                    style={{ 
+                                    style={{
                                         borderBottom: '1px solid #e5e7eb',
                                         background: r.paymentStatus === "PENDING" ? '#fff7ed' : 'white'
                                     }}
@@ -935,10 +934,10 @@ export default function AdminRegistrations() {
                                             borderRadius: 6,
                                             fontSize: 12,
                                             fontWeight: 600,
-                                            background: r.paymentStatus === "PAID" ? '#dcfce7' : 
-                                                       r.paymentStatus === "PENDING" ? '#fef3c7' : '#fee2e2',
-                                            color: r.paymentStatus === "PAID" ? '#166534' : 
-                                                   r.paymentStatus === "PENDING" ? '#92400e' : '#991b1b'
+                                            background: r.paymentStatus === "PAID" ? '#dcfce7' :
+                                                r.paymentStatus === "PENDING" ? '#fef3c7' : '#fee2e2',
+                                            color: r.paymentStatus === "PAID" ? '#166534' :
+                                                r.paymentStatus === "PENDING" ? '#92400e' : '#991b1b'
                                         }}>
                                             {r.paymentStatus === "PAID" && "✓ Đã thanh toán"}
                                             {r.paymentStatus === "PENDING" && "⏳ Chờ xác nhận"}
@@ -961,7 +960,7 @@ export default function AdminRegistrations() {
                                                     justifyContent: 'center'
                                                 }}
                                             >
-                                                <Eye size={16} style={{ color: '#6b7280' }} />
+                                                👁️
                                             </button>
 
                                             {r.paymentStatus === "PENDING" && (
@@ -983,7 +982,7 @@ export default function AdminRegistrations() {
                                                     {confirming === r.id ? (
                                                         <span style={{ color: 'white', fontSize: 12 }}>...</span>
                                                     ) : (
-                                                        <CheckCircle2 size={16} style={{ color: 'white' }} />
+                                                        "✅"
                                                     )}
                                                 </button>
                                             )}
@@ -1002,7 +1001,7 @@ export default function AdminRegistrations() {
                                                     justifyContent: 'center'
                                                 }}
                                             >
-                                                <Printer size={16} style={{ color: '#6b7280' }} />
+                                                🖨️
                                             </button>
                                         </div>
                                     </td>
@@ -1011,92 +1010,94 @@ export default function AdminRegistrations() {
                         )}
                     </tbody>
                 </table>
-            </div>
+            </div >
 
             {/* Pagination */}
-            {filtered.length > 0 && (
-                <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    marginTop: 24,
-                    padding: '16px 0'
-                }}>
-                    <div style={{ fontSize: 14, color: '#6b7280' }}>
-                        Hiển thị {(currentPage - 1) * pageSize + 1} -{" "}
-                        {Math.min(currentPage * pageSize, filtered.length)} trong số{" "}
-                        {filtered.length} kết quả
+            {
+                filtered.length > 0 && (
+                    <div style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        marginTop: 24,
+                        padding: '16px 0'
+                    }}>
+                        <div style={{ fontSize: 14, color: '#6b7280' }}>
+                            Hiển thị {(currentPage - 1) * pageSize + 1} -{" "}
+                            {Math.min(currentPage * pageSize, filtered.length)} trong số{" "}
+                            {filtered.length} kết quả
+                        </div>
+
+                        <div style={{ display: 'flex', gap: 8 }}>
+                            <button
+                                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                disabled={currentPage === 1}
+                                style={{
+                                    background: 'white',
+                                    border: '1px solid #e5e7eb',
+                                    borderRadius: 8,
+                                    padding: '8px 12px',
+                                    cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    opacity: currentPage === 1 ? 0.5 : 1
+                                }}
+                            >
+                                <ChevronLeft size={16} />
+                            </button>
+
+                            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                                let pageNum;
+                                if (totalPages <= 5) {
+                                    pageNum = i + 1;
+                                } else if (currentPage <= 3) {
+                                    pageNum = i + 1;
+                                } else if (currentPage >= totalPages - 2) {
+                                    pageNum = totalPages - 4 + i;
+                                } else {
+                                    pageNum = currentPage - 2 + i;
+                                }
+
+                                return (
+                                    <button
+                                        key={pageNum}
+                                        onClick={() => setCurrentPage(pageNum)}
+                                        style={{
+                                            background: currentPage === pageNum ? '#10b981' : 'white',
+                                            color: currentPage === pageNum ? 'white' : '#374151',
+                                            border: '1px solid #e5e7eb',
+                                            borderRadius: 8,
+                                            padding: '8px 12px',
+                                            cursor: 'pointer',
+                                            fontSize: 14,
+                                            fontWeight: currentPage === pageNum ? 600 : 400
+                                        }}
+                                    >
+                                        {pageNum}
+                                    </button>
+                                );
+                            })}
+
+                            <button
+                                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                disabled={currentPage === totalPages}
+                                style={{
+                                    background: 'white',
+                                    border: '1px solid #e5e7eb',
+                                    borderRadius: 8,
+                                    padding: '8px 12px',
+                                    cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    opacity: currentPage === totalPages ? 0.5 : 1
+                                }}
+                            >
+                                <ChevronRight size={16} />
+                            </button>
+                        </div>
                     </div>
-
-                    <div style={{ display: 'flex', gap: 8 }}>
-                        <button
-                            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                            disabled={currentPage === 1}
-                            style={{
-                                background: 'white',
-                                border: '1px solid #e5e7eb',
-                                borderRadius: 8,
-                                padding: '8px 12px',
-                                cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                opacity: currentPage === 1 ? 0.5 : 1
-                            }}
-                        >
-                            <ChevronLeft size={16} />
-                        </button>
-
-                        {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                            let pageNum;
-                            if (totalPages <= 5) {
-                                pageNum = i + 1;
-                            } else if (currentPage <= 3) {
-                                pageNum = i + 1;
-                            } else if (currentPage >= totalPages - 2) {
-                                pageNum = totalPages - 4 + i;
-                            } else {
-                                pageNum = currentPage - 2 + i;
-                            }
-
-                            return (
-                                <button
-                                    key={pageNum}
-                                    onClick={() => setCurrentPage(pageNum)}
-                                    style={{
-                                        background: currentPage === pageNum ? '#10b981' : 'white',
-                                        color: currentPage === pageNum ? 'white' : '#374151',
-                                        border: '1px solid #e5e7eb',
-                                        borderRadius: 8,
-                                        padding: '8px 12px',
-                                        cursor: 'pointer',
-                                        fontSize: 14,
-                                        fontWeight: currentPage === pageNum ? 600 : 400
-                                    }}
-                                >
-                                    {pageNum}
-                                </button>
-                            );
-                        })}
-
-                        <button
-                            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                            disabled={currentPage === totalPages}
-                            style={{
-                                background: 'white',
-                                border: '1px solid #e5e7eb',
-                                borderRadius: 8,
-                                padding: '8px 12px',
-                                cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                opacity: currentPage === totalPages ? 0.5 : 1
-                            }}
-                        >
-                            <ChevronRight size={16} />
-                        </button>
-                    </div>
-                </div>
-            )}
+                )
+            }
 
             <NotificationModal
                 isOpen={notification.isOpen}
@@ -1105,6 +1106,6 @@ export default function AdminRegistrations() {
                 message={notification.message}
                 type={notification.type}
             />
-        </div>
+        </div >
     );
 }
