@@ -115,6 +115,8 @@ export default function ClassCalendarPage() {
                 const weekStartStr = toDateStr(selectedWeek.startDate);
                 const weekEndStr = toDateStr(selectedWeek.endDate);
 
+                const newSchedule = {};
+
                 allSchedules.forEach(item => {
                     const itemDateStr = toDateStr(item.date);
 

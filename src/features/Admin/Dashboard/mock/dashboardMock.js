@@ -47,22 +47,27 @@ export const overviewStatCardsRow2 = [
  */
 export const detailedReports = [
   {
+    id: "users",
     title: "Báo cáo người dùng",
     description: "Danh sách user, role, thời gian đăng ký",
   },
   {
+    id: "courses",
     title: "Báo cáo khóa học",
     description: "Số lượng khóa, học viên, % hoàn thành",
   },
   {
+    id: "progress",
     title: "Báo cáo tiến độ học viên",
     description: "Điểm, tiến độ từng user theo khóa",
   },
   {
+    id: "quizzes",
     title: "Báo cáo bài thi/quiz",
     description: "Kết quả chi tiết, điểm TB, tỉ lệ pass/fail",
   },
   {
+    id: "revenue",
     title: "Báo cáo doanh thu",
     description: "Doanh thu, đơn đăng ký, top khóa học",
   },

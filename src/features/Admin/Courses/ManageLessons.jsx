@@ -32,7 +32,8 @@ export default function ManageLessons() {
           setCourse(res.data?.data || res.data);
         } else if (courseSlug) {
           const res = await courseService.getCourses();
-          const c = res.data.find((c) => slugify(c.title) === courseSlug);
+          const list = Array.isArray(res.data) ? res.data : res.data?.data || res.data?.courses || [];
+          const c = list.find((c) => slugify(c.title) === courseSlug);
           setCourse(c);
         }
       } catch (err) {
