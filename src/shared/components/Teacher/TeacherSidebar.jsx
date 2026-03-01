@@ -45,8 +45,6 @@ export default function TeacherSidebar({ isOpen, onClose }) {
                 {/* Header */}
                 <div className="teacher-sidebar-header">
                     <img src="/logo.png" alt="Logo" className="teacher-sidebar-logo" />
-                    <h2 className="teacher-sidebar-title" style={{ flex: 1, margin: 0 }}>Teacher Portal</h2>
-                    <NotificationDropdown />
                 </div>
 
                 {/* Menu */}

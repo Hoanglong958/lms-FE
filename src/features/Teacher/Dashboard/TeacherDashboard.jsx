@@ -1,6 +1,7 @@
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { BookOpen, Users, ClipboardCheck, Newspaper, GraduationCap } from "lucide-react";
 import { classService } from "@utils/classService";
+import { notificationService } from "@utils/notificationService";
 import "./TeacherDashboard.css";
 import { useNavigate } from "react-router-dom";
 
@@ -8,6 +9,7 @@ export default function TeacherDashboard() {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
     const [classes, setClasses] = useState([]);
+    const [notifications, setNotifications] = useState([]);
     const [stats, setStats] = useState([
         {
             title: "Lớp học đang dạy",
@@ -39,6 +41,19 @@ export default function TeacherDashboard() {
         }
     ]);
 
+    const formatTime = (dateString) => {
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffInSeconds = Math.floor((now - date) / 1000);
+
+        if (diffInSeconds < 60) return "Vừa xong";
+        if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} phút trước`;
+        if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} giờ trước`;
+        if (diffInSeconds < 2592000) return `${Math.floor(diffInSeconds / 86400)} ngày trước`;
+
+        return date.toLocaleDateString('vi-VN');
+    };
+
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -58,6 +73,14 @@ export default function TeacherDashboard() {
                     prev[2], // Keep Exams placeholder for now
                     prev[3]  // Keep Posts placeholder for now
                 ]);
+
+                // 4. Fetch Notifications
+                try {
+                    const notiRes = await notificationService.getUserNotifications(0, 5);
+                    setNotifications(notiRes.content || []);
+                } catch (notiError) {
+                    console.error("Failed to fetch notifications:", notiError);
+                }
 
             } catch (error) {
                 console.error("Failed to fetch teacher dashboard data:", error);
@@ -134,11 +157,27 @@ export default function TeacherDashboard() {
                     </div>
                     <div className="card-body">
                         <ul className="notification-list">
-                            <li>
-                                <span className="dot"></span>
-                                <p><strong>Hệ thống</strong>: Tính năng quản lý lớp học cho giảng viên đã được cập nhật.</p>
-                                <span className="time">Vừa xong</span>
-                            </li>
+                            {notifications.length > 0 ? (
+                                notifications.map(notif => (
+                                    <li
+                                        key={notif.id}
+                                        className={!notif.isRead ? 'unread' : ''}
+                                        style={{ cursor: notif.referenceUrl ? 'pointer' : 'default' }}
+                                        onClick={() => {
+                                            if (notif.referenceUrl) navigate(notif.referenceUrl);
+                                        }}
+                                    >
+                                        <span className="dot" style={{ backgroundColor: notif.isRead ? '#d1d5db' : '#3b82f6' }}></span>
+                                        <p><strong>{notif.title || 'Hệ thống'}</strong>: {notif.message}</p>
+                                        <span className="time">{formatTime(notif.createdAt)}</span>
+                                    </li>
+                                ))
+                            ) : (
+                                <li>
+                                    <span className="dot" style={{ visibility: 'hidden' }}></span>
+                                    <p style={{ color: '#6b7280' }}>Không có thông báo mới.</p>
+                                </li>
+                            )}
                         </ul>
                     </div>
                 </div>
