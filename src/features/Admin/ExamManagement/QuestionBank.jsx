@@ -105,35 +105,35 @@ export default function QuestionBank() {
   });
 
   const fetchStats = async () => {
-    try {
-      const res = await questionService.getAll();
-      const data = res?.data ?? res;
-      const content = data?.content || [];
+  try {
+    // Lấy tất cả để đếm stats - dùng size lớn
+    const res = await questionService.getPage({ page: 0, size: 9999, keyword: "", category: "" });
+    const data = res?.data ?? res;
+    const content = data?.content || [];
 
-      let mcCount = 0;
-      let essayCount = 0;
-      const uniqueCats = new Set();
+    let mcCount = 0;
+    let essayCount = 0;
+    const uniqueCats = new Set();
 
-      content.forEach(q => {
-        const isMC = Array.isArray(q?.options) && q.options.length > 0;
-        if (isMC) mcCount++;
-        else essayCount++;
+    content.forEach(q => {
+      const isMC = Array.isArray(q?.options) && q.options.length > 0;
+      if (isMC) mcCount++;
+      else essayCount++;
 
-        const cat = q?.course || q?.category;
-        if (cat) uniqueCats.add(cat);
-      });
+      const cat = q?.course || q?.category;
+      if (cat) uniqueCats.add(cat);
+    });
 
-      setStats({
-        total: data?.totalElements || content.length,
-        categories: uniqueCats.size,
-        multipleChoice: mcCount,
-        essay: essayCount
-      });
-
-    } catch (e) {
-      console.error("Failed to fetch stats", e);
-    }
-  };
+    setStats({
+      total: data?.totalElements || content.length,
+      categories: uniqueCats.size,
+      multipleChoice: mcCount,
+      essay: essayCount
+    });
+  } catch (e) {
+    console.error("Failed to fetch stats", e);
+  }
+};
 
   useEffect(() => {
     fetchStats();

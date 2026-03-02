@@ -302,18 +302,44 @@ export default function ClassManagement() {
       // Assuming 'assign' adds/updates the role.
       if (payload.teacherId) {
         try {
+          const normalizedTeacherId = parseInt(payload.teacherId);
+          if (Number.isNaN(normalizedTeacherId)) {
+            console.warn("Skip assign teacher: invalid teacherId", payload.teacherId);
+            throw new Error("invalid-teacher-id");
+          }
+
+          let alreadyAssigned = false;
+          try {
+            const existingRes = await classTeacherService.getClassTeachers(id);
+            let existing = [];
+            if (existingRes.data?.data && Array.isArray(existingRes.data.data)) existing = existingRes.data.data;
+            else if (Array.isArray(existingRes.data)) existing = existingRes.data;
+            alreadyAssigned = existing.some(t => String(t.teacherId) === String(normalizedTeacherId));
+          } catch (checkErr) {
+            console.warn("Failed to check existing teachers before assign", checkErr);
+          }
+
+          if (alreadyAssigned) {
+            console.log("Teacher already assigned, skip re-assign:", normalizedTeacherId);
+            throw new Error("already-assigned");
+          }
+
           const assignPayload = {
             classId: parseInt(id),
-            teacherId: parseInt(payload.teacherId),
+            teacherId: normalizedTeacherId,
             role: "INSTRUCTOR",
             note: "Updated from Class Management"
           };
           console.log("Assigning teacher:", assignPayload);
           await classTeacherService.assignTeacherToClass(assignPayload);
         } catch (teacherErr) {
-          console.error("Failed to assign teacher. Payload:", payload, "Error:", teacherErr);
-          const msg = teacherErr.response?.data?.message || teacherErr.message;
-          alert("Lớp đã cập nhật, nhưng lỗi khi phân công giảng viên Relational: " + msg);
+          if (teacherErr?.message === "already-assigned" || teacherErr?.message === "invalid-teacher-id") {
+            // Skip noisy alerts for non-critical cases
+          } else {
+            console.error("Failed to assign teacher. Payload:", payload, "Error:", teacherErr);
+            const msg = teacherErr.response?.data?.message || teacherErr.message;
+            alert("Lớp đã cập nhật, nhưng lỗi khi phân công giảng viên Relational: " + msg);
+          }
         }
       }
 
