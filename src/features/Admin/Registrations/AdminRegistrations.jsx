@@ -239,13 +239,13 @@ export default function AdminRegistrations() {
                         <div style={{
                             width: 48,
                             height: 48,
-                            background: 'linear-gradient(135deg, #10b981, #059669)',
+                            background: 'linear-gradient(135deg, #f97316, #ea580c)',
                             borderRadius: 12,
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
                             color: 'white',
-                            boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
+                            boxShadow: '0 4px 12px rgba(249, 115, 22, 0.3)',
                             flexShrink: 0
                         }}>
                             <Banknote size={24} />
@@ -270,13 +270,13 @@ export default function AdminRegistrations() {
                     <div style={{
                         width: 48,
                         height: 48,
-                        background: 'linear-gradient(135deg, #10b981, #059669)',
+                        background: 'linear-gradient(135deg, #f97316, #ea580c)',
                         borderRadius: 12,
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         color: 'white',
-                        boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
+                        boxShadow: '0 4px 12px rgba(249, 115, 22, 0.3)',
                         flexShrink: 0
                     }}>
                         <Banknote size={24} />
@@ -305,7 +305,7 @@ export default function AdminRegistrations() {
                         onClick={fetchAll}
                         style={{
                             background: 'white',
-                            color: '#10b981',
+                            color: '#f97316',
                             border: '1px solid #e5e7eb',
                             padding: '10px 20px',
                             borderRadius: 8,
@@ -318,8 +318,8 @@ export default function AdminRegistrations() {
                             transition: 'all 0.2s'
                         }}
                         onMouseEnter={(e) => {
-                            e.currentTarget.style.background = '#f0fdf4';
-                            e.currentTarget.style.borderColor = '#86efac';
+                            e.currentTarget.style.background = '#f97316';
+                            e.currentTarget.style.borderColor = '#ea580c';
                         }}
                         onMouseLeave={(e) => {
                             e.currentTarget.style.background = 'white';
@@ -332,7 +332,7 @@ export default function AdminRegistrations() {
                     <button
                         onClick={handleExportExcel}
                         style={{
-                            background: '#10b981',
+                            background: '#f97316',
                             color: 'white',
                             border: 'none',
                             padding: '10px 20px',
@@ -347,11 +347,11 @@ export default function AdminRegistrations() {
                             transition: 'all 0.2s'
                         }}
                         onMouseEnter={(e) => {
-                            e.currentTarget.style.background = '#059669';
-                            e.currentTarget.style.boxShadow = '0 4px 8px rgba(16, 185, 129, 0.3)';
+                            e.currentTarget.style.background = '#ea580c';
+                            e.currentTarget.style.boxShadow = '0 4px 8px rgba(249, 115, 22, 0.3)';
                         }}
                         onMouseLeave={(e) => {
-                            e.currentTarget.style.background = '#10b981';
+                            e.currentTarget.style.background = '#f97316';
                             e.currentTarget.style.boxShadow = '0 2px 4px rgba(16, 185, 129, 0.2)';
                         }}
                     >
@@ -403,8 +403,8 @@ export default function AdminRegistrations() {
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        background: '#f0fdf4',
-                        color: '#10b981'
+                        background: '#f97316',
+                        color: '#ffffffff'
                     }}>
                         <Users size={20} />
                     </div>
@@ -487,8 +487,8 @@ export default function AdminRegistrations() {
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        background: '#dcfce7',
-                        color: '#16a34a'
+                        background: '#f97316',
+                        color: '#ffffffff'
                     }}>
                         <CheckCircle2 size={20} />
                     </div>
@@ -557,8 +557,8 @@ export default function AdminRegistrations() {
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        background: '#f0fdf4',
-                        color: '#10b981'
+                        background: '#f97316',
+                        color: '#ffffffff'
                     }}>
                         <Banknote size={20} />
                     </div>
@@ -653,7 +653,7 @@ export default function AdminRegistrations() {
                         <button
                             onClick={handleBulkConfirm}
                             style={{
-                                background: '#10b981',
+                                background: '#f97316',
                                 color: 'white',
                                 border: 'none',
                                 padding: '8px 16px',
@@ -692,7 +692,8 @@ export default function AdminRegistrations() {
                                 color: '#6b7280',
                                 textTransform: 'uppercase',
                                 letterSpacing: 0.5,
-                                borderBottom: '1px solid #e5e7eb'
+                                borderBottom: '1px solid #e5e7eb',
+                                width: 40
                             }}>
                                 <input
                                     type="checkbox"
@@ -701,6 +702,8 @@ export default function AdminRegistrations() {
                                     style={{ cursor: 'pointer' }}
                                 />
                             </th>
+
+                            {/* ✅ Fix: bỏ display:flex khỏi th, đưa vào div bên trong */}
                             <th style={{
                                 padding: '12px 16px',
                                 textAlign: 'left',
@@ -711,12 +714,13 @@ export default function AdminRegistrations() {
                                 letterSpacing: 0.5,
                                 borderBottom: '1px solid #e5e7eb',
                                 cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 4
+                                width: 60
                             }} onClick={() => handleSort("id")}>
-                                ID <ArrowUpDown size={14} />
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                                    ID <ArrowUpDown size={14} />
+                                </div>
                             </th>
+
                             <th style={{
                                 padding: '12px 16px',
                                 textAlign: 'left',
@@ -727,12 +731,13 @@ export default function AdminRegistrations() {
                                 letterSpacing: 0.5,
                                 borderBottom: '1px solid #e5e7eb',
                                 cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 4
+                                minWidth: 200
                             }} onClick={() => handleSort("studentName")}>
-                                Sinh viên <ArrowUpDown size={14} />
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                                    Sinh viên <ArrowUpDown size={14} />
+                                </div>
                             </th>
+
                             <th style={{
                                 padding: '12px 16px',
                                 textAlign: 'left',
@@ -741,8 +746,10 @@ export default function AdminRegistrations() {
                                 color: '#6b7280',
                                 textTransform: 'uppercase',
                                 letterSpacing: 0.5,
-                                borderBottom: '1px solid #e5e7eb'
+                                borderBottom: '1px solid #e5e7eb',
+                                minWidth: 160
                             }}>Khóa học</th>
+
                             <th style={{
                                 padding: '12px 16px',
                                 textAlign: 'left',
@@ -753,12 +760,13 @@ export default function AdminRegistrations() {
                                 letterSpacing: 0.5,
                                 borderBottom: '1px solid #e5e7eb',
                                 cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 4
+                                width: 120
                             }} onClick={() => handleSort("amount")}>
-                                Học phí <ArrowUpDown size={14} />
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                                    Học phí <ArrowUpDown size={14} />
+                                </div>
                             </th>
+
                             <th style={{
                                 padding: '12px 16px',
                                 textAlign: 'left',
@@ -767,8 +775,10 @@ export default function AdminRegistrations() {
                                 color: '#6b7280',
                                 textTransform: 'uppercase',
                                 letterSpacing: 0.5,
-                                borderBottom: '1px solid #e5e7eb'
+                                borderBottom: '1px solid #e5e7eb',
+                                width: 140
                             }}>Mã chuyển khoản</th>
+
                             <th style={{
                                 padding: '12px 16px',
                                 textAlign: 'left',
@@ -779,12 +789,13 @@ export default function AdminRegistrations() {
                                 letterSpacing: 0.5,
                                 borderBottom: '1px solid #e5e7eb',
                                 cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 4
+                                width: 150
                             }} onClick={() => handleSort("registrationDate")}>
-                                Ngày ĐK <ArrowUpDown size={14} />
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                                    Ngày ĐK <ArrowUpDown size={14} />
+                                </div>
                             </th>
+
                             <th style={{
                                 padding: '12px 16px',
                                 textAlign: 'left',
@@ -795,12 +806,13 @@ export default function AdminRegistrations() {
                                 letterSpacing: 0.5,
                                 borderBottom: '1px solid #e5e7eb',
                                 cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 4
+                                width: 150
                             }} onClick={() => handleSort("paymentDate")}>
-                                Ngày nộp <ArrowUpDown size={14} />
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                                    Ngày nộp <ArrowUpDown size={14} />
+                                </div>
                             </th>
+
                             <th style={{
                                 padding: '12px 16px',
                                 textAlign: 'left',
@@ -809,8 +821,10 @@ export default function AdminRegistrations() {
                                 color: '#6b7280',
                                 textTransform: 'uppercase',
                                 letterSpacing: 0.5,
-                                borderBottom: '1px solid #e5e7eb'
+                                borderBottom: '1px solid #e5e7eb',
+                                width: 140
                             }}>Trạng thái</th>
+
                             <th style={{
                                 padding: '12px 16px',
                                 textAlign: 'left',
@@ -819,7 +833,8 @@ export default function AdminRegistrations() {
                                 color: '#6b7280',
                                 textTransform: 'uppercase',
                                 letterSpacing: 0.5,
-                                borderBottom: '1px solid #e5e7eb'
+                                borderBottom: '1px solid #e5e7eb',
+                                width: 120
                             }}>Thao tác</th>
                         </tr>
                     </thead>
@@ -840,7 +855,7 @@ export default function AdminRegistrations() {
                                                 setFilter("ALL");
                                             }}
                                             style={{
-                                                background: '#10b981',
+                                                background: '#f97316',
                                                 color: 'white',
                                                 border: 'none',
                                                 padding: '8px 16px',
@@ -860,9 +875,12 @@ export default function AdminRegistrations() {
                                 <tr
                                     key={r.id}
                                     style={{
-                                        borderBottom: '1px solid #e5e7eb',
-                                        background: r.paymentStatus === "PENDING" ? '#fff7ed' : 'white'
+                                        borderBottom: '1px solid #f3f4f6',
+                                        background: r.paymentStatus === "PENDING" ? '#fffbeb' : 'white',
+                                        transition: 'background 0.15s'
                                     }}
+                                    onMouseEnter={e => e.currentTarget.style.background = r.paymentStatus === "PENDING" ? '#fef3c7' : '#f9fafb'}
+                                    onMouseLeave={e => e.currentTarget.style.background = r.paymentStatus === "PENDING" ? '#fffbeb' : 'white'}
                                 >
                                     <td style={{ padding: '12px 16px' }}>
                                         <input
@@ -873,91 +891,111 @@ export default function AdminRegistrations() {
                                             style={{ cursor: 'pointer' }}
                                         />
                                     </td>
-                                    <td style={{ padding: '12px 16px', fontSize: 14, color: '#111827' }}>#{r.id}</td>
+
+                                    <td style={{ padding: '12px 16px', fontSize: 13, color: '#9ca3af', fontWeight: 500 }}>
+                                        #{r.id}
+                                    </td>
+
                                     <td style={{ padding: '12px 16px' }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                                             <div style={{
-                                                width: 32,
-                                                height: 32,
+                                                width: 34,
+                                                height: 34,
                                                 borderRadius: '50%',
-                                                background: '#f3f4f6',
+                                                background: 'linear-gradient(135deg, #f97316, #ea580c)',
                                                 display: 'flex',
                                                 alignItems: 'center',
                                                 justifyContent: 'center',
-                                                fontSize: 12,
-                                                fontWeight: 600,
-                                                color: '#6b7280'
+                                                fontSize: 13,
+                                                fontWeight: 700,
+                                                color: 'white',
+                                                flexShrink: 0
                                             }}>
                                                 {(r.studentName || "U").charAt(0).toUpperCase()}
                                             </div>
                                             <div>
-                                                <div style={{ fontSize: 14, fontWeight: 600, color: '#111827', marginBottom: 2 }}>
+                                                <div style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>
                                                     {r.studentName}
                                                 </div>
-                                                <div style={{ display: 'flex', gap: 12, fontSize: 12, color: '#6b7280' }}>
-                                                    <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                                                        <Mail size={12} /> {r.studentEmail}
-                                                    </span>
-                                                    <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                                                        <Phone size={12} /> {r.studentPhone}
-                                                    </span>
+                                                <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 2 }}>
+                                                    {r.studentEmail}
                                                 </div>
                                             </div>
                                         </div>
                                     </td>
-                                    <td style={{ padding: '12px 16px', fontSize: 14, color: '#111827' }}>
-                                        <span title={r.courseTitle}>
+
+                                    <td style={{ padding: '12px 16px', fontSize: 14, color: '#374151', maxWidth: 180 }}>
+                                        <span title={r.courseTitle} style={{
+                                            display: 'block',
+                                            overflow: 'hidden',
+                                            textOverflow: 'ellipsis',
+                                            whiteSpace: 'nowrap'
+                                        }}>
                                             {r.courseTitle}
                                         </span>
                                     </td>
-                                    <td style={{ padding: '12px 16px', fontSize: 14, fontWeight: 600, color: '#111827' }}>
+
+                                    <td style={{ padding: '12px 16px', fontSize: 14, fontWeight: 700, color: '#ea580c' }}>
                                         {formatAmount(r.amount)}
                                     </td>
+
                                     <td style={{ padding: '12px 16px' }}>
                                         <code style={{
                                             background: '#f3f4f6',
-                                            padding: '2px 6px',
-                                            borderRadius: 4,
+                                            padding: '3px 8px',
+                                            borderRadius: 5,
                                             fontSize: 12,
-                                            color: '#374151'
+                                            color: '#374151',
+                                            fontFamily: 'monospace',
+                                            letterSpacing: 0.5
                                         }}>{r.transferRef || "—"}</code>
                                     </td>
-                                    <td style={{ padding: '12px 16px', fontSize: 14, color: '#6b7280' }}>
+
+                                    <td style={{ padding: '12px 16px', fontSize: 13, color: '#6b7280' }}>
                                         {formatDate(r.registrationDate)}
                                     </td>
-                                    <td style={{ padding: '12px 16px', fontSize: 14, color: '#6b7280' }}>
+
+                                    <td style={{ padding: '12px 16px', fontSize: 13, color: '#6b7280' }}>
                                         {formatDate(r.paymentDate)}
                                     </td>
+
                                     <td style={{ padding: '12px 16px' }}>
                                         <span style={{
-                                            padding: '4px 8px',
-                                            borderRadius: 6,
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            gap: 4,
+                                            padding: '4px 10px',
+                                            borderRadius: 20,
                                             fontSize: 12,
                                             fontWeight: 600,
-                                            background: r.paymentStatus === "PAID" ? '#dcfce7' :
+                                            whiteSpace: 'nowrap',
+                                            background: r.paymentStatus === "PAID" ? '#f97316' :
                                                 r.paymentStatus === "PENDING" ? '#fef3c7' : '#fee2e2',
-                                            color: r.paymentStatus === "PAID" ? '#166534' :
-                                                r.paymentStatus === "PENDING" ? '#92400e' : '#991b1b'
+                                            color: r.paymentStatus === "PAID" ? '#ffffff' :
+                                                r.paymentStatus === "PENDING" ? '#ffffff' : '#991b1b'
                                         }}>
                                             {r.paymentStatus === "PAID" && "✓ Đã thanh toán"}
                                             {r.paymentStatus === "PENDING" && "⏳ Chờ xác nhận"}
                                             {r.paymentStatus === "CANCELLED" && "✗ Đã hủy"}
                                         </span>
                                     </td>
+
                                     <td style={{ padding: '12px 16px' }}>
-                                        <div style={{ display: 'flex', gap: 8 }}>
+                                        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                                             <button
                                                 onClick={() => {/* Xem chi tiết */ }}
                                                 title="Xem chi tiết"
                                                 style={{
-                                                    background: 'white',
-                                                    border: '1px solid #e5e7eb',
+                                                    background: '#f1f5f9',
+                                                    border: 'none',
                                                     borderRadius: 6,
-                                                    padding: '6px',
+                                                    width: 30,
+                                                    height: 30,
                                                     cursor: 'pointer',
                                                     display: 'flex',
                                                     alignItems: 'center',
-                                                    justifyContent: 'center'
+                                                    justifyContent: 'center',
+                                                    fontSize: 14
                                                 }}
                                             >
                                                 👁️
@@ -969,21 +1007,21 @@ export default function AdminRegistrations() {
                                                     disabled={confirming === r.id}
                                                     title="Xác nhận thanh toán"
                                                     style={{
-                                                        background: confirming === r.id ? '#9ca3af' : '#10b981',
+                                                        background: confirming === r.id ? '#f97316' : '#f97316',
                                                         border: 'none',
                                                         borderRadius: 6,
-                                                        padding: '6px',
+                                                        width: 30,
+                                                        height: 30,
                                                         cursor: confirming === r.id ? 'not-allowed' : 'pointer',
                                                         display: 'flex',
                                                         alignItems: 'center',
-                                                        justifyContent: 'center'
+                                                        justifyContent: 'center',
+                                                        fontSize: 14
                                                     }}
                                                 >
                                                     {confirming === r.id ? (
-                                                        <span style={{ color: 'white', fontSize: 12 }}>...</span>
-                                                    ) : (
-                                                        "✅"
-                                                    )}
+                                                        <span style={{ color: '#ea580c', fontSize: 11, fontWeight: 700 }}>...</span>
+                                                    ) : "✅"}
                                                 </button>
                                             )}
 
@@ -991,14 +1029,16 @@ export default function AdminRegistrations() {
                                                 onClick={() => handlePrintInvoice(r.id)}
                                                 title="In hóa đơn"
                                                 style={{
-                                                    background: 'white',
-                                                    border: '1px solid #e5e7eb',
+                                                    background: '#f1f5f9',
+                                                    border: 'none',
                                                     borderRadius: 6,
-                                                    padding: '6px',
+                                                    width: 30,
+                                                    height: 30,
                                                     cursor: 'pointer',
                                                     display: 'flex',
                                                     alignItems: 'center',
-                                                    justifyContent: 'center'
+                                                    justifyContent: 'center',
+                                                    fontSize: 14
                                                 }}
                                             >
                                                 🖨️
@@ -1063,7 +1103,7 @@ export default function AdminRegistrations() {
                                         key={pageNum}
                                         onClick={() => setCurrentPage(pageNum)}
                                         style={{
-                                            background: currentPage === pageNum ? '#10b981' : 'white',
+                                            background: currentPage === pageNum ? '#f97316' : 'white',
                                             color: currentPage === pageNum ? 'white' : '#374151',
                                             border: '1px solid #e5e7eb',
                                             borderRadius: 8,

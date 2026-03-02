@@ -230,7 +230,7 @@ export default function UserManagement({ currentUserRole = "admin" }) {
 							alignItems: 'center',
 							justifyContent: 'center',
 							color: 'white',
-							boxShadow: '0 4px 12px rgba(37, 99, 235, 0.3)',
+							boxShadow: '0 4px 12px rgba(249, 115, 22, 0.3)',
 							flexShrink: 0
 						}}
 					>
@@ -268,6 +268,14 @@ export default function UserManagement({ currentUserRole = "admin" }) {
 					type="button"
 					style={styles.primaryButton}
 					onClick={() => setIsAddOpen(true)}
+					onMouseEnter={(e) => {
+						e.currentTarget.style.background = '#ea580c';
+						e.currentTarget.style.boxShadow = '0 4px 8px rgba(249, 115, 22, 0.3)';
+					}}
+					onMouseLeave={(e) => {
+						e.currentTarget.style.background = '#f97316';
+						e.currentTarget.style.boxShadow = '0 2px 4px rgba(249, 115, 22, 0.2)';
+					}}
 				>
 					<span style={styles.plusIcon}>+</span> Thêm người dùng
 				</button>
@@ -733,7 +741,7 @@ const styles = {
 		display: "flex",
 		alignItems: "center",
 		justifyContent: "space-between",
-		marginBottom: 16
+		marginBottom: 32
 	},
 	title: {
 		fontSize: 28,
@@ -747,14 +755,19 @@ const styles = {
 		fontSize: 14
 	},
 	primaryButton: {
-		background: "#ef6c00",
+		background: "#f97316",
 		color: "#fff",
 		border: "none",
-		padding: "10px 16px",
-		borderRadius: 10,
+		padding: "10px 20px",
+		borderRadius: 8,
 		fontWeight: 600,
+		fontSize: 14,
 		cursor: "pointer",
-		boxShadow: "0 2px 8px rgba(239,108,0,0.25)"
+		display: "flex",
+		alignItems: "center",
+		gap: 8,
+		boxShadow: "0 2px 4px rgba(249, 115, 22, 0.2)",
+		transition: "all 0.2s"
 	},
 	secondaryButton: {
 		background: "#ffffff",
