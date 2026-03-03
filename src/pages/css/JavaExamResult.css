@@ -1,0 +1,27 @@
+.jexr-container { max-width: 840px; margin: 40px auto; padding: 0 16px; }
+.jexr-title { font-size: 24px; font-weight: 700; color: #0f172a; }
+.jexr-card { margin-top: 16px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 20px; box-shadow: 0 8px 20px rgba(15,23,42,0.06); }
+.jexr-header { display: flex; align-items: center; gap: 16px; }
+.jexr-badge { min-width: 72px; text-align: center; padding: 10px 12px; border-radius: 12px; color: #ffffff; font-weight: 700; font-size: 18px; }
+.jexr-badge.success { background: #16a34a; }
+.jexr-badge.danger { background: #ef4444; }
+.jexr-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; flex: 1; }
+.jexr-score, .jexr-date { display: grid; row-gap: 4px; }
+.jexr-score-label, .jexr-date-label { color: #64748b; font-size: 13px; font-weight: 600; }
+.jexr-score-value, .jexr-date-value { color: #0f172a; font-size: 16px; font-weight: 700; }
+.jexr-progress { margin-top: 16px; background: #f1f5f9; border-radius: 10px; height: 12px; overflow: hidden; }
+.jexr-progress-bar { height: 100%; background: linear-gradient(90deg, #f97316, #fb923c); border-radius: 10px; transition: width .3s ease; }
+.jexr-stats { margin-top: 16px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.jexr-stat { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; display: grid; row-gap: 6px; }
+.jexr-stat-label { color: #64748b; font-size: 12px; font-weight: 600; text-transform: uppercase; }
+.jexr-stat-value { color: #0f172a; font-size: 18px; font-weight: 700; }
+.jexr-actions { margin-top: 20px; display: flex; align-items: center; gap: 12px; }
+.jexr-btn { padding: 10px 14px; border-radius: 10px; border: 1px solid #e2e8f0; background: #ffffff; cursor: pointer; font-weight: 600; }
+.jexr-btn:hover { background: #f8fafc; }
+.jexr-note { color: #64748b; font-size: 13px; }
+.jexr-desc { color: #334155; margin-bottom: 12px; }
+
+@media (max-width: 640px) {
+  .jexr-summary { grid-template-columns: 1fr; }
+  .jexr-stats { grid-template-columns: 1fr; }
+}

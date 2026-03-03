@@ -27,7 +27,7 @@ export default function LayoutFooter() {
 
         {/* Title */}
         <h2 className="footer-title">
-          RIKKEI ACADEMY - HỌC VIỆN ĐÀO TẠO PHÁT TRIỂN TIẾNG NHẬT THỰC CHIẾN
+          LMS ACADEMY - HỌC VIỆN ĐÀO TẠO THỰC CHIẾN GIỎI NHẤT THẾ GIỚI
         </h2>
 
         {/* Divider */}
@@ -59,7 +59,7 @@ export default function LayoutFooter() {
             <img src={mailIcon} alt="Email" className="contact-icon" />
             <p className="contact-detail-inline">
               <span className="contact-label">Email:</span>
-              <span className="contact-value">support@mankai.edu.vn</span>
+              <span className="contact-value">support@lms.edu.vn</span>
             </p>
           </div>
         </div>
@@ -69,10 +69,18 @@ export default function LayoutFooter() {
           <h3 className="footer-heading">THEO DÕI CHÚNG TÔI TẠI</h3>
           <div className="social-icons">
             <div className="social-icon">
-              <img src={facebookIcon} alt="Facebook" />
+              <a href="https://www.facebook.com/reel/1376240206860384" target="_blank" rel="noopener noreferrer">
+                <img src={facebookIcon} alt="Facebook" />
+              </a>
             </div>
             <div className="social-icon">
-              <img src={youtubeIcon} alt="YouTube" />
+              <a
+                href="https://youtu.be/dQw4w9WgXcQ?si=N3eNOxQg-NBFLHmj"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <img src={youtubeIcon} alt="YouTube" />
+              </a>
             </div>
           </div>
         </div>
@@ -92,7 +100,7 @@ export default function LayoutFooter() {
 
           <div className="footer-quote-2">
             <p className="quote-text-2">
-              Anh Nguyễn Viết Lâm – CEO Rikkei Academy
+              Anh Nguyễn Viết Lâm – CEO LMS Academy
             </p>
           </div>
         </div>
@@ -104,7 +112,7 @@ export default function LayoutFooter() {
           <img src={copyrightIcon} alt="Copyright" />
         </div>
         <p className="footer-copyright-text">
-          2024 By Rikkei Academy - Rikkei Education - All rights reserved.
+          2026 By LMS Academy - Rikkei Education - All rights reserved.
         </p>
       </div>
     </footer>

@@ -1,0 +1,205 @@
+.quiz-exam-wrapper {
+  display: flex;
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  gap: 20px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+} /* MAIN CONTENT */
+.quiz-exam-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+} /* TIMER + QUESTION NUMBER */
+.quiz-timer-container {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.quiz-timer {
+  font-size: 16px;
+  font-weight: 600;
+  color: #ff6b00;
+}
+.quiz-question-number {
+  font-size: 15px;
+  color: #333;
+  font-weight: 500;
+}
+.quiz-question-title {
+  font-size: 22px;
+  font-weight: 600;
+  color: #222;
+  margin: 14px 0;
+}
+.quiz-options-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.quiz-option {
+  padding: 12px 16px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  cursor: pointer;
+  background-color: #f9f9f9;
+  transition: all 0.25s ease;
+}
+.quiz-option:hover {
+  background-color: #fff7ef;
+  border-color: #ff6b00;
+}
+.quiz-option.selected {
+  border-color: #4caf50;
+  background-color: rgba(76, 175, 80, 0.1);
+}
+.quiz-option.selected.incorrect {
+  border-color: #ff5252;
+  background-color: rgba(255, 82, 82, 0.1);
+}
+.quiz-next-button {
+  margin-top: 20px;
+  width: 180px;
+  padding: 12px 0;
+  background-color: #ff6b00;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+.quiz-next-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.quiz-next-button:hover:enabled {
+  background-color: #e05f00;
+} /* ===== SIDEBAR ===== */
+.quiz-sidebar {
+  width: 260px;
+  flex-shrink: 0;
+  border: 1px solid #eee;
+  border-radius: 10px;
+  padding: 20px;
+  background-color: #fff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.quiz-sidebar h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+.quiz-sidebar ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.quiz-sidebar li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.quiz-sidebar li:hover {
+  background-color: #f5f5f5;
+}
+.quiz-sidebar li.completed {
+  background-color: rgba(76, 175, 80, 0.1);
+  border-left: 4px solid #4caf50;
+}
+.quiz-sidebar li.incorrect {
+  background-color: rgba(255, 82, 82, 0.1);
+  border-left: 4px solid #ff5252;
+}
+.quiz-sidebar li.current {
+  background-color: rgba(255, 107, 0, 0.1);
+  border-left: 4px solid #ff6b00;
+}
+.quiz-sidebar {
+  width: 200px;
+  margin-left: 30px;
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  padding: 16px;
+}
+.quiz-sidebar h3 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+.quiz-sidebar ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.quiz-sidebar li {
+  padding: 8px 12px;
+  margin-bottom: 6px;
+  border-radius: 6px;
+  cursor: pointer;
+  text-align: center;
+  background-color: #f5f5f5;
+  transition: all 0.2s;
+}
+.quiz-sidebar li.current {
+  background-color: #ff6b00;
+  color: #fff;
+  font-weight: 600;
+}
+.quiz-sidebar li.selected:not(.current) {
+  background-color: #ffe6cc;
+  color: #333;
+}
+
+/* ===== KẾT QUẢ QUIZ ===== */
+.quiz-exam-main.quiz-result {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 20px;
+  padding: 40px 20px;
+  width: 100%;
+  background-color: #fdfdfd;
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+}
+
+.quiz-exam-main.quiz-result h2 {
+  font-size: 28px;
+  font-weight: 700;
+  color: #ff6b00;
+  margin-bottom: 12px;
+}
+
+.quiz-exam-main.quiz-result p {
+  font-size: 18px;
+  color: #333;
+  margin-bottom: 24px;
+}
+
+.quiz-exam-main.quiz-result button {
+  padding: 12px 24px;
+  background-color: #ff6b00;
+  color: #fff;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.quiz-exam-main.quiz-result button:hover {
+  background-color: #e05f00;
+  box-shadow: 0 4px 12px rgba(224, 95, 0, 0.3);
+}
