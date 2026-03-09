@@ -100,6 +100,16 @@ export default function PostManagement() {
         );
     };
 
+    const columnStyles = {
+        id: { width: 88, minWidth: 88 },
+        info: { width: 320, minWidth: 320 },
+        author: { width: 180, minWidth: 180 },
+        tags: { width: 180, minWidth: 180 },
+        status: { width: 120, minWidth: 120 },
+        createdAt: { width: 140, minWidth: 140 },
+        actions: { width: 120, minWidth: 120 }
+    };
+
     return (
         <div style={{
             fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
@@ -468,11 +478,11 @@ export default function PostManagement() {
             <section style={{
                 background: 'white',
                 borderRadius: 12,
-                overflow: 'hidden',
                 border: '1px solid #e5e7eb',
                 boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)'
             }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
+                <div style={{ overflowX: 'auto' }}>
+                    <table style={{ width: '100%', minWidth: 1148, borderCollapse: 'collapse', tableLayout: 'fixed' }}>
                     <thead>
                         <tr style={{ background: '#fafafa' }}>
                             <th style={{
@@ -484,7 +494,7 @@ export default function PostManagement() {
                                 textTransform: 'uppercase',
                                 letterSpacing: 0.5,
                                 borderBottom: '1px solid #e5e7eb',
-                                width: '5%'
+                                ...columnStyles.id
                             }}>ID</th>
                             <th style={{
                                 padding: '14px 16px',
@@ -495,7 +505,7 @@ export default function PostManagement() {
                                 textTransform: 'uppercase',
                                 letterSpacing: 0.5,
                                 borderBottom: '1px solid #e5e7eb',
-                                width: '25%'
+                                ...columnStyles.info
                             }}>Thông tin bài viết</th>
                             <th style={{
                                 padding: '14px 16px',
@@ -506,7 +516,7 @@ export default function PostManagement() {
                                 textTransform: 'uppercase',
                                 letterSpacing: 0.5,
                                 borderBottom: '1px solid #e5e7eb',
-                                width: '15%'
+                                ...columnStyles.author
                             }}>Tác giả</th>
                             <th style={{
                                 padding: '14px 16px',
@@ -517,7 +527,7 @@ export default function PostManagement() {
                                 textTransform: 'uppercase',
                                 letterSpacing: 0.5,
                                 borderBottom: '1px solid #e5e7eb',
-                                width: '20%'
+                                ...columnStyles.tags
                             }}>Tags</th>
                             <th style={{
                                 padding: '14px 16px',
@@ -528,7 +538,7 @@ export default function PostManagement() {
                                 textTransform: 'uppercase',
                                 letterSpacing: 0.5,
                                 borderBottom: '1px solid #e5e7eb',
-                                width: '10%'
+                                ...columnStyles.status
                             }}>Trạng thái</th>
                             <th style={{
                                 padding: '14px 16px',
@@ -539,7 +549,7 @@ export default function PostManagement() {
                                 textTransform: 'uppercase',
                                 letterSpacing: 0.5,
                                 borderBottom: '1px solid #e5e7eb',
-                                width: '10%'
+                                ...columnStyles.createdAt
                             }}>Ngày tạo</th>
                             <th style={{
                                 padding: '14px 16px',
@@ -550,7 +560,7 @@ export default function PostManagement() {
                                 textTransform: 'uppercase',
                                 letterSpacing: 0.5,
                                 borderBottom: '1px solid #e5e7eb',
-                                width: '15%'
+                                ...columnStyles.actions
                             }}>Thao tác</th>
                         </tr>
                     </thead>
@@ -566,9 +576,9 @@ export default function PostManagement() {
                         ) : (
                             pageItems.map((post) => (
                                 <tr key={post.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                                    <td style={{ padding: '16px', color: '#9ca3af', fontSize: 14 }}>#{post.id}</td>
-                                    <td style={{ padding: '16px' }}>
-                                        <div>
+                                    <td style={{ padding: '16px', color: '#9ca3af', fontSize: 14, verticalAlign: 'top' }}>#{post.id}</td>
+                                    <td style={{ padding: '16px', verticalAlign: 'top' }}>
+                                        <div style={{ minWidth: 0 }}>
                                             <span
                                                 onClick={() => navigate(`${post.id}/edit`)}
                                                 style={{
@@ -578,6 +588,7 @@ export default function PostManagement() {
                                                     cursor: 'pointer',
                                                     transition: 'color 0.2s',
                                                     display: 'block',
+                                                    width: '100%',
                                                     overflow: 'hidden',
                                                     textOverflow: 'ellipsis',
                                                     whiteSpace: 'nowrap'
@@ -587,13 +598,21 @@ export default function PostManagement() {
                                             >
                                                 {post.title || 'Không có tiêu đề'}
                                             </span>
-                                            <div style={{ fontSize: 12, color: '#9ca3af', fontStyle: 'italic', marginTop: 2 }}>
+                                            <div style={{
+                                                fontSize: 12,
+                                                color: '#9ca3af',
+                                                fontStyle: 'italic',
+                                                marginTop: 2,
+                                                overflow: 'hidden',
+                                                textOverflow: 'ellipsis',
+                                                whiteSpace: 'nowrap'
+                                            }}>
                                                 Slug: {post.slug || 'N/A'}
                                             </div>
                                         </div>
                                     </td>
-                                    <td style={{ padding: '16px' }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                    <td style={{ padding: '16px', verticalAlign: 'top' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
                                             <div style={{
                                                 width: 24,
                                                 height: 24,
@@ -610,6 +629,8 @@ export default function PostManagement() {
                                                 {(post.author?.fullName || "A").charAt(0).toUpperCase()}
                                             </div>
                                             <span style={{
+                                                display: 'block',
+                                                minWidth: 0,
                                                 fontSize: 14,
                                                 color: '#374151',
                                                 overflow: 'hidden',
@@ -620,10 +641,10 @@ export default function PostManagement() {
                                             </span>
                                         </div>
                                     </td>
-                                    <td style={{ padding: '16px' }}>
+                                    <td style={{ padding: '16px', verticalAlign: 'top' }}>
                                         {renderTags(post.tags)}
                                     </td>
-                                    <td style={{ padding: '16px' }}>
+                                    <td style={{ padding: '16px', verticalAlign: 'top' }}>
                                         <span style={{
                                             padding: '4px 12px',
                                             borderRadius: 20,
@@ -637,10 +658,11 @@ export default function PostManagement() {
                                             {post.status === "PUBLISHED" ? "Xuất bản" : post.status === "DRAFT" ? "Nháp" : "Lưu trữ"}
                                         </span>
                                     </td>
-                                    <td style={{ padding: '16px', color: '#6b7280', fontSize: 14 }}>
+                                    <td style={{ padding: '16px', color: '#6b7280', fontSize: 14, verticalAlign: 'top', whiteSpace: 'nowrap' }}>
                                         {post.createdAt ? dayjs(post.createdAt).format("DD/MM/YYYY") : 'N/A'}
                                     </td>
-                                    <td style={{ padding: '16px', textAlign: 'center' }}>
+                                    <td style={{ padding: '16px', textAlign: 'center', verticalAlign: 'top' }}>
+                                        <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, whiteSpace: 'nowrap' }}>
                                         <button
                                             onClick={() => navigate(`${post.id}/edit`)}
                                             style={{
@@ -650,7 +672,6 @@ export default function PostManagement() {
                                                 background: '#f1f5f9',
                                                 border: 'none',
                                                 cursor: 'pointer',
-                                                marginRight: 8,
                                                 display: 'inline-flex',
                                                 alignItems: 'center',
                                                 justifyContent: 'center',
@@ -678,12 +699,14 @@ export default function PostManagement() {
                                         >
                                             🗑️
                                         </button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))
                         )}
                     </tbody>
                 </table>
+                </div>
 
                 {/* Pagination */}
                 <div style={{

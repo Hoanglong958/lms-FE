@@ -4,6 +4,8 @@ import NotificationModal from "@components/NotificationModal/NotificationModal";
 import "./ExamManagement.css";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import { examService } from "@utils/examService.js";
+import { courseService } from "@utils/courseService";
+import { classService } from "@utils/classService";
 import ExamCreateDialog from "./ExamCreateDialog";
 import ExamEditDialog from "./ExamEditDialog";
 import ExamTable from "./ExamTable";
@@ -30,9 +32,23 @@ export default function ExamManagement() {
   const [studentsTotal, setStudentsTotal] = useState(0);
   const [avgScoreGlobal, setAvgScoreGlobal] = useState(0);
 
+  const [allCourses, setAllCourses] = useState([]);
+  const [allClasses, setAllClasses] = useState([]);
+
   const loadExams = async () => {
     try {
       setLoading(true);
+
+      // Fetch metadata first
+      const [courseRes, classRes] = await Promise.all([
+        courseService.getCourses(),
+        classService.getClasses()
+      ]);
+      const cList = Array.isArray(courseRes.data) ? courseRes.data : (courseRes.data?.data || []);
+      const lList = Array.isArray(classRes.data) ? classRes.data : (classRes.data?.data || []);
+      setAllCourses(cList);
+      setAllClasses(lList);
+
       const res = await examService.getExams();
       const raw = res?.data ?? {};
       const apiArr = Array.isArray(raw)
@@ -99,6 +115,10 @@ export default function ExamManagement() {
         startTime: e.startTime || e.startAt,
         endTime: e.endTime || e.endAt,
         status: e.status || "Đang mở",
+        courseId: e.courseId,
+        classId: e.classId,
+        courseName: cList.find(c => c.id === e.courseId)?.title || "",
+        className: lList.find(l => l.id === e.classId)?.className || "",
       }));
       setExams(mapped);
       const sumFromList = mapped.reduce((s, e) => s + (Number(e.students) || 0), 0);
@@ -240,7 +260,7 @@ export default function ExamManagement() {
         marginBottom: 16,
         fontWeight: 500
       }}>
-        
+
       </div>
 
       {/* Header */}

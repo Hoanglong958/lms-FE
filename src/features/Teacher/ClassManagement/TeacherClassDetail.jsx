@@ -7,6 +7,10 @@ import { examService } from "@utils/examService"; // We might need this, or crea
 import { Users, BookOpen, ClipboardCheck, Calendar, Clock, ChevronLeft } from "lucide-react";
 import "../Dashboard/TeacherDashboard.css"; // Reuse dashboard styles
 import TeacherAttendanceTab from "./TeacherAttendanceTab";
+import ExamTable from "@admin/ExamManagement/ExamTable";
+import ExamCreateDialog from "@admin/ExamManagement/ExamCreateDialog";
+import ExamEditDialog from "@admin/ExamManagement/ExamEditDialog";
+import NotificationModal from "@components/NotificationModal/NotificationModal";
 
 export default function TeacherClassDetail() {
     const { id } = useParams();
@@ -18,7 +22,19 @@ export default function TeacherClassDetail() {
     // Data states
     const [students, setStudents] = useState([]);
     const [courses, setCourses] = useState([]);
-    const [exams, setExams] = useState([]); // Placeholder for now
+    const [exams, setExams] = useState([]);
+
+    // Dialog states
+    const [isCreateOpen, setIsCreateOpen] = useState(false);
+    const [isEditOpen, setIsEditOpen] = useState(false);
+    const [selectedExam, setSelectedExam] = useState(null);
+
+    const [notification, setNotification] = useState({
+        isOpen: false,
+        title: "",
+        message: "",
+        type: "info",
+    });
 
     useEffect(() => {
         fetchClassData();
@@ -40,9 +56,9 @@ export default function TeacherClassDetail() {
             const courseRes = await classCourseService.getClassCourses(id);
             setCourses(courseRes.data?.data || courseRes.data || []);
 
-            // 4. Fetch Exams (TODO: Implement API to fetch exams for a class)
-            // For now, we will just set empty or mock
-            setExams([]);
+            // 4. Fetch Exams for this class
+            const examRes = await examService.getExamsByClass(id);
+            setExams(examRes.data?.data || examRes.data || []);
 
         } catch (error) {
             console.error("Failed to fetch class data", error);
@@ -53,6 +69,47 @@ export default function TeacherClassDetail() {
 
     const handleBack = () => {
         navigate("/teacher/classes");
+    };
+
+    const handleCreateSuccess = () => {
+        fetchClassData();
+        setNotification({
+            isOpen: true,
+            title: "Thành công",
+            message: "Tạo bài kiểm tra thành công!",
+            type: "success"
+        });
+    };
+
+    const handleEditSuccess = () => {
+        fetchClassData();
+        setNotification({
+            isOpen: true,
+            title: "Thành công",
+            message: "Cập nhật bài kiểm tra thành công!",
+            type: "success"
+        });
+    };
+
+    const handleDeleteExam = async (examId) => {
+        if (!window.confirm("Bạn có chắc chắn muốn xóa bài kiểm tra này?")) return;
+        try {
+            await examService.deleteExam(examId);
+            fetchClassData();
+            setNotification({
+                isOpen: true,
+                title: "Thành công",
+                message: "Xóa bài kiểm tra thành công!",
+                type: "success"
+            });
+        } catch (error) {
+            setNotification({
+                isOpen: true,
+                title: "Lỗi",
+                message: "Không thể xóa bài kiểm tra.",
+                type: "error"
+            });
+        }
     };
 
     if (loading) return <div className="p-8">Đang tải...</div>;
@@ -108,7 +165,7 @@ export default function TeacherClassDetail() {
 
             {/* Tabs */}
             <div className="teacher-tabs" style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
-                
+
                 <TabButton active={activeTab === 'students'} onClick={() => setActiveTab('students')} icon={<Users size={18} />} label="Học viên" />
                 <TabButton active={activeTab === 'attendance'} onClick={() => setActiveTab('attendance')} icon={<ClipboardCheck size={18} />} label="Điểm danh" />
                 <TabButton active={activeTab === 'exams'} onClick={() => setActiveTab('exams')} icon={<ClipboardCheck size={18} />} label="Bài kiểm tra" />
@@ -180,16 +237,38 @@ export default function TeacherClassDetail() {
                 )}
 
                 {activeTab === 'exams' && (
-                    <div style={{ background: 'white', padding: 40, borderRadius: 12, border: '1px solid #e5e7eb', textAlign: 'center' }}>
-                        <ClipboardCheck size={48} color="#d1d5db" style={{ marginBottom: 16 }} />
-                        <h3>Tính năng Bài kiểm tra đang được phát triển</h3>
-                        <p style={{ color: '#6b7280' }}>Giảng viên sẽ sớm có thể tạo và quản lý bài kiểm tra tại đây.</p>
-                        <button
-                            style={{ marginTop: 16, padding: '8px 16px', background: '#f97316', color: 'white', border: 'none', borderRadius: 8, cursor: 'pointer' }}
-                            onClick={() => navigate('/teacher/exams')}
-                        >
-                            Đến trang Quản lý Bài kiểm tra
-                        </button>
+                    <div className="exams-section">
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+                            <h3 style={{ margin: 0 }}>Danh sách bài kiểm tra</h3>
+                            <button
+                                style={{
+                                    padding: '8px 16px',
+                                    background: '#f97316',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: 8,
+                                    cursor: 'pointer',
+                                    fontWeight: 600,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 8
+                                }}
+                                onClick={() => setIsCreateOpen(true)}
+                            >
+                                <ClipboardCheck size={18} />
+                                + Tạo bài kiểm tra
+                            </button>
+                        </div>
+                        <ExamTable
+                            exams={exams}
+                            loading={loading}
+                            onEdit={(exam) => {
+                                setSelectedExam(exam);
+                                setIsEditOpen(true);
+                            }}
+                            onDelete={handleDeleteExam}
+                            onViewDetail={(examId) => navigate(`/teacher/exams/detail/${examId}`)}
+                        />
                     </div>
                 )}
 
@@ -197,6 +276,28 @@ export default function TeacherClassDetail() {
                     <TeacherAttendanceTab classId={id} students={students} />
                 )}
             </div>
+
+            <ExamCreateDialog
+                open={isCreateOpen}
+                onOpenChange={setIsCreateOpen}
+                defaultClassId={id}
+                onSuccess={handleCreateSuccess}
+            />
+
+            <ExamEditDialog
+                open={isEditOpen}
+                onOpenChange={setIsEditOpen}
+                exam={selectedExam}
+                onSuccess={handleEditSuccess}
+            />
+
+            <NotificationModal
+                isOpen={notification.isOpen}
+                onClose={() => setNotification(prev => ({ ...prev, isOpen: false }))}
+                title={notification.title}
+                message={notification.message}
+                type={notification.type}
+            />
         </div>
     );
 }

@@ -181,9 +181,15 @@ export default function LessonSidebar({ initialMinimized = false }) {
       try {
         // B1: Tìm Course ID từ Slug
         const courseRes = await courseService.getCourses();
-        const currentCourse = courseRes.data.find(
-          (c) => slugify(c.title) === courseSlug || c.slug === courseSlug
-        );
+const courses = Array.isArray(courseRes.data)
+  ? courseRes.data
+  : Array.isArray(courseRes.data?.data)
+  ? courseRes.data.data
+  : [];
+
+const currentCourse = courses.find(
+  (c) => slugify(c.title) === courseSlug || c.slug === courseSlug
+);
 
         if (!currentCourse) return;
         setCourseTitle(currentCourse.title);

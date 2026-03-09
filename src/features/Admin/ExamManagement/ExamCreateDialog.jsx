@@ -1,10 +1,12 @@
 import React, { useEffect, useMemo, useState } from "react";
 import "./ExamCreateDialog.css";
 import { examService } from "@utils/examService";
+import { courseService } from "@utils/courseService";
+import { classService } from "@utils/classService";
 import QuestionSelector from "./QuestionSelector";
 import NotificationModal from "@components/NotificationModal/NotificationModal";
 
-export default function ExamCreateDialog({ open, onOpenChange, onSuccess }) {
+export default function ExamCreateDialog({ open, onOpenChange, onSuccess, defaultCourseId, defaultClassId }) {
   const [submitting, setSubmitting] = useState(false);
   const [showQuestionSelector, setShowQuestionSelector] = useState(false);
 
@@ -19,7 +21,12 @@ export default function ExamCreateDialog({ open, onOpenChange, onSuccess }) {
     endTime: "",
     autoAddQuestions: false,
     questionIds: [],
+    courseId: "",
+    classId: "",
   });
+
+  const [courses, setCourses] = useState([]);
+  const [classes, setClasses] = useState([]);
 
   const [notification, setNotification] = useState({
     isOpen: false,
@@ -45,9 +52,19 @@ export default function ExamCreateDialog({ open, onOpenChange, onSuccess }) {
         endTime: "",
         autoAddQuestions: false,
         questionIds: [],
+        courseId: defaultCourseId || "",
+        classId: defaultClassId || "",
       });
       setSubmitting(false);
       setShowQuestionSelector(false);
+
+      // Fetch courses/classes
+      courseService.getCourses().then(res => {
+        setCourses(Array.isArray(res.data) ? res.data : (res.data?.data || []));
+      });
+      classService.getClasses().then(res => {
+        setClasses(Array.isArray(res.data) ? res.data : (res.data?.data || []));
+      });
     }
   }, [open]);
 
@@ -99,7 +116,7 @@ export default function ExamCreateDialog({ open, onOpenChange, onSuccess }) {
         return;
       }
 
-
+      const user = JSON.parse(localStorage.getItem("loggedInUser") || "{}");
 
       const qids = Array.isArray(form.questionIds) ? form.questionIds.map((id) => Number(id)).filter((n) => Number.isFinite(n)) : [];
       const tq = form.autoAddQuestions ? Number(form.totalQuestions) || 0 : qids.length;
@@ -116,6 +133,9 @@ export default function ExamCreateDialog({ open, onOpenChange, onSuccess }) {
         endTime: new Date(form.endTime).toISOString(),
         autoAddQuestions: !!form.autoAddQuestions,
         questionIds: qids,
+        courseId: form.courseId ? Number(form.courseId) : null,
+        classId: form.classId ? Number(form.classId) : null,
+        creatorId: user.id,
       };
 
       const payload = basePayload;
@@ -157,6 +177,23 @@ export default function ExamCreateDialog({ open, onOpenChange, onSuccess }) {
             <div className="examdlg-field">
               <label htmlFor="description">Mô tả</label>
               <textarea id="description" name="description" rows={3} placeholder="Nhập mô tả" value={form.description} onChange={handleChange} />
+            </div>
+
+            <div className="examdlg-grid2">
+              <div className="examdlg-field">
+                <label htmlFor="courseId">Gắn vào khóa học</label>
+                <select id="courseId" name="courseId" value={form.courseId} onChange={handleChange}>
+                  <option value="">-- Chọn khóa học --</option>
+                  {courses.map(c => <option key={c.id} value={c.id}>{c.title}</option>)}
+                </select>
+              </div>
+              <div className="examdlg-field">
+                <label htmlFor="classId">Gắn vào lớp học</label>
+                <select id="classId" name="classId" value={form.classId} onChange={handleChange}>
+                  <option value="">-- Chọn lớp học --</option>
+                  {classes.map(c => <option key={c.id} value={c.id}>{c.className}</option>)}
+                </select>
+              </div>
             </div>
           </section>
 

@@ -73,7 +73,9 @@ export default function QuestionCreate() {
     try {
       await questionService.create(payload);
       showNotification("Thành công", "✅ Tạo câu hỏi thành công!", "success");
-      setTimeout(() => navigate("/admin/quiz/question-bank"), 1500);
+      const user = JSON.parse(localStorage.getItem("loggedInUser") || "{}");
+      const isAdmin = String(user?.role || "").toUpperCase() === "ROLE_ADMIN";
+      setTimeout(() => navigate(`/${isAdmin ? "admin" : "teacher"}/question-bank`), 1500);
     } catch (error) {
       console.error(error);
       showNotification("Lỗi", "Tạo câu hỏi thất bại. Vui lòng thử lại.", "error");
@@ -164,7 +166,11 @@ export default function QuestionCreate() {
           <button
             type="button"
             className="btn-cancel"
-            onClick={() => navigate("/admin/question-bank")}
+            onClick={() => {
+              const user = JSON.parse(localStorage.getItem("loggedInUser") || "{}");
+              const isAdmin = String(user?.role || "").toUpperCase() === "ROLE_ADMIN";
+              navigate(`/${isAdmin ? "admin" : "teacher"}/question-bank`);
+            }}
           >
             Quay lại
           </button>

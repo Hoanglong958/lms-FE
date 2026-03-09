@@ -20,12 +20,14 @@ export const examService = {
     api.put(`/api/v1/exams/${id}`, data),
 
   /** Xóa kỳ thi */
-  deleteExam: (id) =>
-    api.delete(`/api/v1/exams/${id}`),
+  deleteExam: (id) => api.delete(`/api/v1/exams/${id}`),
 
   /** Thêm câu hỏi vào kỳ thi */
-  addQuestionsToExam: (id, data) =>
-    api.post(`/api/v1/exams/${id}/questions`, data),
+  addQuestionsToExam: (id, questionIds) =>
+    api.post(`/api/v1/exams/${id}/questions`, { questionIds }),
+
+  getExamsByClass: (classId) => api.get(`/api/v1/exams/class/${classId}`),
+  getExamsByCourse: (courseId) => api.get(`/api/v1/exams/course/${courseId}`),
 
   /** Lấy chi tiết kỳ thi */
   getExamById: (id) =>

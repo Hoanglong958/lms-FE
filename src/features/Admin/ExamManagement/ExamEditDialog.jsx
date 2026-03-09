@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import "./ExamEditDialog.css";
 import { examService } from "@utils/examService.js";
+import { courseService } from "@utils/courseService";
+import { classService } from "@utils/classService";
 import NotificationModal from "@components/NotificationModal/NotificationModal";
 import QuestionSelector from "./QuestionSelector";
 
@@ -19,7 +21,12 @@ export default function ExamEditDialog({ open, onOpenChange, exam, onSuccess }) 
     endTime: "",
     autoAddQuestions: false,
     questionIds: [],
+    courseId: "",
+    classId: "",
   });
+
+  const [courses, setCourses] = useState([]);
+  const [classes, setClasses] = useState([]);
 
   const [notification, setNotification] = useState({
     isOpen: false,
@@ -61,10 +68,20 @@ export default function ExamEditDialog({ open, onOpenChange, exam, onSuccess }) 
         questionIds: Array.isArray(exam.questions)
           ? exam.questions.map((q) => q.id)
           : [],
+        courseId: exam.courseId || "",
+        classId: exam.classId || "",
       });
 
       setSubmitting(false);
       setShowQuestionSelector(false);
+
+      // Fetch
+      courseService.getCourses().then(res => {
+        setCourses(Array.isArray(res.data) ? res.data : (res.data?.data || []));
+      });
+      classService.getClasses().then(res => {
+        setClasses(Array.isArray(res.data) ? res.data : (res.data?.data || []));
+      });
     }
 
     if (!open) {
@@ -121,6 +138,8 @@ export default function ExamEditDialog({ open, onOpenChange, exam, onSuccess }) 
         endTime: form.endTime ? new Date(form.endTime).toISOString() : null,
         autoAddQuestions: !!form.autoAddQuestions,
         questionIds: Array.isArray(form.questionIds) ? form.questionIds.map((n) => Number(n)) : [],
+        courseId: form.courseId ? Number(form.courseId) : null,
+        classId: form.classId ? Number(form.classId) : null,
       };
 
       const res = await examService.updateExam(exam.id, payload);
@@ -174,6 +193,23 @@ export default function ExamEditDialog({ open, onOpenChange, exam, onSuccess }) 
                 value={form.description}
                 onChange={handleChange}
               />
+            </div>
+
+            <div className="examed-grid2">
+              <div className="examed-field">
+                <label htmlFor="courseId">Lớp học</label>
+                <select id="courseId" name="courseId" value={form.courseId} onChange={handleChange}>
+                  <option value="">-- Chọn khóa học --</option>
+                  {courses.map(c => <option key={c.id} value={c.id}>{c.title}</option>)}
+                </select>
+              </div>
+              <div className="examed-field">
+                <label htmlFor="classId">Khóa học</label>
+                <select id="classId" name="classId" value={form.classId} onChange={handleChange}>
+                  <option value="">-- Chọn lớp học --</option>
+                  {classes.map(c => <option key={c.id} value={c.id}>{c.className}</option>)}
+                </select>
+              </div>
             </div>
           </section>
 

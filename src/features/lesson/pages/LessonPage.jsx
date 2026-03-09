@@ -5,7 +5,7 @@ import { sessionService } from "@utils/sessionService";
 import { lessonService } from "@utils/lessonService";
 import { userProgressService } from "@utils/userProgressService";
 import { slugify } from "@utils/slugify";
-import { useEffect, useState } from "react"; // Bỏ useMemo cho đơn giản
+import { useEffect, useState, useMemo } from "react";
 
 import LessonContentDisplay from "@features/lesson/components/LessonContentDisplay";
 import VideoPlayer from "@features/lesson/components/VideoPlayer";
@@ -26,7 +26,13 @@ export default function LessonPage() {
   // 1. Lấy thông tin Course
   useEffect(() => {
     courseService.getCourses().then((res) => {
-      const c = res.data.find(
+      const courses = Array.isArray(res.data)
+        ? res.data
+        : Array.isArray(res.data?.data)
+          ? res.data.data
+          : [];
+
+      const c = courses.find(
         (c) => slugify(c.title) === courseSlug || c.slug === courseSlug
       );
       if (!c) return navigate("/home");
@@ -64,7 +70,10 @@ export default function LessonPage() {
   }, [course]);
 
   // 3. Tính toán danh sách bài học trực tiếp (Không dùng useMemo để đảm bảo luôn tươi mới)
-  const allLessons = sessions.flatMap((s) => s.lessons || []);
+  const allLessons = useMemo(
+    () => sessions.flatMap((s) => s.lessons || []),
+    [sessions]
+  );
 
   // 4. Redirect nếu vào trang mà chưa có lessonId
   useEffect(() => {

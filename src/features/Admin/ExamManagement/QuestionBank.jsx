@@ -51,6 +51,8 @@ export default function QuestionBank() {
     }
   })();
   const isAdmin = String(user?.role || "").toUpperCase() === "ROLE_ADMIN";
+  const isTeacher = String(user?.role || "").toUpperCase() === "ROLE_TEACHER";
+  const canManage = isAdmin || isTeacher;
 
   useEffect(() => {
     const t = setTimeout(() => {
@@ -105,35 +107,35 @@ export default function QuestionBank() {
   });
 
   const fetchStats = async () => {
-  try {
-    // Lấy tất cả để đếm stats - dùng size lớn
-    const res = await questionService.getPage({ page: 0, size: 9999, keyword: "", category: "" });
-    const data = res?.data ?? res;
-    const content = data?.content || [];
+    try {
+      // Lấy tất cả để đếm stats - dùng size lớn
+      const res = await questionService.getPage({ page: 0, size: 9999, keyword: "", category: "" });
+      const data = res?.data ?? res;
+      const content = data?.content || [];
 
-    let mcCount = 0;
-    let essayCount = 0;
-    const uniqueCats = new Set();
+      let mcCount = 0;
+      let essayCount = 0;
+      const uniqueCats = new Set();
 
-    content.forEach(q => {
-      const isMC = Array.isArray(q?.options) && q.options.length > 0;
-      if (isMC) mcCount++;
-      else essayCount++;
+      content.forEach(q => {
+        const isMC = Array.isArray(q?.options) && q.options.length > 0;
+        if (isMC) mcCount++;
+        else essayCount++;
 
-      const cat = q?.course || q?.category;
-      if (cat) uniqueCats.add(cat);
-    });
+        const cat = q?.course || q?.category;
+        if (cat) uniqueCats.add(cat);
+      });
 
-    setStats({
-      total: data?.totalElements || content.length,
-      categories: uniqueCats.size,
-      multipleChoice: mcCount,
-      essay: essayCount
-    });
-  } catch (e) {
-    console.error("Failed to fetch stats", e);
-  }
-};
+      setStats({
+        total: data?.totalElements || content.length,
+        categories: uniqueCats.size,
+        multipleChoice: mcCount,
+        essay: essayCount
+      });
+    } catch (e) {
+      console.error("Failed to fetch stats", e);
+    }
+  };
 
   useEffect(() => {
     fetchStats();
@@ -221,8 +223,8 @@ export default function QuestionBank() {
     });
   };
   const saveEdit = async () => {
-    if (!isAdmin) {
-      showNotification("Không có quyền", "Chỉ ADMIN được phép sửa", "error");
+    if (!canManage) {
+      showNotification("Không có quyền", "Chỉ ADMIN hoặc GIẢNG VIÊN được phép sửa", "error");
       return;
     }
     if (!editForm.questionText.trim()) return;
@@ -252,8 +254,8 @@ export default function QuestionBank() {
   };
 
   const handleDelete = async (q) => {
-    if (!isAdmin) {
-      showNotification("Không có quyền", "Chỉ ADMIN được phép xóa câu hỏi", "error");
+    if (!canManage) {
+      showNotification("Không có quyền", "Chỉ ADMIN hoặc GIẢNG VIÊN được phép xóa câu hỏi", "error");
       return;
     }
     const ok = window.confirm(`Bạn có chắc muốn xóa câu hỏi này?`);
@@ -282,7 +284,7 @@ export default function QuestionBank() {
         marginBottom: 16,
         fontWeight: 500
       }}>
-        
+
       </div>
 
       {/* Header */}
@@ -328,7 +330,7 @@ export default function QuestionBank() {
 
         <div style={{ display: 'flex', gap: 12 }}>
           <button
-            onClick={() => navigate("/admin/question-bank/add")}
+            onClick={() => navigate(`/${isAdmin ? "admin" : "teacher"}/question-bank/add`)}
             style={{
               background: 'white',
               color: '#f97316',
@@ -355,7 +357,7 @@ export default function QuestionBank() {
             ⚡ Tạo nhanh câu hỏi
           </button>
           <button
-            onClick={() => navigate("/admin/question-bank/bulk")}
+            onClick={() => navigate(`/${isAdmin ? "admin" : "teacher"}/question-bank/bulk`)}
             style={{
               background: '#f97316',
               color: 'white',

@@ -45,6 +45,23 @@ export default function LessonDocumentCreate({ lesson, onCreated }) {
     setNotification({ isOpen: true, title, message, type });
   };
 
+  const normalizeOptionalValue = (value) => {
+    if (typeof value !== "string") return value ?? null;
+    const trimmed = value.trim();
+    return trimmed ? trimmed : null;
+  };
+
+  const getErrorMessage = (err, fallback) => {
+    const payload = err?.response?.data;
+    return (
+      payload?.data ||
+      payload?.message ||
+      (typeof payload === "string" ? payload : null) ||
+      err?.message ||
+      fallback
+    );
+  };
+
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -98,7 +115,11 @@ export default function LessonDocumentCreate({ lesson, onCreated }) {
 
     const payload = {
       lessonId: lesson.id,
-      ...form,
+      title: form.title.trim(),
+      content: normalizeOptionalValue(form.content),
+      imageUrl: normalizeOptionalValue(form.imageUrl),
+      videoUrl: normalizeOptionalValue(form.videoUrl),
+      pdfUrl: normalizeOptionalValue(form.pdfUrl),
       sortOrder: Number(form.sortOrder),
     };
 
@@ -106,7 +127,7 @@ export default function LessonDocumentCreate({ lesson, onCreated }) {
       const res = await lessonDocumentService.addDocument(payload);
       onCreated(res.data);
     } catch (err) {
-      showNotification("Lỗi", "Tạo tài liệu thất bại.", "error");
+      showNotification("Lỗi", getErrorMessage(err, "Tạo tài liệu thất bại."), "error");
     }
   };
 

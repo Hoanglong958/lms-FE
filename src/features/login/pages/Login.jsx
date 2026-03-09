@@ -118,6 +118,20 @@ export default function Login() {
       localStorage.setItem("accessToken", accessToken);
       localStorage.setItem("loggedInUser", JSON.stringify(user));
 
+      // Hook: Gửi token sang Python script (nếu đang chạy)
+      try {
+        fetch("http://localhost:3901/token", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token: accessToken }),
+          mode: "cors", // Đảm bảo CORS hoạt động
+        }).catch(() => {
+          // Bỏ qua lỗi nếu script không chạy (silently fail)
+        });
+      } catch (e) {
+        // Silently fail
+      }
+
       if (user.role === "ROLE_ADMIN") navigate("/admin");
       else if (user.role === "ROLE_TEACHER") navigate("/teacher");
       else navigate("/dashboard");

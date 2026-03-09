@@ -59,6 +59,23 @@ export default function LessonDocumentEditor({ document, onUpdated }) {
     setNotification({ isOpen: true, title, message, type });
   };
 
+  const normalizeOptionalValue = (value) => {
+    if (typeof value !== "string") return value ?? null;
+    const trimmed = value.trim();
+    return trimmed ? trimmed : null;
+  };
+
+  const getErrorMessage = (err, fallback) => {
+    const payload = err?.response?.data;
+    return (
+      payload?.data ||
+      payload?.message ||
+      (typeof payload === "string" ? payload : null) ||
+      err?.message ||
+      fallback
+    );
+  };
+
   const closeNotification = () => {
     setNotification((prev) => ({ ...prev, isOpen: false }));
   };
@@ -118,7 +135,14 @@ export default function LessonDocumentEditor({ document, onUpdated }) {
       return;
     }
 
-    const payload = { ...form, sortOrder: Number(form.sortOrder) };
+    const payload = {
+      title: form.title.trim(),
+      content: normalizeOptionalValue(form.content),
+      imageUrl: normalizeOptionalValue(form.imageUrl),
+      videoUrl: normalizeOptionalValue(form.videoUrl),
+      pdfUrl: normalizeOptionalValue(form.pdfUrl),
+      sortOrder: Number(form.sortOrder),
+    };
     try {
       const res = await lessonDocumentService.updateDocument(
         document.documentId,
@@ -127,7 +151,7 @@ export default function LessonDocumentEditor({ document, onUpdated }) {
       onUpdated(res.data);
       setEditing(false);
     } catch (err) {
-      showNotification("Lỗi", "Lưu tài liệu thất bại.", "error");
+      showNotification("Lỗi", getErrorMessage(err, "Lưu tài liệu thất bại."), "error");
     }
   };
 

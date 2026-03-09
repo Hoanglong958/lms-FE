@@ -12,8 +12,9 @@ export default function QuestionBankCreate() {
   const [correctAnswer, setCorrectAnswer] = useState("");
   const [explanation, setExplanation] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const user = (() => { try { return JSON.parse(localStorage.getItem("loggedInUser") || "{}"); } catch { return {}; } })();
   const isAdmin = String(user?.role || "").toUpperCase() === "ROLE_ADMIN";
+  const isTeacher = String(user?.role || "").toUpperCase() === "ROLE_TEACHER";
+  const canManage = isAdmin || isTeacher;
 
   const handleOptionChange = (value, index) => {
     const newOps = [...options];
@@ -42,7 +43,7 @@ export default function QuestionBankCreate() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!isAdmin) return alert("Chỉ ADMIN được phép tạo mới câu hỏi");
+    if (!canManage) return alert("Chỉ ADMIN hoặc GIẢNG VIÊN được phép tạo mới câu hỏi");
     if (!questionText.trim()) return;
     if (!category.trim()) {
       alert("Danh mục không được để trống");
@@ -70,7 +71,7 @@ export default function QuestionBankCreate() {
     try {
       setSubmitting(true);
       await questionService.create(payload);
-      navigate("/admin/question-bank");
+      navigate(`/${isAdmin ? "admin" : "teacher"}/question-bank`);
     } catch (err) {
       setSubmitting(false);
       const msg =
@@ -88,9 +89,9 @@ export default function QuestionBankCreate() {
         <h2 className="qb-title">Tạo câu hỏi mới</h2>
         <p className="qb-sub">Nhập thông tin chi tiết cho câu hỏi</p>
 
-        {!isAdmin && (
+        {!canManage && (
           <div style={{ marginBottom: 12, padding: "10px 12px", borderRadius: 8, background: "#fee2e2", color: "#991b1b", fontWeight: 600 }}>
-            Chỉ ADMIN được phép tạo mới câu hỏi
+            Chỉ ADMIN hoặc GIẢNG VIÊN được phép tạo mới câu hỏi
           </div>
         )}
 
@@ -176,8 +177,8 @@ export default function QuestionBankCreate() {
 
         {/* Buttons */}
         <div className="qb-actions">
-          <button className="qb-btn cancel" onClick={() => navigate("/admin/question-bank")}>Hủy</button>
-          <button className="qb-btn submit" disabled={!isAdmin || submitting} onClick={handleSubmit}>
+          <button className="qb-btn cancel" onClick={() => navigate(`/${isAdmin ? "admin" : "teacher"}/question-bank`)}>Hủy</button>
+          <button className="qb-btn submit" disabled={!canManage || submitting} onClick={handleSubmit}>
             {submitting ? "Đang lưu..." : "Lưu câu hỏi"}
           </button>
         </div>
