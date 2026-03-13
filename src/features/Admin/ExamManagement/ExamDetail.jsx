@@ -4,6 +4,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import { examService } from "@utils/examService.js";
 import { userService } from "@utils/userService.js";
 import { questionService } from "@utils/questionService.js";
+import { classStudentService } from "@utils/classStudentService.js";
+import { registrationService } from "@utils/registrationService.js";
 import { API_BASE_URL } from "@/config/index.js";
 
 export default function ExamDetail() {
@@ -18,6 +20,7 @@ export default function ExamDetail() {
   const [selectedAttempt, setSelectedAttempt] = useState(null);
   const [attemptAnswers, setAttemptAnswers] = useState([]);
   const [questionMap, setQuestionMap] = useState({}); // Stores question details from Question Bank
+  const [missingStudents, setMissingStudents] = useState([]);
   const [, setReloading] = useState(false);
   const stompRef = useRef(null);
   const wsAttemptedRef = useRef(false);
@@ -150,36 +153,67 @@ export default function ExamDetail() {
     }
   };
 
-  const loadData = () => {
+  const loadData = async () => {
     if (!examId) return;
     setReloading(true);
-    Promise.all([
-      examService.getExamById(examId),
-      examService.listAttempts(Number(examId)),
-      userService.getAllUsers({ page: 0, size: 1000 }),
-    ])
-      .then(([examRes, attemptsRes, usersRes]) => {
-        const e = examRes?.data || {};
-        const arr = Array.isArray(attemptsRes?.data) ? attemptsRes.data : [];
-        let userList = [];
-        const ur = usersRes?.data;
-        if (Array.isArray(ur)) userList = ur;
-        else if (Array.isArray(ur?.data)) userList = ur.data;
-        else if (Array.isArray(ur?.content)) userList = ur.content;
-        else if (Array.isArray(usersRes?.data?.data)) userList = usersRes.data.data;
-        else if (Array.isArray(usersRes?.data?.data?.content)) userList = usersRes.data.data.content;
-        const attemptsWithUsers = arr.map((a) => {
-          const u = userList.find((x) => String(x.id) === String(a.userId)) || {};
-          return { ...a, user: u };
+    try {
+      const [examRes, attemptsRes, usersRes] = await Promise.all([
+        examService.getExamById(examId),
+        examService.listAttempts(Number(examId)),
+        userService.getAllUsers({ page: 0, size: 1000 }),
+      ]);
+
+      const e = examRes?.data || {};
+      const arr = Array.isArray(attemptsRes?.data) ? attemptsRes.data : [];
+      let userList = [];
+      const ur = usersRes?.data;
+      if (Array.isArray(ur)) userList = ur;
+      else if (Array.isArray(ur?.data)) userList = ur.data;
+      else if (Array.isArray(ur?.content)) userList = ur.content;
+      else if (Array.isArray(usersRes?.data?.data)) userList = usersRes.data.data;
+      else if (Array.isArray(usersRes?.data?.data?.content)) userList = usersRes.data.data.content;
+
+      const userMap = new Map(userList.map((u) => [String(u.id), u]));
+      const attemptsWithUsers = arr.map((a) => {
+        const u = userMap.get(String(a.userId)) || {};
+        return { ...a, user: u };
+      });
+
+      let expectedStudents = [];
+      if (Number.isFinite(Number(e?.classId))) {
+        const csRes = await classStudentService.getClassStudents(e.classId);
+        const cs = Array.isArray(csRes?.data) ? csRes.data : [];
+        expectedStudents = cs.map((s) => ({ studentId: s.studentId }));
+      } else if (Number.isFinite(Number(e?.courseId))) {
+        const regRes = await registrationService.getAllRegistrations();
+        const regs = Array.isArray(regRes?.data) ? regRes.data : [];
+        expectedStudents = regs
+          .filter((r) => String(r.courseId) === String(e.courseId) && String(r.paymentStatus) === "PAID")
+          .map((r) => ({ studentId: r.studentId }));
+      }
+
+      const attemptedIds = new Set(arr.map((a) => String(a.userId)));
+      const missing = expectedStudents
+        .filter((s) => !attemptedIds.has(String(s.studentId)))
+        .map((s) => {
+          const u = userMap.get(String(s.studentId)) || {};
+          return {
+            id: s.studentId,
+            fullName: u.fullName || u.full_name || u.name || `#${s.studentId}`,
+            gmail: u.gmail || u.email || "—",
+          };
         });
-        setExam(e);
-        setAttempts(attemptsWithUsers);
-      })
-      .catch(() => {
-        setExam(null);
-        setAttempts([]);
-      })
-      .finally(() => setReloading(false));
+
+      setExam(e);
+      setAttempts(attemptsWithUsers);
+      setMissingStudents(missing);
+    } catch {
+      setExam(null);
+      setAttempts([]);
+      setMissingStudents([]);
+    } finally {
+      setReloading(false);
+    }
   };
 
   useEffect(() => { loadData(); }, [examId]);
@@ -537,6 +571,27 @@ export default function ExamDetail() {
           </div>
         );
       })()}
+
+      {missingStudents.length > 0 && (
+        <div className="exam-inprogress">
+          <div className="exam-inprogress-header">
+            <h3>Chưa làm ({missingStudents.length})</h3>
+          </div>
+          <div className="exam-inprogress-list">
+            {missingStudents.map((s) => (
+              <div key={s.id} className="exam-inprogress-item">
+                <div className="inprog-main">
+                  <span className="inprog-name">{s.fullName}</span>
+                  <span className="inprog-email">{s.gmail}</span>
+                </div>
+                <div className="inprog-meta">
+                  <span>Trạng thái: CHƯA LÀM</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Submissions Table */}
       <div className="exam-submission-list">

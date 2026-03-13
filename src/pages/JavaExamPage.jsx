@@ -1,7 +1,9 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import "./JavaExamPage.css";
 import { examService } from "@utils/examService.js";
+import { classStudentService } from "@utils/classStudentService.js";
+import { registrationService } from "@utils/registrationService.js";
 import { API_BASE_URL } from "../config/index.js";
 
 const QUESTIONS = [
@@ -51,12 +53,16 @@ export default function JavaExamPage() {
   const EXAM_ACTIVE_KEY = examId ? `examActive:${examId}` : "examActive:default";
   const [exams, setExams] = useState([]);
   const [examsLoading, setExamsLoading] = useState(false);
+  const [examAccessLoading, setExamAccessLoading] = useState(false);
+  const [allowedExamIds, setAllowedExamIds] = useState(null);
   const [examDetail, setExamDetail] = useState(null);
   const [examQuestions, setExamQuestions] = useState([]);
   const [examLoaded, setExamLoaded] = useState(false);
   const [notFound, setNotFound] = useState(false);
   const [accessError, setAccessError] = useState("");
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [historyAttempts, setHistoryAttempts] = useState([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
   const attemptIdRef = useRef(null);
   const attemptStartedRef = useRef(false);
 
@@ -257,6 +263,65 @@ export default function JavaExamPage() {
       .finally(() => setExamsLoading(false));
   }, [examId]);
 
+  useEffect(() => {
+    if (examId) return;
+    const user = (() => { try { return JSON.parse(localStorage.getItem("loggedInUser") || "{}"); } catch { return {}; } })();
+    const role = String(user?.role || "");
+    const userId = Number(user?.id);
+    const token = localStorage.getItem("accessToken");
+    if (role !== "ROLE_USER" || !Number.isFinite(userId) || !token) {
+      setAllowedExamIds(null);
+      return;
+    }
+
+    setExamAccessLoading(true);
+    Promise.all([
+      classStudentService.getStudentClasses(userId),
+      registrationService.getMyRegistrations(),
+    ])
+      .then(([clsRes, regRes]) => {
+        const clsArr = Array.isArray(clsRes?.data) ? clsRes.data : [];
+        const regArr = Array.isArray(regRes?.data) ? regRes.data : [];
+        const classIds = new Set(clsArr.map((c) => String(c.classId || c.id)));
+        const courseIds = new Set(
+          regArr
+            .filter((r) => String(r.paymentStatus) === "PAID")
+            .map((r) => String(r.courseId))
+        );
+
+        const allowed = new Set();
+        exams.forEach((e) => {
+          const cId = e?.classId;
+          const coId = e?.courseId;
+          if (cId && classIds.has(String(cId))) allowed.add(String(e.id));
+          else if (coId && courseIds.has(String(coId))) allowed.add(String(e.id));
+        });
+
+        setAllowedExamIds(allowed);
+      })
+      .catch(() => setAllowedExamIds(new Set()))
+      .finally(() => setExamAccessLoading(false));
+  }, [examId, exams]);
+
+  useEffect(() => {
+    if (examId) return;
+    const user = (() => { try { return JSON.parse(localStorage.getItem("loggedInUser") || "{}"); } catch { return {}; } })();
+    const userId = Number(user?.id);
+    if (!Number.isFinite(userId)) {
+      setHistoryAttempts([]);
+      return;
+    }
+    setHistoryLoading(true);
+    examService
+      .listAttempts(undefined, userId)
+      .then((res) => {
+        const arr = Array.isArray(res?.data) ? res.data : [];
+        setHistoryAttempts(arr);
+      })
+      .catch(() => setHistoryAttempts([]))
+      .finally(() => setHistoryLoading(false));
+  }, [examId]);
+
   // ====== Load exam detail & map questions + sync durationMinutes to timer/localStorage
   useEffect(() => {
     if (!examId) return;
@@ -332,13 +397,13 @@ export default function JavaExamPage() {
           }
         } catch (e) { void e; }
       })
-      .catch((err) => { 
+      .catch((err) => {
         const status = err?.response?.status;
         if (status === 400 || status === 401 || status === 403) {
-            setAccessError(err?.response?.data?.message || err?.response?.data?.error || "Bạn không có quyền truy cập kỳ thi này.");
+          setAccessError(err?.response?.data?.message || err?.response?.data?.error || "Bạn không có quyền truy cập kỳ thi này.");
         }
-        setNotFound(true); 
-        setExamLoaded(true); 
+        setNotFound(true);
+        setExamLoaded(true);
       })
       .finally(() => { });
   }, [examId, EXAM_ACTIVE_KEY]);
@@ -360,27 +425,6 @@ export default function JavaExamPage() {
       0,
       Math.round((finishedAt - startRef.current) / 1000)
     );
-    const percent = Math.round((correct / total) * 100);
-
-    const attempt = {
-      id: finishedAt,
-      date: new Date(finishedAt).toISOString(),
-      total,
-      correct,
-      percent,
-      durationSec,
-      selections: selectedAnswers,
-    };
-
-    try {
-      const raw = localStorage.getItem("javaExamPracticeHistory") || "[]";
-      const arr = Array.isArray(JSON.parse(raw)) ? JSON.parse(raw) : [];
-      arr.unshift(attempt);
-      localStorage.setItem(
-        "javaExamPracticeHistory",
-        JSON.stringify(arr.slice(0, 50))
-      );
-    } catch (_e) { void _e; }
     submittedRef.current = true;
     try { localStorage.removeItem(EXAM_ACTIVE_KEY); } catch (e) { void e; }
     try {
@@ -417,8 +461,11 @@ export default function JavaExamPage() {
       if (Number.isFinite(Number(attemptId))) {
         try {
           await examService.submitAttempt(Number(attemptId), answersArr);
-          // Chấm điểm sau khi nộp bài
-          await examService.gradeAttempt(Number(attemptId));
+          // Chấm điểm chỉ dành cho Admin/Teacher
+          const role = String(user?.role || "");
+          if (role === "ROLE_ADMIN" || role === "ROLE_TEACHER") {
+            await examService.gradeAttempt(Number(attemptId));
+          }
         } catch (err) {
           const status = err?.response?.status;
           const msg = err?.response?.data?.message || err?.message || "Không thể nộp bài";
@@ -458,7 +505,7 @@ export default function JavaExamPage() {
     } catch (e) { void e; }
     showNotif("Đã nộp bài thi thành công", "success");
     const finalAttemptId = Number(attemptIdRef.current) || null;
-    navigate("/exam/result", { state: { attemptId: finalAttemptId, localId: attempt.id } });
+    navigate("/exam/result", { state: { attemptId: finalAttemptId } });
   }, [navigate, selectedAnswers, EXAM_ACTIVE_KEY, examId, examQuestions]);
 
   useEffect(() => {
@@ -496,24 +543,58 @@ export default function JavaExamPage() {
     } catch (e) { void e; }
   };
 
+  const history = useMemo(() => {
+    const examMap = new Map(exams.map((e) => [String(e.id), e]));
+    return historyAttempts.map((a) => {
+      const ex = examMap.get(String(a.examId)) || {};
+      const maxScore = Number(ex?.maxScore) || 0;
+      const score = Number(a?.score) || 0;
+      const percent = maxScore > 0 ? Math.round((score / maxScore) * 100) : 0;
+      const stRaw = a?.startTime || a?.start_time || a?.startedAt || a?.startAt || null;
+      const etRaw = a?.endTime || a?.end_time || a?.finishTime || a?.finishedAt || a?.submittedAt || a?.endAt || null;
+      let durationSec = 0;
+      try {
+        const st = stRaw ? new Date(stRaw).getTime() : 0;
+        const et = etRaw ? new Date(etRaw).getTime() : 0;
+        if (st && et && et >= st) durationSec = Math.round((et - st) / 1000);
+      } catch { void 0; }
+      return {
+        id: a?.id,
+        date: etRaw || stRaw || null,
+        score,
+        maxScore,
+        percent,
+        durationSec,
+        examTitle: ex?.title || "",
+      };
+    });
+  }, [historyAttempts, exams]);
+
+  const historyCountByExamId = useMemo(() => {
+    const map = new Map();
+    historyAttempts.forEach((a) => {
+      const key = String(a.examId);
+      map.set(key, (map.get(key) || 0) + 1);
+    });
+    return map;
+  }, [historyAttempts]);
+
+  const visibleExams = useMemo(() => {
+    if (!allowedExamIds) return exams;
+    return exams.filter((e) => allowedExamIds.has(String(e.id)));
+  }, [exams, allowedExamIds]);
+
   if (!examId) {
-    let historyCount = 0;
-    let history = [];
-    try {
-      const raw = localStorage.getItem("javaExamPracticeHistory") || "[]";
-      const arr = JSON.parse(raw);
-      history = Array.isArray(arr) ? arr : [];
-      historyCount = history.length;
-    } catch (e) { void e; }
+    const historyCount = history.length;
 
     return (
       <div className="exam-layout exam-select">
-        {examsLoading ? (
+        {examsLoading || examAccessLoading ? (
           <div className="exam-select-card"><div className="exam-select-header"><h2>Đang tải danh sách kỳ thi...</h2></div></div>
-        ) : exams.length === 0 ? (
+        ) : visibleExams.length === 0 ? (
           <div className="exam-select-card"><div className="exam-select-header"><h2>Chưa có kỳ thi nào</h2></div></div>
         ) : (
-          exams.map((e) => (
+          visibleExams.map((e) => (
             <div key={e.id} className="exam-select-card">
               <div className="exam-select-header">
                 <h2>{e.title}</h2>
@@ -546,7 +627,7 @@ export default function JavaExamPage() {
                 <div className="info-row">
                   <span className="info-icon">👥</span>
                   <span className="info-label">Tổng lượt đã làm của đề</span>
-                  <span className="info-value">{historyCount}</span>
+                  <span className="info-value">{historyCountByExamId.get(String(e.id)) || 0}</span>
                 </div>
               </div>
               <div className="exam-select-actions">
@@ -567,7 +648,9 @@ export default function JavaExamPage() {
         {historyOpen && (
           <div className="exam-history-card">
             <h3 className="exam-history-title">Lịch sử làm bài</h3>
-            {history.length === 0 ? (
+            {historyLoading ? (
+              <p className="exam-history-empty">Đang tải lịch sử...</p>
+            ) : history.length === 0 ? (
               <p className="exam-history-empty">Chưa có lần làm nào.</p>
             ) : (
               <div className="exam-history-table">
@@ -577,8 +660,8 @@ export default function JavaExamPage() {
                 <div className="eh-head">Thời gian làm</div>
                 {history.map((a) => (
                   <React.Fragment key={a.id}>
-                    <div>{new Date(a.date).toLocaleString("vi-VN")}</div>
-                    <div>{a.correct}/{a.total}</div>
+                    <div>{a.date ? new Date(a.date).toLocaleString("vi-VN") : "—"}</div>
+                    <div>{a.score}{a.maxScore ? `/${a.maxScore}` : ""}</div>
                     <div>{a.percent}%</div>
                     <div>{Math.floor(a.durationSec / 60)}p {a.durationSec % 60}s</div>
                   </React.Fragment>

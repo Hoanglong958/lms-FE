@@ -6,27 +6,11 @@ import { examService } from "@utils/examService.js";
 export default function JavaExamResult() {
   const location = useLocation();
   const navigate = useNavigate();
-  const [attempt, setAttempt] = useState(null);
   const [serverAttempt, setServerAttempt] = useState(null);
 
   useEffect(() => {
-    const localId = location.state && (location.state.localId || location.state.id);
     const attemptId = location.state && location.state.attemptId;
     let cancelled = false;
-    const loadLocal = () => {
-      try {
-        const raw = localStorage.getItem("javaExamPracticeHistory") || "[]";
-        const arr = JSON.parse(raw);
-        if (Array.isArray(arr)) {
-          const found = localId ? arr.find((a) => a.id === localId) : arr[0];
-          if (!cancelled) setAttempt(found || null);
-        } else {
-          if (!cancelled) setAttempt(null);
-        }
-      } catch {
-        if (!cancelled) setAttempt(null);
-      }
-    };
     const loadServer = async () => {
       if (!Number.isFinite(Number(attemptId))) return;
       try {
@@ -37,7 +21,6 @@ export default function JavaExamResult() {
         if (!cancelled) setServerAttempt(null);
       }
     };
-    loadLocal();
     loadServer();
     return () => { cancelled = true; };
   }, [location.state]);
@@ -49,16 +32,13 @@ export default function JavaExamResult() {
       const d = serverAttempt.submittedAt || serverAttempt.endTime;
       try { return new Date(d).toLocaleString("vi-VN"); } catch { return String(d || ""); }
     }
-    if (attempt?.date) {
-      try { return new Date(attempt.date).toLocaleString("vi-VN"); } catch { return String(attempt.date || ""); }
-    }
     return "";
   })();
 
   const totalQ = (() => {
     if (Number.isFinite(Number(serverAttempt?.totalQuestions))) return Number(serverAttempt.totalQuestions);
     if (Number.isFinite(Number(serverAttempt?.total))) return Number(serverAttempt.total);
-    return Number(attempt?.total) || 0;
+    return 0;
   })();
 
   const correctQ = (() => {
@@ -67,7 +47,7 @@ export default function JavaExamResult() {
       const arr = serverAttempt.answers;
       return arr.filter((a) => !!a?.isCorrect || Number(a?.scoreAwarded) > 0).length;
     }
-    return Number(attempt?.correct) || 0;
+    return 0;
   })();
 
   const percent = (() => {
@@ -86,10 +66,10 @@ export default function JavaExamResult() {
         if (st && et && et >= st) return Math.round((et - st) / 1000);
       } catch { void 0; }
     }
-    return Number(attempt?.durationSec) || 0;
+    return 0;
   })();
 
-  if (!attempt && !serverAttempt) {
+  if (!serverAttempt) {
     return (
       <div className="jexr-container">
         <h2 className="jexr-title">Kết quả thi</h2>

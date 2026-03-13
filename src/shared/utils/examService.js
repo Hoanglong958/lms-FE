@@ -39,8 +39,12 @@ export const examService = {
   // ==================================================
 
   /** Lấy danh sách lượt thi */
-  listAttempts: (examId, userId) =>
-    api.get(`/api/v1/exam-attempts`, { params: { examId, userId } }),
+  listAttempts: (examId, userId) => {
+    const params = {};
+    if (examId !== undefined && examId !== null) params.examId = examId;
+    if (userId !== undefined && userId !== null) params.userId = userId;
+    return api.get(`/api/v1/exam-attempts`, { params });
+  },
 
   /** Lấy chi tiết bài làm */
   attemptDetail: (id) =>

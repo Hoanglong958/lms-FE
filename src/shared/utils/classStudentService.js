@@ -12,13 +12,13 @@ const getClassStudents = (classId) =>
   api.get(BASE_PATH, { params: { classId: parseInt(classId) } });
 
 /**
- * GET /api/v1/classes/students?studentId={studentId}
+ * GET /api/v1/classes/students/by-student?studentId={studentId}
  * Lấy danh sách lớp học của học viên
  * @param {number} studentId - ID của học viên
  * @returns {Promise} Response containing list of classes
  */
 const getStudentClasses = (studentId) =>
-  api.get(BASE_PATH, { params: { studentId: parseInt(studentId) } });
+  api.get(`${BASE_PATH}/by-student`, { params: { studentId: parseInt(studentId) } });
 
 /**
  * POST /api/v1/classes/students
