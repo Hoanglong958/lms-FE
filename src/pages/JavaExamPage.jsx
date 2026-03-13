@@ -55,6 +55,7 @@ export default function JavaExamPage() {
   const [examQuestions, setExamQuestions] = useState([]);
   const [examLoaded, setExamLoaded] = useState(false);
   const [notFound, setNotFound] = useState(false);
+  const [accessError, setAccessError] = useState("");
   const [historyOpen, setHistoryOpen] = useState(false);
   const attemptIdRef = useRef(null);
   const attemptStartedRef = useRef(false);
@@ -331,7 +332,14 @@ export default function JavaExamPage() {
           }
         } catch (e) { void e; }
       })
-      .catch(() => { setNotFound(true); setExamLoaded(true); })
+      .catch((err) => { 
+        const status = err?.response?.status;
+        if (status === 400 || status === 401 || status === 403) {
+            setAccessError(err?.response?.data?.message || err?.response?.data?.error || "Bạn không có quyền truy cập kỳ thi này.");
+        }
+        setNotFound(true); 
+        setExamLoaded(true); 
+      })
       .finally(() => { });
   }, [examId, EXAM_ACTIVE_KEY]);
 
@@ -594,7 +602,7 @@ export default function JavaExamPage() {
   if (examId && notFound) {
     return (
       <div className="exam-layout">
-        <div className="exam-loading">Kỳ thi không tồn tại hoặc đã bị xóa.</div>
+        <div className="exam-loading">{accessError || "Kỳ thi không tồn tại hoặc đã bị xóa."}</div>
         <div style={{ marginTop: 12 }}>
           <button className="submit-btn" onClick={() => navigate("/exam")}>Quay về danh sách bài thi</button>
         </div>
