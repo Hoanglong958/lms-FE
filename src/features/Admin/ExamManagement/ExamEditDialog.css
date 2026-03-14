@@ -14,6 +14,7 @@
 .examed-switch{display:flex;align-items:center;justify-content:space-between;background:#f9fafb;border-radius:10px;padding:12px}
 .examed-questionpicker{display:flex;flex-direction:column;gap:10px}
 .examed-info{background:#eff6ff;color:#1d4ed8;border-radius:10px;padding:10px;font-size:13px}
+.examed-note{font-size:12px;color:#6b7280;margin-top:4px}
 .examed-footer{display:flex;gap:10px;justify-content:flex-end;margin-top:10px}
 .btn-outline{border:1px solid #e5e7eb;background:#fff;border-radius:10px;padding:8px 14px;font-weight:600}
 .btn-outline:hover{background:#fff7ed;border-color:#f97316;color:#ea580c}

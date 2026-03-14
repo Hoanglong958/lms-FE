@@ -12,6 +12,7 @@ export default function QuestionBankCreate() {
   const [correctAnswer, setCorrectAnswer] = useState("");
   const [explanation, setExplanation] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const user = (() => { try { return JSON.parse(localStorage.getItem("loggedInUser") || "{}"); } catch { return {}; } })();
   const isAdmin = String(user?.role || "").toUpperCase() === "ROLE_ADMIN";
   const isTeacher = String(user?.role || "").toUpperCase() === "ROLE_TEACHER";
   const canManage = isAdmin || isTeacher;

@@ -29,6 +29,7 @@ const DashboardOverview = () => {
   const [recentQuizzes, setRecentQuizzes] = useState([]);
   const [newCourses, setNewCourses] = useState([]);
   const [courseProgress, setCourseProgress] = useState([]);
+  const [newUsers, setNewUsers] = useState([]);
 
   useEffect(() => {
     let alive = true;
@@ -87,19 +88,19 @@ const DashboardOverview = () => {
       .then((res) => {
         const raw = res?.data;
         const o = raw && typeof raw === "object" && !Array.isArray(raw) ? raw : {};
-        const totalUsers = toNumber(o?.totalUsers ?? o?.usersCount ?? o?.studentsCount ?? o?.students);
-        const courses = toNumber(o?.coursesCount ?? o?.totalCourses ?? o?.courses);
-        const completedExams = toNumber(o?.completedExams ?? o?.examsCompleted ?? o?.quizCompleted ?? o?.attemptsCompleted);
-        const avgScore = toNumber(o?.averageScore ?? o?.avgScore);
-        const completionRate = toNumber(o?.courseCompletionRate ?? o?.completionRate);
-        const classes = toNumber(o?.classesCount ?? o?.totalClasses);
+        const totalUsers = toNumber(o?.totalUsers?.value ?? o?.totalUsers ?? o?.usersCount);
+        const courses = toNumber(o?.totalCourses?.value ?? o?.totalCourses ?? o?.coursesCount);
+        const completedExams = toNumber(o?.totalExams?.value ?? o?.totalExams ?? o?.completedExams);
+        const avgScore = toNumber(o?.averageExamScore?.value ?? o?.averageScore ?? o?.avgScore);
+        const completionRate = toNumber(o?.courseCompletionRate?.value ?? o?.courseCompletionRate ?? o?.completionRate);
+        const classes = toNumber(o?.totalClasses?.value ?? o?.totalClasses ?? o?.classesCount);
 
-        const usersChange = o?.usersChange ?? o?.usersChangeRate ?? o?.usersDelta ?? o?.totalUsers?.change;
-        const coursesChange = o?.coursesChange ?? o?.coursesDelta ?? o?.coursesCount?.change;
-        const examsChange = o?.examsChange ?? o?.examsDelta ?? o?.completedExams?.change;
-        const avgScoreChange = o?.avgScoreChange ?? o?.averageScoreDelta ?? o?.averageScore?.change;
-        const completionChange = o?.completionRateChange ?? o?.courseCompletionDelta ?? o?.courseCompletionRate?.change;
-        const classesChange = o?.classesChange ?? o?.classesDelta ?? o?.classesCount?.change;
+        const usersChange = o?.totalUsers?.growthPercentage ?? o?.usersChange;
+        const coursesChange = o?.totalCourses?.growthPercentage ?? o?.coursesChange;
+        const examsChange = o?.totalExams?.growthPercentage ?? o?.examsChange;
+        const avgScoreChange = o?.averageExamScore?.growthPercentage ?? o?.avgScoreChange;
+        const completionChange = o?.courseCompletionRate?.growthPercentage ?? o?.completionChange;
+        const classesChange = o?.totalClasses?.growthPercentage ?? o?.classesChange;
 
         const row1 = [
           {
@@ -159,7 +160,15 @@ const DashboardOverview = () => {
             ? raw.data
             : [];
         const mapped = arr.map((item, idx) => {
-          const month = item?.month || item?.label || `T${idx + 1}`;
+          // backend trả về `period` dạng "yyyy-MM", convert thành "TM"
+          const periodStr = item?.period || item?.month || item?.label || "";
+          let monthLabel;
+          if (periodStr && periodStr.includes("-")) {
+            const monthNum = parseInt(periodStr.split("-")[1], 10);
+            monthLabel = `T${monthNum}`;
+          } else {
+            monthLabel = periodStr || `T${idx + 1}`;
+          }
           const count =
             item?.count ??
             item?.userCount ??
@@ -167,7 +176,7 @@ const DashboardOverview = () => {
             item?.users ??
             item?.total ??
             0;
-          return { month: String(month), "Người dùng": Number(count) || 0 };
+          return { month: monthLabel, "Người dùng": Number(count) || 0 };
         });
         if (alive) setUserGrowthData(mapped);
       })
@@ -195,28 +204,33 @@ const DashboardOverview = () => {
       });
 
     // Fetch Course Progress
-    courseService.getCoursesPaging({ page: 0, size: 5 })
+    courseService.getCourses()
       .then(async (res) => {
         if (!alive) return;
-        const courses = res?.data?.content || [];
-        if (!courses.length) {
+        const raw = res?.data;
+        // handle both array and paginated response
+        const courses = Array.isArray(raw)
+          ? raw
+          : Array.isArray(raw?.data) ? raw.data
+          : Array.isArray(raw?.content) ? raw.content
+          : Array.isArray(raw?.data?.content) ? raw.data.content
+          : [];
+        const top5 = courses.slice(0, 5);
+        if (!top5.length) {
           setCourseProgress([]);
           return;
         }
 
         try {
           // Fetch progress for each course
-          const progressPromises = courses.map(c =>
+          const progressPromises = top5.map(c =>
             dashboardService.getCourseProgress(c.id).then(r => ({ id: c.id, ...r.data })).catch(() => null)
           );
 
           const results = await Promise.all(progressPromises);
 
-          const chartData = courses.map((course, index) => {
+          const chartData = top5.map((course, index) => {
             const stats = results[index] || {};
-            // Mapping API response to Chart keys
-            // Assuming API returns { completed: number, inProgress: number } or similar
-            // Adjust keys based on actual API response debug
             const completed = stats.completed ?? stats.finished ?? stats.completedCount ?? 0;
             const inProgress = stats.inProgress ?? stats.learning ?? stats.studyingCount ?? 0;
 
@@ -234,6 +248,25 @@ const DashboardOverview = () => {
         }
       })
       .catch(e => console.error("Failed to load courses for progress", e));
+
+    // Fetch new users from API
+    dashboardService
+      .getNewUsers()
+      .then((res) => {
+        const raw = res?.data;
+        const arr = Array.isArray(raw) ? raw : Array.isArray(raw?.data) ? raw.data : [];
+        const mapped = arr.map((u) => ({
+          id: u.id,
+          name: u.fullName || u.full_name || u.name || `#${u.id}`,
+          email: u.gmail || u.email || "",
+          role: u.role || "USER",
+          date: u.createdAt
+            ? new Date(u.createdAt).toLocaleDateString("vi-VN")
+            : "",
+        }));
+        if (alive) setNewUsers(mapped);
+      })
+      .catch(() => { if (alive) setNewUsers([]); });
 
     return () => { alive = false; };
   }, []);
@@ -280,7 +313,7 @@ const DashboardOverview = () => {
         {/* === HÀNG 5: BẢNG  === */}
         <section className="dashboard-card col-span-12 lg-col-span-7">
           <h3 className="dashboard-card-title">Người dùng mới</h3>
-          <NewUsersTable users={newUsersData} />
+          <NewUsersTable users={newUsers} />
         </section>
 
 

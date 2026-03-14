@@ -970,9 +970,10 @@ export default function AdminRegistrations() {
                                             fontWeight: 600,
                                             whiteSpace: 'nowrap',
                                             background: r.paymentStatus === "PAID" ? '#f97316' :
-                                                r.paymentStatus === "PENDING" ? '#fef3c7' : '#fee2e2',
+                                                r.paymentStatus === "PENDING" ? '#f59e0b' : '#fee2e2',
                                             color: r.paymentStatus === "PAID" ? '#ffffff' :
                                                 r.paymentStatus === "PENDING" ? '#ffffff' : '#991b1b'
+
                                         }}>
                                             {r.paymentStatus === "PAID" && "✓ Đã thanh toán"}
                                             {r.paymentStatus === "PENDING" && "⏳ Chờ xác nhận"}

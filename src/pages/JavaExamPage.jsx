@@ -41,6 +41,9 @@ const QUESTIONS = [
 
 export default function JavaExamPage() {
   const { examId } = useParams();
+  const currentUser = useMemo(() => {
+    try { return JSON.parse(localStorage.getItem("loggedInUser") || "{}"); } catch { return {}; }
+  }, []);
   const [selectedAnswers, setSelectedAnswers] = useState({});
   const [timeLeft, setTimeLeft] = useState(60 * 20); // default 20 phút until API overrides
   const startRef = useRef(Date.now());
@@ -334,6 +337,18 @@ export default function JavaExamPage() {
           setExamLoaded(true);
           return;
         }
+        const role = String(currentUser?.role || "");
+        if (role === "ROLE_USER") {
+          const now = Date.now();
+          const st = data?.startTime ? new Date(data.startTime).getTime() : 0;
+          const et = data?.endTime ? new Date(data.endTime).getTime() : 0;
+          if ((st && now < st) || (et && now > et)) {
+            setAccessError("Bài kiểm tra chưa đến thời gian làm hoặc đã kết thúc.");
+            setNotFound(true);
+            setExamLoaded(true);
+            return;
+          }
+        }
         setExamDetail(data);
         const qs = data.questions.map((q, idx) => {
           const opts = Array.isArray(q.options) ? q.options : [];
@@ -580,9 +595,25 @@ export default function JavaExamPage() {
   }, [historyAttempts]);
 
   const visibleExams = useMemo(() => {
-    if (!allowedExamIds) return exams;
-    return exams.filter((e) => allowedExamIds.has(String(e.id)));
-  }, [exams, allowedExamIds]);
+    const role = String(currentUser?.role || "");
+    const now = Date.now();
+    const withinWindow = (e) => {
+      const st = e?.startTime ? new Date(e.startTime).getTime() : 0;
+      const et = e?.endTime ? new Date(e.endTime).getTime() : 0;
+      if (st && now < st) return false;
+      if (et && now > et) return false;
+      return true;
+    };
+
+    const base = allowedExamIds
+      ? exams.filter((e) => allowedExamIds.has(String(e.id)))
+      : exams;
+
+    if (role === "ROLE_USER") {
+      return base.filter(withinWindow);
+    }
+    return base;
+  }, [exams, allowedExamIds, currentUser]);
 
   if (!examId) {
     const historyCount = history.length;

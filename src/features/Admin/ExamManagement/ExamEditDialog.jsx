@@ -3,6 +3,7 @@ import "./ExamEditDialog.css";
 import { examService } from "@utils/examService.js";
 import { courseService } from "@utils/courseService";
 import { classService } from "@utils/classService";
+import { classCourseService } from "@utils/classCourseService";
 import NotificationModal from "@components/NotificationModal/NotificationModal";
 import QuestionSelector from "./QuestionSelector";
 
@@ -25,7 +26,10 @@ export default function ExamEditDialog({ open, onOpenChange, exam, onSuccess }) 
     classId: "",
   });
 
-  const [courses, setCourses] = useState([]);
+  const [defaultCourses, setDefaultCourses] = useState([]);
+  const [classCourseOptions, setClassCourseOptions] = useState([]);
+  const [classCourseLoading, setClassCourseLoading] = useState(false);
+  const [classCourseError, setClassCourseError] = useState("");
   const [classes, setClasses] = useState([]);
 
   const [notification, setNotification] = useState({
@@ -77,7 +81,12 @@ export default function ExamEditDialog({ open, onOpenChange, exam, onSuccess }) 
 
       // Fetch
       courseService.getCourses().then(res => {
-        setCourses(Array.isArray(res.data) ? res.data : (res.data?.data || []));
+        const data = Array.isArray(res.data) ? res.data : (res.data?.data || []);
+        const mapped = data.map((course) => ({
+          id: String(course.id ?? course.courseId ?? ""),
+          title: course.title || course.name || course.courseName || "Khóa học",
+        }));
+        setDefaultCourses(mapped);
       });
       classService.getClasses().then(res => {
         setClasses(Array.isArray(res.data) ? res.data : (res.data?.data || []));
@@ -89,6 +98,70 @@ export default function ExamEditDialog({ open, onOpenChange, exam, onSuccess }) 
       setShowQuestionSelector(false);
     }
   }, [open, exam]);
+
+  useEffect(() => {
+    if (!open) {
+      setClassCourseOptions([]);
+      setClassCourseLoading(false);
+      setClassCourseError("");
+      return;
+    }
+
+    if (!form.classId) {
+      setClassCourseOptions(defaultCourses);
+      setClassCourseError("");
+      setClassCourseLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+    setClassCourseLoading(true);
+    setClassCourseError("");
+
+    classCourseService
+      .getClassCourses(form.classId)
+      .then((res) => {
+        if (cancelled) return;
+        const payload = Array.isArray(res.data)
+          ? res.data
+          : res.data?.data || [];
+        const opts = payload
+          .map((item) => {
+            const id = String(item.courseId ?? item.course?.id ?? item.id ?? "");
+            if (!id) return null;
+            const title =
+              item.courseTitle ||
+              item.courseName ||
+              item.course?.title ||
+              "Khóa học";
+            return { id, title };
+          })
+          .filter(Boolean);
+        setClassCourseOptions(opts);
+        if (opts.length === 0) {
+          setClassCourseError("Lớp này chưa gán khóa học nào");
+        }
+        setForm((prev) => ({
+          ...prev,
+          courseId: opts.some((opt) => opt?.id === String(prev.courseId))
+            ? prev.courseId
+            : "",
+        }));
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        console.error("Failed to load class courses", err);
+        setClassCourseError("Không thể tải khóa học của lớp");
+        setClassCourseOptions([]);
+      })
+      .finally(() => {
+        if (!cancelled) setClassCourseLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [form.classId, defaultCourses, open]);
 
   const canSubmit = useMemo(() => {
     return (
@@ -197,17 +270,44 @@ export default function ExamEditDialog({ open, onOpenChange, exam, onSuccess }) 
 
             <div className="examed-grid2">
               <div className="examed-field">
-                <label htmlFor="courseId">Lớp học</label>
-                <select id="courseId" name="courseId" value={form.courseId} onChange={handleChange}>
-                  <option value="">-- Chọn khóa học --</option>
-                  {courses.map(c => <option key={c.id} value={c.id}>{c.title}</option>)}
+                <label htmlFor="courseId">Gắn vào khóa học</label>
+                <select
+                  id="courseId"
+                  name="courseId"
+                  value={form.courseId}
+                  onChange={handleChange}
+                  disabled={!form.classId || classCourseLoading || classCourseOptions.length === 0}
+                >
+                  <option value="">
+                    {form.classId ? "-- Chọn khóa học --" : "-- Chọn lớp học trước --"}
+                  </option>
+                  {classCourseOptions.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.title}
+                    </option>
+                  ))}
                 </select>
+                {!form.classId && (
+                  <div className="examed-note">
+                    Chọn lớp học trước khi chọn khóa học để tránh gán nhầm.
+                  </div>
+                )}
+                {form.classId && classCourseLoading && (
+                  <div className="examed-note">Đang tải khóa học của lớp...</div>
+                )}
+                {form.classId && !classCourseLoading && classCourseError && (
+                  <div className="examed-note">{classCourseError}</div>
+                )}
               </div>
               <div className="examed-field">
-                <label htmlFor="classId">Khóa học</label>
+                <label htmlFor="classId">Gắn vào lớp học</label>
                 <select id="classId" name="classId" value={form.classId} onChange={handleChange}>
                   <option value="">-- Chọn lớp học --</option>
-                  {classes.map(c => <option key={c.id} value={c.id}>{c.className}</option>)}
+                  {classes.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.className}
+                    </option>
+                  ))}
                 </select>
               </div>
             </div>
