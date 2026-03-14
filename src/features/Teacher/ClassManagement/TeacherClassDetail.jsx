@@ -28,7 +28,7 @@ export default function TeacherClassDetail() {
     const [courses, setCourses] = useState([]);
     const [exams, setExams] = useState([]);
     const [sessions, setSessions] = useState([]);
-    const [selectedCourseId, setSelectedCourseId] = useState(null);
+    const [selectedCourseId, setSelectedCourseId] = useState("");
     const [selectedLesson, setSelectedLesson] = useState(null);
     const [expandedSessions, setExpandedSessions] = useState([]);
     const [showSessionModal, setShowSessionModal] = useState(false);
@@ -68,8 +68,13 @@ export default function TeacherClassDetail() {
             setCourses(courseRes.data?.data || courseRes.data || []);
 
             // 4. Fetch Exams for this class
-            const examRes = await examService.getExamsByClass(id);
-            setExams(examRes.data?.data || examRes.data || []);
+            try {
+                const examRes = await examService.getExamsByClass(id);
+                setExams(examRes.data?.data || examRes.data || []);
+            } catch (error) {
+                console.error("Failed to fetch exams for class", error);
+                setExams([]);
+            }
 
             // 5. Select first course by default if lessons tab is active
             if (courseRes.data?.data?.length > 0 || (Array.isArray(courseRes.data) && courseRes.data.length > 0)) {
@@ -252,7 +257,7 @@ export default function TeacherClassDetail() {
                                     <div style={{ padding: '16px', borderBottom: '1px solid #e5e7eb', background: 'white' }}>
                                         <select
                                             style={{ width: '100%', padding: '8px', borderRadius: 6, border: '1px solid #e5e7eb' }}
-                                            value={selectedCourseId}
+                                            value={selectedCourseId || ""}
                                             onChange={(e) => setSelectedCourseId(e.target.value)}
                                         >
                                             {courses.map(c => <option key={c.id} value={c.courseId}>{c.courseTitle}</option>)}
