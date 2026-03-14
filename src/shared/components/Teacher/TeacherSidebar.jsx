@@ -66,8 +66,8 @@ export default function TeacherSidebar({ isOpen, onClose }) {
                             isActive ? "teacher-sidebar-item active" : "teacher-sidebar-item"
                         }
                     >
-                        <i className="fa-solid fa-chalkboard-user"></i>
-                        Lớp học của tôi
+                        <i className="fa-solid fa-house-laptop"></i>
+                        Trung tâm Quản lý
                     </NavLink>
 
 

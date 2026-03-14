@@ -4,25 +4,36 @@ import { classService } from "@utils/classService";
 import { classStudentService } from "@utils/classStudentService";
 import { classCourseService } from "@utils/classCourseService";
 import { examService } from "@utils/examService"; // We might need this, or create a specific service
-import { Users, BookOpen, ClipboardCheck, Calendar, Clock, ChevronLeft } from "lucide-react";
+import { Users, BookOpen, ClipboardCheck, Calendar, Clock, ChevronLeft, Layout, List, FolderPlus, Book, ListOrdered, X, Save } from "lucide-react";
 import "../Dashboard/TeacherDashboard.css"; // Reuse dashboard styles
 import TeacherAttendanceTab from "./TeacherAttendanceTab";
 import ExamTable from "@admin/ExamManagement/ExamTable";
 import ExamCreateDialog from "@admin/ExamManagement/ExamCreateDialog";
 import ExamEditDialog from "@admin/ExamManagement/ExamEditDialog";
 import NotificationModal from "@components/NotificationModal/NotificationModal";
+import LessonManager from "@admin/Courses/LessonManager";
+import LessonDetailView from "@admin/Courses/LessonDetailView";
+import { sessionService } from "@utils/sessionService";
+import manageStyles from "@admin/Courses/ManageLessons.module.css";
 
 export default function TeacherClassDetail() {
     const { id } = useParams();
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
     const [classData, setClassData] = useState(null);
-    const [activeTab, setActiveTab] = useState("courses"); // Default to courses as that's the main teaching activity
+    const [activeTab, setActiveTab] = useState("lessons"); // Default to lessons for teaching hub
 
     // Data states
     const [students, setStudents] = useState([]);
     const [courses, setCourses] = useState([]);
     const [exams, setExams] = useState([]);
+    const [sessions, setSessions] = useState([]);
+    const [selectedCourseId, setSelectedCourseId] = useState(null);
+    const [selectedLesson, setSelectedLesson] = useState(null);
+    const [expandedSessions, setExpandedSessions] = useState([]);
+    const [showSessionModal, setShowSessionModal] = useState(false);
+    const [currentSession, setCurrentSession] = useState(null);
+    const [sessionFormData, setSessionFormData] = useState({ title: "", orderIndex: "" });
 
     // Dialog states
     const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -59,6 +70,12 @@ export default function TeacherClassDetail() {
             // 4. Fetch Exams for this class
             const examRes = await examService.getExamsByClass(id);
             setExams(examRes.data?.data || examRes.data || []);
+
+            // 5. Select first course by default if lessons tab is active
+            if (courseRes.data?.data?.length > 0 || (Array.isArray(courseRes.data) && courseRes.data.length > 0)) {
+                const firstCourse = courseRes.data?.data?.[0] || courseRes.data[0];
+                setSelectedCourseId(firstCourse.courseId);
+            }
 
         } catch (error) {
             console.error("Failed to fetch class data", error);
@@ -110,6 +127,58 @@ export default function TeacherClassDetail() {
                 type: "error"
             });
         }
+    };
+
+    useEffect(() => {
+        if (!selectedCourseId) return;
+        const loadSessions = async () => {
+            try {
+                const res = await sessionService.getSessionsByCourse(selectedCourseId);
+                setSessions(res.data || []);
+            } catch (err) { }
+        };
+        loadSessions();
+    }, [selectedCourseId]);
+
+    const handleAddSession = () => {
+        setCurrentSession(null);
+        setSessionFormData({ title: "", orderIndex: sessions.length + 1 });
+        setShowSessionModal(true);
+    };
+
+    const handleEditSession = (s) => {
+        setCurrentSession(s);
+        setSessionFormData({ title: s.title, orderIndex: s.orderIndex });
+        setShowSessionModal(true);
+    };
+
+    const handleDeleteSession = async (sid) => {
+        if (!window.confirm("Xóa chương học này?")) return;
+        try {
+            await sessionService.deleteSession(sid);
+            setSessions(sessions.filter((s) => s.id !== sid));
+            if (selectedLesson?.sessionId === sid) setSelectedLesson(null);
+        } catch (err) { }
+    };
+
+    const handleSubmitSession = async (e) => {
+        e.preventDefault();
+        if (!selectedCourseId) return;
+        const payload = {
+            title: sessionFormData.title,
+            courseId: selectedCourseId,
+            orderIndex: sessionFormData.orderIndex || sessions.length + 1,
+        };
+        try {
+            if (currentSession) {
+                await sessionService.updateSession(currentSession.id, payload);
+                setSessions(sessions.map((s) => s.id === currentSession.id ? { ...s, ...payload } : s));
+            } else {
+                const res = await sessionService.addSession(payload);
+                setSessions([...sessions, res.data]);
+            }
+            setShowSessionModal(false);
+        } catch (err) { }
     };
 
     if (loading) return <div className="p-8">Đang tải...</div>;
@@ -166,6 +235,7 @@ export default function TeacherClassDetail() {
             {/* Tabs */}
             <div className="teacher-tabs" style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
 
+                <TabButton active={activeTab === 'lessons'} onClick={() => setActiveTab('lessons')} icon={<BookOpen size={18} />} label="Bài học" />
                 <TabButton active={activeTab === 'students'} onClick={() => setActiveTab('students')} icon={<Users size={18} />} label="Học viên" />
                 <TabButton active={activeTab === 'attendance'} onClick={() => setActiveTab('attendance')} icon={<ClipboardCheck size={18} />} label="Điểm danh" />
                 <TabButton active={activeTab === 'exams'} onClick={() => setActiveTab('exams')} icon={<ClipboardCheck size={18} />} label="Bài kiểm tra" />
@@ -173,30 +243,74 @@ export default function TeacherClassDetail() {
 
             {/* Tab Content */}
             <div className="teacher-tab-content">
-                {activeTab === 'courses' && (
-                    <div className="courses-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 20 }}>
-                        {courses.length > 0 ? courses.map(course => (
-                            <div key={course.id} className="course-card" style={{ background: 'white', padding: 20, borderRadius: 12, border: '1px solid #e5e7eb' }}>
-                                <h3 style={{ marginTop: 0 }}>{course.courseTitle}</h3>
-                                <p style={{ color: '#6b7280', fontSize: 13 }}>Được gán ngày: {course.assignedAt}</p>
-                                <button
-                                    style={{
-                                        marginTop: 12,
-                                        width: '100%',
-                                        padding: '8px',
-                                        background: '#3b82f6',
-                                        color: 'white',
-                                        border: 'none',
-                                        borderRadius: 6,
-                                        cursor: 'pointer'
-                                    }}
-                                    onClick={() => navigate(`/teacher/lessons/${course.courseId}?classId=${id}`)}
-                                >
-                                    Quản lý Bài học
-                                </button>
+                {activeTab === 'lessons' && (
+                    <div className="lessons-tab-container" style={{ background: 'white', borderRadius: 12, border: '1px solid #e5e7eb', overflow: 'hidden' }}>
+                        {courses.length > 0 ? (
+                            <div style={{ display: 'flex', minHeight: '600px' }}>
+                                {/* Left column: Sessions & Lessons */}
+                                <div style={{ width: '350px', borderRight: '1px solid #e5e7eb', background: '#f9fafb', display: 'flex', flexDirection: 'column' }}>
+                                    <div style={{ padding: '16px', borderBottom: '1px solid #e5e7eb', background: 'white' }}>
+                                        <select
+                                            style={{ width: '100%', padding: '8px', borderRadius: 6, border: '1px solid #e5e7eb' }}
+                                            value={selectedCourseId}
+                                            onChange={(e) => setSelectedCourseId(e.target.value)}
+                                        >
+                                            {courses.map(c => <option key={c.id} value={c.courseId}>{c.courseTitle}</option>)}
+                                        </select>
+                                        <button
+                                            onClick={handleAddSession}
+                                            style={{ marginTop: 12, width: '100%', padding: '8px', background: '#f97316', color: 'white', border: 'none', borderRadius: 6, fontWeight: 600, cursor: 'pointer' }}
+                                        >
+                                            + Thêm Chương học
+                                        </button>
+                                    </div>
+
+                                    <div style={{ flex: 1, overflowY: 'auto', padding: '12px' }}>
+                                        <div className={manageStyles.contentSidebar} style={{ width: '100%', padding: 0 }}>
+                                            {sessions.map((s) => {
+                                                const isExpanded = expandedSessions.includes(s.id);
+                                                return (
+                                                    <div key={s.id} className={`${manageStyles.sectionPanel} ${isExpanded ? manageStyles.sectionPanelExpanded : ""}`}>
+                                                        <div className={manageStyles.sectionPanelHeader}>
+                                                            <button
+                                                                className={manageStyles.sectionToggle}
+                                                                onClick={() => setExpandedSessions((prev) => prev.includes(s.id) ? prev.filter((id) => id !== s.id) : [...prev, s.id])}
+                                                            >
+                                                                <span className={manageStyles.sectionName}>{s.title}</span>
+                                                                <span className={manageStyles.sectionChevron}>{isExpanded ? "▾" : "▸"}</span>
+                                                            </button>
+                                                            <div className={manageStyles.sectionActions}>
+                                                                <button onClick={() => handleEditSession(s)}>Sửa</button>
+                                                                <button onClick={() => handleDeleteSession(s.id)}>Xóa</button>
+                                                            </div>
+                                                        </div>
+
+                                                        {isExpanded && (
+                                                            <LessonManager
+                                                                sessionId={s.id}
+                                                                selectedLesson={selectedLesson}
+                                                                onSelectLesson={(l) => setSelectedLesson({ sessionId: s.id, ...l })}
+                                                            />
+                                                        )}
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Right column: Lesson Detail */}
+                                <div style={{ flex: 1, padding: '24px', overflowY: 'auto' }}>
+                                    <LessonDetailView
+                                        lesson={selectedLesson}
+                                        onLessonUpdated={(updated) => setSelectedLesson((prev) => ({ ...prev, ...updated }))}
+                                    />
+                                </div>
                             </div>
-                        )) : (
-                            <p>Chưa có khóa học nào được gán cho lớp này.</p>
+                        ) : (
+                            <div style={{ padding: 40, textAlign: 'center' }}>
+                                <p>Chưa có khóa học nào được gán cho lớp này.</p>
+                            </div>
                         )}
                     </div>
                 )}
@@ -283,6 +397,60 @@ export default function TeacherClassDetail() {
                 defaultClassId={id}
                 onSuccess={handleCreateSuccess}
             />
+
+            {showSessionModal && (
+                <div className={manageStyles.modalOverlay}>
+                    <div className={manageStyles.modalContainer}>
+                        <div className={manageStyles.modalHeaderOrange}>
+                            <div className={manageStyles.modalHeaderIcon}>
+                                <FolderPlus size={32} color="white" strokeWidth={1.5} />
+                            </div>
+                            <h3>{currentSession ? "Cập nhật chương học" : "Thêm Chương học"}</h3>
+                        </div>
+
+                        <form onSubmit={handleSubmitSession} className={manageStyles.modalFormBody}>
+                            <div className={manageStyles.formGroup}>
+                                <label className={manageStyles.labelBold}>Tên Chương học</label>
+                                <div className={manageStyles.inputWithIcon}>
+                                    <Book size={24} className={manageStyles.inputIcon} />
+                                    <input
+                                        className={manageStyles.customInputModal}
+                                        value={sessionFormData.title}
+                                        onChange={(e) => setSessionFormData({ ...sessionFormData, title: e.target.value })}
+                                        placeholder="Nhập tên chương học..."
+                                        required
+                                        autoFocus
+                                    />
+                                </div>
+                            </div>
+
+                            <div className={manageStyles.formGroup}>
+                                <label className={manageStyles.labelBold}>Thứ tự</label>
+                                <div className={manageStyles.inputWithIcon}>
+                                    <ListOrdered size={24} className={manageStyles.inputIcon} />
+                                    <input
+                                        type="number"
+                                        className={manageStyles.customInputModal}
+                                        value={sessionFormData.orderIndex || ""}
+                                        onChange={(e) => setSessionFormData({ ...sessionFormData, orderIndex: Number(e.target.value) })}
+                                        placeholder="Ví dụ: 1, 2, 3..."
+                                        min={1}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className={manageStyles.modalFooterButtons}>
+                                <button type="button" onClick={() => setShowSessionModal(false)} className={manageStyles.btnCancel}>
+                                    <X size={18} /> Hủy
+                                </button>
+                                <button type="submit" className={manageStyles.btnSave}>
+                                    <Save size={18} /> Lưu
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
 
             <ExamEditDialog
                 open={isEditOpen}
