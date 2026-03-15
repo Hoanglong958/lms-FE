@@ -2,12 +2,6 @@ import axiosInstance from "@config/index";
 
 const AI_TIMEOUT = 120000; // 120 giây cho Ollama
 
-/**
- * Gửi câu hỏi đến AI endpoint.
- * @param {string} type - DEADLINE | EXAM | MATERIAL | QA
- * @param {string} question - Câu hỏi của sinh viên
- * @param {object} options - { courseId?, lessonId? }
- */
 export const askAI = async (type, question, options = {}) => {
     const response = await axiosInstance.post(
         "/ai/chat",
