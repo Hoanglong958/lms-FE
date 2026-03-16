@@ -86,6 +86,16 @@ export default function TeacherSidebar({ isOpen, onClose }) {
                         Dashboard
                     </NavLink>
 
+                    <NavLink
+                        to="/teacher/profile/edit"
+                        className={({ isActive }) =>
+                            isActive ? "teacher-sidebar-item active" : "teacher-sidebar-item"
+                        }
+                    >
+                        <i className="fa-solid fa-user-pen"></i>
+                        Hồ sơ của tôi
+                    </NavLink>
+
                     {/* Quản lý lớp học */}
                     <NavLink
                         to="/teacher/classes"

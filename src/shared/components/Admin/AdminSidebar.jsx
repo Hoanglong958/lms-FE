@@ -68,6 +68,16 @@ export default function AdminSidebar({ isOpen, onClose }) {
             Dashboard
           </NavLink>
 
+          <NavLink
+            to="/admin/profile/edit"
+            className={({ isActive }) =>
+              isActive ? "admin-sidebar-item active" : "admin-sidebar-item"
+            }
+          >
+            <i className="fa-solid fa-user-pen"></i>
+            Hồ sơ của tôi
+          </NavLink>
+
           {/* Quản lý người dùng - không dropdown */}
           <NavLink
             to="/admin/users"

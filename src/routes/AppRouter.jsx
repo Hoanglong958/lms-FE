@@ -144,6 +144,7 @@ export default function AppRouter() {
             <Route path="users" element={<UserManagement />} />
             <Route path="classes" element={<ClassManagement />} />
             <Route path="classes/:id" element={<ClassDetail />} />
+            <Route path="profile/edit" element={<ProfileEdit />} />
 
             {/* Admin Home */}
             <Route path="home" element={<AdminHomePage />} />
@@ -191,6 +192,7 @@ export default function AppRouter() {
           <Route path="/teacher" element={<TeacherLayout />}>
             <Route index element={<Navigate to="dashboard" replace />} />
             <Route path="dashboard" element={<TeacherDashboard />} />
+            <Route path="profile/edit" element={<ProfileEdit />} />
 
             {/* Class Management */}
             <Route path="classes" element={<TeacherClassList />} />
