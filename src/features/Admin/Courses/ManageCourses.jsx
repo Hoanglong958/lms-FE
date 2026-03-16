@@ -3,6 +3,7 @@ import { Link, useOutletContext, useNavigate } from "react-router-dom";
 import { courseService } from "@utils/courseService.js";
 import { uploadService } from "@utils/uploadService";
 import { SERVER_URL } from "@config";
+import { useNotification } from "@shared/notification";
 
 import styles from "./ManageCourses.module.css";
 import AdminHeader from "@components/Admin/AdminHeader";
@@ -119,6 +120,7 @@ function CourseRow({ course, onEdit, onDelete }) {
 
 // Component Trang Chính
 export default function ManageCourses() {
+  const { confirm, error } = useNotification();
   const [courses, setCourses] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [currentCourse, setCurrentCourse] = useState(null);
@@ -138,7 +140,7 @@ export default function ManageCourses() {
       const url = res.data.url || res.data;
       setFormData((prev) => ({ ...prev, imageUrl: url }));
     } catch (err) {
-      alert("Upload ảnh thất bại");
+      error("Upload ảnh thất bại");
     } finally {
       setUploading(false);
     }
@@ -196,7 +198,14 @@ export default function ManageCourses() {
   };
 
   const handleDelete = async (course) => {
-    if (!window.confirm("Bạn có chắc muốn xóa khóa học này?")) return;
+    const isConfirmed = await confirm({
+      title: "Xác nhận xóa",
+      message: "Bạn có chắc chắn muốn xóa khóa học này?",
+      type: "danger",
+      confirmText: "Xóa",
+      cancelText: "Hủy"
+    });
+    if (!isConfirmed) return;
 
     try {
       await courseService.deleteCourse(course.id);

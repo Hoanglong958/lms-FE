@@ -10,6 +10,7 @@ import { attendanceService } from "@utils/attendanceService";
 import { periodService } from "@utils/periodService";
 import "./ClassDetail.css";
 import ClassDetailModal from "./ClassDetailModal";
+import { useNotification } from "@shared/notification";
 
 const timeObjToString = (t) => {
     if (!t) return "00:00:00";
@@ -27,6 +28,7 @@ const timeObjToString = (t) => {
 };
 
 export default function ClassDetail({ classData: propClassData, onBack }) {
+    const { confirm, success, error } = useNotification();
     const { state } = useLocation();
     const { id } = useParams();
     const navigate = useNavigate();
@@ -76,7 +78,7 @@ export default function ClassDetail({ classData: propClassData, onBack }) {
                     })
                     .catch(err => {
                         console.error("Failed to fetch class detail", err);
-                        alert("Không tìm thấy thông tin lớp học");
+                        error("Không tìm thấy thông tin lớp học");
                     })
                     .finally(() => setLoading(false));
             }
@@ -391,7 +393,7 @@ export default function ClassDetail({ classData: propClassData, onBack }) {
             }
 
             setShowCourseSelectionModal(false);
-            alert(`Đã thêm khóa học: ${course.courseName || course.name || course.title}`);
+            success(`Đã thêm khóa học: ${course.courseName || course.name || course.title}`);
 
             // Re-open assigned list to show the new addition
             // We do NOT call handleOpenAssignedCoursesModal() here to avoid the 500 error wiping our local update
@@ -400,7 +402,7 @@ export default function ClassDetail({ classData: propClassData, onBack }) {
         } catch (error) {
             console.error("Failed to assign course", error);
             const errorMsg = error.response?.data?.message || JSON.stringify(error.response?.data) || error.message;
-            alert("Lỗi khi thêm khóa học: " + errorMsg);
+            error("Lỗi khi thêm khóa học: " + errorMsg);
         }
     };
 
@@ -414,7 +416,7 @@ export default function ClassDetail({ classData: propClassData, onBack }) {
 
     const handleSaveAttendance = async () => {
         if (!classData?.id) {
-            alert("Không tìm thấy thông tin lớp học!");
+            error("Không tìm thấy thông tin lớp học!");
             return;
         }
 
@@ -424,14 +426,14 @@ export default function ClassDetail({ classData: propClassData, onBack }) {
             // 1. Validate schedule exists for this date
             const validationRes = await attendanceService.validateScheduleDate(classData.id, attendanceDate);
             if (!validationRes.data?.hasSchedule) {
-                alert(`Ngày ${attendanceDate} không có lịch học. Vui lòng chọn ngày có trong thời khóa biểu.`);
+                error(`Ngày ${attendanceDate} không có lịch học. Vui lòng chọn ngày có trong thời khóa biểu.`);
                 return;
             }
 
             // 2. Create attendance session for this date and shift
             const selectedPeriod = periods.find(p => String(p.id) === String(attendanceShift));
             if (!selectedPeriod) {
-                alert("Vui lòng chọn ca học!");
+                error("Vui lòng chọn ca học!");
                 return;
             }
 
@@ -472,13 +474,13 @@ export default function ClassDetail({ classData: propClassData, onBack }) {
             // 4. Save attendance records
             await attendanceService.markAttendanceBulk(sessionId, records);
 
-            alert("Đã lưu điểm danh thành công!");
+            success("Đã lưu điểm danh thành công!");
         } catch (error) {
             console.error("Failed to save attendance:", error);
             if (error.response?.status === 400 && error.response?.data?.message) {
-                alert(error.response.data.message);
+                error(error.response.data.message);
             } else {
-                alert("Lỗi khi lưu điểm danh: " + (error.message || "Unknown error"));
+                error("Lỗi khi lưu điểm danh: " + (error.message || "Unknown error"));
             }
         } finally {
             setLoading(false);
@@ -788,7 +790,14 @@ export default function ClassDetail({ classData: propClassData, onBack }) {
                         setShowDetailModal(false);
                     },
                     onRemoveTeacher: async (teacherId) => {
-                        if (!window.confirm("Bạn có chắc chắn muốn xóa giảng viên này khỏi lớp?")) return;
+                        const isConfirmed = await confirm({
+                            title: "Xác nhận xóa",
+                            message: "Bạn có chắc chắn muốn xóa giảng viên này khỏi lớp?",
+                            type: "danger",
+                            confirmText: "Xóa",
+                            cancelText: "Hủy"
+                        });
+                        if (!isConfirmed) return;
                         try {
                             // Assuming backend has an endpoint or logic to remove teacher from class
                             // Since standard API might not have explicit remove, we use classTeacherService
@@ -796,10 +805,10 @@ export default function ClassDetail({ classData: propClassData, onBack }) {
                             // Common pattern: classTeacherService.removeTeacherFromClass(classId, teacherId)
                             await classTeacherService.removeTeacherFromClass(classData.id, teacherId);
                             setRefreshKey(prev => prev + 1);
-                            alert("Đã xóa giảng viên khỏi lớp");
+                            success("Đã xóa giảng viên khỏi lớp");
                         } catch (e) {
                             console.error("Failed to remove teacher", e);
-                            alert("Lỗi khi xóa giảng viên: " + (e.response?.data?.message || e.message));
+                            error("Lỗi khi xóa giảng viên: " + (e.response?.data?.message || e.message));
                         }
                     },
                     onAddStudents: () => {
@@ -807,14 +816,21 @@ export default function ClassDetail({ classData: propClassData, onBack }) {
                         setShowDetailModal(false);
                     },
                     onRemoveStudent: async (studentId) => {
-                        if (!window.confirm("Bạn có chắc chắn muốn xóa học viên này khỏi lớp?")) return;
+                        const isConfirmed = await confirm({
+                            title: "Xác nhận xóa",
+                            message: "Bạn có chắc chắn muốn xóa học viên này khỏi lớp?",
+                            type: "danger",
+                            confirmText: "Xóa",
+                            cancelText: "Hủy"
+                        });
+                        if (!isConfirmed) return;
                         try {
                             await classStudentService.removeStudentFromClass(classData.id, studentId);
                             setRefreshKey(prev => prev + 1); // Trigger refresh
-                            alert("Đã xóa học viên khỏi lớp");
+                            success("Đã xóa học viên khỏi lớp");
                         } catch (e) {
                             console.error("Failed to remove student", e);
-                            alert("Lỗi khi xóa học viên: " + (e.response?.data?.message || e.message));
+                            error("Lỗi khi xóa học viên: " + (e.response?.data?.message || e.message));
                         }
                     }
                 }}
@@ -872,11 +888,11 @@ export default function ClassDetail({ classData: propClassData, onBack }) {
                             }
 
                             if (successes.length > 0) {
-                                alert(`Đã thêm thành công ${successes.length} sinh viên!`);
+                                success(`Đã thêm thành công ${successes.length} sinh viên!`);
                             }
 
                             if (failures.length > 0) {
-                                alert(`Lỗi khi thêm ${failures.length} sinh viên:\n` + failures.join("\n"));
+                                error(`Lỗi khi thêm ${failures.length} sinh viên:\n` + failures.join("\n"));
                             }
 
                             if (successes.length > 0) {
@@ -924,7 +940,7 @@ export default function ClassDetail({ classData: propClassData, onBack }) {
 
                             await Promise.all(promises);
 
-                            alert("Phân công giảng viên thành công!");
+                            success("Phân công giảng viên thành công!");
                             setRefreshKey(prev => prev + 1); // Refresh the list
                             setAssigningClass(null);
 
@@ -935,7 +951,7 @@ export default function ClassDetail({ classData: propClassData, onBack }) {
                             }, 100);
                         } catch (error) {
                             console.error("Failed to assign teachers:", error);
-                            alert("Lỗi khi phân công giảng viên: " + (error.response?.data?.message || error.message));
+                            error("Lỗi khi phân công giảng viên: " + (error.response?.data?.message || error.message));
                         }
                     }}
                 />
@@ -1211,6 +1227,7 @@ function CourseSelectionModal({ isOpen, onClose, courses, onSelect }) {
 }
 
 function AssignTeachersModal({ classData, onClose, onSubmit }) {
+    const { error } = useNotification();
     const [teachers, setTeachers] = useState([]);
     const [selectedTeachers, setSelectedTeachers] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -1253,7 +1270,7 @@ function AssignTeachersModal({ classData, onClose, onSubmit }) {
                 }
             } catch (error) {
                 console.error("Failed to load teachers:", error);
-                alert("Lỗi khi tải danh sách giảng viên!");
+                error("Lỗi khi tải danh sách giảng viên!");
             } finally {
                 setLoading(false);
             }
@@ -1489,6 +1506,7 @@ function AssignTeachersModal({ classData, onClose, onSubmit }) {
 }
 
 function AddStudentsModal({ classData, onClose, onSubmit }) {
+    const { error } = useNotification();
     const [students, setStudents] = useState([]);
     const [selectedStudents, setSelectedStudents] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -1535,7 +1553,7 @@ function AddStudentsModal({ classData, onClose, onSubmit }) {
                 }
             } catch (error) {
                 console.error("Failed to load students:", error);
-                alert("Lỗi khi tải danh sách sinh viên!");
+                error("Lỗi khi tải danh sách sinh viên!");
             } finally {
                 setLoading(false);
             }

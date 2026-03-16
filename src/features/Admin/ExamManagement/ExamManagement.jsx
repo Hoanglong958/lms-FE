@@ -9,8 +9,10 @@ import { classService } from "@utils/classService";
 import ExamCreateDialog from "./ExamCreateDialog";
 import ExamEditDialog from "./ExamEditDialog";
 import ExamTable from "./ExamTable";
+import { useNotification } from "@shared/notification";
 
 export default function ExamManagement() {
+  const { confirm, error } = useNotification();
   const navigate = useNavigate();
   const user = (() => { try { return JSON.parse(localStorage.getItem("loggedInUser") || "{}"); } catch { return {}; } })();
   const userRole = String(user?.role || "").toUpperCase();
@@ -161,7 +163,7 @@ export default function ExamManagement() {
       const status = err?.response?.status;
       const msg = err?.response?.data?.message || err?.message || "Không thể tải danh sách kỳ thi";
       if (status === 400) {
-        alert(`Lỗi 400: ${msg}`);
+        error(`Lỗi 400: ${msg}`);
       }
       setExams([]);
     } finally {
@@ -186,28 +188,32 @@ export default function ExamManagement() {
     setOpenEdit(true);
   };
 
-  const handleDelete = (exam) => {
-    (async () => {
-      if (!canManage) {
-        alert("Bạn không có quyền xóa kỳ thi.");
-        return;
+  const handleDelete = async (exam) => {
+    if (!canManage) {
+      error("Bạn không có quyền xóa kỳ thi.");
+      return;
+    }
+    const isConfirmed = await confirm({
+      title: "Xác nhận xóa",
+      message: `Bạn có chắc muốn xóa "${exam.name}" không?`,
+      type: "danger",
+      confirmText: "Xóa",
+      cancelText: "Hủy"
+    });
+    if (!isConfirmed) return;
+    try {
+      await examService.deleteExam(exam.id);
+      await loadExams();
+    } catch (err) {
+      const status = err?.response?.status;
+      const backend = err?.response?.data;
+      const msg = backend?.message || backend?.data || err?.message || "Xóa kỳ thi thất bại";
+      if (status === 401 || status === 403) {
+        error("Bạn không có quyền xóa kỳ thi. Vui lòng đăng nhập tài khoản ADMIN.");
+      } else {
+        error(`${status || ""} ${msg}`.trim());
       }
-      const ok = window.confirm(`Bạn có chắc muốn xóa "${exam.name}" không?`);
-      if (!ok) return;
-      try {
-        await examService.deleteExam(exam.id);
-        await loadExams();
-      } catch (err) {
-        const status = err?.response?.status;
-        const backend = err?.response?.data;
-        const msg = backend?.message || backend?.data || err?.message || "Xóa kỳ thi thất bại";
-        if (status === 401 || status === 403) {
-          alert("Bạn không có quyền xóa kỳ thi. Vui lòng đăng nhập tài khoản ADMIN.");
-        } else {
-          alert(`${status || ""} ${msg}`.trim());
-        }
-      }
-    })();
+    }
   };
 
   const handleDeleteById = (id) => {

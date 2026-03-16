@@ -19,8 +19,19 @@ export default function ChatLayout() {
             chatService.connect((notification) => {
                 if (notification.type === "CHAT") {
                     loadRooms(user.id);
+                    window.dispatchEvent(new Event('chat-unread-updated'));
                 }
             }, user.id);
+
+            const handleChatRead = () => {
+                loadRooms(user.id);
+            };
+            window.addEventListener('chat-read', handleChatRead);
+
+            return () => {
+                chatService.disconnect();
+                window.removeEventListener('chat-read', handleChatRead);
+            };
         }
         return () => chatService.disconnect();
     }, []);

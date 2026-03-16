@@ -3,8 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { FileText, Search, Clock, TrendingUp, CheckCircle2, Edit, Trash2, ChevronDown } from "lucide-react";
 import { postService } from "@utils/postService";
 import dayjs from "dayjs";
+import { useNotification } from "@shared/notification";
 
 export default function PostManagement() {
+    const { confirm, success, error } = useNotification();
     const [posts, setPosts] = useState([]);
     const [loading, setLoading] = useState(false);
     const [searchText, setSearchText] = useState("");
@@ -28,7 +30,7 @@ export default function PostManagement() {
             setPosts(Array.isArray(data) ? data : []);
         } catch (error) {
             console.error("Failed to fetch posts:", error);
-            alert("Không thể tải danh sách bài viết");
+            error("Không thể tải danh sách bài viết");
         } finally {
             setLoading(false);
         }
@@ -38,17 +40,22 @@ export default function PostManagement() {
         fetchPosts();
     }, []);
 
-    const handleDelete = (id) => {
-        if (!window.confirm("Bạn có chắc chắn muốn xóa bài viết này?")) return;
-        (async () => {
-            try {
-                await postService.deletePost(id);
-                alert("Xóa bài viết thành công");
-                fetchPosts();
-            } catch {
-                alert("Xóa bài viết thất bại");
-            }
-        })();
+    const handleDelete = async (id) => {
+        const isConfirmed = await confirm({
+            title: "Xác nhận xóa",
+            message: "Bạn có chắc chắn muốn xóa bài viết này?",
+            type: "danger",
+            confirmText: "Xóa",
+            cancelText: "Hủy"
+        });
+        if (!isConfirmed) return;
+        try {
+            await postService.deletePost(id);
+            success("Xóa bài viết thành công");
+            fetchPosts();
+        } catch {
+            error("Xóa bài viết thất bại");
+        }
     };
 
     // Filter posts based on search and status

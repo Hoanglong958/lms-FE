@@ -3,9 +3,9 @@ import { useParams, useNavigate } from "react-router-dom";
 import { classService } from "@utils/classService";
 import { classStudentService } from "@utils/classStudentService";
 import { classCourseService } from "@utils/classCourseService";
-import { examService } from "@utils/examService"; // We might need this, or create a specific service
+import { examService } from "@utils/examService";
 import { Users, BookOpen, ClipboardCheck, Calendar, Clock, ChevronLeft, Layout, List, FolderPlus, Book, ListOrdered, X, Save } from "lucide-react";
-import "../Dashboard/TeacherDashboard.css"; // Reuse dashboard styles
+import "../Dashboard/TeacherDashboard.css";
 import TeacherAttendanceTab from "./TeacherAttendanceTab";
 import ExamTable from "@admin/ExamManagement/ExamTable";
 import ExamCreateDialog from "@admin/ExamManagement/ExamCreateDialog";
@@ -15,8 +15,10 @@ import LessonManager from "@admin/Courses/LessonManager";
 import LessonDetailView from "@admin/Courses/LessonDetailView";
 import { sessionService } from "@utils/sessionService";
 import manageStyles from "@admin/Courses/ManageLessons.module.css";
+import { useNotification } from "@shared/notification";
 
 export default function TeacherClassDetail() {
+    const { confirm } = useNotification();
     const { id } = useParams();
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
@@ -114,7 +116,14 @@ export default function TeacherClassDetail() {
     };
 
     const handleDeleteExam = async (examId) => {
-        if (!window.confirm("Bạn có chắc chắn muốn xóa bài kiểm tra này?")) return;
+        const isConfirmed = await confirm({
+            title: "Xác nhận xóa",
+            message: "Bạn có chắc chắn muốn xóa bài kiểm tra này?",
+            type: "danger",
+            confirmText: "Xóa",
+            cancelText: "Hủy"
+        });
+        if (!isConfirmed) return;
         try {
             await examService.deleteExam(examId);
             fetchClassData();
@@ -158,7 +167,14 @@ export default function TeacherClassDetail() {
     };
 
     const handleDeleteSession = async (sid) => {
-        if (!window.confirm("Xóa chương học này?")) return;
+        const isConfirmed = await confirm({
+            title: "Xác nhận xóa",
+            message: "Bạn có chắc chắn muốn xóa chương học này?",
+            type: "danger",
+            confirmText: "Xóa",
+            cancelText: "Hủy"
+        });
+        if (!isConfirmed) return;
         try {
             await sessionService.deleteSession(sid);
             setSessions(sessions.filter((s) => s.id !== sid));
