@@ -72,7 +72,15 @@ export default function Header() {
     fetchUnreadChat();
     // Poll every 1 minute for unread chat count if not using sockets for global count
     const interval = setInterval(fetchUnreadChat, 60000);
-    return () => clearInterval(interval);
+    
+    window.addEventListener('chat-read', fetchUnreadChat);
+    window.addEventListener('chat-unread-updated', fetchUnreadChat);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('chat-read', fetchUnreadChat);
+      window.removeEventListener('chat-unread-updated', fetchUnreadChat);
+    };
   }, [user.id]);
 
   return (

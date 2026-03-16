@@ -55,7 +55,15 @@ export default function TeacherSidebar({ isOpen, onClose }) {
 
         fetchUnread();
         const interval = setInterval(fetchUnread, 60000);
-        return () => clearInterval(interval);
+        
+        window.addEventListener('chat-read', fetchUnread);
+        window.addEventListener('chat-unread-updated', fetchUnread);
+
+        return () => {
+            clearInterval(interval);
+            window.removeEventListener('chat-read', fetchUnread);
+            window.removeEventListener('chat-unread-updated', fetchUnread);
+        };
     }, [user.id]);
 
     return (

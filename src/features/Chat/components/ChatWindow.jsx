@@ -29,6 +29,7 @@ export default function ChatWindow({ room, currentUser }) {
     const markAsRead = async () => {
         try {
             await chatService.markRead(room.id, currentUser.id);
+            window.dispatchEvent(new Event('chat-read'));
         } catch (err) {
             console.error("Failed to mark messages as read", err);
         }
