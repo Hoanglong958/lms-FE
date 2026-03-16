@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { periodService } from "@utils/periodService";
 import NotificationModal from "@components/NotificationModal/NotificationModal";
+import { useNotification } from "@shared/notification";
 import "./PeriodManagementModal.css";
 
 function toTimeObj(timeStr) {
@@ -33,6 +34,7 @@ function timeObjToString(t) {
 }
 
 export default function PeriodManagementModal({ onClose, selectedPeriodIds = [], onApply }) {
+  const { confirm } = useNotification();
   const [periods, setPeriods] = useState([]);
   const [loading, setLoading] = useState(false);
   const [notification, setNotification] = useState({
@@ -143,7 +145,14 @@ export default function PeriodManagementModal({ onClose, selectedPeriodIds = [],
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Xóa ca học này?")) return;
+    const isConfirmed = await confirm({
+      title: "Xác nhận xóa",
+      message: "Bạn có chắc chắn muốn xóa ca học này?",
+      type: "danger",
+      confirmText: "Xóa",
+      cancelText: "Hủy"
+    });
+    if (!isConfirmed) return;
     try {
       await periodService.delete(id);
       await load();

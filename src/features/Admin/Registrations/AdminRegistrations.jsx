@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { registrationService } from "@utils/registrationService";
 import NotificationModal from "@components/NotificationModal/NotificationModal";
+import { useNotification } from "@shared/notification";
 import {
     Search,
     Filter,
@@ -26,6 +27,7 @@ import {
 } from "lucide-react";
 
 export default function AdminRegistrations() {
+    const { confirm, error } = useNotification();
     const [registrations, setRegistrations] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState("ALL");
@@ -83,7 +85,7 @@ export default function AdminRegistrations() {
             link.remove();
         } catch (err) {
             console.error("Export Excel failed:", err);
-            alert("Không thể xuất file Excel");
+            error("Không thể xuất file Excel");
         }
     };
 
@@ -100,7 +102,7 @@ export default function AdminRegistrations() {
             link.remove();
         } catch (err) {
             console.error("Export PDF failed:", err);
-            alert("Không thể xuất hóa đơn PDF");
+            error("Không thể xuất hóa đơn PDF");
         }
     };
 
@@ -133,7 +135,14 @@ export default function AdminRegistrations() {
     const handleBulkConfirm = async () => {
         if (selectedRows.length === 0) return;
 
-        if (!window.confirm(`Xác nhận ${selectedRows.length} khoản thanh toán đã chọn?`)) return;
+        const isConfirmed = await confirm({
+            title: "Xác nhận thanh toán hàng loạt",
+            message: `Xác nhận ${selectedRows.length} khoản thanh toán đã chọn?`,
+            type: "warning",
+            confirmText: "Xác nhận",
+            cancelText: "Hủy"
+        });
+        if (!isConfirmed) return;
 
         for (const id of selectedRows) {
             await handleConfirm(id);

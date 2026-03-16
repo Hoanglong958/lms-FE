@@ -5,6 +5,7 @@ import { examService } from "@utils/examService.js";
 import { classStudentService } from "@utils/classStudentService.js";
 import { registrationService } from "@utils/registrationService.js";
 import { API_BASE_URL } from "../config/index.js";
+import { useNotification } from "@shared/notification";
 
 const QUESTIONS = [
   {
@@ -40,6 +41,7 @@ const QUESTIONS = [
 ];
 
 export default function JavaExamPage() {
+  const { confirm } = useNotification();
   const { examId } = useParams();
   const currentUser = useMemo(() => {
     try { return JSON.parse(localStorage.getItem("loggedInUser") || "{}"); } catch { return {}; }
@@ -426,8 +428,14 @@ export default function JavaExamPage() {
   const handleSubmit = useCallback(async (auto = false) => {
     if (submittedRef.current) return;
     if (!auto) {
-      const ok = window.confirm("Bạn có chắc chắn muốn nộp bài?");
-      if (!ok) return;
+      const isConfirmed = await confirm({
+        title: "Xác nhận nộp bài",
+        message: "Bạn có chắc chắn muốn nộp bài?",
+        type: "warning",
+        confirmText: "Nộp bài",
+        cancelText: "Hủy"
+      });
+      if (!isConfirmed) return;
     }
     const usedQuestions = examId ? examQuestions : (examQuestions && examQuestions.length ? examQuestions : QUESTIONS);
     const total = usedQuestions.length;

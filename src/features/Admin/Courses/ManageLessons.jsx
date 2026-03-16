@@ -10,8 +10,10 @@ import styles from "./ManageLessons.module.css";
 import { slugify } from "@utils/slugify";
 import dayjs from "dayjs";
 import { FolderPlus, Book, ListOrdered, X, Save } from "lucide-react";
+import { useNotification } from "@shared/notification";
 
 export default function ManageLessons() {
+  const { confirm } = useNotification();
   const { courseSlug, courseId } = useParams();
   const navigate = useNavigate();
   const [course, setCourse] = useState(null);
@@ -83,7 +85,14 @@ export default function ManageLessons() {
   };
 
   const handleDeleteSession = async (id) => {
-    if (!window.confirm("Xóa chương học này?")) return;
+    const isConfirmed = await confirm({
+      title: "Xác nhận xóa",
+      message: "Bạn có chắc chắn muốn xóa chương học này?",
+      type: "danger",
+      confirmText: "Xóa",
+      cancelText: "Hủy"
+    });
+    if (!isConfirmed) return;
     await sessionService.deleteSession(id);
     setSessions(sessions.filter((s) => s.id !== id));
     if (selectedLesson?.sessionId === id) setSelectedLesson(null);

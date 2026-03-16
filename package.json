@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@ant-design/charts": "^2.6.5",
-    "@ckeditor/ckeditor5-build-classic": "^38.1.1",
+    "@ckeditor/ckeditor5-build-classic": "^25.0.0",
     "@ckeditor/ckeditor5-image": "^47.5.0",
     "@ckeditor/ckeditor5-markdown-gfm": "^47.2.0",
     "@ckeditor/ckeditor5-react": "^11.0.1",

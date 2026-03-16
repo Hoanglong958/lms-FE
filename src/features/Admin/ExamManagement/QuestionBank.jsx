@@ -3,9 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { FileQuestion, Book, CheckSquare, PenSquare, Search, Activity, ChevronDown } from "lucide-react";
 import NotificationModal from "@components/NotificationModal/NotificationModal";
 import { questionService } from "@utils/questionService.js";
+import { useNotification } from "@shared/notification";
 
 export default function QuestionBank() {
   const navigate = useNavigate();
+  const { confirm } = useNotification();
   const [notification, setNotification] = useState({
     isOpen: false,
     title: "",
@@ -258,8 +260,14 @@ export default function QuestionBank() {
       showNotification("Không có quyền", "Chỉ ADMIN hoặc GIẢNG VIÊN được phép xóa câu hỏi", "error");
       return;
     }
-    const ok = window.confirm(`Bạn có chắc muốn xóa câu hỏi này?`);
-    if (!ok) return;
+    const isConfirmed = await confirm({
+      title: "Xác nhận xóa",
+      message: "Bạn có chắc chắn muốn xóa câu hỏi này?",
+      type: "danger",
+      confirmText: "Xóa",
+      cancelText: "Hủy"
+    });
+    if (!isConfirmed) return;
     try {
       await questionService.delete(q.id);
       await refreshList();

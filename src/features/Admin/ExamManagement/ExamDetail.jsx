@@ -7,8 +7,10 @@ import { questionService } from "@utils/questionService.js";
 import { classStudentService } from "@utils/classStudentService.js";
 import { registrationService } from "@utils/registrationService.js";
 import { API_BASE_URL } from "@/config/index.js";
+import { useNotification } from "@shared/notification";
 
 export default function ExamDetail() {
+  const { confirm, success, error } = useNotification();
   const navigate = useNavigate();
   const params = useParams();
   const examId = params.examId;
@@ -109,7 +111,14 @@ export default function ExamDetail() {
 
   const handleRegrade = async () => {
     if (!selectedAttempt) return;
-    if (!window.confirm("Bạn có chắc chắn muốn chấm lại bài này? Điểm sẽ được cập nhật vào hệ thống.")) return;
+    const isConfirmed = await confirm({
+      title: "Xác nhận chấm lại",
+      message: "Bạn có chắc chắn muốn chấm lại bài này? Điểm sẽ được cập nhật vào hệ thống.",
+      type: "warning",
+      confirmText: "Chấm lại",
+      cancelText: "Hủy"
+    });
+    if (!isConfirmed) return;
 
     try {
       const res = await examService.gradeAttempt(selectedAttempt.id);
@@ -121,7 +130,7 @@ export default function ExamDetail() {
         // (because server might still be failing the 'A' vs 'Text' check)
         const safeScore = (serverScore === 0 && verifiedScore > 0) ? verifiedScore : serverScore;
 
-        alert(`Chấm điểm thành công trên Server (Kết quả: ${serverScore})! \nHiển thị điểm đã xác thực: ${safeScore}`);
+        success(`Chấm điểm thành công trên Server (Kết quả: ${serverScore})! \nHiển thị điểm đã xác thực: ${safeScore}`);
 
         // 1. Update Detail View (selectedAttempt)
         setSelectedAttempt(prev => ({
@@ -151,7 +160,7 @@ export default function ExamDetail() {
       }
     } catch (err) {
       console.error(err);
-      alert("Lỗi khi chấm điểm: " + (err.response?.data?.message || err.message));
+      error("Lỗi khi chấm điểm: " + (err.response?.data?.message || err.message));
     }
   };
 

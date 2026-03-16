@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { lessonService } from "@utils/lessonService.js";
 import { sessionExerciseService } from "@utils/sessionExerciseService";
+import { useNotification } from "@shared/notification";
 import styles from "./ManageLessons.module.css";
 
 export default function LessonManager({
@@ -8,6 +9,7 @@ export default function LessonManager({
   onSelectLesson,
   selectedLesson,
 }) {
+  const { confirm } = useNotification();
   const [lessons, setLessons] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [editingLesson, setEditingLesson] = useState(null);
@@ -57,7 +59,14 @@ export default function LessonManager({
   };
 
   const handleDeleteLesson = async (lessonId) => {
-    if (!window.confirm("Xóa bài học này?")) return;
+    const isConfirmed = await confirm({
+      title: "Xác nhận xóa",
+      message: "Bạn có chắc chắn muốn xóa bài học này?",
+      type: "danger",
+      confirmText: "Xóa",
+      cancelText: "Hủy"
+    });
+    if (!isConfirmed) return;
     try {
       await lessonService.deleteLesson(lessonId);
       setLessons(lessons.filter((l) => l.id !== lessonId));
@@ -110,7 +119,14 @@ export default function LessonManager({
   };
 
   const handleDeleteExercise = async (exerciseId) => {
-    if (!window.confirm("Xóa bài tập này?")) return;
+    const isConfirmed = await confirm({
+      title: "Xác nhận xóa",
+      message: "Bạn có chắc chắn muốn xóa bài tập này?",
+      type: "danger",
+      confirmText: "Xóa",
+      cancelText: "Hủy"
+    });
+    if (!isConfirmed) return;
     try {
       await sessionExerciseService.deleteSessionExercise(exerciseId);
       setExercises(exercises.filter((e) => e.exerciseId !== exerciseId));
