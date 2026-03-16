@@ -21,8 +21,11 @@ const NotificationDropdown = () => {
     // Get current user info safely
     const user = (() => {
         try {
-            return JSON.parse(localStorage.getItem("loggedInUser") || "{}");
-        } catch {
+            const stored = localStorage.getItem("loggedInUser");
+            if (!stored) return {};
+            return JSON.parse(stored);
+        } catch (error) {
+            console.error("Error parsing loggedInUser from localStorage:", error);
             return {};
         }
     })();
@@ -62,19 +65,23 @@ const NotificationDropdown = () => {
 
             stompClient.connect({}, () => {
                 // Subscribe to user-specific notification topic
-                stompClient.subscribe(`/topic/notifications/${user.id}`, (message) => {
-                    const newNotification = JSON.parse(message.body);
+                if (user.id) {
+                    stompClient.subscribe(`/topic/notifications/${user.id}`, (message) => {
+                        const newNotification = JSON.parse(message.body);
 
-                    // Increment unread count
-                    setUnreadCount(prev => prev + 1);
+                        // Increment unread count
+                        setUnreadCount(prev => prev + 1);
 
-                    // Add new notification to top of list if dropdown is open or we have loaded data
-                    setNotifications(prev => {
-                        // Prevent duplicates just in case
-                        if (prev.some(n => n.id === newNotification.id)) return prev;
-                        return [newNotification, ...prev];
+                        // Add new notification to top of list if dropdown is open or we have loaded data
+                        setNotifications(prev => {
+                            // Prevent duplicates just in case
+                            if (prev.some(n => n.id === newNotification.id)) return prev;
+                            return [newNotification, ...prev];
+                        });
                     });
-                });
+                } else {
+                    console.warn("NotificationDropdown: user.id is missing, cannot subscribe to WebSocket");
+                }
             });
         } catch (error) {
             console.error("WebSocket setup failed:", error);
@@ -85,7 +92,7 @@ const NotificationDropdown = () => {
                 stompClient.disconnect();
             }
         };
-    }, [user.id]);
+    }, [user.id, user.username]);
 
     // Fetch notifications when opening dropdown
     useEffect(() => {

@@ -14,16 +14,25 @@ export default function ChatWindow({ room, currentUser }) {
     const [isUploading, setIsUploading] = useState(false);
 
     useEffect(() => {
-        if (room) {
+        if (room && currentUser) {
             loadMessages();
             subscribeToRoom();
+            markAsRead();
         }
         return () => {
             if (subscriptionRef.current) {
                 subscriptionRef.current.unsubscribe();
             }
         };
-    }, [room]);
+    }, [room, currentUser]);
+
+    const markAsRead = async () => {
+        try {
+            await chatService.markRead(room.id, currentUser.id);
+        } catch (err) {
+            console.error("Failed to mark messages as read", err);
+        }
+    };
 
     useEffect(() => {
         scrollToBottom();

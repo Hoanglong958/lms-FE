@@ -20,6 +20,7 @@ export default function Header() {
   const navigate = useNavigate();
   const [openDropdown, setOpenDropdown] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [unreadChatCount, setUnreadChatCount] = useState(0);
 
   // Safe user parsing
   const user = (() => {
@@ -55,6 +56,25 @@ export default function Header() {
 
   const userAvatar = getAvatarSrc(user.imageUrl || user.avatar);
 
+  React.useEffect(() => {
+    if (!user.id) return;
+
+    const fetchUnreadChat = async () => {
+      try {
+        const { chatService } = await import("@utils/chatService");
+        const res = await chatService.getTotalUnreadCount(user.id);
+        setUnreadChatCount(res.data);
+      } catch (err) {
+        console.error("Failed to fetch unread chat count", err);
+      }
+    };
+
+    fetchUnreadChat();
+    // Poll every 1 minute for unread chat count if not using sockets for global count
+    const interval = setInterval(fetchUnreadChat, 60000);
+    return () => clearInterval(interval);
+  }, [user.id]);
+
   return (
     <>
       {/* HEADER CHÍNH */}
@@ -78,7 +98,14 @@ export default function Header() {
                 <span>Bài Viết</span>
               </div>
               <div className="user-header-menu-item" onClick={() => handleNavigate("/chat")}>
-                <img src={notiIcon} alt="Chat" style={{ filter: 'hue-rotate(180deg)' }} />
+                <div style={{ position: 'relative' }}>
+                  <img src={notiIcon} alt="Chat" style={{ filter: 'hue-rotate(180deg)' }} />
+                  {unreadChatCount > 0 && (
+                    <span className="chat-notification-badge">
+                      {unreadChatCount > 99 ? '99+' : unreadChatCount}
+                    </span>
+                  )}
+                </div>
                 <span>Trò chuyện</span>
               </div>
             </div>
@@ -170,8 +197,14 @@ export default function Header() {
             <a onClick={() => handleNavigate("/bai-viet")}>
               <img src={bookIcon} alt="Bài viết" /> Bài viết
             </a>
-            <a onClick={() => handleNavigate("/chat")}>
-              <img src={notiIcon} alt="Trò chuyện" style={{ filter: 'hue-rotate(180deg)' }} /> Trò chuyện
+            <a onClick={() => handleNavigate("/chat")} style={{ position: 'relative' }}>
+              <img src={notiIcon} alt="Trò chuyện" style={{ filter: 'hue-rotate(180deg)' }} /> 
+              Trò chuyện
+              {unreadChatCount > 0 && (
+                <span className="chat-notification-badge-mobile">
+                  {unreadChatCount}
+                </span>
+              )}
             </a>
           </nav>
           <div className="user-header-divider-mobile"></div>

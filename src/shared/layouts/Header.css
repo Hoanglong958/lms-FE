@@ -423,3 +423,30 @@
 
 @media (max-width: 375px) {
 }
+
+/* Chat Notification Badges */
+.chat-notification-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: #ff4d4f;
+  color: #ffffff;
+  border-radius: 10px;
+  padding: 2px 6px;
+  font-size: 10px;
+  font-weight: bold;
+  line-height: 1;
+  border: 2px solid #ffffff;
+  min-width: 14px;
+  text-align: center;
+}
+
+.chat-notification-badge-mobile {
+  background: #ff4d4f;
+  color: #ffffff;
+  border-radius: 10px;
+  padding: 2px 8px;
+  font-size: 12px;
+  font-weight: bold;
+  margin-left: 8px;
+}

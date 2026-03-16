@@ -156,3 +156,22 @@
     left: 0;
   }
 }
+
+/* Chat Badge */
+.teacher-sidebar-item.chat-item {
+  position: relative;
+  width: 100%;
+}
+
+.sidebar-chat-badge {
+  background: #ef4444;
+  color: #ffffff;
+  border-radius: 10px;
+  padding: 2px 7px;
+  font-size: 11px;
+  font-weight: 700;
+  margin-left: auto;
+  min-width: 12px;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(239, 68, 68, 0.2);
+}

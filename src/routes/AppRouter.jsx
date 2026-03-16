@@ -201,6 +201,9 @@ export default function AppRouter() {
 
             {/* Reuse Admin components for compatible features */}
             <Route path="exam" element={<ExamManagement />} />
+            <Route path="exam/:examId/detail" element={<ExamDetail />} />
+            <Route path="exam/:examId/preview" element={<ExamPreview />} />
+            
             <Route path="question-bank" element={<QuestionBank />} />
             <Route path="question-bank/create" element={<QuestionCreate />} />
             <Route path="question-bank/add" element={<QuestionBankCreate />} />

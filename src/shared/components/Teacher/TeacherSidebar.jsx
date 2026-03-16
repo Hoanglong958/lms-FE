@@ -12,6 +12,7 @@ export default function TeacherSidebar({ isOpen, onClose }) {
             return {};
         }
     })();
+    const [unreadChatCount, setUnreadChatCount] = useState(0);
 
     const displayName = user.fullName || user.username || "Teacher";
     const displayEmail = user.gmail || user.email || "teacher@lms.com";
@@ -38,6 +39,24 @@ export default function TeacherSidebar({ isOpen, onClose }) {
             };
         }
     }, [isOpen, onClose]);
+
+    useEffect(() => {
+        if (!user.id) return;
+
+        const fetchUnread = async () => {
+            try {
+                const { chatService } = await import("@utils/chatService");
+                const res = await chatService.getTotalUnreadCount(user.id);
+                setUnreadChatCount(res.data);
+            } catch (err) {
+                console.error("Failed to fetch unread chat count", err);
+            }
+        };
+
+        fetchUnread();
+        const interval = setInterval(fetchUnread, 60000);
+        return () => clearInterval(interval);
+    }, [user.id]);
 
     return (
         <div className={`teacher-sidebar ${isOpen ? "open" : ""}`}>
@@ -106,11 +125,16 @@ export default function TeacherSidebar({ isOpen, onClose }) {
                     <NavLink
                         to="/teacher/chat"
                         className={({ isActive }) =>
-                            isActive ? "teacher-sidebar-item active" : "teacher-sidebar-item"
+                            isActive ? "teacher-sidebar-item active chat-item" : "teacher-sidebar-item chat-item"
                         }
                     >
                         <i className="fa-solid fa-comments"></i>
-                        Trò chuyện
+                        <span>Trò chuyện</span>
+                        {unreadChatCount > 0 && (
+                            <span className="sidebar-chat-badge">
+                                {unreadChatCount > 99 ? '99+' : unreadChatCount}
+                            </span>
+                        )}
                     </NavLink>
                 </nav>
             </div>

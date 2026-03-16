@@ -2,6 +2,9 @@ import React, { useState, useEffect } from "react";
 import { BookOpen, Users, ClipboardCheck, Newspaper, GraduationCap } from "lucide-react";
 import { classService } from "@utils/classService";
 import { notificationService } from "@utils/notificationService";
+import SockJS from 'sockjs-client';
+import { Stomp } from '@stomp/stompjs';
+import { SERVER_URL } from "@config";
 import "./TeacherDashboard.css";
 import { useNavigate } from "react-router-dom";
 
@@ -92,6 +95,55 @@ export default function TeacherDashboard() {
         fetchData();
     }, []);
 
+    // 5. Setup WebSocket for real-time notifications
+    useEffect(() => {
+        const user = JSON.parse(localStorage.getItem("loggedInUser") || "{}");
+        if (!user.id) return;
+
+        let stompClient = null;
+        try {
+            const socket = new SockJS(`${SERVER_URL}/ws`);
+            stompClient = Stomp.over(socket);
+            stompClient.debug = () => { };
+
+            stompClient.connect({}, () => {
+                stompClient.subscribe(`/topic/notifications/${user.id}`, (message) => {
+                    const newNotification = JSON.parse(message.body);
+                    
+                    setNotifications(prev => {
+                        // Avoid duplicates
+                        if (prev.some(n => n.id === newNotification.id)) return prev;
+                        return [newNotification, ...prev.slice(0, 4)];
+                    });
+                });
+            });
+        } catch (error) {
+            console.error("Teacher WebSocket setup failed:", error);
+        }
+
+        return () => {
+            if (stompClient && stompClient.connected) {
+                stompClient.disconnect();
+            }
+        };
+    }, []);
+
+    const handleNotificationClick = async (notif) => {
+        if (!notif.isRead) {
+            try {
+                await notificationService.markAsRead(notif.id);
+                setNotifications(prev =>
+                    prev.map(n => n.id === notif.id ? { ...n, isRead: true } : n)
+                );
+            } catch (error) {
+                console.error("Failed to mark notification as read:", error);
+            }
+        }
+        if (notif.referenceUrl) {
+            navigate(notif.referenceUrl);
+        }
+    };
+
     const handleViewAllClasses = () => {
         navigate("/teacher/classes");
     };
@@ -163,9 +215,7 @@ export default function TeacherDashboard() {
                                         key={notif.id}
                                         className={!notif.isRead ? 'unread' : ''}
                                         style={{ cursor: notif.referenceUrl ? 'pointer' : 'default' }}
-                                        onClick={() => {
-                                            if (notif.referenceUrl) navigate(notif.referenceUrl);
-                                        }}
+                                        onClick={() => handleNotificationClick(notif)}
                                     >
                                         <span className="dot" style={{ backgroundColor: notif.isRead ? '#d1d5db' : '#3b82f6' }}></span>
                                         <p><strong>{notif.title || 'Hệ thống'}</strong>: {notif.message}</p>

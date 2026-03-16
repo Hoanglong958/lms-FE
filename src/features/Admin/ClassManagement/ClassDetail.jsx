@@ -539,7 +539,7 @@ export default function ClassDetail({ classData: propClassData, onBack }) {
                             </svg>
                             <span>Sĩ số: {classData.students} HV</span>
                         </span>
-                        {classData.schedule && (
+                        {/* {classData.schedule && (
                             <span className="cd-info-tag cd-tag-schedule" onClick={() => handleTagClick('schedule')} title="Click để xem lịch học chi tiết">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                     <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
@@ -549,7 +549,7 @@ export default function ClassDetail({ classData: propClassData, onBack }) {
                                 </svg>
                                 <span>{classData.schedule}</span>
                             </span>
-                        )}
+                        )} */}
                     </div>
                 </div>
                 <div className="cd-header-actions-group">
@@ -575,7 +575,7 @@ export default function ClassDetail({ classData: propClassData, onBack }) {
                         </svg>
                         Lộ trình
                     </button>
-                    <button
+                    {/* <button
                         className={`cd-toggle-attendance-btn ${showAttendance ? 'active' : ''}`}
                         onClick={() => setShowAttendance(!showAttendance)}
                     >
@@ -595,7 +595,7 @@ export default function ClassDetail({ classData: propClassData, onBack }) {
                                 Bắt đầu điểm danh
                             </>
                         )}
-                    </button>
+                    </button> */}
                 </div>
             </header>
 

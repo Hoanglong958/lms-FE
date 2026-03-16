@@ -13,6 +13,8 @@ export default function ExamDetail() {
   const params = useParams();
   const examId = params.examId;
   const [exam, setExam] = useState(null);
+  const user = (() => { try { return JSON.parse(localStorage.getItem("loggedInUser") || "{}"); } catch { return {}; } })();
+  const isAdmin = user?.role === "ROLE_ADMIN";
   const [attempts, setAttempts] = useState([]);
   const [rows, setRows] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -180,7 +182,7 @@ export default function ExamDetail() {
       });
 
       let expectedStudents = [];
-      if (Number.isFinite(Number(e?.classId))) {
+      if (e?.classId && Number.isFinite(Number(e.classId))) {
         const csRes = await classStudentService.getClassStudents(e.classId);
         const cs = Array.isArray(csRes?.data) ? csRes.data : [];
         expectedStudents = cs.map((s) => ({ studentId: s.studentId }));
@@ -491,9 +493,9 @@ export default function ExamDetail() {
     <div className="exam-detail-container">
       <button
         className="exam-export-btn"
-        onClick={() => navigate("/admin/exam")}
+        onClick={() => navigate(isAdmin ? "/admin/exam" : "/teacher/exam")}
       >
-        ← Quay lại danh sách câu hỏi
+        ← Quay lại danh sách bài thi
       </button>
 
       {/* Header */}

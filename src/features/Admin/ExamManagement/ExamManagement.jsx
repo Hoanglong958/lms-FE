@@ -626,7 +626,8 @@ export default function ExamManagement() {
         onDelete={handleDeleteById}
         canDelete={canManage}
         onViewDetail={(id) => {
-          navigate(`/admin/exam/${id}/detail`);
+          const basePath = isAdmin ? "/admin" : "/teacher";
+          navigate(`${basePath}/exam/${id}/detail`);
         }}
       />
 

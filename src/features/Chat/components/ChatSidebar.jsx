@@ -103,9 +103,16 @@ export default function ChatSidebar({ rooms, selectedRoom, onSelectRoom, current
                             <div className="conversation-info">
                                 <div className="conversation-top">
                                     <span className="conversation-name">{getRoomName(room)}</span>
-                                    <span className="conversation-time">
-                                        {room.lastMessageAt ? new Date(room.lastMessageAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ""}
-                                    </span>
+                                    <div className="conversation-meta">
+                                        {room.unreadCount > 0 && (
+                                            <span className="unread-badge">
+                                                {room.unreadCount > 99 ? "99+" : room.unreadCount}
+                                            </span>
+                                        )}
+                                        <span className="conversation-time">
+                                            {room.lastMessageAt ? new Date(room.lastMessageAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ""}
+                                        </span>
+                                    </div>
                                 </div>
                                 <div className="conversation-last-msg">
                                     {room.lastMessage || "No messages yet"}

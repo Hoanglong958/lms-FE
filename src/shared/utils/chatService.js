@@ -30,6 +30,10 @@ export const chatService = {
         return api.get(`${CHAT_API}/rooms/${roomId}/unread-count`, { params: { userId } });
     },
 
+    getTotalUnreadCount(userId) {
+        return api.get(`${CHAT_API}/unread-count-total`, { params: { userId } });
+    },
+
     markRead(roomId, userId) {
         return api.post(`${CHAT_API}/rooms/${roomId}/read-all`, null, { params: { userId } });
     },
@@ -47,21 +51,29 @@ export const chatService = {
     },
 
     // WebSocket
-    connect(onMessageReceived, onTypingReceived) {
+    connect(onNotification, userId) {
         const socket = new SockJS(WS_URL);
         stompClient = new Client({
             webSocketFactory: () => socket,
             debug: (str) => {
-                console.log(str);
+                // console.log(str);
             },
             reconnectDelay: 5000,
             heartbeatIncoming: 4000,
             heartbeatOutgoing: 4000,
         });
+        
+        stompClient.beforeConnect = () => {
+            console.log("Connecting to STOMP...");
+        };
 
         stompClient.onConnect = (frame) => {
             console.log("Connected to STOMP");
-            // Global user notification subscription could be here
+            if (userId && onNotification) {
+                stompClient.subscribe(`/topic/notifications/${userId}`, (msg) => {
+                    onNotification(JSON.parse(msg.body));
+                });
+            }
         };
 
         stompClient.onStompError = (frame) => {

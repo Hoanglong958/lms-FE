@@ -16,7 +16,11 @@ export default function ChatLayout() {
             const user = JSON.parse(userJson);
             setCurrentUser(user);
             loadRooms(user.id);
-            chatService.connect();
+            chatService.connect((notification) => {
+                if (notification.type === "CHAT") {
+                    loadRooms(user.id);
+                }
+            }, user.id);
         }
         return () => chatService.disconnect();
     }, []);
