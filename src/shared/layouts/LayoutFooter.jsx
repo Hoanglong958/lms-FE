@@ -90,9 +90,9 @@ export default function LayoutFooter() {
           <div className="footer-quote">
             <p className="quote-text">
               “Hạnh phúc là điểm khởi đầu của giáo dục và cũng là đích đến cuối
-              cùng. Giang, với hơn 10 năm kinh nghiệm giảng dạy và luyện thi
-              JLPT, mong muốn giúp các bạn rút ngắn thời gian, vượt qua khó khăn
-              trong việc học tiếng Nhật, và chinh phục tấm bằng JLPT. Hãy biến
+              cùng. Lâm, với hơn 10 năm kinh nghiệm giảng dạy và luyện thi
+              , mong muốn giúp các bạn rút ngắn thời gian, vượt qua khó khăn
+              trong việc học. Hãy biến
               học tập thành không chỉ là mục tiêu phát triển bản thân mà còn là
               hành trình hạnh phúc để hiện thực hóa những giấc mơ.”
             </p>
@@ -100,7 +100,7 @@ export default function LayoutFooter() {
 
           <div className="footer-quote-2">
             <p className="quote-text-2">
-              Anh Nguyễn Viết Lâm – CEO LMS Academy
+              Anh Nguyễn Viết Lâm – CEO MANKAI Academy
             </p>
           </div>
         </div>
@@ -112,7 +112,7 @@ export default function LayoutFooter() {
           <img src={copyrightIcon} alt="Copyright" />
         </div>
         <p className="footer-copyright-text">
-          2026 By LMS Academy - Rikkei Education - All rights reserved.
+          2026 By MANKAI Academy - All rights reserved.
         </p>
       </div>
     </footer>
