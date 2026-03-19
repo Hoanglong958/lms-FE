@@ -27,7 +27,7 @@ export default function LayoutFooter() {
 
         {/* Title */}
         <h2 className="footer-title">
-          LMS ACADEMY - HỌC VIỆN ĐÀO TẠO THỰC CHIẾN GIỎI NHẤT THẾ GIỚI
+          MANKAI ACADEMY - HỌC VIỆN ĐÀO TẠO THỰC CHIẾN GIỎI NHẤT THẾ GIỚI
         </h2>
 
         {/* Divider */}
@@ -59,7 +59,7 @@ export default function LayoutFooter() {
             <img src={mailIcon} alt="Email" className="contact-icon" />
             <p className="contact-detail-inline">
               <span className="contact-label">Email:</span>
-              <span className="contact-value">support@lms.edu.vn</span>
+              <span className="contact-value">support@mankai.edu.vn</span>
             </p>
           </div>
         </div>

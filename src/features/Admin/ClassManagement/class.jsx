@@ -35,7 +35,7 @@ export default function ClassManagement() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [editingClass, setEditingClass] = useState(null);
-  const [confirmDelete, setConfirmDelete] = useState(null);
+  const [confirmToggle, setConfirmToggle] = useState(null);
   const [classes, setClasses] = useState([]);
   const [assigningClass, setAssigningClass] = useState(null);
   const [modalState, setModalState] = useState({
@@ -108,6 +108,7 @@ export default function ClassManagement() {
             item.instructor ||
             item.teacherName ||
             "Chưa phân công",
+          isActive: item.isActive !== undefined ? item.isActive : true,
           students: item.maxStudents || item.students || item.max_students || 0,
           active:
             item.activeStudents || item.active || item.active_students || 0,
@@ -398,22 +399,22 @@ export default function ClassManagement() {
     }
   }
 
-  // --- Xóa lớp ---
-  function handleRequestDelete(cls) {
-    setConfirmDelete(cls);
+  // --- Ẩn/Hiện lớp ---
+  function handleRequestToggle(cls) {
+    setConfirmToggle(cls);
   }
 
-  async function handleConfirmDelete() {
-    if (!confirmDelete) return;
+  async function handleConfirmToggle() {
+    if (!confirmToggle) return;
     try {
-      await classService.deleteClass(confirmDelete.id);
-      setClasses((prev) => prev.filter((c) => c.id !== confirmDelete.id));
-      alert("Xóa lớp học thành công!");
+      await classService.toggleClassActive(confirmToggle.id);
+      await fetchClasses();
+      alert(confirmToggle.isActive ? "Đã ẩn lớp học!" : "Đã hiện lớp học!");
     } catch (error) {
-      console.error("Failed to delete class:", error);
-      alert("Lỗi khi xóa lớp học: " + (error.response?.data?.message || error.message));
+      console.error("Failed to toggle class:", error);
+      alert("Lỗi khi thay đổi trạng thái lớp học: " + (error.response?.data?.message || error.message));
     } finally {
-      setConfirmDelete(null);
+      setConfirmToggle(null);
     }
   }
 
@@ -900,19 +901,34 @@ export default function ClassManagement() {
               {filtered.map((c) => (
                 <tr
                   key={c.id}
-                  style={{ ...styles.tr, cursor: "pointer" }}
+                  style={{ ...styles.tr, cursor: "pointer", opacity: c.isActive ? 1 : 0.55 }}
                   onClick={() => navigate(`/admin/classes/${c.id}`, { state: { classData: c } })}
                 >
                   <td style={styles.td}>
                     <div style={{ display: "grid", rowGap: 4 }}>
-                      <div
-                        style={{
-                          fontWeight: 600,
-                          fontSize: 14,
-                          color: "#111827",
-                        }}
-                      >
-                        {c.name}
+                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <div
+                          style={{
+                            fontWeight: 600,
+                            fontSize: 14,
+                            color: "#111827",
+                          }}
+                        >
+                          {c.name}
+                        </div>
+                        <span
+                          style={{
+                            padding: "3px 8px",
+                            borderRadius: 999,
+                            fontSize: 11,
+                            fontWeight: 700,
+                            background: c.isActive ? "#dcfce7" : "#f1f5f9",
+                            color: c.isActive ? "#166534" : "#475569",
+                            border: c.isActive ? "1px solid #bbf7d0" : "1px solid #e2e8f0",
+                          }}
+                        >
+                          {c.isActive ? "Đang hiện" : "Đã ẩn"}
+                        </span>
                       </div>
                       <div style={styles.classSubtitle}>{c.subtitle}</div>
                     </div>
@@ -972,11 +988,11 @@ export default function ClassManagement() {
                         ✏️
                       </button>
                       <button
-                        className="btn-icon delete"
-                        title="Xóa"
-                        onClick={() => handleRequestDelete(c)}
+                        className="btn-icon toggle"
+                        title={c.isActive ? "Ẩn lớp học" : "Hiện lớp học"}
+                        onClick={() => handleRequestToggle(c)}
                       >
-                        🗑️
+                        {c.isActive ? "🙈" : "👁️"}
                       </button>
                     </div>
                   </td>
@@ -1016,12 +1032,17 @@ export default function ClassManagement() {
       }
 
       {
-        confirmDelete && (
+        confirmToggle && (
           <ConfirmModal
-            title="Xóa lớp học"
-            message={`Bạn có chắc muốn xóa '${confirmDelete.name}'?`}
-            onCancel={() => setConfirmDelete(null)}
-            onConfirm={handleConfirmDelete}
+            title={confirmToggle.isActive ? "Ẩn lớp học" : "Hiện lớp học"}
+            message={
+              confirmToggle.isActive
+                ? `Bạn có chắc muốn ẩn '${confirmToggle.name}'?`
+                : `Bạn có chắc muốn hiện '${confirmToggle.name}'?`
+            }
+            confirmText={confirmToggle.isActive ? "Ẩn" : "Hiện"}
+            onCancel={() => setConfirmToggle(null)}
+            onConfirm={handleConfirmToggle}
           />
         )
       }
@@ -1913,7 +1934,7 @@ function AssignTeachersModal({ classData, onClose, onSubmit }) {
   );
 }
 
-function ConfirmModal({ title, message, onCancel, onConfirm }) {
+function ConfirmModal({ title, message, onCancel, onConfirm, confirmText = "Xóa" }) {
   return (
     <div style={modalStyles.backdrop} role="dialog" aria-modal="true">
       <div style={modalStyles.container}>
@@ -1932,7 +1953,7 @@ function ConfirmModal({ title, message, onCancel, onConfirm }) {
             onClick={onConfirm}
             style={{ ...styles.primaryButton, background: "#b91c1c" }}
           >
-            Xóa
+            {confirmText}
           </button>
         </div>
       </div>

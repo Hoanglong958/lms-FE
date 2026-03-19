@@ -28,7 +28,9 @@ import {
   Plus,
   Pencil,
   Trash2,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Eye,
+  EyeOff
 } from "lucide-react";
 
 // Giá trị khởi tạo form
@@ -42,7 +44,7 @@ const initialFormData = {
 };
 
 // Component dòng khóa học
-function CourseRow({ course, onEdit, onDelete }) {
+function CourseRow({ course, onEdit, onToggleActive }) {
   const navigate = useNavigate();
 
   const handleRowClick = (e) => {
@@ -56,7 +58,7 @@ function CourseRow({ course, onEdit, onDelete }) {
     <tr
       className={styles.tableRow}
       onClick={handleRowClick}
-      style={{ cursor: "pointer" }}
+      style={{ cursor: "pointer", opacity: course.isActive ? 1 : 0.55 }}
     >
       <td>
         <img
@@ -94,6 +96,13 @@ function CourseRow({ course, onEdit, onDelete }) {
       <td style={{ fontWeight: 600, color: '#0f172a' }}>
         {new Intl.NumberFormat("vi-VN").format(course.tuitionFee || 0)} ₫
       </td>
+      <td>
+        <span
+          className={`${styles.statusBadge} ${course.isActive ? styles.statusActive : styles.statusInactive}`}
+        >
+          {course.isActive ? "Đang hiện" : "Đã ẩn"}
+        </span>
+      </td>
       <td className={styles.colActions}>
         <div className={styles.rowActions} style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
           <button
@@ -106,11 +115,11 @@ function CourseRow({ course, onEdit, onDelete }) {
           </button>
           <button
             type="button"
-            className={`${styles.btnIcon} ${styles.btnIconDelete}`}
-            title="Xóa"
-            onClick={onDelete}
+            className={`${styles.btnIcon} ${styles.btnIconToggle}`}
+            title={course.isActive ? "Ẩn khóa học" : "Hiện khóa học"}
+            onClick={onToggleActive}
           >
-            🗑️
+            {course.isActive ? <EyeOff size={16} /> : <Eye size={16} />}
           </button>
         </div>
       </td>
@@ -197,18 +206,20 @@ export default function ManageCourses() {
     setShowModal(true);
   };
 
-  const handleDelete = async (course) => {
+  const handleToggleActive = async (course) => {
     const isConfirmed = await confirm({
-      title: "Xác nhận xóa",
-      message: "Bạn có chắc chắn muốn xóa khóa học này?",
-      type: "danger",
-      confirmText: "Xóa",
+      title: course.isActive ? "Ẩn khóa học" : "Hiện khóa học",
+      message: course.isActive
+        ? "Khóa học sẽ bị ẩn với học viên và giảng viên."
+        : "Khóa học sẽ hiển thị lại với học viên và giảng viên.",
+      type: "warning",
+      confirmText: course.isActive ? "Ẩn" : "Hiện",
       cancelText: "Hủy"
     });
     if (!isConfirmed) return;
 
     try {
-      await courseService.deleteCourse(course.id);
+      await courseService.toggleCourseActive(course.id);
       loadCourses();
     } catch { }
   };
@@ -402,6 +413,7 @@ export default function ManageCourses() {
               <th>Cấp độ</th>
               <th>Tổng buổi</th>
               <th>Học phí</th>
+              <th>Trạng thái</th>
               <th className={styles.colActions}>Thao tác</th>
             </tr>
           </thead>
@@ -411,7 +423,7 @@ export default function ManageCourses() {
                 key={course.id}
                 course={course}
                 onEdit={() => handleEdit(course)}
-                onDelete={() => handleDelete(course)}
+                onToggleActive={() => handleToggleActive(course)}
               />
             ))}
           </tbody>

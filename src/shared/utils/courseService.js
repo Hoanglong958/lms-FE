@@ -31,4 +31,9 @@ export const courseService = {
   deleteCourse(id) {
     return api.delete(`/api/v1/courses/${id}`);
   },
+
+  // PATCH /api/v1/courses/{id}/toggle-active
+  toggleCourseActive(id) {
+    return api.patch(`/api/v1/courses/${id}/toggle-active`);
+  },
 };
