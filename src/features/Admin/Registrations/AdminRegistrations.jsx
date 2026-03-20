@@ -144,10 +144,22 @@ export default function AdminRegistrations() {
         });
         if (!isConfirmed) return;
 
-        for (const id of selectedRows) {
-            await handleConfirm(id);
+        try {
+            setLoading(true);
+            await registrationService.confirmBulkPayment(selectedRows);
+            setNotification({
+                isOpen: true,
+                title: "Thành công!",
+                message: `Đã xác nhận thanh toán cho ${selectedRows.length} bản ghi.`,
+                type: "success"
+            });
+            setSelectedRows([]);
+            fetchAll();
+        } catch (err) {
+            error(err.response?.data?.data || "Không thể xác nhận thanh toán hàng loạt.");
+        } finally {
+            setLoading(false);
         }
-        setSelectedRows([]);
     };
 
     const handleSort = (key) => {

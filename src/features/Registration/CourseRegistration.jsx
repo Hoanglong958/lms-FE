@@ -54,7 +54,13 @@ export default function CourseRegistration() {
     };
 
     const isRegistered = (id) => myRegistrations.some(r => r.courseId === id);
-    const getReg = (id) => myRegistrations.find(r => r.courseId === id);
+    const getReg = (id) => {
+        const regs = myRegistrations.filter(r => r.courseId === id);
+        if (regs.length === 0) return null;
+        // Ưu tiên bản ghi chưa hủy
+        const activeReg = regs.find(r => r.paymentStatus !== "CANCELLED");
+        return activeReg || regs[0];
+    };
 
     const getStatusLabel = (status) => {
         switch (status) {
@@ -101,7 +107,7 @@ export default function CourseRegistration() {
                                 <p className="course-desc">{c.description || "Không có mô tả"}</p>
 
                                 <div className="course-card-footer">
-                                    {reg ? (
+                                    {reg && reg.paymentStatus !== "CANCELLED" ? (
                                         <div className="reg-status-block">
                                             <span className={`status-badge ${className}`}>{label}</span>
                                             {reg.paymentStatus === "PENDING" && (
@@ -114,9 +120,14 @@ export default function CourseRegistration() {
                                             )}
                                         </div>
                                     ) : (
-                                        <button className="btn-register" onClick={() => handleRegister(c.id)}>
-                                            Đăng ký ngay
-                                        </button>
+                                        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                                            {reg && reg.paymentStatus === "CANCELLED" && (
+                                                <span className={`status-badge ${className}`} style={{ alignSelf: "center" }}>{label}</span>
+                                            )}
+                                            <button className="btn-register" onClick={() => handleRegister(c.id)}>
+                                                {reg && reg.paymentStatus === "CANCELLED" ? "Đăng ký lại" : "Đăng ký ngay"}
+                                            </button>
+                                        </div>
                                     )}
                                 </div>
                             </div>
