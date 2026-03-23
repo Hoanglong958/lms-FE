@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { useLocation } from "react-router-dom";
 import { registrationService } from "@utils/registrationService";
 import { courseService } from "@utils/courseService";
 import { SERVER_URL } from "@config";
@@ -12,8 +13,49 @@ export default function CourseRegistration() {
     const [loading, setLoading] = useState(true);
     const [notification, setNotification] = useState({ isOpen: false, title: "", message: "", type: "info" });
     const [paymentReg, setPaymentReg] = useState(null); // registration currently being paid
+    const location = useLocation();
+    const hasHandledDeepLink = useRef(false);
 
-    useEffect(() => { fetchData(); }, []);
+    useEffect(() => { 
+        fetchData(); 
+    }, []);
+
+    const getReg = (id) => {
+        const regs = myRegistrations.filter(r => r.courseId === id);
+        if (regs.length === 0) return null;
+        // Ưu tiên bản ghi chưa hủy
+        const activeReg = regs.find(r => r.paymentStatus !== "CANCELLED");
+        return activeReg || regs[0];
+    };
+
+    useEffect(() => {
+        if (!loading && courses.length > 0 && !hasHandledDeepLink.current) {
+            const params = new URLSearchParams(location.search);
+            const courseId = params.get("courseId");
+            const isPayment = params.get("payment") === "true";
+
+            if (courseId) {
+                // Scroll to the course
+                setTimeout(() => {
+                    const element = document.getElementById(`course-${courseId}`);
+                    if (element) {
+                        element.scrollIntoView({ behavior: "smooth", block: "center" });
+                        element.classList.add("highlight-card");
+                        setTimeout(() => element.classList.remove("highlight-card"), 3000);
+                    }
+
+                    // If payment requested, find registration and open modal
+                    if (isPayment) {
+                        const reg = getReg(parseInt(courseId));
+                        if (reg && reg.paymentStatus === "PENDING") {
+                            setPaymentReg(reg);
+                        }
+                    }
+                }, 100);
+                hasHandledDeepLink.current = true;
+            }
+        }
+    }, [loading, courses, myRegistrations, location.search]);
 
     const fetchData = async () => {
         try {
@@ -33,7 +75,6 @@ export default function CourseRegistration() {
     const handleRegister = async (courseId) => {
         try {
             const res = await registrationService.register(courseId);
-            const reg = res.data?.data;
             setNotification({
                 isOpen: true,
                 title: "Đăng ký thành công!",
@@ -41,8 +82,6 @@ export default function CourseRegistration() {
                 type: "success"
             });
             await fetchData();
-            // Removed auto-open payment modal to encourage bulk payment
-            // if (reg) setPaymentReg(reg);
         } catch (err) {
             setNotification({
                 isOpen: true,
@@ -51,15 +90,6 @@ export default function CourseRegistration() {
                 type: "error"
             });
         }
-    };
-
-    const isRegistered = (id) => myRegistrations.some(r => r.courseId === id);
-    const getReg = (id) => {
-        const regs = myRegistrations.filter(r => r.courseId === id);
-        if (regs.length === 0) return null;
-        // Ưu tiên bản ghi chưa hủy
-        const activeReg = regs.find(r => r.paymentStatus !== "CANCELLED");
-        return activeReg || regs[0];
     };
 
     const getStatusLabel = (status) => {
@@ -88,7 +118,7 @@ export default function CourseRegistration() {
                     const reg = getReg(c.id);
                     const { label, className } = reg ? getStatusLabel(reg.paymentStatus) : {};
                     return (
-                        <div className="reg-course-card" key={c.id}>
+                        <div className="reg-course-card" id={`course-${c.id}`} key={c.id}>
                             <div className="course-img">
                                 <img
                                     src={c.imageUrl

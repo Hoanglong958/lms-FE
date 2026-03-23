@@ -106,6 +106,7 @@ const NotificationDropdown = () => {
         setLoading(true);
         try {
             const data = await notificationService.getUserNotifications(pageNumber, 10);
+            console.log('API Response:', data); // Debug API response
 
             if (pageNumber === 0) {
                 setNotifications(data.content);
@@ -130,23 +131,44 @@ const NotificationDropdown = () => {
     };
 
     const handleNotificationClick = async (notification) => {
-        // Mark as read if it's unread
-        if (!notification.isRead) {
-            try {
-                await notificationService.markAsRead(notification.id);
-                setUnreadCount(prev => Math.max(0, prev - 1));
-                setNotifications(prev =>
-                    prev.map(n => n.id === notification.id ? { ...n, isRead: true } : n)
-                );
-            } catch (error) {
-                console.error("Failed to mark as read", error);
-            }
+        console.log('Clicked notification:', notification);
+        console.log('Reference URL:', notification.referenceUrl);
+        
+        // Mark as read locally immediately for better UX
+        const wasUnread = !notification.isRead;
+        if (wasUnread) {
+            setUnreadCount(prev => Math.max(0, prev - 1));
+            setNotifications(prev =>
+                prev.map(n => n.id === notification.id ? { ...n, isRead: true } : n)
+            );
+            
+            // Call API in background
+            notificationService.markAsRead(notification.id).catch(error => {
+                console.error("Failed to mark as read in background", error);
+                // Optional: Revert local state if critical, but usually fine to leave it read
+            });
         }
 
         // Navigate if there's a reference URL
         if (notification.referenceUrl) {
+            console.log('Navigating to:', notification.referenceUrl);
             setIsOpen(false);
-            navigate(notification.referenceUrl);
+            
+            // Fix route mapping from /student/registrations to /registrations
+            let targetPath = notification.referenceUrl.startsWith('/') 
+                ? notification.referenceUrl 
+                : `/${notification.referenceUrl}`;
+            
+            // Map known incorrect URLs to correct ones
+            if (targetPath.startsWith('/student/registrations')) {
+                const queryParams = targetPath.includes('?') ? targetPath.split('?')[1] : '';
+                targetPath = '/registrations' + (queryParams ? '?' + queryParams : '');
+            }
+            
+            console.log('Final target path:', targetPath);
+            navigate(targetPath);
+        } else {
+            console.log('No reference URL found');
         }
     };
 

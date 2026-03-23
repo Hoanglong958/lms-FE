@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import ChatSidebar from "./components/ChatSidebar";
 import ChatWindow from "./components/ChatWindow";
 import { chatService } from "@utils/chatService";
+import { useLocation } from "react-router-dom";
 import "./Chat.css";
 
 export default function ChatLayout() {
@@ -9,6 +10,14 @@ export default function ChatLayout() {
     const [rooms, setRooms] = useState([]);
     const [selectedRoom, setSelectedRoom] = useState(null);
     const [loading, setLoading] = useState(true);
+    const location = useLocation();
+    const roomQueryParam = useMemo(() => {
+        try {
+            return new URLSearchParams(location.search).get("room");
+        } catch {
+            return null;
+        }
+    }, [location.search]);
 
     useEffect(() => {
         const userJson = localStorage.getItem("loggedInUser");
@@ -35,6 +44,19 @@ export default function ChatLayout() {
         }
         return () => chatService.disconnect();
     }, []);
+
+    useEffect(() => {
+        if (!roomQueryParam || rooms.length === 0) {
+            return;
+        }
+        if (selectedRoom && String(selectedRoom.id) === roomQueryParam) {
+            return;
+        }
+        const matchedRoom = rooms.find((room) => String(room.id) === roomQueryParam);
+        if (matchedRoom) {
+            setSelectedRoom(matchedRoom);
+        }
+    }, [roomQueryParam, rooms, selectedRoom]);
 
     const loadRooms = async (userId) => {
         try {

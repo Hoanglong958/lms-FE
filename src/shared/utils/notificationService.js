@@ -1,15 +1,4 @@
-import axios from 'axios';
-import { SERVER_URL } from '@config';
-
-const getAuthHeaders = () => {
-    const token = localStorage.getItem('accessToken');
-    return {
-        headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json'
-        }
-    };
-};
+import api from '@services/api';
 
 export const notificationService = {
     /**
@@ -19,9 +8,8 @@ export const notificationService = {
      */
     getUserNotifications: async (page = 0, limit = 10) => {
         try {
-            const response = await axios.get(
-                `${SERVER_URL}/api/v1/notifications?page=${page}&limit=${limit}`,
-                getAuthHeaders()
+            const response = await api.get(
+                `/api/v1/notifications?page=${page}&limit=${limit}`
             );
             return response.data;
         } catch (error) {
@@ -35,9 +23,8 @@ export const notificationService = {
      */
     getUnreadCount: async () => {
         try {
-            const response = await axios.get(
-                `${SERVER_URL}/api/v1/notifications/unread-count`,
-                getAuthHeaders()
+            const response = await api.get(
+                `/api/v1/notifications/unread-count`
             );
             return response.data;
         } catch (error) {
@@ -52,10 +39,9 @@ export const notificationService = {
      */
     markAsRead: async (notificationId) => {
         try {
-            const response = await axios.put(
-                `${SERVER_URL}/api/v1/notifications/${notificationId}/read`,
-                {},
-                getAuthHeaders()
+            const response = await api.put(
+                `/api/v1/notifications/${notificationId}/read`,
+                {}
             );
             return response.data;
         } catch (error) {
@@ -64,15 +50,15 @@ export const notificationService = {
         }
     },
 
+
     /**
      * Đánh dấu tất cả thông báo là đã đọc
      */
     markAllAsRead: async () => {
         try {
-            const response = await axios.put(
-                `${SERVER_URL}/api/v1/notifications/read-all`,
-                {},
-                getAuthHeaders()
+            const response = await api.put(
+                `/api/v1/notifications/read-all`,
+                {}
             );
             return response.data;
         } catch (error) {
