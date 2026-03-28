@@ -13,12 +13,22 @@ export default function CourseRegistration() {
     const [loading, setLoading] = useState(true);
     const [notification, setNotification] = useState({ isOpen: false, title: "", message: "", type: "info" });
     const [paymentReg, setPaymentReg] = useState(null); // registration currently being paid
+    
+    // New states for Search, Sort, Pagination
+    const [searchTerm, setSearchTerm] = useState("");
+    const [page, setPage] = useState(0);
+    const [pageSize] = useState(6);
+    const [sortBy, setSortBy] = useState("createdAt,desc");
+    const [regStatus, setRegStatus] = useState("ALL");
+    const [totalPages, setTotalPages] = useState(0);
+    const [totalElements, setTotalElements] = useState(0);
+
     const location = useLocation();
     const hasHandledDeepLink = useRef(false);
 
     useEffect(() => { 
         fetchData(); 
-    }, []);
+    }, [page, sortBy, regStatus]); // Re-fetch on page, sort, or status change
 
     const getReg = (id) => {
         const regs = myRegistrations.filter(r => r.courseId === id);
@@ -58,17 +68,59 @@ export default function CourseRegistration() {
     }, [loading, courses, myRegistrations, location.search]);
 
     const fetchData = async () => {
+        setLoading(true);
         try {
+            const params = {
+                q: searchTerm,
+                page: page,
+                size: pageSize,
+                sort: sortBy,
+                regStatus: regStatus
+            };
+
             const [cRes, mRes] = await Promise.all([
-                courseService.getCourses(),
+                courseService.getCoursesPaging(params),
                 registrationService.getMyRegistrations()
             ]);
-            setCourses(cRes.data?.data?.content || cRes.data?.data || []);
+            
+            const courseData = cRes.data?.data;
+            setCourses(courseData?.content || []);
+            setTotalPages(courseData?.totalPages || 0);
+            setTotalElements(courseData?.totalElements || 0);
             setMyRegistrations(mRes.data?.data || []);
         } catch (err) {
             console.error(err);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleSearchChange = (e) => {
+        setSearchTerm(e.target.value);
+    };
+
+    const handleSearchSubmit = (e) => {
+        if (e) e.preventDefault();
+        setPage(0);
+        fetchData();
+    };
+
+    const handleSortChange = (e) => {
+        setSortBy(e.target.value);
+        setPage(0);
+    };
+
+    const handleStatusChange = (e) => {
+        setRegStatus(e.target.value);
+        setPage(0);
+    };
+
+    const handlePageChange = (newPage) => {
+        if (newPage >= 0 && newPage < totalPages) {
+            setPage(newPage);
+            // Scroll to top of grid
+            const header = document.querySelector(".registration-header");
+            if (header) header.scrollIntoView({ behavior: "smooth" });
         }
     };
 
@@ -100,11 +152,7 @@ export default function CourseRegistration() {
         }
     };
 
-    if (loading) return (
-        <div className="course-registration-container">
-            <div className="registration-loading">Đang tải danh sách khóa học...</div>
-        </div>
-    );
+    // No early return for loading to prevent unmounting filters
 
     return (
         <div className="course-registration-container">
@@ -113,57 +161,134 @@ export default function CourseRegistration() {
                 <p className="registration-subtitle">Chọn khóa học phù hợp và thanh toán học phí để bắt đầu học</p>
             </div>
 
-            <div className="registration-grid">
-                {(Array.isArray(courses) ? courses : []).map(c => {
-                    const reg = getReg(c.id);
-                    const { label, className } = reg ? getStatusLabel(reg.paymentStatus) : {};
-                    return (
-                        <div className="reg-course-card" id={`course-${c.id}`} key={c.id}>
-                            <div className="course-img">
-                                <img
-                                    src={c.imageUrl
-                                        ? (c.imageUrl.startsWith("http") ? c.imageUrl : `${SERVER_URL}${c.imageUrl}`)
-                                        : "https://placehold.co/600x400"}
-                                    alt={c.title}
-                                />
-                                {c.tuitionFee > 0 && (
-                                    <div className="course-price-badge">
-                                        {new Intl.NumberFormat("vi-VN").format(c.tuitionFee)} VNĐ
-                                    </div>
-                                )}
-                            </div>
-                            <div className="course-details">
-                                <h3>{c.title}</h3>
-                                <p className="course-desc">{c.description || "Không có mô tả"}</p>
+            {/* Search and Sort Row */}
+            <div className="registration-controls">
+                <form className="reg-search-box" onSubmit={handleSearchSubmit}>
+                    <input
+                        type="text"
+                        placeholder="Tìm tên khóa học..."
+                        value={searchTerm}
+                        onChange={handleSearchChange}
+                    />
+                    <button type="submit">Tìm kiếm</button>
+                </form>
 
-                                <div className="course-card-footer">
-                                    {reg && reg.paymentStatus !== "CANCELLED" ? (
-                                        <div className="reg-status-block">
-                                            <span className={`status-badge ${className}`}>{label}</span>
-                                            {reg.paymentStatus === "PENDING" && (
-                                                <button
-                                                    className="btn-pay"
-                                                    onClick={() => setPaymentReg(reg)}
-                                                >
-                                                    💳 Thanh toán ngay
-                                                </button>
+                <div className="reg-sort-box">
+                    <label>Sắp xếp:</label>
+                    <select value={sortBy} onChange={handleSortChange}>
+                        <option value="createdAt,desc">Mới nhất</option>
+                        <option value="createdAt,asc">Cũ nhất</option>
+                        <option value="title,asc">Tên A-Z</option>
+                        <option value="title,desc">Tên Z-A</option>
+                    </select>
+                </div>
+
+                <div className="reg-status-filter">
+                    <label>Trạng thái:</label>
+                    <select value={regStatus} onChange={handleStatusChange}>
+                        <option value="ALL">Tất cả trạng thái</option>
+                        <option value="NONE">Chưa đăng ký</option>
+                        <option value="PENDING">Chờ thanh toán</option>
+                        <option value="PAID">Đã thanh toán</option>
+                    </select>
+                </div>
+            </div>
+
+            <div className={`registration-content ${loading ? "loading-active" : ""}`}>
+                {totalElements > 0 && (
+                    <div className="registration-results-count">
+                        Tìm thấy <b>{totalElements}</b> khóa học
+                    </div>
+                )}
+                {!loading && totalElements === 0 && (
+                    <div className="registration-results-count">
+                        Không tìm thấy khóa học nào phù hợp.
+                    </div>
+                )}
+
+                <div className="registration-grid">
+                    {(Array.isArray(courses) ? courses : []).map(c => {
+                            const reg = getReg(c.id);
+                            const { label, className } = reg ? getStatusLabel(reg.paymentStatus) : {};
+                            return (
+                                <div className="reg-course-card" id={`course-${c.id}`} key={c.id}>
+                                    <div className="course-img">
+                                        <img
+                                            src={c.imageUrl
+                                                ? (c.imageUrl.startsWith("http") ? c.imageUrl : `${SERVER_URL}${c.imageUrl}`)
+                                                : "https://placehold.co/600x400"}
+                                            alt={c.title}
+                                        />
+                                        {c.tuitionFee > 0 && (
+                                            <div className="course-price-badge">
+                                                {new Intl.NumberFormat("vi-VN").format(c.tuitionFee)} VNĐ
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="course-details">
+                                        <h3>{c.title}</h3>
+                                        <p className="course-desc">{c.description || "Không có mô tả"}</p>
+
+                                        <div className="course-card-footer">
+                                            {reg && reg.paymentStatus !== "CANCELLED" ? (
+                                                <div className="reg-status-block">
+                                                    <span className={`status-badge ${className}`}>{label}</span>
+                                                    {reg.paymentStatus === "PENDING" && (
+                                                        <button
+                                                            className="btn-pay"
+                                                            onClick={() => setPaymentReg(reg)}
+                                                        >
+                                                            💳 Thanh toán ngay
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            ) : (
+                                                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                                                    {reg && reg.paymentStatus === "CANCELLED" && (
+                                                        <span className={`status-badge ${className}`} style={{ alignSelf: "center" }}>{label}</span>
+                                                    )}
+                                                    <button className="btn-register" onClick={() => handleRegister(c.id)}>
+                                                        {reg && reg.paymentStatus === "CANCELLED" ? "Đăng ký lại" : "Đăng ký ngay"}
+                                                    </button>
+                                                </div>
                                             )}
                                         </div>
-                                    ) : (
-                                        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                                            {reg && reg.paymentStatus === "CANCELLED" && (
-                                                <span className={`status-badge ${className}`} style={{ alignSelf: "center" }}>{label}</span>
-                                            )}
-                                            <button className="btn-register" onClick={() => handleRegister(c.id)}>
-                                                {reg && reg.paymentStatus === "CANCELLED" ? "Đăng ký lại" : "Đăng ký ngay"}
-                                            </button>
-                                        </div>
-                                    )}
+                                    </div>
                                 </div>
-                            </div>
+                            );
+                        })}
+                    </div>
+
+                    {/* Pagination Controls */}
+                    {totalPages > 1 && (
+                        <div className="registration-pagination">
+                            <button 
+                                className="pagination-btn" 
+                                disabled={page === 0} 
+                                onClick={() => handlePageChange(page - 1)}
+                            >
+                                &laquo; Trước
+                            </button>
+                            
+                            {[...Array(totalPages)].map((_, index) => (
+                                <button
+                                    key={index}
+                                    className={`pagination-number ${page === index ? "active" : ""}`}
+                                    onClick={() => handlePageChange(index)}
+                                >
+                                    {index + 1}
+                                </button>
+                            ))}
+
+                            <button 
+                                className="pagination-btn" 
+                                disabled={page === totalPages - 1} 
+                                onClick={() => handlePageChange(page + 1)}
+                            >
+                                Sau &raquo;
+                            </button>
                         </div>
-                    );
-                })}
+                    )}
             </div>
 
             {/* Payment Modal */}

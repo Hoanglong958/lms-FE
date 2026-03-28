@@ -1,6 +1,6 @@
 /* ======================= BANNER ======================= */
 .baiviet-banner {
-    background: linear-gradient(120deg, #ff7a00, #ff5e00);
+    background: linear-gradient(90deg, #e6673e, #f18b50);
     color: #fff;
     text-align: center;
     padding: 70px 0 50px;
@@ -102,7 +102,7 @@
 .baiviet-info .category {
     font-size: 13px;
     font-weight: 600;
-    color: #ff6a00;
+    color: #e6673e;
     margin-bottom: 6px;
 }
 
@@ -162,20 +162,21 @@
 }
 
 .baiviet-pagination .pages span:hover {
-    background: #ffe4d1;
+    background: #fce8df;
 }
 
 .baiviet-pagination .pages span.active {
-    background: #ff6a00;
+    background: #e6673e;
     color: #fff;
     font-weight: 600;
-    box-shadow: 0 3px 10px rgba(255, 150, 80, 0.4);
+    box-shadow: 0 3px 10px rgba(230, 103, 62, 0.4);
 }
 
 .baiviet-pagination .disable {
     opacity: 0.4;
     cursor: default;
 }
+
 /* ======================= SORT DROPDOWN ======================= */
 .sort-dropdown-wrapper {
     position: relative;
@@ -211,14 +212,15 @@
 }
 
 .sort-menu span:hover {
-    background: #ffe0c2;
+    background: #fce8df;
 }
 
 .sort-menu .active {
-    color: #ff6a00;
+    color: #e6673e;
     font-weight: 600;
 }
-/* BREADCRUMB */
+
+/* ======================= BREADCRUMB ======================= */
 .breadcrumb {
   font-size: 14px;
   margin-bottom: 8px;

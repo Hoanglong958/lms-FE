@@ -121,9 +121,9 @@ export default function Header() {
         </div>
 
         <div className="user-header-right-desktop">
-          <button className="user-header-icon-btn" onClick={() => navigate("/search")}>
+          {/* <button className="user-header-icon-btn" onClick={() => navigate("/search")}>
             <img src={searchIcon} alt="Search" />
-          </button>
+          </button> */}
           <NotificationDropdown />
           <div
             className="user-header-avatar-dropdown"
