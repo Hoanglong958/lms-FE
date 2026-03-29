@@ -1,5 +1,5 @@
 import React from "react";
-import "./ExamTable.css";
+import "./styles/ExamTable.css";
 
 export default function ExamTable({ exams = [], loading = false, onEdit, onDelete, onViewDetail, canDelete = true }) {
   const columns = [

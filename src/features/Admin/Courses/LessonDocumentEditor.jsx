@@ -5,7 +5,7 @@ import { lessonDocumentService } from "@utils/lessonDocumentService.js";
 import { uploadService } from "@utils/uploadService";
 import VideoProgress from "@components/VideoPlayer/VideoProgress";
 import NotificationModal from "@components/NotificationModal/NotificationModal";
-import "./CoursesCSS/LessonDocumentEditor.css";
+import "./styles/LessonDocumentEditor.css";
 import { SERVER_URL } from "@config";
 
 // Toolbar dùng chung

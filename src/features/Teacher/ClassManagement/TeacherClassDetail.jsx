@@ -14,7 +14,7 @@ import NotificationModal from "@components/NotificationModal/NotificationModal";
 import LessonManager from "@admin/Courses/LessonManager";
 import LessonDetailView from "@admin/Courses/LessonDetailView";
 import { sessionService } from "@utils/sessionService";
-import manageStyles from "@admin/Courses/ManageLessons.module.css";
+import manageStyles from "@admin/Courses/styles/ManageLessons.module.css";
 import { useNotification } from "@shared/notification";
 
 export default function TeacherClassDetail() {

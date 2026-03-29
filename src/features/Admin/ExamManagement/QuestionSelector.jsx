@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import "./QuestionSelector.css";
+import "./styles/QuestionSelector.css";
 
 import { questionService } from "@utils/questionService.js";
 

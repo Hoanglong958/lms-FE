@@ -5,7 +5,7 @@ import { uploadService } from "@utils/uploadService";
 import { SERVER_URL } from "@config";
 import { useNotification } from "@shared/notification";
 
-import styles from "./ManageCourses.module.css";
+import styles from "./styles/ManageCourses.module.css";
 import AdminHeader from "@components/Admin/AdminHeader";
 import { slugify } from "@utils/slugify";
 import {

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import "./ExamEditDialog.css";
+import "./styles/ExamEditDialog.css";
 import { examService } from "@utils/examService.js";
 import { courseService } from "@utils/courseService";
 import { classService } from "@utils/classService";

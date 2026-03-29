@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { FileText, Clock, TrendingUp, CheckCircle2, Search, Activity, ChevronDown } from "lucide-react";
 import NotificationModal from "@components/NotificationModal/NotificationModal";
-import "./ExamManagement.css";
+import "./styles/ExamManagement.css";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import { examService } from "@utils/examService.js";
 import { courseService } from "@utils/courseService";

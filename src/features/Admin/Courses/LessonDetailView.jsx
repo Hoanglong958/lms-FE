@@ -15,7 +15,7 @@ import LessonDocumentEditor from "./LessonDocumentEditor.jsx";
 import LessonDocumentCreate from "./LessonDocumentCreate.jsx";
 import SessionExerciseDetail from "./SessionExerciseDetail.jsx";
 
-import "../Courses/CoursesCSS/LessonDetailView.css";
+import "../Courses/styles/LessonDetailView.css";
 import NotificationModal from "@components/NotificationModal/NotificationModal";
 
 export default function LessonDetailView({ lesson, onLessonUpdated }) {

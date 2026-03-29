@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import "./QuestionBankCreate.css";
+import "./styles/QuestionBankCreate.css";
 import { useNavigate } from "react-router-dom";
 import { questionService } from "@utils/questionService.js";
 

@@ -4,7 +4,7 @@ import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 import { lessonDocumentService } from "@utils/lessonDocumentService.js";
 import { uploadService } from "@utils/uploadService";
 import NotificationModal from "@components/NotificationModal/NotificationModal";
-import "./CoursesCSS/LessonDocumentEditor.css";
+import "./styles/LessonDocumentEditor.css";
 import { SERVER_URL } from "@config";
 
 // Dùng cùng toolbar

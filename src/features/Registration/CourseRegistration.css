@@ -29,98 +29,46 @@
     font-size: 1rem;
 }
 
-/* ─── Controls (Search & Sort) ─── */
-.registration-controls {
+/* ─── Search and Filters Container ─── */
+.registration-filters-container {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 1.5rem;
-    margin-top: 1.5rem;
     flex-wrap: wrap;
+    gap: 20px;
+    margin-bottom: 30px;
+    padding: 24px;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+    align-items: center;
+    border: 1px solid #f0f0f0;
 }
 
-.reg-search-box {
-    display: flex;
+.reg-search-wrapper {
     flex: 1;
     min-width: 280px;
-    background: #fff;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    overflow: hidden;
-    transition: border-color 0.2s;
 }
 
-.reg-search-box:focus-within {
-    border-color: #F37142;
-    box-shadow: 0 0 0 3px rgba(243, 113, 66, 0.1);
+/* Ant Design Input Customization (if needed, but usually default is good) */
+.reg-search-wrapper .ant-input-affix-wrapper-lg {
+    border-radius: 8px;
 }
 
-.reg-search-box input {
-    flex: 1;
-    padding: 10px 16px;
-    border: none;
-    outline: none;
-    font-size: 0.95rem;
+.reg-status-wrapper {
+    min-width: 200px;
 }
 
-.reg-search-box button {
-    padding: 0 20px;
-    background: #F37142;
-    color: #fff;
-    border: none;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.2s;
+.reg-status-wrapper .ant-select-selector {
+    border-radius: 8px !important;
 }
 
-.reg-search-box button:hover {
-    background: #e05530;
-}
+/* ─── Sort Dropdown ─── */
+/* Dùng chung class .sort-dropdown-wrapper / .sort-selected / .sort-menu từ baiviet.css */
 
-.reg-sort-box {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.reg-sort-box label {
+/* ─── Results Count ─── */
+.registration-results-count {
+    margin-top: 1rem;
     font-size: 0.9rem;
-    color: #4a5568;
-    font-weight: 500;
-}
-
-.reg-sort-box select {
-    padding: 8px 12px;
-    border-radius: 10px;
-    border: 1px solid #e2e8f0;
-    background: #fff;
-    font-size: 0.9rem;
-    color: #2d3748;
-    outline: none;
-    cursor: pointer;
-}
-
-.reg-status-filter {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.reg-status-filter label {
-    font-size: 0.9rem;
-    color: #4a5568;
-    font-weight: 500;
-}
-
-.reg-status-filter select {
-    padding: 8px 12px;
-    border-radius: 10px;
-    border: 1px solid #e2e8f0;
-    background: #fff;
-    font-size: 0.9rem;
-    color: #2d3748;
-    outline: none;
-    cursor: pointer;
+    color: #718096;
 }
 
 .registration-results-count {

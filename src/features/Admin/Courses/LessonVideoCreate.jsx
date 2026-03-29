@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { lessonVideoService } from "@utils/lessonVideoService.js";
 import { uploadService } from "@utils/uploadService";
 import NotificationModal from "@components/NotificationModal/NotificationModal";
-import "./CoursesCSS/LessonDocumentEditor.css";
+import "./styles/LessonDocumentEditor.css";
 
 function isValidUrl(url) {
   try {

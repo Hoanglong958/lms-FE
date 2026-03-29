@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import "./ExamDetailDialog.css";
+import "./styles/ExamDetailDialog.css";
 import { examService } from "@utils/examService.js";
 import NotificationModal from "@components/NotificationModal/NotificationModal";
 

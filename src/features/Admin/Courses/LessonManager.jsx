@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { lessonService } from "@utils/lessonService.js";
 import { sessionExerciseService } from "@utils/sessionExerciseService";
 import { useNotification } from "@shared/notification";
-import styles from "./ManageLessons.module.css";
+import styles from "./styles/ManageLessons.module.css";
 
 export default function LessonManager({
   sessionId,

@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import { registrationService } from "@utils/registrationService";
 import { courseService } from "@utils/courseService";
+import { Input, Select } from "antd";
+import { SearchOutlined } from "@ant-design/icons";
 import { SERVER_URL } from "@config";
 import NotificationModal from "@components/NotificationModal/NotificationModal";
 import PaymentModal from "./PaymentModal";
@@ -22,6 +24,7 @@ export default function CourseRegistration() {
     const [regStatus, setRegStatus] = useState("ALL");
     const [totalPages, setTotalPages] = useState(0);
     const [totalElements, setTotalElements] = useState(0);
+    const [openSort, setOpenSort] = useState(false);
 
     const location = useLocation();
     const hasHandledDeepLink = useRef(false);
@@ -105,15 +108,6 @@ export default function CourseRegistration() {
         fetchData();
     };
 
-    const handleSortChange = (e) => {
-        setSortBy(e.target.value);
-        setPage(0);
-    };
-
-    const handleStatusChange = (e) => {
-        setRegStatus(e.target.value);
-        setPage(0);
-    };
 
     const handlePageChange = (newPage) => {
         if (newPage >= 0 && newPage < totalPages) {
@@ -162,35 +156,91 @@ export default function CourseRegistration() {
             </div>
 
             {/* Search and Sort Row */}
-            <div className="registration-controls">
-                <form className="reg-search-box" onSubmit={handleSearchSubmit}>
-                    <input
-                        type="text"
-                        placeholder="Tìm tên khóa học..."
+            <div className="registration-filters-container">
+                <div className="reg-search-wrapper">
+                    <Input
+                        prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
+                        placeholder="Tìm kiếm khóa học..."
                         value={searchTerm}
                         onChange={handleSearchChange}
+                        onPressEnter={handleSearchSubmit}
+                        size="large"
+                        allowClear
                     />
-                    <button type="submit">Tìm kiếm</button>
-                </form>
-
-                <div className="reg-sort-box">
-                    <label>Sắp xếp:</label>
-                    <select value={sortBy} onChange={handleSortChange}>
-                        <option value="createdAt,desc">Mới nhất</option>
-                        <option value="createdAt,asc">Cũ nhất</option>
-                        <option value="title,asc">Tên A-Z</option>
-                        <option value="title,desc">Tên Z-A</option>
-                    </select>
                 </div>
 
-                <div className="reg-status-filter">
-                    <label>Trạng thái:</label>
-                    <select value={regStatus} onChange={handleStatusChange}>
-                        <option value="ALL">Tất cả trạng thái</option>
-                        <option value="NONE">Chưa đăng ký</option>
-                        <option value="PENDING">Chờ thanh toán</option>
-                        <option value="PAID">Đã thanh toán</option>
-                    </select>
+                <div className="reg-status-wrapper">
+                    <Select
+                        value={regStatus}
+                        onChange={(val) => {
+                            setRegStatus(val);
+                            setPage(0);
+                        }}
+                        style={{ width: '100%' }}
+                        size="large"
+                        placeholder="Chọn trạng thái"
+                    >
+                        <Select.Option value="ALL">Tất cả trạng thái</Select.Option>
+                        <Select.Option value="NONE">Chưa đăng ký</Select.Option>
+                        <Select.Option value="PENDING">Chờ thanh toán</Select.Option>
+                        <Select.Option value="PAID">Đã thanh toán</Select.Option>
+                    </Select>
+                </div>
+
+                <div className="sort-dropdown-wrapper">
+                    <div
+                        className="sort-selected"
+                        onClick={() => setOpenSort(!openSort)}
+                    >
+                        {sortBy === "createdAt,desc" ? "Mới nhất" : 
+                         sortBy === "createdAt,asc" ? "Cũ nhất" : 
+                         sortBy === "title,asc" ? "Tên A-Z" : "Tên Z-A"} ▼
+                    </div>
+
+                    {openSort && (
+                        <div className="sort-menu">
+                            <span
+                                className={sortBy === "createdAt,desc" ? "active" : ""}
+                                onClick={() => {
+                                    setSortBy("createdAt,desc");
+                                    setPage(0);
+                                    setOpenSort(false);
+                                }}
+                            >
+                                Mới nhất
+                            </span>
+                            <span
+                                className={sortBy === "createdAt,asc" ? "active" : ""}
+                                onClick={() => {
+                                    setSortBy("createdAt,asc");
+                                    setPage(0);
+                                    setOpenSort(false);
+                                }}
+                            >
+                                Cũ nhất
+                            </span>
+                            <span
+                                className={sortBy === "title,asc" ? "active" : ""}
+                                onClick={() => {
+                                    setSortBy("title,asc");
+                                    setPage(0);
+                                    setOpenSort(false);
+                                }}
+                            >
+                                Tên A-Z
+                            </span>
+                            <span
+                                className={sortBy === "title,desc" ? "active" : ""}
+                                onClick={() => {
+                                    setSortBy("title,desc");
+                                    setPage(0);
+                                    setOpenSort(false);
+                                }}
+                            >
+                                Tên Z-A
+                            </span>
+                        </div>
+                    )}
                 </div>
             </div>
 

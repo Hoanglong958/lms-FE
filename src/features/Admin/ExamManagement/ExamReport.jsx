@@ -1,5 +1,5 @@
 import React from "react";
-import "./ExamReport.css";
+import "./styles/ExamReport.css";
 import { useNavigate } from "react-router-dom";
 import NotificationModal from "@components/NotificationModal/NotificationModal";
 
