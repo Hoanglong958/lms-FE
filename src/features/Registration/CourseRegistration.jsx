@@ -8,6 +8,7 @@ import { SERVER_URL } from "@config";
 import NotificationModal from "@components/NotificationModal/NotificationModal";
 import PaymentModal from "./PaymentModal";
 import "./CourseRegistration.css";
+import AdminPagination from "@shared/components/Admin/AdminPagination";
 
 export default function CourseRegistration() {
     const [courses, setCourses] = useState([]);
@@ -309,36 +310,12 @@ export default function CourseRegistration() {
                         })}
                     </div>
 
-                    {/* Pagination Controls */}
-                    {totalPages > 1 && (
-                        <div className="registration-pagination">
-                            <button 
-                                className="pagination-btn" 
-                                disabled={page === 0} 
-                                onClick={() => handlePageChange(page - 1)}
-                            >
-                                &laquo; Trước
-                            </button>
-                            
-                            {[...Array(totalPages)].map((_, index) => (
-                                <button
-                                    key={index}
-                                    className={`pagination-number ${page === index ? "active" : ""}`}
-                                    onClick={() => handlePageChange(index)}
-                                >
-                                    {index + 1}
-                                </button>
-                            ))}
-
-                            <button 
-                                className="pagination-btn" 
-                                disabled={page === totalPages - 1} 
-                                onClick={() => handlePageChange(page + 1)}
-                            >
-                                Sau &raquo;
-                            </button>
-                        </div>
-                    )}
+                    {/* Unified Admin Pagination */}
+                    <AdminPagination
+                        currentPage={page + 1}
+                        totalPages={totalPages}
+                        onPageChange={(p) => handlePageChange(p - 1)}
+                    />
             </div>
 
             {/* Payment Modal */}

@@ -10,6 +10,7 @@ import ExamCreateDialog from "./ExamCreateDialog";
 import ExamEditDialog from "./ExamEditDialog";
 import ExamTable from "./ExamTable";
 import { useNotification } from "@shared/notification";
+import AdminPagination from "@shared/components/Admin/AdminPagination";
 
 export default function ExamManagement() {
   const { confirm, error } = useNotification();
@@ -638,25 +639,11 @@ export default function ExamManagement() {
       />
 
       {/* Pagination */}
-      <div className="exam-pagination">
-        <button
-          className="page-btn"
-          disabled={curPage <= 1}
-          onClick={() => setPage((p) => Math.max(1, p - 1))}
-        >
-          ‹ Trước
-        </button>
-        <span className="page-info">
-          Trang {curPage}/{totalPages}
-        </span>
-        <button
-          className="page-btn"
-          disabled={curPage >= totalPages}
-          onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-        >
-          Sau ›
-        </button>
-      </div>
+      <AdminPagination
+        currentPage={curPage}
+        totalPages={totalPages}
+        onPageChange={(p) => setPage(p)}
+      />
 
       <ExamCreateDialog
         open={openCreate}

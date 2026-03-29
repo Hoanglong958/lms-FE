@@ -2,6 +2,7 @@ import React, { useMemo, useState, useEffect, useRef } from "react";
 import { userService } from "@utils/userService";
 import NotificationModal from "@components/NotificationModal/NotificationModal";
 import { ShieldUser } from "lucide-react";
+import AdminPagination from "@shared/components/Admin/AdminPagination";
 
 
 export default function UserManagement({ currentUserRole = "admin" }) {
@@ -12,7 +13,13 @@ export default function UserManagement({ currentUserRole = "admin" }) {
 	const [isAddOpen, setIsAddOpen] = useState(false);
 	const [editingUser, setEditingUser] = useState(null);
 	const [confirmDelete, setConfirmDelete] = useState(null);
-	const [confirmLock, setConfirmLock] = useState(null); // Sử dụng để xác nhận Khóa/Mở khóa
+	const [confirmLock, setConfirmLock] = useState(null);
+
+	// Pagination states
+	const [page, setPage] = useState(0);
+	const [pageSize, setPageSize] = useState(10);
+	const [totalElements, setTotalElements] = useState(0);
+	const [totalPages, setTotalPages] = useState(0);
 
 	const [notification, setNotification] = useState({
 		isOpen: false,
@@ -28,35 +35,44 @@ export default function UserManagement({ currentUserRole = "admin" }) {
 	// 🔥 Gọi API lấy danh sách user
 	useEffect(() => {
 		fetchUsers();
-	}, []);
+	}, [page, pageSize, roleFilter]); // Trigger when page, pageSize or role filter changes
+
+	// Reset to page 0 when searching or filtering
+	useEffect(() => {
+		setPage(0);
+	}, [searchQuery, roleFilter]);
 
 	async function fetchUsers() {
 		try {
 			const res = await userService.getAllUsers({
-				page: 0,
-				size: 1000,
+				page: page,
+				size: pageSize,
 				keyword: searchQuery,
 				role: roleFilter === "all" ? null : roleFilter
 			});
 
-			// Xử lý nhiều cấu trúc response khác nhau
 			let apiData = [];
-			if (res.data.data && res.data.data.content) {
-				// Cấu trúc: { data: { content: [...] } }
-				apiData = res.data.data.content;
-			} else if (res.data.content) {
-				// Cấu trúc: { content: [...] }
-				apiData = res.data.content;
-			} else if (res.data.data && Array.isArray(res.data.data)) {
-				// Cấu trúc: { data: [...] }
-				apiData = res.data.data;
-			} else if (Array.isArray(res.data)) {
-				// Cấu trúc: [...]
-				apiData = res.data;
+			let paging = { totalElements: 0, totalPages: 0 };
+
+			if (res.data.data) {
+				apiData = res.data.data.content || res.data.data;
+				paging = res.data.data.pagination || {
+					totalElements: res.data.data.totalElements || 0,
+					totalPages: res.data.data.totalPages || 0
+				};
+			} else {
+				apiData = res.data.content || res.data;
+				paging = {
+					totalElements: res.data.totalElements || 0,
+					totalPages: res.data.totalPages || 0
+				};
 			}
 
 			setUsers(Array.isArray(apiData) ? apiData : []);
+			setTotalElements(paging.totalElements);
+			setTotalPages(paging.totalPages);
 		} catch (error) {
+			console.error("Fetch Users Error:", error);
 		}
 	}
 
@@ -177,38 +193,8 @@ export default function UserManagement({ currentUserRole = "admin" }) {
 	// user.jsx (dòng 105 - useMemo)
 
 	const filteredUsers = useMemo(() => {
-		// 🔥 Sửa lỗi: Đảm bảo users là một mảng trước khi gọi filter.
-		// Nếu users là null, undefined, hoặc một đối tượng không phải array,
-		// sử dụng mảng rỗng [] thay thế.
-		const usersToFilter = Array.isArray(users) ? users : [];
-
-		const normalizedQuery = searchQuery.trim().toLowerCase();
-
-		const filtered = usersToFilter.filter((u) => {
-			const matchQuery =
-				normalizedQuery.length === 0 ||
-				(u.fullName && u.fullName.toLowerCase().includes(normalizedQuery)) ||
-				(u.gmail && u.gmail.toLowerCase().includes(normalizedQuery));
-
-			const matchRole = roleFilter === "all" ? true : u.role === roleFilter;
-
-			return matchQuery && matchRole;
-		});
-
-		// Sắp xếp: ROLE_USER -> ROLE_TEACHER -> ROLE_ADMIN
-		const roleOrder = {
-			"ROLE_USER": 1,
-			"ROLE_TEACHER": 2,
-			"ROLE_ADMIN": 3
-		};
-
-		return filtered.sort((a, b) => {
-			const roleA = roleOrder[a.role] || 99;
-			const roleB = roleOrder[b.role] || 99;
-			return roleA - roleB;
-		});
-
-	}, [users, searchQuery, roleFilter]); // [users] là dependency
+		return Array.isArray(users) ? users : [];
+	}, [users]);
 
 
 
@@ -314,7 +300,7 @@ export default function UserManagement({ currentUserRole = "admin" }) {
 				</label>
 			</section>
 
-			{/* Table */}
+			{/* Table and Pagination */}
 			<div style={styles.card}>
 				<div style={{ overflowX: "auto" }}>
 					<table style={styles.table}>
@@ -366,6 +352,13 @@ export default function UserManagement({ currentUserRole = "admin" }) {
 						</tbody>
 					</table>
 				</div>
+
+				{/* Unified Admin Pagination */}
+				<AdminPagination
+					currentPage={page + 1}
+					totalPages={totalPages}
+					onPageChange={(p) => setPage(p - 1)}
+				/>
 			</div>
 
 			{/* Modals */}
@@ -1121,6 +1114,37 @@ const modalStyles = {
 		fontWeight: 600,
 		cursor: "pointer",
 		boxShadow: "0 2px 8px rgba(16,185,129,0.25)"
+	},
+	btn: {
+		padding: "6px 12px",
+		borderRadius: 6,
+		border: "1px solid #e5e7eb",
+		background: "white",
+		fontSize: 13,
+		fontWeight: 500,
+		color: "#374151",
+		cursor: "pointer",
+		transition: "all 0.2s"
+	},
+	btnActive: {
+		padding: "6px 12px",
+		borderRadius: 6,
+		border: "1px solid #f97316",
+		background: "#f97316",
+		fontSize: 13,
+		fontWeight: 600,
+		color: "white",
+		cursor: "default",
+	},
+	btnDisabled: {
+		padding: "6px 12px",
+		borderRadius: 6,
+		border: "1px solid #f3f4f6",
+		background: "#f9fafb",
+		fontSize: 13,
+		fontWeight: 500,
+		color: "#9ca3af",
+		cursor: "not-allowed",
 	}
 };
 

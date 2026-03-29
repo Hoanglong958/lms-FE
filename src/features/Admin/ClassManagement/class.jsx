@@ -7,6 +7,7 @@ import { classTeacherService } from "@utils/classTeacherService";
 import { classStudentService } from "@utils/classStudentService";
 import { courseService } from "@utils/courseService";
 import { classCourseService } from "@utils/classCourseService";
+import AdminPagination from "@shared/components/Admin/AdminPagination";
 import ClassDetail from "./ClassDetail";
 import ClassDetailModal from "./ClassDetailModal";
 import NotificationModal from "@components/NotificationModal/NotificationModal";
@@ -44,6 +45,12 @@ export default function ClassManagement() {
     data: null,
   });
 
+  // Pagination states
+  const [page, setPage] = useState(0);
+  const [pageSize, setPageSize] = useState(10);
+  const [totalElements, setTotalElements] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+
   const [notification, setNotification] = useState({
     isOpen: false,
     title: "",
@@ -58,28 +65,27 @@ export default function ClassManagement() {
   // --- Load classes từ API khi component mount ---
   const fetchClasses = useCallback(async () => {
     try {
-      const res = await classService.getClasses({
-        page: 0,
-        size: 1000,
-        keyword: searchQuery,
+      const res = await classService.getClassesPaging({
+        page: page,
+        size: pageSize,
+        q: searchQuery,
         status: statusFilter === "all" ? null : statusFilter,
       });
 
-      // Xử lý nhiều cấu trúc response khác nhau
       let apiData = [];
-      if (res.data.data && res.data.data.content) {
-        apiData = res.data.data.content;
-      } else if (res.data.content) {
-        apiData = res.data.content;
-      } else if (res.data.data && Array.isArray(res.data.data)) {
-        apiData = res.data.data;
-      } else if (Array.isArray(res.data)) {
-        apiData = res.data;
+      let paging = { totalElements: 0, totalPages: 0 };
+
+      // Handle paginated response
+      if (res.data) {
+        apiData = res.data.content || res.data.data?.content || res.data.data || [];
+        paging = {
+          totalElements: res.data.totalElements || res.data.data?.totalElements || 0,
+          totalPages: res.data.totalPages || res.data.data?.totalPages || 0
+        };
       }
 
       // Map API response to expected structure
       const mappedClasses = apiData.map((item) => {
-        // Calculate end date if not provided (3 months after start date)
         let endDate = item.endDate || item.end_date || "N/A";
         if (endDate === "N/A" && item.startDate) {
           try {
@@ -89,7 +95,6 @@ export default function ClassManagement() {
             endDate = end.toISOString().split("T")[0];
           } catch (_e) {
             endDate = "N/A";
-            void _e;
           }
         }
 
@@ -97,21 +102,11 @@ export default function ClassManagement() {
           id: item.id,
           name: item.className || item.name || item.class_name || "Chưa có tên",
           subtitle: item.description || item.subtitle || item.sub_title || "",
-          code:
-            item.classCode ||
-            item.code ||
-            item.class_code ||
-            `CLASS-${item.id}`,
-          teacher:
-            item.instructorName ||
-            item.teacher ||
-            item.instructor ||
-            item.teacherName ||
-            "Chưa phân công",
+          code: item.classCode || item.code || item.class_code || `CLASS-${item.id}`,
+          teacher: item.instructorName || item.teacher || item.instructor || item.teacherName || "Chưa phân công",
           isActive: item.isActive !== undefined ? item.isActive : true,
           students: item.maxStudents || item.students || item.max_students || 0,
-          active:
-            item.activeStudents || item.active || item.active_students || 0,
+          active: item.activeStudents || item.active || item.active_students || 0,
           progress: item.progress || item.completion || 0,
           startDate: item.startDate || item.start_date || "N/A",
           endDate: endDate,
@@ -120,68 +115,48 @@ export default function ClassManagement() {
         };
       });
 
-
-
-      // Fetch teachers and students for each class
+      // Fetch additional details if needed (existing logic)
       const classesWithDetails = await Promise.all(mappedClasses.map(async (cls) => {
         if (!cls.id) return cls;
-
         let updatedCls = { ...cls };
-
         // 1. Fetch Teachers
         try {
-          // If we already have a teacher name from the main API, skip unless we want to verify
-          // But user might want relational data prioritised? Currently code prioritizes relational if main API missed it?
-          // Actually existing code prioritised main API if it existed.
-          // Let's stick to existing logic: if teacher is missing or placeholder, try fetching.
-          // Or just fetch to be safe if 'Chưa phân công'.
-
           if (updatedCls.teacher === "Chưa phân công") {
             const tRes = await classTeacherService.getClassTeachers(cls.id);
-            let teachers = [];
-            if (tRes.data?.data && Array.isArray(tRes.data.data)) teachers = tRes.data.data;
-            else if (Array.isArray(tRes.data)) teachers = tRes.data;
-
+            let teachers = Array.isArray(tRes.data?.data) ? tRes.data.data : (Array.isArray(tRes.data) ? tRes.data : []);
             if (teachers.length > 0) {
               const instructor = teachers.find(t => t.role === "INSTRUCTOR") || teachers[0];
-              if (instructor && instructor.teacherName) {
-                updatedCls.teacher = instructor.teacherName;
-              }
+              if (instructor?.teacherName) updatedCls.teacher = instructor.teacherName;
             }
           }
-        } catch (e) {
-          // console.warn(`Failed to fetch teacher for class ${cls.id}`, e);
-        }
+        } catch (e) {}
 
-        // 2. Fetch Students (To sync count with Detail View)
+        // 2. Fetch Students
         try {
           const sRes = await classStudentService.getClassStudents(cls.id);
-          let studentsData = [];
-          if (sRes.data?.data && Array.isArray(sRes.data.data)) studentsData = sRes.data.data;
-          else if (Array.isArray(sRes.data)) studentsData = sRes.data;
-
-          // Update count
+          let studentsData = Array.isArray(sRes.data?.data) ? sRes.data.data : (Array.isArray(sRes.data) ? sRes.data : []);
           updatedCls.students = studentsData.length;
-
-          // Optional: Update active count if needed
-          // updatedCls.active = studentsData.filter(s => s.status === 'ACTIVE').length;
-        } catch (e) {
-          // console.warn(`Failed to fetch students for class ${cls.id}`, e);
-        }
+        } catch (e) {}
 
         return updatedCls;
       }));
 
       setClasses(classesWithDetails);
+      setTotalElements(paging.totalElements);
+      setTotalPages(paging.totalPages);
     } catch (err) {
       console.error("Failed to fetch classes", err);
-      alert("Không thể tải danh sách lớp học!");
     }
-  }, [searchQuery, statusFilter]);
+  }, [page, pageSize, searchQuery, statusFilter]);
 
   useEffect(() => {
     fetchClasses();
   }, [fetchClasses]);
+
+  // Reset to page 0 when filtering
+  useEffect(() => {
+    setPage(0);
+  }, [searchQuery, statusFilter]);
 
   // --- Thêm lớp mới ---
   // --- Thêm lớp mới ---
@@ -499,22 +474,8 @@ export default function ClassManagement() {
 
   // --- Lọc và tìm kiếm ---
   const filtered = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
-    let result = classes;
-    if (q) {
-      result = result.filter((c) => {
-        return (
-          c.name.toLowerCase().includes(q) ||
-          c.teacher.toLowerCase().includes(q) ||
-          c.code.toLowerCase().includes(q)
-        );
-      });
-    }
-    if (statusFilter !== "all") {
-      result = result.filter((c) => c.status === statusFilter);
-    }
-    return result;
-  }, [classes, searchQuery, statusFilter]);
+    return Array.isArray(classes) ? classes : [];
+  }, [classes]);
 
   const [selectedClassId, setSelectedClassId] = useState("");
 
@@ -1011,6 +972,13 @@ export default function ClassManagement() {
             </tbody>
           </table>
         </div>
+
+        {/* Unified Admin Pagination */}
+        <AdminPagination
+          currentPage={page + 1}
+          totalPages={totalPages}
+          onPageChange={(p) => setPage(p - 1)}
+        />
       </div>
 
       {/* Modals */}

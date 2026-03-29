@@ -4,6 +4,7 @@ import { courseService } from "@utils/courseService.js";
 import { uploadService } from "@utils/uploadService";
 import { SERVER_URL } from "@config";
 import { useNotification } from "@shared/notification";
+import AdminPagination from "@shared/components/Admin/AdminPagination";
 
 import styles from "./styles/ManageCourses.module.css";
 import AdminHeader from "@components/Admin/AdminHeader";
@@ -140,6 +141,12 @@ export default function ManageCourses() {
   const [errors, setErrors] = useState({});
   const [uploading, setUploading] = useState(false);
 
+  // Pagination states
+  const [page, setPage] = useState(0);
+  const [pageSize, setPageSize] = useState(10);
+  const [totalElements, setTotalElements] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -158,18 +165,40 @@ export default function ManageCourses() {
   // Load courses
   const loadCourses = async () => {
     try {
-      const res = await courseService.getCourses();
-      // Handle ResponseWrapper structure
-      const data = res.data?.data || res.data || [];
-      setCourses(Array.isArray(data) ? data : []);
-    } catch {
+      const res = await courseService.getCoursesPaging({
+        page: page,
+        size: pageSize,
+        q: searchTerm,
+      });
+      
+      let apiData = [];
+      let paging = { totalElements: 0, totalPages: 0 };
+
+      if (res.data && res.data.data) {
+        apiData = res.data.data.content || res.data.data.data || [];
+        paging = {
+          totalElements: res.data.data.totalElements || 0,
+          totalPages: res.data.data.totalPages || 0
+        };
+      }
+
+      setCourses(apiData);
+      setTotalElements(paging.totalElements);
+      setTotalPages(paging.totalPages);
+    } catch (err) {
+      console.error("Load Courses Error:", err);
       setCourses([]);
     }
   };
 
   useEffect(() => {
     loadCourses();
-  }, []);
+  }, [page, pageSize]);
+
+  // Reset to page 0 when searching
+  useEffect(() => {
+    setPage(0);
+  }, [searchTerm, levelFilter]);
 
   // Input change
   const handleInputChange = (e) => {
@@ -255,22 +284,7 @@ export default function ManageCourses() {
     } catch { }
   };
 
-  // Filtering
-  const normalizedSearch = searchTerm.trim().toLowerCase();
-  const courseList = Array.isArray(courses) ? courses : [];
-  const displayedCourses = courseList.filter((course) => {
-    if (!course) return false;
-    // Filter by search term
-    const matchesSearch = !normalizedSearch ||
-      [course.title, course.description]
-        .filter(Boolean)
-        .some((field) => field.toLowerCase().includes(normalizedSearch));
-
-    // Filter by level
-    const matchesLevel = !levelFilter || course.level === levelFilter;
-
-    return matchesSearch && matchesLevel;
-  });
+  const displayedCourses = Array.isArray(courses) ? courses : [];
 
   let toggleSidebar = () => { };
   try {
@@ -303,10 +317,10 @@ export default function ManageCourses() {
 
   // Stats calculation
   const stats = {
-    total: courseList.length,
-    beginner: courseList.filter(c => c.level === 'BEGINNER').length,
-    intermediate: courseList.filter(c => c.level === 'INTERMEDIATE').length,
-    advanced: courseList.filter(c => c.level === 'ADVANCED').length
+    total: totalElements,
+    beginner: Array.isArray(courses) ? courses.filter(c => c.level === 'BEGINNER').length : 0,
+    intermediate: Array.isArray(courses) ? courses.filter(c => c.level === 'INTERMEDIATE').length : 0,
+    advanced: Array.isArray(courses) ? courses.filter(c => c.level === 'ADVANCED').length : 0
   };
 
   return (
@@ -428,6 +442,13 @@ export default function ManageCourses() {
             ))}
           </tbody>
         </table>
+
+        {/* Unified Admin Pagination */}
+        <AdminPagination
+          currentPage={page + 1}
+          totalPages={totalPages}
+          onPageChange={(p) => setPage(p - 1)}
+        />
       </div>
 
       {showModal && (

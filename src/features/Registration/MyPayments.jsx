@@ -4,6 +4,7 @@ import NotificationModal from "@components/NotificationModal/NotificationModal";
 import PaymentModal from "./PaymentModal";
 import "./CourseRegistration.css";
 import { CreditCard, History, Clock, QrCode, CheckCircle2, AlertCircle, Banknote } from "lucide-react";
+import AdminPagination from "@shared/components/Admin/AdminPagination";
 
 const styles = `
   .pay-root {
@@ -411,6 +412,8 @@ export default function MyPayments() {
     const [selectedReg, setSelectedReg] = useState(null);
     const [selectedIds, setSelectedIds] = useState([]);
     const [notification, setNotification] = useState({ isOpen: false, title: "", message: "", type: "info" });
+    const [currentPage, setCurrentPage] = useState(1);
+    const pageSize = 10;
 
     useEffect(() => {
         fetchRegistrations();
@@ -429,6 +432,10 @@ export default function MyPayments() {
 
     const pendingRegs = registrations.filter(r => r.paymentStatus === "PENDING");
     const paidRegs = registrations.filter(r => r.paymentStatus === "PAID");
+    
+    // Pagination for paid history
+    const totalPages = Math.ceil(paidRegs.length / pageSize);
+    const paginatedPaidRegs = paidRegs.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
     const totalPendingBoundary = pendingRegs.reduce((sum, r) => sum + (r.amount || 0), 0);
     const totalPaid = paidRegs.reduce((sum, r) => sum + (r.amount || 0), 0);
@@ -591,14 +598,14 @@ export default function MyPayments() {
                             </tr>
                         </thead>
                         <tbody>
-                            {paidRegs.length === 0 ? (
+                            {paginatedPaidRegs.length === 0 ? (
                                 <tr>
                                     <td colSpan="4" style={{ padding: "40px", textAlign: "center", color: "#94a3b8" }}>
                                         Chưa có lịch sử thanh toán.
                                     </td>
                                 </tr>
                             ) : (
-                                paidRegs.map(r => (
+                                paginatedPaidRegs.map(r => (
                                     <tr key={r.id}>
                                         <td><span className="pay-course-name">{r.courseTitle}</span></td>
                                         <td style={{ color: "#64748b" }}>
@@ -619,6 +626,13 @@ export default function MyPayments() {
                     </table>
                 </div>
             </div>
+
+            {/* Unified Admin Pagination for History */}
+            <AdminPagination 
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={(p) => setCurrentPage(p)}
+            />
 
             {selectedReg && (
                 <PaymentModal
