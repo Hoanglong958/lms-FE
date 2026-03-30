@@ -50,6 +50,10 @@ export const chatService = {
         });
     },
 
+    deleteMessage(messageId, operatorUserId) {
+        return api.delete(`${CHAT_API}/messages/${messageId}`, { params: { operatorUserId } });
+    },
+
     // WebSocket
     connect(onNotification, userId) {
         const socket = new SockJS(WS_URL);
@@ -101,6 +105,13 @@ export const chatService = {
         if (!stompClient || !stompClient.connected) return null;
         return stompClient.subscribe(`/topic/rooms/${roomId}/typing`, (msg) => {
             onTyping(msg.body); // Usually senderId
+        });
+    },
+
+    subscribeToReadReceipts(roomId, onReceipt) {
+        if (!stompClient || !stompClient.connected) return null;
+        return stompClient.subscribe(`/topic/rooms/${roomId}/read`, (msg) => {
+            onReceipt(JSON.parse(msg.body));
         });
     },
 

@@ -201,43 +201,225 @@
     justify-content: flex-end;
 }
 
-.message-bubble {
-    max-width: 70%;
-    padding: 0.75rem 1rem;
-    border-radius: 12px;
-    position: relative;
-    font-size: 0.95rem;
-    line-height: 1.4;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+.message-bubble-wrapper.received {
+    justify-content: flex-start;
 }
 
-.message-bubble-wrapper.received .message-bubble {
-    background-color: #ffffff;
-    color: #262626;
-    border-bottom-left-radius: 2px;
+/* ── New bubble system ── */
+.bubble-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
+    width: 100%;
 }
 
-.message-bubble-wrapper.sent .message-bubble {
-    background-color: #1890ff;
-    color: #ffffff;
-    border-bottom-right-radius: 2px;
+.bubble-row--me {
+    flex-direction: row-reverse;
 }
 
-.message-time {
+.bubble-row--them {
+    flex-direction: row;
+}
+
+.bubble-row--optimistic {
+    opacity: 0.55;
+}
+
+.bubble-pill {
+    max-width: 68%;
+    padding: 8px 12px 6px;
+    border-radius: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    word-break: break-word;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.07);
+}
+
+.bubble-row--me .bubble-pill {
+    background: #1d9bf0;
+    color: #fff;
+    border-bottom-right-radius: 4px;
+}
+
+.bubble-row--them .bubble-pill {
+    background: #ffffff;
+    color: #1a1a1a;
+    border-bottom-left-radius: 4px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+
+.bubble-text {
+    margin: 0;
+    font-size: 0.9375rem;
+    line-height: 1.45;
+    font-weight: 400;
+}
+
+.bubble-meta {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 5px;
+    margin-top: 1px;
+}
+
+.bubble-time {
     font-size: 0.7rem;
-    margin-top: 0.25rem;
-    opacity: 0.7;
-    display: block;
-    text-align: right;
+    opacity: 0.65;
 }
 
-.message-bubble-wrapper.is-optimistic {
+.bubble-status {
+    font-size: 0.68rem;
+    font-weight: 500;
+}
+
+.bubble-row--me .bubble-status {
+    color: rgba(255,255,255,0.8);
+}
+
+.bubble-status--read {
+    color: #4fc3f7 !important;
+}
+
+/* Action menu */
+.bubble-actions {
+    position: relative;
+    display: flex;
+    align-items: center;
+    opacity: 0;
+    transition: opacity 0.15s;
+}
+
+.bubble-row:hover .bubble-actions {
+    opacity: 1;
+}
+
+.bubble-more-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 50%;
+    color: #8c8c8c;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s, color 0.15s;
+}
+
+.bubble-more-btn:hover {
+    background: #e8e8e8;
+    color: #333;
+}
+
+.bubble-menu {
+    position: absolute;
+    bottom: 30px;
+    right: 0;
+    background: #fff;
+    border: 1px solid #e8e8e8;
+    border-radius: 10px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+    min-width: 160px;
+    z-index: 50;
+    overflow: hidden;
+}
+
+.bubble-row--me .bubble-menu {
+    right: 0;
+    left: auto;
+}
+
+.bubble-menu-item {
+    width: 100%;
+    padding: 9px 14px;
+    background: none;
+    border: none;
+    text-align: left;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.bubble-menu-item:hover {
+    background: #f5f5f5;
+}
+
+.bubble-menu-item--danger {
+    color: #e53935;
+}
+
+.bubble-menu-item--danger:hover {
+    background: #fff5f5;
+}
+
+.bubble-menu-item:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Revoked state */
+.bubble-revoked {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.85rem;
+    font-style: italic;
     opacity: 0.6;
+    padding: 2px 0;
 }
 
-.message-bubble-wrapper.is-optimistic .message-bubble {
-    border: 1px dashed rgba(0, 0, 0, 0.1);
+/* Image */
+.bubble-image-wrap {
+    border-radius: 10px;
+    overflow: hidden;
+    margin: -2px -4px;
 }
+
+.bubble-image {
+    max-width: 240px;
+    display: block;
+    border-radius: 10px;
+}
+
+/* File */
+.bubble-file {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    color: inherit;
+    padding: 4px 2px;
+}
+
+.bubble-file-icon {
+    font-size: 1.4rem;
+    flex-shrink: 0;
+}
+
+.bubble-file-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.bubble-file-name {
+    font-size: 0.875rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 180px;
+}
+
+.bubble-file-hint {
+    font-size: 0.72rem;
+    opacity: 0.65;
+}
+
+/* ── Legacy classes (giữ lại phòng nơi khác còn dùng) ── */
 
 .chat-input-area {
     padding: 1rem 1.5rem;
