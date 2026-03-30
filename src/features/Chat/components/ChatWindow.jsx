@@ -7,8 +7,9 @@ export default function ChatWindow({ room, currentUser }) {
     const [messages, setMessages] = useState([]);
     const [inputText, setInputText] = useState("");
     const [isTyping, setIsTyping] = useState(false);
-    const messagesEndRef = useRef(null);
+    const messageListRef = useRef(null);
     const subscriptionRef = useRef(null);
+    const isRoomChangeRef = useRef(false);
     const fileInputRef = useRef(null);
     const imageInputRef = useRef(null);
     const [isUploading, setIsUploading] = useState(false);
@@ -36,19 +37,28 @@ export default function ChatWindow({ room, currentUser }) {
     };
 
     useEffect(() => {
-        scrollToBottom();
+        if (!isRoomChangeRef.current) {
+            scrollToBottom("smooth");
+        }
     }, [messages]);
 
-    const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    const scrollToBottom = (behavior = "smooth") => {
+        const list = messageListRef.current;
+        if (!list) return;
+        list.scrollTo({ top: list.scrollHeight, behavior });
     };
 
     const loadMessages = async () => {
         try {
             const res = await chatService.getMessages(room.id);
             setMessages(res.data.content.reverse() || []);
+            setTimeout(() => {
+                scrollToBottom("instant");
+                isRoomChangeRef.current = false;
+            }, 0);
         } catch (err) {
             console.error("Failed to load messages", err);
+            isRoomChangeRef.current = false;
         }
     };
 
@@ -200,7 +210,7 @@ export default function ChatWindow({ room, currentUser }) {
                 </div>
             </div>
 
-            <div className="message-list">
+            <div className="message-list" ref={messageListRef}>
                 {messages.map((msg, index) => (
                     <ChatBubble
                         key={msg.id || index}
@@ -208,7 +218,6 @@ export default function ChatWindow({ room, currentUser }) {
                         isMe={msg.senderId === currentUser.id}
                     />
                 ))}
-                <div ref={messagesEndRef} />
             </div>
 
             <div className="chat-input-area">
