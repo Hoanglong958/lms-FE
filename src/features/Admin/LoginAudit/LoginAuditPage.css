@@ -1,0 +1,206 @@
+/* Login Audit Page Styles - Dark Theme */
+.login-audit-container {
+  min-height: 100vh;
+  padding: 24px;
+  background: radial-gradient(circle at 20% 20%, #1e293b 0, #0f172a 40%),
+              radial-gradient(circle at 80% 0%, #0ea5e9 0, #0f172a 30%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-audit-panel {
+  width: 100%;
+  max-width: 1100px;
+  background: linear-gradient(145deg, rgba(56, 189, 248, 0.08), rgba(14, 165, 233, 0.03));
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  border-radius: 20px;
+  padding: 24px 28px;
+  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(8px);
+}
+
+.login-audit-title {
+  margin: 0 0 6px;
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+  color: #e2e8f0;
+}
+
+.login-audit-subtitle {
+  margin: 0 0 18px;
+  color: #94a3b8;
+  font-size: 14px;
+}
+
+.login-audit-controls {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.login-audit-field {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+
+.login-audit-field label {
+  font-size: 13px;
+  color: #94a3b8;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.login-audit-field input,
+.login-audit-field select {
+  width: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #e2e8f0;
+  font-size: 14px;
+  font-family: inherit;
+}
+
+.login-audit-field option {
+  background: #1e293b;
+  color: #e2e8f0;
+}
+
+.login-audit-button-wrapper {
+  display: flex;
+  align-items: flex-end;
+}
+
+.login-audit-button {
+  width: 100%;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #22d3ee, #3b82f6);
+  color: #0b1220;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  box-shadow: 0 12px 30px rgba(59, 130, 246, 0.35);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.login-audit-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 35px rgba(59, 130, 246, 0.45);
+}
+
+.login-audit-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.login-audit-error {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 12px;
+  padding: 12px 16px;
+  color: #f87171;
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+
+.login-audit-table-wrapper {
+  overflow-x: auto;
+  border-radius: 12px;
+}
+
+.login-audit-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+.login-audit-table th,
+.login-audit-table td {
+  text-align: left;
+  padding: 10px 8px;
+  font-size: 14px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+  color: #e2e8f0;
+}
+
+.login-audit-table th {
+  color: #94a3b8;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  font-size: 12px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.login-audit-table tr:hover {
+  background: rgba(56, 189, 248, 0.07);
+}
+
+.login-audit-badge {
+  padding: 4px 8px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 12px;
+  display: inline-block;
+}
+
+.badge-role-user {
+  background: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+}
+
+.badge-role-teacher {
+  background: rgba(59, 130, 246, 0.18);
+  color: #60a5fa;
+}
+
+.login-audit-ua {
+  max-width: 250px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.login-audit-empty {
+  text-align: center;
+  color: #94a3b8;
+  padding: 40px 20px;
+  font-style: italic;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .login-audit-container {
+    padding: 12px;
+  }
+
+  .login-audit-panel {
+    padding: 16px;
+    border-radius: 16px;
+  }
+
+  .login-audit-title {
+    font-size: 22px;
+  }
+
+  .login-audit-controls {
+    grid-template-columns: 1fr;
+  }
+
+  .login-audit-table th,
+  .login-audit-table td {
+    padding: 8px 6px;
+    font-size: 12px;
+  }
+
+  .login-audit-ua {
+    max-width: 120px;
+  }
+}

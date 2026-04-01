@@ -121,8 +121,13 @@ export default function Header() {
         </div>
 
         <div className="user-header-right-desktop">
-          {/* <button className="user-header-icon-btn" onClick={() => navigate("/search")}>
-            <img src={searchIcon} alt="Search" />
+          
+          {/* <button
+            className="user-header-icon-btn theme-toggle-btn"
+            onClick={toggleTheme}
+            title={isDarkMode ? "Chuyển sang sáng" : "Chuyển sang tối"}
+          >
+            {isDarkMode ? <Sun size={20} color="#f59e0b" /> : <Moon size={20} color="#64748b" />}
           </button> */}
           <NotificationDropdown />
           <div

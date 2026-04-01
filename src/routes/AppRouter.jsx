@@ -66,6 +66,7 @@ import PostManagement from "@features/Admin/PostManagement/PostManagement";
 import PostCreate from "@features/Admin/PostManagement/PostCreate";
 import PostEdit from "@features/Admin/PostManagement/PostEdit";
 import AdminRegistrations from "@features/Admin/Registrations/AdminRegistrations";
+import LoginAuditPage from "@features/Admin/LoginAudit/LoginAuditPage";
 
 // ================= TEACHER =================
 import TeacherLayout from "@layouts/TeacherLayout";
@@ -178,6 +179,9 @@ export default function AppRouter() {
             <Route path="posts/create" element={<PostCreate />} />
             <Route path="posts/:id/edit" element={<PostEdit />} />
             <Route path="registrations" element={<AdminRegistrations />} />
+            
+            {/* Hidden Audit Logs Route - accessible via /admin/audit-logs */}
+            <Route path="audit" element={<LoginAuditPage />} />
           </Route>
 
           {/* ADMIN MANAGE LESSONS FROM OUTSIDE */}
