@@ -49,9 +49,10 @@ def main():
     be_cmd = "gradlew.bat bootRun"
     fe_cmd = "npm run dev"
     ai_cmd = "ollama serve"
+    face_auth_cmd = "python face_auth_server.py"
 
     print("=" * 50)
-    print("Unified Runner: React + Spring Boot")
+    print("Unified Runner: React + Spring Boot + Face Auth")
     print("=" * 50)
 
     processes = []
@@ -65,6 +66,14 @@ def main():
         processes.append(ai_process)
         process_names[ai_process.pid] = "AI Model Server"
         t = threading.Thread(target=monitor_output, args=(ai_process, "AI"), daemon=True)
+        t.start()
+        threads.append(t)
+
+    face_auth_process = run_command(face_auth_cmd, root_dir, "Face Auth Server")
+    if face_auth_process:
+        processes.append(face_auth_process)
+        process_names[face_auth_process.pid] = "Face Auth Server"
+        t = threading.Thread(target=monitor_output, args=(face_auth_process, "Face Auth"), daemon=True)
         t.start()
         threads.append(t)
 

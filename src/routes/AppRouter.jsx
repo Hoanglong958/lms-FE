@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import ScrollToTop from "@components/common/ScrollToTop";
 import PrivateRoute from "@components/common/PrivateRoute";
+import FaceGuard from "@face/FaceGuard/FaceGuard";
 
 import MainLayout from "@layouts/MainLayout";
 import LessonLayout from "@layouts/LessonLayout";
@@ -180,8 +181,12 @@ export default function AppRouter() {
             <Route path="posts/:id/edit" element={<PostEdit />} />
             <Route path="registrations" element={<AdminRegistrations />} />
             
-            {/* Hidden Audit Logs Route - accessible via /admin/audit-logs */}
-            <Route path="audit" element={<LoginAuditPage />} />
+            {/* Hidden Audit Logs Route - accessible via /admin/audit-logs with Face Verification */}
+            <Route path="audit" element={
+              <FaceGuard>
+                <LoginAuditPage />
+              </FaceGuard>
+            } />
           </Route>
 
           {/* ADMIN MANAGE LESSONS FROM OUTSIDE */}

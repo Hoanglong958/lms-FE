@@ -1,7 +1,7 @@
-/* Login Audit Page Styles - Dark Theme */
+/* Login Audit Page Styles - Dark Theme - ENLARGED VERSION */
 .login-audit-container {
   min-height: 100vh;
-  padding: 24px;
+  padding: 32px;
   background: radial-gradient(circle at 20% 20%, #1e293b 0, #0f172a 40%),
               radial-gradient(circle at 80% 0%, #0ea5e9 0, #0f172a 30%);
   display: flex;
@@ -11,48 +11,50 @@
 
 .login-audit-panel {
   width: 100%;
-  max-width: 1100px;
+  max-width: 1400px;
   background: linear-gradient(145deg, rgba(56, 189, 248, 0.08), rgba(14, 165, 233, 0.03));
-  border: 1px solid rgba(148, 163, 184, 0.25);
-  border-radius: 20px;
-  padding: 24px 28px;
+  border: 2px solid rgba(148, 163, 184, 0.25);
+  border-radius: 24px;
+  padding: 40px 48px;
   box-shadow: 0 25px 80px rgba(0, 0, 0, 0.35);
   backdrop-filter: blur(8px);
 }
 
 .login-audit-title {
-  margin: 0 0 6px;
-  font-size: 26px;
-  font-weight: 600;
-  letter-spacing: -0.3px;
+  margin: 0 0 12px;
+  font-size: 36px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
   color: #e2e8f0;
 }
 
 .login-audit-subtitle {
-  margin: 0 0 18px;
-  color: #94a3b8;
-  font-size: 14px;
+  margin: 0 0 28px;
+  color: #cbd5e1;
+  font-size: 16px;
+  line-height: 1.5;
 }
 
 .login-audit-controls {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 12px;
-  margin-bottom: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
 }
 
 .login-audit-field {
   background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(148, 163, 184, 0.3);
-  border-radius: 12px;
-  padding: 10px 12px;
+  border: 1.5px solid rgba(148, 163, 184, 0.3);
+  border-radius: 14px;
+  padding: 14px 16px;
 }
 
 .login-audit-field label {
-  font-size: 13px;
-  color: #94a3b8;
+  font-size: 15px;
+  color: #cbd5e1;
   display: block;
-  margin-bottom: 4px;
+  margin-bottom: 8px;
+  font-weight: 600;
 }
 
 .login-audit-field input,
@@ -62,8 +64,9 @@
   outline: none;
   background: transparent;
   color: #e2e8f0;
-  font-size: 14px;
+  font-size: 16px;
   font-family: inherit;
+  padding: 4px 0;
 }
 
 .login-audit-field option {
@@ -78,13 +81,13 @@
 
 .login-audit-button {
   width: 100%;
-  padding: 12px 16px;
+  padding: 16px 24px;
   border: none;
-  border-radius: 12px;
+  border-radius: 14px;
   background: linear-gradient(135deg, #22d3ee, #3b82f6);
   color: #0b1220;
   font-weight: 700;
-  font-size: 14px;
+  font-size: 16px;
   cursor: pointer;
   box-shadow: 0 12px 30px rgba(59, 130, 246, 0.35);
   transition: transform 0.2s, box-shadow 0.2s;
@@ -102,105 +105,238 @@
 
 .login-audit-error {
   background: rgba(239, 68, 68, 0.1);
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  border-radius: 12px;
-  padding: 12px 16px;
-  color: #f87171;
-  margin-bottom: 16px;
-  font-size: 14px;
+  border: 1.5px solid rgba(239, 68, 68, 0.3);
+  border-radius: 14px;
+  padding: 16px 20px;
+  color: #fca5a5;
+  margin-bottom: 24px;
+  font-size: 16px;
+  line-height: 1.5;
 }
 
+/* Table Wrapper with Drag Scroll */
 .login-audit-table-wrapper {
+  position: relative;
   overflow-x: auto;
-  border-radius: 12px;
+  border-radius: 14px;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  cursor: grab;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(59, 130, 246, 0.5) rgba(30, 41, 59, 0.8);
+}
+
+.login-audit-table-wrapper:active {
+  cursor: grabbing;
+}
+
+/* Custom scrollbar styling - ALWAYS VISIBLE */
+.login-audit-table-wrapper::-webkit-scrollbar {
+  height: 12px;
+}
+
+.login-audit-table-wrapper::-webkit-scrollbar-track {
+  background: rgba(30, 41, 59, 0.8);
+  border-radius: 10px;
+  margin: 5px 0;
+}
+
+.login-audit-table-wrapper::-webkit-scrollbar-thumb {
+  background: linear-gradient(90deg, #22d3ee, #3b82f6);
+  border-radius: 10px;
+  transition: all 0.3s ease;
+  min-width: 40px;
+  box-shadow: 0 0 8px rgba(59, 130, 246, 0.4);
+}
+
+.login-audit-table-wrapper::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(90deg, #06b6d4, #0ea5e9);
+  box-shadow: 0 0 12px rgba(59, 130, 246, 0.6);
+}
+
+/* Drag indicator */
+.login-audit-table-wrapper.dragging {
+  cursor: grabbing;
+  user-select: none;
+}
+
+.login-audit-table-wrapper.can-scroll::after {
+  content: '⇄';
+  position: absolute;
+  bottom: 8px;
+  right: 12px;
+  color: rgba(59, 130, 246, 0.5);
+  font-size: 14px;
+  pointer-events: none;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 .login-audit-table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 10px;
+  margin-top: 16px;
+  min-width: 1200px;
 }
 
 .login-audit-table th,
 .login-audit-table td {
   text-align: left;
-  padding: 10px 8px;
-  font-size: 14px;
+  padding: 16px 16px;
+  font-size: 15px;
   border-bottom: 1px solid rgba(148, 163, 184, 0.2);
   color: #e2e8f0;
+  white-space: nowrap;
 }
 
 .login-audit-table th {
-  color: #94a3b8;
-  font-weight: 600;
+  color: #cbd5e1;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.4px;
-  font-size: 12px;
+  letter-spacing: 0.6px;
+  font-size: 13px;
   background: rgba(255, 255, 255, 0.02);
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
 .login-audit-table tr:hover {
-  background: rgba(56, 189, 248, 0.07);
+  background: rgba(56, 189, 248, 0.08);
 }
 
 .login-audit-badge {
-  padding: 4px 8px;
-  border-radius: 10px;
-  font-weight: 600;
-  font-size: 12px;
+  padding: 6px 12px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 13px;
   display: inline-block;
 }
 
 .badge-role-user {
   background: rgba(16, 185, 129, 0.2);
-  color: #34d399;
+  color: #86efac;
 }
 
 .badge-role-teacher {
-  background: rgba(59, 130, 246, 0.18);
-  color: #60a5fa;
+  background: rgba(59, 130, 246, 0.2);
+  color: #93c5fd;
 }
 
 .login-audit-ua {
-  max-width: 250px;
+  max-width: 300px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-size: 14px;
 }
 
 .login-audit-empty {
   text-align: center;
-  color: #94a3b8;
-  padding: 40px 20px;
+  color: #cbd5e1;
+  padding: 60px 30px;
   font-style: italic;
+  font-size: 16px;
+}
+
+/* Scroll hint for mobile */
+.scroll-hint {
+  display: none;
+  font-size: 12px;
+  color: rgba(59, 130, 246, 0.6);
+  margin-top: 8px;
+  text-align: center;
 }
 
 /* Responsive */
+@media (max-width: 1024px) {
+  .login-audit-panel {
+    padding: 32px 40px;
+  }
+
+  .login-audit-title {
+    font-size: 32px;
+  }
+
+  .login-audit-controls {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .scroll-hint {
+    display: block;
+  }
+}
+
 @media (max-width: 768px) {
+  .login-audit-container {
+    padding: 16px;
+  }
+
+  .login-audit-panel {
+    padding: 24px 28px;
+    border-radius: 18px;
+  }
+
+  .login-audit-title {
+    font-size: 28px;
+  }
+
+  .login-audit-subtitle {
+    font-size: 14px;
+  }
+
+  .login-audit-controls {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .login-audit-table th,
+  .login-audit-table td {
+    padding: 12px 8px;
+    font-size: 13px;
+  }
+
+  .login-audit-ua {
+    max-width: 150px;
+  }
+
+  .scroll-hint {
+    display: block;
+  }
+}
+
+@media (max-width: 480px) {
   .login-audit-container {
     padding: 12px;
   }
 
   .login-audit-panel {
-    padding: 16px;
-    border-radius: 16px;
+    padding: 20px 20px;
   }
 
   .login-audit-title {
-    font-size: 22px;
-  }
-
-  .login-audit-controls {
-    grid-template-columns: 1fr;
+    font-size: 24px;
   }
 
   .login-audit-table th,
   .login-audit-table td {
-    padding: 8px 6px;
+    padding: 10px 6px;
     font-size: 12px;
   }
 
-  .login-audit-ua {
-    max-width: 120px;
+  .login-audit-table-wrapper::after {
+    display: none;
+  }
+
+  .scroll-hint {
+    display: block;
   }
 }

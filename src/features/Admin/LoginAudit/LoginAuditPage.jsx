@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import api from '@config';
 import './LoginAuditPage.css';
 
@@ -8,6 +8,12 @@ const LoginAuditPage = () => {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [canScroll, setCanScroll] = useState(false);
+  
+  const tableWrapperRef = useRef(null);
+  const isDraggingRef = useRef(false);
+  const startXRef = useRef(0);
+  const scrollLeftRef = useRef(0);
 
   const fetchLogs = useCallback(async () => {
     setLoading(true);
@@ -28,6 +34,82 @@ const LoginAuditPage = () => {
 
   const getRoleBadgeClass = (role) => {
     return role === 'ROLE_TEACHER' ? 'badge-role-teacher' : 'badge-role-user';
+  };
+
+  // Check if scrolling is possible
+  const checkScrollability = useCallback(() => {
+    if (tableWrapperRef.current) {
+      const isScrollable = 
+        tableWrapperRef.current.scrollWidth > tableWrapperRef.current.clientWidth;
+      setCanScroll(isScrollable);
+    }
+  }, []);
+
+  // Run check on component mount and when logs change
+  useEffect(() => {
+    checkScrollability();
+    window.addEventListener('resize', checkScrollability);
+    return () => window.removeEventListener('resize', checkScrollability);
+  }, [checkScrollability, logs]);
+
+  // Mouse down - start drag
+  const handleMouseDown = (e) => {
+    if (!tableWrapperRef.current || !canScroll) return;
+    
+    isDraggingRef.current = true;
+    startXRef.current = e.pageX - tableWrapperRef.current.offsetLeft;
+    scrollLeftRef.current = tableWrapperRef.current.scrollLeft;
+    tableWrapperRef.current.classList.add('dragging');
+    tableWrapperRef.current.style.cursor = 'grabbing';
+  };
+
+  // Mouse move - drag scroll
+  const handleMouseMove = (e) => {
+    if (!isDraggingRef.current || !tableWrapperRef.current) return;
+    
+    e.preventDefault();
+    const x = e.pageX - tableWrapperRef.current.offsetLeft;
+    const walk = (x - startXRef.current) * 1.5; // Multiply by 1.5 for faster scroll
+    tableWrapperRef.current.scrollLeft = scrollLeftRef.current - walk;
+  };
+
+  // Mouse up - end drag
+  const handleMouseUp = () => {
+    if (!tableWrapperRef.current) return;
+    
+    isDraggingRef.current = false;
+    tableWrapperRef.current.classList.remove('dragging');
+    tableWrapperRef.current.style.cursor = 'grab';
+  };
+
+  // Mouse leave - end drag if needed
+  const handleMouseLeave = () => {
+    if (!tableWrapperRef.current) return;
+    
+    isDraggingRef.current = false;
+    tableWrapperRef.current.classList.remove('dragging');
+    tableWrapperRef.current.style.cursor = 'grab';
+  };
+
+  // Touch support for mobile
+  const handleTouchStart = (e) => {
+    if (!tableWrapperRef.current || !canScroll) return;
+    
+    isDraggingRef.current = true;
+    startXRef.current = e.touches[0].pageX - tableWrapperRef.current.offsetLeft;
+    scrollLeftRef.current = tableWrapperRef.current.scrollLeft;
+  };
+
+  const handleTouchMove = (e) => {
+    if (!isDraggingRef.current || !tableWrapperRef.current) return;
+    
+    const x = e.touches[0].pageX - tableWrapperRef.current.offsetLeft;
+    const walk = (x - startXRef.current) * 1.5;
+    tableWrapperRef.current.scrollLeft = scrollLeftRef.current - walk;
+  };
+
+  const handleTouchEnd = () => {
+    isDraggingRef.current = false;
   };
 
   return (
@@ -72,7 +154,17 @@ const LoginAuditPage = () => {
 
         {error && <div className="login-audit-error">{error}</div>}
 
-        <div className="login-audit-table-wrapper">
+        <div
+          ref={tableWrapperRef}
+          className={`login-audit-table-wrapper ${canScroll ? 'can-scroll' : ''}`}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseLeave}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
           <table className="login-audit-table">
             <thead>
               <tr>
@@ -114,6 +206,12 @@ const LoginAuditPage = () => {
             </tbody>
           </table>
         </div>
+
+        {canScroll && (
+          <div className="scroll-hint">
+            💡 Kéo hoặc sử dụng thanh cuộn để xem thêm các cột
+          </div>
+        )}
       </div>
     </div>
   );
