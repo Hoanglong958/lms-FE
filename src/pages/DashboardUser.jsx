@@ -82,7 +82,7 @@ export default function DashboardUser() {
         <div className="banner-content">
           <h1 className="banner-title">Xin chào {displayName} ♥</h1>
           <p className="banner-subtitle">
-            Cùng khám phá kho tàng kiến thức bất tận cùng bộ tài liệu độc quyền với Rikkei Education nhé!
+            Cùng khám phá kho tàng kiến thức bất tận cùng bộ tài liệu độc quyền với MANKAI nhé!
           </p>
         </div>
 

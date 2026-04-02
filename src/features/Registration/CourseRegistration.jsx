@@ -7,6 +7,7 @@ import { SearchOutlined } from "@ant-design/icons";
 import { SERVER_URL } from "@config";
 import NotificationModal from "@components/NotificationModal/NotificationModal";
 import PaymentModal from "./PaymentModal";
+import CourseDetailModal from "./CourseDetailModal";
 import "./CourseRegistration.css";
 import AdminPagination from "@shared/components/Admin/AdminPagination";
 
@@ -16,6 +17,8 @@ export default function CourseRegistration() {
     const [loading, setLoading] = useState(true);
     const [notification, setNotification] = useState({ isOpen: false, title: "", message: "", type: "info" });
     const [paymentReg, setPaymentReg] = useState(null); // registration currently being paid
+    const [detailCourseId, setDetailCourseId] = useState(null);
+    const [detailVisible, setDetailVisible] = useState(false);
     
     // New states for Search, Sort, Pagination
     const [searchTerm, setSearchTerm] = useState("");
@@ -262,7 +265,17 @@ export default function CourseRegistration() {
                             const reg = getReg(c.id);
                             const { label, className } = reg ? getStatusLabel(reg.paymentStatus) : {};
                             return (
-                                <div className="reg-course-card" id={`course-${c.id}`} key={c.id}>
+                                <div
+                                    className="reg-course-card"
+                                    id={`course-${c.id}`}
+                                    key={c.id}
+                                    onClick={(event) => {
+                                        const targetButton = event.target.closest("button");
+                                        if (targetButton) return;
+                                        setDetailCourseId(c.id);
+                                        setDetailVisible(true);
+                                    }}
+                                >
                                     <div className="course-img">
                                         <img
                                             src={c.imageUrl
@@ -279,6 +292,14 @@ export default function CourseRegistration() {
                                     <div className="course-details">
                                         <h3>{c.title}</h3>
                                         <p className="course-desc">{c.description || "Không có mô tả"}</p>
+                                        <div className="course-card-actions">
+                                            {/* <button className="btn-details" onClick={() => {
+                                                setDetailCourseId(c.id);
+                                                setDetailVisible(true);
+                                            }}>
+                                                Xem chi tiết
+                                            </button> */}
+                                        </div>
 
                                         <div className="course-card-footer">
                                             {reg && reg.paymentStatus !== "CANCELLED" ? (
@@ -340,6 +361,14 @@ export default function CourseRegistration() {
                 isOpen={notification.isOpen}
                 onClose={() => setNotification(n => ({ ...n, isOpen: false }))}
                 {...notification}
+            />
+            <CourseDetailModal
+                courseId={detailCourseId}
+                open={detailVisible}
+                onClose={() => {
+                    setDetailVisible(false);
+                    setDetailCourseId(null);
+                }}
             />
         </div>
     );
