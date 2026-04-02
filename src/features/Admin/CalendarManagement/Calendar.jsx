@@ -50,8 +50,8 @@ export default function CalendarManagement() {
   };
 
   // Calendar states
-  const [startDate, setStartDate] = useState(null);
-  const [endDate, setEndDate] = useState(null);
+  const [ setStartDate] = useState(null);
+  const [ setEndDate] = useState(null);
   const [weeks, setWeeks] = useState([]);
   const [selectedWeek, setSelectedWeek] = useState(null);
   const [subjects, setSubjects] = useState([]);
@@ -63,11 +63,7 @@ export default function CalendarManagement() {
   const [pendingChanges, setPendingChanges] = useState([]); // Array of changes to save
   const [refreshKey, setRefreshKey] = useState(0);
 
-  // Get toggleSidebar from context
-  let toggleSidebar = () => { };
-  try {
-    toggleSidebar = useOutletContext()?.toggleSidebar || (() => { });
-  } catch { }
+
 
   // Load class info and courses
   useEffect(() => {

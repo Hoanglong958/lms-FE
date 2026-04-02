@@ -76,10 +76,6 @@ export default function UserManagement({ currentUserRole = "admin" }) {
 		}
 	}
 
-	// ============================================
-	// CRUD HANDLERS
-	// ============================================
-
 	async function handleAddUser(payload) {
 		try {
 			// Map fields: name -> fullName, email -> gmail
@@ -105,9 +101,9 @@ export default function UserManagement({ currentUserRole = "admin" }) {
 		try {
 			const apiPayload = {
 				fullName: payload.name,
-				// gmail: payload.email, // Thường không cho sửa email
+				gmail: payload.email,
 				role: payload.role,
-				isActive: true // Giữ nguyên hoặc update nếu có field
+				isActive: true
 			};
 			await userService.updateUser(id, apiPayload);
 			await fetchUsers();

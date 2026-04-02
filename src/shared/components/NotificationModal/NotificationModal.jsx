@@ -1,14 +1,6 @@
 import React from 'react';
 import './NotificationModal.css';
 
-/**
- * @param {Object} props
- * @param {boolean} props.isOpen
- * @param {Function} props.onClose
- * @param {string} props.title
- * @param {string} props.message
- * @param {'success'|'error'|'info'} props.type
- */
 const NotificationModal = ({ isOpen, onClose, title, message, type = 'info' }) => {
     if (!isOpen) return null;
 

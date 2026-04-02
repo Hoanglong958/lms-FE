@@ -638,6 +638,15 @@ export default function MyPayments() {
                 <PaymentModal
                     registration={selectedReg}
                     onClose={() => setSelectedReg(null)}
+                    onPaymentConfirmed={() => {
+                        setNotification({
+                            isOpen: true,
+                            title: "Đã gửi thông tin",
+                            message: "Chúng tôi đã báo cho admin rằng bạn đã chuyển khoản. Hãy đợi xác nhận sau khi họ kiểm tra.",
+                            type: "success"
+                        });
+                        fetchRegistrations();
+                    }}
                 />
             )}
 

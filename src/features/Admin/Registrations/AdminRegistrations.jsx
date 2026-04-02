@@ -108,10 +108,19 @@ export default function AdminRegistrations() {
         }
     };
 
-    const handleConfirm = async (id) => {
-        setConfirming(id);
+    const handleConfirm = async (registration) => {
+        if (!registration.paymentSubmitted) {
+            setNotification({
+                isOpen: true,
+                title: "Chưa xác nhận chuyển khoản",
+                message: "Sinh viên chưa báo đã chuyển khoản. Vui lòng chờ họ gửi thông tin.",
+                type: "warning"
+            });
+            return;
+        }
+        setConfirming(registration.id);
         try {
-            const response = await registrationService.confirmPayment(id);
+            const response = await registrationService.confirmPayment(registration.id);
             const enrolledClassName = response.data?.data?.enrolledClassName;
             setNotification({
                 isOpen: true,
@@ -393,7 +402,7 @@ export default function AdminRegistrations() {
                         {r.paymentStatus === "PENDING" && (
                             <button 
                                 onClick={() => {
-                                    handleConfirm(r.id);
+                                    handleConfirm(r);
                                     setSelectedDetail(null);
                                 }}
                                 style={{
@@ -1132,6 +1141,15 @@ export default function AdminRegistrations() {
                                             fontFamily: 'monospace',
                                             letterSpacing: 0.5
                                         }}>{r.transferRef || "—"}</code>
+                                        <div style={{ marginTop: 4 }}>
+                                            <span style={{
+                                                fontSize: 11,
+                                                fontWeight: 600,
+                                                color: r.paymentSubmitted ? '#059669' : '#b45309'
+                                            }}>
+                                                {r.paymentSubmitted ? 'Sinh viên đã báo chuyển khoản' : 'Chưa gửi thông báo chuyển khoản'}
+                                            </span>
+                                        </div>
                                     </td>
 
                                     <td style={{ padding: '12px 16px', fontSize: 13, color: '#6b7280' }}>
@@ -1187,16 +1205,16 @@ export default function AdminRegistrations() {
 
                                             {r.paymentStatus === "PENDING" && (
                                                 <button
-                                                    onClick={() => handleConfirm(r.id)}
-                                                    disabled={confirming === r.id}
-                                                    title="Xác nhận thanh toán"
+                                                    onClick={() => handleConfirm(r)}
+                                                    disabled={confirming === r.id || !r.paymentSubmitted}
+                                                    title={!r.paymentSubmitted ? "Sinh viên chưa thông báo chuyển khoản" : "Xác nhận thanh toán"}
                                                     style={{
                                                         background: confirming === r.id ? '#f97316' : '#f97316',
                                                         border: 'none',
                                                         borderRadius: 6,
                                                         width: 30,
                                                         height: 30,
-                                                        cursor: confirming === r.id ? 'not-allowed' : 'pointer',
+                                                        cursor: confirming === r.id || !r.paymentSubmitted ? 'not-allowed' : 'pointer',
                                                         display: 'flex',
                                                         alignItems: 'center',
                                                         justifyContent: 'center',

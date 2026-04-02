@@ -35,6 +35,10 @@ export const registrationService = {
         return await api.patch(`${API_URL}/${registrationId}/cancel`);
     },
 
+    markPaymentSubmitted: async (registrationId) => {
+        return await api.patch(`${API_URL}/${registrationId}/payment-submitted`);
+    },
+
     confirmBulkPayment: async (registrationIds) => {
         return await api.patch(`${API_URL}/bulk-confirm`, registrationIds);
     }

@@ -5,6 +5,7 @@ import "./PaymentModal.css";
 export default function PaymentModal({ registration, onClose, onPaymentConfirmed }) {
     const [bankInfo, setBankInfo] = useState(null);
     const [copied, setCopied] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const [loading, setLoading] = useState(true);
 
     const isBulk = Array.isArray(registration);
@@ -36,6 +37,22 @@ export default function PaymentModal({ registration, onClose, onPaymentConfirmed
         navigator.clipboard.writeText(text);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
+    };
+
+    const handlePaymentDone = async () => {
+        if (isSubmitting) return;
+        setIsSubmitting(true);
+        const targets = Array.isArray(displayItems) ? displayItems : [registration];
+        try {
+            await Promise.all(targets.map(item => registrationService.markPaymentSubmitted(item.id)));
+            onPaymentConfirmed?.();
+            onClose();
+        } catch (err) {
+            console.error("Failed to flag payment submitted", err);
+            alert(err.response?.data?.data || "Không thể gửi thông tin chuyển khoản.");
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     if (!registration || displayItems.length === 0) return null;
@@ -145,7 +162,9 @@ export default function PaymentModal({ registration, onClose, onPaymentConfirmed
                             <span>Chờ admin xác nhận — {isBulk ? "các khóa học" : "khóa học"} sẽ được thêm vào lớp học tự động</span>
                         </div>
                     </div>
-                    <button className="payment-done-btn" onClick={onClose}>Đã chuyển khoản, đóng</button>
+                    <button className="payment-done-btn" onClick={handlePaymentDone} disabled={isSubmitting}>
+                        {isSubmitting ? "Đang gửi..." : "Đã chuyển khoản, đóng"}
+                    </button>
                 </div>
             </div>
         </div>

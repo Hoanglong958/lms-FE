@@ -323,6 +323,16 @@ export default function CourseRegistration() {
                 <PaymentModal
                     registration={paymentReg}
                     onClose={() => setPaymentReg(null)}
+                    onPaymentConfirmed={() => {
+                        setPaymentReg(null);
+                        setNotification({
+                            isOpen: true,
+                            title: "Đã thông báo",
+                            message: "Cám ơn bạn đã gửi thông tin chuyển khoản. Hệ thống sẽ cập nhật khi admin xác nhận.",
+                            type: "success"
+                        });
+                        fetchData();
+                    }}
                 />
             )}
 
