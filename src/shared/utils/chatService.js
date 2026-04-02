@@ -26,6 +26,14 @@ export const chatService = {
         return api.get(`${CHAT_API}/messages/history`, { params: { roomId, page, size } });
     },
 
+    getAttachments(roomId, type, page = 0, size = 30) {
+        return api.get(`${CHAT_API}/messages/attachments`, { params: { roomId, type, page, size } });
+    },
+
+    searchMessages(roomId, keyword, page = 0, size = 20) {
+        return api.get(`${CHAT_API}/messages/search`, { params: { roomId, keyword, page, size } });
+    },
+
     getUnreadCount(roomId, userId) {
         return api.get(`${CHAT_API}/rooms/${roomId}/unread-count`, { params: { userId } });
     },

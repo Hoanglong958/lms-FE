@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Search, Plus, X, UserPlus, Loader2 } from "lucide-react";
 import { userService } from "@utils/userService";
 import { chatService } from "@utils/chatService";
+import { SERVER_URL } from "@config";
 
 export default function ChatSidebar({ rooms, selectedRoom, onSelectRoom, currentUser }) {
     const [searchQuery, setSearchQuery] = useState("");
@@ -25,6 +26,23 @@ export default function ChatSidebar({ rooms, selectedRoom, onSelectRoom, current
             return room.name || "Chat Room";
         }
         return room.name;
+    };
+
+    const getRoomAvatar = (room) => {
+        let path = room.avatar;
+        let name = getRoomName(room);
+        if (room.type === "ONE_TO_ONE" && currentUser && room.members) {
+            const other = room.members.find(m => m.userId !== currentUser.id);
+            if (other && other.user?.avatar) {
+                path = other.user.avatar;
+            }
+        }
+        
+        if (!path) {
+            return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`;
+        }
+        if (path.startsWith("http") || path.startsWith("blob:")) return path;
+        return `${SERVER_URL}${path}`;
     };
 
     // User Search Logic
@@ -96,7 +114,7 @@ export default function ChatSidebar({ rooms, selectedRoom, onSelectRoom, current
                             onClick={() => onSelectRoom(room)}
                         >
                             <img
-                                src={room.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(getRoomName(room))}&background=random`}
+                                src={getRoomAvatar(room)}
                                 alt="Avatar"
                                 className="conversation-avatar"
                             />
@@ -150,7 +168,15 @@ export default function ChatSidebar({ rooms, selectedRoom, onSelectRoom, current
                                 searchResults.map(user => (
                                     <div key={user.id} className="user-result-item" onClick={() => handleStartChat(user)}>
                                         <div className="user-result-avatar">
-                                            {(user.fullName || user.username || "?").charAt(0).toUpperCase()}
+                                            {user.avatar ? (
+                                                <img 
+                                                    src={user.avatar.startsWith("http") ? user.avatar : `${SERVER_URL}${user.avatar}`} 
+                                                    alt="Avatar" 
+                                                    style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }}
+                                                />
+                                            ) : (
+                                                (user.fullName || user.username || "?").charAt(0).toUpperCase()
+                                            )}
                                         </div>
                                         <div className="user-result-info">
                                             <div className="user-result-name">{user.fullName || user.username}</div>
