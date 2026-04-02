@@ -49,10 +49,9 @@ def main():
     be_cmd = "gradlew.bat bootRun"
     fe_cmd = "npm run dev"
     ai_cmd = "ollama serve"
-    face_auth_cmd = "python face_auth_server.py"
+    face_auth_cmd = "python face.py"
 
     print("=" * 50)
-    print("Unified Runner: React + Spring Boot + Face Auth")
     print("=" * 50)
 
     processes = []
