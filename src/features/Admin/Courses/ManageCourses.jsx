@@ -130,7 +130,7 @@ function CourseRow({ course, onEdit, onToggleActive }) {
 
 // Component Trang Chính
 export default function ManageCourses() {
-  const { confirm, error } = useNotification();
+  const { confirm, success, error: notifyError } = useNotification();
   const [courses, setCourses] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [currentCourse, setCurrentCourse] = useState(null);
@@ -156,7 +156,7 @@ export default function ManageCourses() {
       const url = res.data.url || res.data;
       setFormData((prev) => ({ ...prev, imageUrl: url }));
     } catch (err) {
-      error("Upload ảnh thất bại");
+      notifyError("Upload ảnh thất bại");
     } finally {
       setUploading(false);
     }
@@ -250,7 +250,13 @@ export default function ManageCourses() {
     try {
       await courseService.toggleCourseActive(course.id);
       loadCourses();
-    } catch { }
+      success(course.isActive ? "Khóa học đã bị ẩn" : "Khóa học đã được hiển thị");
+    } catch (err) {
+      notifyError(
+        "Không thể thay đổi trạng thái khóa học: " +
+          (err.response?.data?.message || err.message)
+      );
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -275,13 +281,20 @@ export default function ManageCourses() {
     try {
       if (currentCourse) {
         await courseService.updateCourse(currentCourse.id, payload);
+        success("Cập nhật khóa học thành công");
       } else {
         await courseService.addCourse(payload);
+        success("Tạo khóa học mới thành công");
       }
 
       loadCourses();
       setShowModal(false);
-    } catch { }
+    } catch (err) {
+      notifyError(
+        "Không thể lưu khóa học: " +
+          (err.response?.data?.message || err.message)
+      );
+    }
   };
 
   const displayedCourses = Array.isArray(courses) ? courses : [];

@@ -12,11 +12,13 @@ import { courseService } from '@utils/courseService';
 // Import shared components from Calendar
 import TimetableGrid from '../CalendarManagement/components/TimetableGrid';
 import './Roadmap.css';
+import { useNotification } from '@shared/notification';
 
 export default function Roadmap() {
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
     const classId = searchParams.get('classId');
+    const { success, error: notifyError } = useNotification();
 
     // Data States
     const [classInfo, setClassInfo] = useState(null);
@@ -297,7 +299,7 @@ export default function Roadmap() {
             const keys = Object.keys(slotAssignments);
 
             if (keys.length === 0) {
-                alert("Chưa có nội dung nào được gán!");
+                notifyError("Chưa có nội dung nào được gán!");
                 setSaving(false);
                 return;
             }
@@ -331,10 +333,10 @@ export default function Roadmap() {
             };
 
             await roadmapService.assignRoadmap(payload);
-            alert("Lưu lộ trình thành công! (Lưu ý: Chỉ lưu nội dung bài học, vui lòng dảm bảo lịch học đã được tạo trong phần Thời khóa biểu)");
+            success("Lưu lộ trình thành công! (Lưu ý: Chỉ lưu nội dung bài học, vui lòng đảm bảo lịch học đã được tạo trong phần Thời khóa biểu)");
         } catch (error) {
             console.error(error);
-            alert("Lỗi khi lưu lộ trình!");
+            notifyError("Lỗi khi lưu lộ trình!");
         } finally {
             setSaving(false);
         }

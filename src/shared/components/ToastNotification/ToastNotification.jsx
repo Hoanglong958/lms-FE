@@ -1,9 +1,32 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import { useNotification } from '../../contexts/NotificationContext';
 import './ToastNotification.css';
 
+// Duration (ms) must match toastExit animation in CSS
+const EXIT_DURATION = 350;
+
 const ToastNotification = () => {
     const { notifications, removeNotification } = useNotification();
+    // Track which IDs are currently playing the exit animation
+    const [exitingIds, setExitingIds] = useState(new Set());
+
+    const handleRemove = useCallback((id) => {
+        // Already exiting – ignore extra clicks
+        if (exitingIds.has(id)) return;
+
+        // 1. Add exit class (triggers CSS animation)
+        setExitingIds((prev) => new Set(prev).add(id));
+
+        // 2. After animation completes, actually remove from context
+        setTimeout(() => {
+            removeNotification(id);
+            setExitingIds((prev) => {
+                const next = new Set(prev);
+                next.delete(id);
+                return next;
+            });
+        }, EXIT_DURATION);
+    }, [exitingIds, removeNotification]);
 
     const getIcon = (type) => {
         switch (type) {
@@ -43,32 +66,37 @@ const ToastNotification = () => {
 
     return (
         <div className="toast-container">
-            {notifications.map((notification) => (
-                <div
-                    key={notification.id}
-                    className={`toast-item toast-${notification.type}`}
-                    onClick={() => removeNotification(notification.id)}
-                >
-                    <div className="toast-icon">
-                        {getIcon(notification.type)}
-                    </div>
-                    <div className="toast-content">
-                        {notification.title && (
-                            <div className="toast-title">{notification.title}</div>
-                        )}
-                        <div className="toast-message">{notification.message}</div>
-                    </div>
-                    <button 
-                        className="toast-close"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            removeNotification(notification.id);
-                        }}
+            {notifications.map((notification) => {
+                const isExiting = exitingIds.has(notification.id);
+                return (
+                    <div
+                        key={notification.id}
+                        className={`toast-item toast-${notification.type}${isExiting ? ' toast-exit' : ''}`}
+                        style={{ '--toast-duration': `${(notification.duration ?? 4000)}ms` }}
+                        onClick={() => handleRemove(notification.id)}
                     >
-                        ×
-                    </button>
-                </div>
-            ))}
+                        <div className="toast-icon">
+                            {getIcon(notification.type)}
+                        </div>
+                        <div className="toast-content">
+                            {notification.title && (
+                                <div className="toast-title">{notification.title}</div>
+                            )}
+                            <div className="toast-message">{notification.message}</div>
+                        </div>
+                        <button
+                            className="toast-close"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handleRemove(notification.id);
+                            }}
+                            aria-label="Đóng thông báo"
+                        >
+                            ×
+                        </button>
+                    </div>
+                );
+            })}
         </div>
     );
 };

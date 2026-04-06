@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import './FaceVerification.css';
 
-const FACE_API_URL = 'http://localhost:5000';
+const FACE_API_URL = 'http://127.0.0.1:5000';
 
 const FaceVerification = ({ onVerified, onCancel }) => {
   const videoRef = useRef(null);

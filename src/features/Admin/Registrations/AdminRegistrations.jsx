@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { registrationService } from "@utils/registrationService";
-import NotificationModal from "@components/NotificationModal/NotificationModal";
 import AdminPagination from "@shared/components/Admin/AdminPagination";
 import { useNotification } from "@shared/notification";
 import {
@@ -28,13 +27,12 @@ import {
 } from "lucide-react";
 
 export default function AdminRegistrations() {
-    const { confirm, error } = useNotification();
+    const { confirm, success, error: notifyError, warning } = useNotification();
     const [registrations, setRegistrations] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState("ALL");
     const [search, setSearch] = useState("");
     const [bankInfo, setBankInfo] = useState(null);
-    const [notification, setNotification] = useState({ isOpen: false, title: "", message: "", type: "info" });
     const [confirming, setConfirming] = useState(null);
     const [sortConfig, setSortConfig] = useState({ key: "registrationDate", direction: "desc" });
     const [currentPage, setCurrentPage] = useState(1);
@@ -54,12 +52,7 @@ export default function AdminRegistrations() {
             setRegistrations(res.data?.data || []);
         } catch (err) {
             console.error(err);
-            setNotification({
-                isOpen: true,
-                title: "Lỗi",
-                message: "Không thể tải danh sách đăng ký",
-                type: "error"
-            });
+            notifyError("Không thể tải danh sách đăng ký");
         } finally {
             setLoading(false);
         }
@@ -110,34 +103,21 @@ export default function AdminRegistrations() {
 
     const handleConfirm = async (registration) => {
         if (!registration.paymentSubmitted) {
-            setNotification({
-                isOpen: true,
-                title: "Chưa xác nhận chuyển khoản",
-                message: "Sinh viên chưa báo đã chuyển khoản. Vui lòng chờ họ gửi thông tin.",
-                type: "warning"
-            });
+            warning("Sinh viên chưa báo đã chuyển khoản. Vui lòng chờ họ gửi thông tin.");
             return;
         }
         setConfirming(registration.id);
         try {
             const response = await registrationService.confirmPayment(registration.id);
             const enrolledClassName = response.data?.data?.enrolledClassName;
-            setNotification({
-                isOpen: true,
-                title: "Thành công!",
-                message: enrolledClassName
+            success(
+                enrolledClassName
                     ? `Đã xác nhận thanh toán và thêm sinh viên vào lớp "${enrolledClassName}".`
-                    : "Đã xác nhận thanh toán. Không tìm thấy lớp học nào cho khóa học này.",
-                type: "success"
-            });
+                    : "Đã xác nhận thanh toán. Không tìm thấy lớp học nào cho khóa học này."
+            );
             fetchAll();
         } catch (err) {
-            setNotification({
-                isOpen: true,
-                title: "Lỗi",
-                message: err.response?.data?.data || "Không thể xác nhận thanh toán.",
-                type: "error"
-            });
+            notifyError(err.response?.data?.data || "Không thể xác nhận thanh toán.");
         } finally {
             setConfirming(null);
         }
@@ -158,16 +138,11 @@ export default function AdminRegistrations() {
         try {
             setLoading(true);
             await registrationService.confirmBulkPayment(selectedRows);
-            setNotification({
-                isOpen: true,
-                title: "Thành công!",
-                message: `Đã xác nhận thanh toán cho ${selectedRows.length} bản ghi.`,
-                type: "success"
-            });
+            success(`Đã xác nhận thanh toán cho ${selectedRows.length} bản ghi.`);
             setSelectedRows([]);
             fetchAll();
         } catch (err) {
-            error(err.response?.data?.data || "Không thể xác nhận thanh toán hàng loạt.");
+            notifyError(err.response?.data?.data || "Không thể xác nhận thanh toán hàng loạt.");
         } finally {
             setLoading(false);
         }
@@ -1259,14 +1234,6 @@ export default function AdminRegistrations() {
                 currentPage={currentPage}
                 totalPages={totalPages}
                 onPageChange={(p) => setCurrentPage(p)}
-            />
-
-            <NotificationModal
-                isOpen={notification.isOpen}
-                onClose={() => setNotification(n => ({ ...n, isOpen: false }))}
-                title={notification.title}
-                message={notification.message}
-                type={notification.type}
             />
 
             {renderDetailModal()}

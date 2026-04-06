@@ -10,7 +10,8 @@ import { classCourseService } from "@utils/classCourseService";
 import AdminPagination from "@shared/components/Admin/AdminPagination";
 import ClassDetail from "./ClassDetail";
 import ClassDetailModal from "./ClassDetailModal";
-import NotificationModal from "@components/NotificationModal/NotificationModal";
+import SearchableSelect from "@shared/components/SearchableSelect";
+import { useNotification } from "@shared/notification";
 import "./class.css";
 
 
@@ -51,16 +52,7 @@ export default function ClassManagement() {
   const [totalElements, setTotalElements] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
 
-  const [notification, setNotification] = useState({
-    isOpen: false,
-    title: "",
-    message: "",
-    type: "info",
-  });
-
-  const showNotification = (title, message, type = "info") => {
-    setNotification({ isOpen: true, title, message, type });
-  };
+  const { success, error: notifyError } = useNotification();
 
   // --- Load classes từ API khi component mount ---
   const fetchClasses = useCallback(async () => {
@@ -167,7 +159,7 @@ export default function ClassManagement() {
     );
 
     if (isDuplicate) {
-      alert("Mã lớp đã tồn tại. Vui lòng chọn mã lớp khác.");
+      notifyError("Mã lớp đã tồn tại. Vui lòng chọn mã lớp khác.");
       return;
     }
 
@@ -208,7 +200,10 @@ export default function ClassManagement() {
           });
         } catch (teacherErr) {
           console.error("Failed to assign teacher:", teacherErr);
-          alert("Lớp đã tạo nhưng lỗi khi gán giảng viên: " + teacherErr.message);
+          notifyError(
+            "Lớp đã tạo nhưng lỗi khi gán giảng viên: " +
+              (teacherErr.response?.data?.message || teacherErr.message)
+          );
         }
       }
 
@@ -227,10 +222,12 @@ export default function ClassManagement() {
 
       await fetchClasses(); // Reload list from API
       setIsAddOpen(false);
-      alert("Tạo lớp học thành công!");
+      success("Tạo lớp học thành công!");
     } catch (error) {
       console.error("Create class error:", error);
-      alert("Lỗi khi tạo lớp học: " + (error.response?.data?.message || error.message));
+      notifyError(
+        "Lỗi khi tạo lớp học: " + (error.response?.data?.message || error.message)
+      );
     }
   }
 
@@ -243,7 +240,7 @@ export default function ClassManagement() {
     );
 
     if (isDuplicate) {
-      alert("Mã lớp đã tồn tại. Vui lòng chọn mã lớp khác.");
+      notifyError("Mã lớp đã tồn tại. Vui lòng chọn mã lớp khác.");
       return;
     }
 
@@ -308,15 +305,17 @@ export default function ClassManagement() {
           };
           console.log("Assigning teacher:", assignPayload);
           await classTeacherService.assignTeacherToClass(assignPayload);
-        } catch (teacherErr) {
-          if (teacherErr?.message === "already-assigned" || teacherErr?.message === "invalid-teacher-id") {
-            // Skip noisy alerts for non-critical cases
-          } else {
-            console.error("Failed to assign teacher. Payload:", payload, "Error:", teacherErr);
-            const msg = teacherErr.response?.data?.message || teacherErr.message;
-            alert("Lớp đã cập nhật, nhưng lỗi khi phân công giảng viên Relational: " + msg);
+          } catch (teacherErr) {
+            if (teacherErr?.message === "already-assigned" || teacherErr?.message === "invalid-teacher-id") {
+              // Skip noisy alerts for non-critical cases
+            } else {
+              console.error("Failed to assign teacher. Payload:", payload, "Error:", teacherErr);
+              const msg = teacherErr.response?.data?.message || teacherErr.message;
+              notifyError(
+                "Lớp đã cập nhật, nhưng lỗi khi phân công giảng viên Relational: " + msg
+              );
+            }
           }
-        }
       }
 
       // 4. Update Course Assignment
@@ -367,10 +366,12 @@ export default function ClassManagement() {
         )
       );
       setEditingClass(null);
-      alert("Cập nhật lớp học thành công!");
+      success("Cập nhật lớp học thành công!");
     } catch (error) {
       console.error("Failed to update class:", error);
-      alert("Lỗi khi cập nhật lớp học: " + (error.response?.data?.message || error.message));
+      notifyError(
+        "Lỗi khi cập nhật lớp học: " + (error.response?.data?.message || error.message)
+      );
     }
   }
 
@@ -384,10 +385,15 @@ export default function ClassManagement() {
     try {
       await classService.toggleClassActive(confirmToggle.id);
       await fetchClasses();
-      alert(confirmToggle.isActive ? "Đã ẩn lớp học!" : "Đã hiện lớp học!");
+      success(
+        confirmToggle.isActive ? "Lớp học đã bị ẩn" : "Lớp học đã được hiển thị"
+      );
     } catch (error) {
       console.error("Failed to toggle class:", error);
-      alert("Lỗi khi thay đổi trạng thái lớp học: " + (error.response?.data?.message || error.message));
+      notifyError(
+        "Lỗi khi thay đổi trạng thái lớp học: " +
+          (error.response?.data?.message || error.message)
+      );
     } finally {
       setConfirmToggle(null);
     }
@@ -1015,14 +1021,14 @@ export default function ClassManagement() {
         )
       }
 
-      {assigningClass && (
-        <AssignTeachersModal
-          classData={assigningClass}
-          onClose={() => setAssigningClass(null)}
-          onSubmit={async (selectedTeacherIds) => {
-            try {
-              // Assign all selected teachers to the class
-              const promises = selectedTeacherIds.map(async (teacherId) => {
+        {assigningClass && (
+          <AssignTeachersModal
+            classData={assigningClass}
+            onClose={() => setAssigningClass(null)}
+            onSubmit={async (selectedTeacherIds) => {
+              try {
+                // Assign all selected teachers to the class
+                const promises = selectedTeacherIds.map(async (teacherId) => {
                 try {
                   await classTeacherService.assignTeacherToClass({
                     classId: assigningClass.id,
@@ -1041,12 +1047,15 @@ export default function ClassManagement() {
 
               await Promise.all(promises);
 
-              alert("Phân công giảng viên thành công!");
+              success("Phân công giảng viên thành công!");
               await fetchClasses(); // Reload list
               setAssigningClass(null);
             } catch (error) {
               console.error("Failed to assign teachers:", error);
-              alert("Lỗi khi phân công giảng viên: " + (error.response?.data?.message || error.message));
+              notifyError(
+                "Lỗi khi phân công giảng viên: " +
+                  (error.response?.data?.message || error.message)
+              );
             }
           }}
         />
@@ -1193,7 +1202,6 @@ function AddClassModal({ onClose, onSubmit }) {
   const [teacherId, setTeacherId] = useState(""); // Store ID
   const [students, setStudents] = useState("0");
   // const [courseId, setCourseId] = useState(""); // Removed course input
-  // const [courses, setCourses] = useState([]); // Removed course fetching
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [status, setStatus] = useState("upcoming");
@@ -1397,7 +1405,7 @@ function EditClassModal({ cls, onClose, onSubmit }) {
   const [teacher, setTeacher] = useState(cls.teacher || "");
   const [teacherId, setTeacherId] = useState(""); // New state for ID
   const [courseId, setCourseId] = useState("");
-  const [courses, setCourses] = useState([]);
+  const [selectedCourseLabel, setSelectedCourseLabel] = useState("");
   const [students, setStudents] = useState(String(cls.students) || "0");
   const [active, setActive] = useState(String(cls.active) || "0");
   const [progress, setProgress] = useState(String(cls.progress) || "0");
@@ -1410,6 +1418,38 @@ function EditClassModal({ cls, onClose, onSubmit }) {
   const [teachers, setTeachers] = useState([]);
   const [initialTeacherId, setInitialTeacherId] = useState("");
   const [initialCourseId, setInitialCourseId] = useState("");
+
+  const getCourseLabel = useCallback(
+    (item) =>
+      item?.courseTitle ||
+      item?.course?.title ||
+      item?.courseName ||
+      item?.title ||
+      item?.name ||
+      "",
+    []
+  );
+
+  const getCourseOptionValue = useCallback(
+    (item) =>
+      String(item?.id ?? item?.courseId ?? item?.course?.id ?? ""),
+    []
+  );
+
+  const fetchCourseOptions = useCallback(async (query) => {
+    const params = { page: 0, size: 12 };
+    if (query?.trim()) params.q = query.trim();
+    try {
+      const res = await courseService.getCoursesPaging(params);
+      const raw = res?.data?.data ?? res?.data;
+      if (Array.isArray(raw)) return raw;
+      const list = raw?.content ?? raw?.data ?? [];
+      return Array.isArray(list) ? list : [];
+    } catch (err) {
+      console.error("Course search failed", err);
+      return [];
+    }
+  }, []);
 
   // Sync state with cls prop when it changes
   useEffect(() => {
@@ -1460,29 +1500,20 @@ function EditClassModal({ cls, onClose, onSubmit }) {
   }, [cls.teacher]); // Updated dependency to re-run if class changes
 
   useEffect(() => {
-    // Load courses
-    courseService.getCourses()
+    if (!cls?.id) return;
+    setSelectedCourseLabel("");
+    classCourseService.getClassCourses(cls.id)
       .then((res) => {
-        let data = [];
-        if (res.data?.data) data = res.data.data;
-        else if (Array.isArray(res.data)) data = res.data;
-        setCourses(data);
+        const assigned = res.data?.data || res.data;
+        if (Array.isArray(assigned) && assigned.length > 0) {
+          const primary = assigned[0];
+          setCourseId(primary.courseId);
+          setInitialCourseId(primary.courseId);
+          setSelectedCourseLabel(getCourseLabel(primary));
+        }
       })
-      .catch(err => console.error("Failed to load courses", err));
-
-    // Load existing assigned course
-    if (cls.id) {
-      classCourseService.getClassCourses(cls.id)
-        .then(res => {
-          const assigned = res.data?.data || res.data;
-          if (Array.isArray(assigned) && assigned.length > 0) {
-            setCourseId(assigned[0].courseId);
-            setInitialCourseId(assigned[0].courseId);
-          }
-        })
-        .catch(err => console.warn("Failed to load assigned course", err));
-    }
-  }, [cls.id]);
+      .catch((err) => console.warn("Failed to load assigned course", err));
+  }, [cls.id, getCourseLabel]);
 
   function validate() {
     const nextErrors = {};
@@ -1631,25 +1662,31 @@ function EditClassModal({ cls, onClose, onSubmit }) {
               </div>
             </div>
 
-            {/* Khóa học */}
             <div className="form-group-mb">
               <label className="custom-label">
                 <div className="label-icon icon-pink"><BookOpen size={16} color="white" /></div>
                 Khóa học
               </label>
-              <div className="select-wrapper">
-                <select
-                  className="custom-select"
-                  value={courseId}
-                  onChange={(e) => setCourseId(e.target.value)}
-                >
-                  <option value="">-- Chọn khóa học --</option>
-                  {courses.map((c) => (
-                    <option key={c.id} value={c.id}>{c.courseName || c.name || c.title}</option>
-                  ))}
-                </select>
-                <div className="select-icon">▼</div>
-              </div>
+              <SearchableSelect
+                value={courseId}
+                displayValue={selectedCourseLabel}
+                placeholder="Nhập tên hoặc mã khóa học..."
+                onOptionSelect={(option) => {
+                  if (option) {
+                    setCourseId(getCourseOptionValue(option));
+                    setSelectedCourseLabel(getCourseLabel(option));
+                  } else {
+                    setCourseId("");
+                    setSelectedCourseLabel("");
+                  }
+                }}
+                fetchOptions={fetchCourseOptions}
+                getOptionLabel={getCourseLabel}
+                getOptionValue={getCourseOptionValue}
+                inputClassName="custom-input"
+                clearable
+                noOptionsText="Không tìm thấy khóa học"
+              />
             </div>
 
             {/* Dates */}
@@ -1698,6 +1735,7 @@ function EditClassModal({ cls, onClose, onSubmit }) {
 }
 
 function AssignTeachersModal({ classData, onClose, onSubmit }) {
+  const { error: notifyError } = useNotification();
   const [teachers, setTeachers] = useState([]);
   const [selectedTeachers, setSelectedTeachers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -1740,7 +1778,7 @@ function AssignTeachersModal({ classData, onClose, onSubmit }) {
         }
       } catch (error) {
         console.error("Failed to load teachers:", error);
-        alert("Lỗi khi tải danh sách giảng viên!");
+        notifyError("Lỗi khi tải danh sách giảng viên!");
       } finally {
         setLoading(false);
       }

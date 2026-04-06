@@ -28,17 +28,15 @@ export default function HomePage() {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [pageSize] = useState(6); // 6 courses per page for better layout
 
   useEffect(() => {
     let mounted = true;
     const fetchCourses = async () => {
       try {
         if (mounted) setLoading(true);
-
-        // 1. Fetch Master List of Courses (Contains full info: imageUrl, description, etc.)
-        const courseRes = await courseService.getCourses();
-        const allCoursesRaw = courseRes.data?.data?.content || courseRes.data?.data || courseRes.data || [];
-        const fullCourses = Array.isArray(allCoursesRaw) ? allCoursesRaw : [];
 
         const userStr = localStorage.getItem("loggedInUser");
         let userId = null;
@@ -48,70 +46,38 @@ export default function HomePage() {
           } catch (e) { }
         }
 
-        let displayCourses = [];
+        // Use paging API
+        // If logged in, we might want to filter by enrollment. 
+        // For now, let's use the paging API with basic search and pagination.
+        const params = {
+          page: currentPage,
+          size: pageSize,
+          q: searchQuery || undefined,
+          regStatus: userId ? "PAID" : "ALL" // Show only enrolled if logged in, else all
+        };
 
-        if (userId) {
-          // LOGGED IN: Identify enrolled course IDs, then pick from master list
-
-          // A. Fetch all classes
-          const classRes = await classService.getClasses();
-          const allClasses = classRes.data?.data?.content || classRes.data?.data || classRes.data || [];
-
-          // B. Filter enrolled classes
-          const enrollmentChecks = await Promise.all(
-            (Array.isArray(allClasses) ? allClasses : []).map(async (cls) => {
-              try {
-                const sRes = await classStudentService.getClassStudents(cls.id);
-                const students = sRes.data?.data || sRes.data || [];
-                const isEnrolled = Array.isArray(students) && students.some(s =>
-                  String(s.studentId) === String(userId) || String(s.id) === String(userId)
-                );
-                return isEnrolled ? cls : null;
-              } catch (err) {
-                return null;
-              }
-            })
-          );
-          const myClasses = enrollmentChecks.filter(c => c !== null);
-
-          // C. Collect Course IDs from these classes
-          const coursePromises = myClasses.map(cls => classCourseService.getClassCourses(cls.id));
-          const courseResponses = await Promise.all(coursePromises);
-
-          const enrolledCourseIds = new Set();
-          courseResponses.forEach(res => {
-            const cList = res.data?.data || res.data || [];
-            if (Array.isArray(cList)) {
-              cList.forEach(c => {
-                // c might be a ClassCourse link or a Course object. Ensure we get the Course ID.
-                enrolledCourseIds.add(String(c.courseId || c.id));
-              });
-            }
-          });
-
-          // D. Filter the Master List
-          // This ensures we display the "Full" course object with proper images
-          displayCourses = fullCourses.filter(c => enrolledCourseIds.has(String(c.id)));
-
-        } else {
-          // NOT LOGGED IN: Show all courses
-          displayCourses = fullCourses;
+        const res = await courseService.getCoursesPaging(params);
+        
+        // Structure: res.data.data.content
+        const pagedData = res.data?.data || {};
+        const content = pagedData.content || [];
+        
+        if (mounted) {
+          setTotalPages(pagedData.totalPages || 1);
+          
+          const mapped = content.map(c => ({
+            ...c,
+            title: c.title || c.courseName || "Khóa học",
+            slug: c.slug || c.courseSlug || slugify(c.title || ""),
+            imageUrl: c.imageUrl || c.image || null,
+            durationMinutes: c.duration || 360,
+            totalSessions: c.totalSessions || c.sessions || 32,
+            teacherName: c.teacherName || "Giang Sensei",
+            level: (c.level || "Beginner").toLowerCase()
+          }));
+          
+          setCourses(mapped);
         }
-
-        // Map for display
-        const mapped = displayCourses.map(c => ({
-          ...c,
-          title: c.title || c.courseName || "Khóa học",
-          slug: c.slug || c.courseSlug || slugify(c.title || ""),
-          // Prioritize imageUrl, allow generic fallback in JSX
-          imageUrl: c.imageUrl || c.image || null,
-          durationMinutes: c.duration || 360,
-          totalSessions: c.totalSessions || c.sessions || 32,
-          teacherName: c.teacherName || "Giang Sensei",
-          level: c.level || "Beginner"
-        }));
-
-        if (mounted) setCourses(mapped);
 
       } catch (err) {
         console.error("Home load error", err);
@@ -122,13 +88,21 @@ export default function HomePage() {
 
     fetchCourses();
     return () => { mounted = false; };
-  }, []);
+  }, [currentPage, searchQuery, pageSize]);
 
-  const filteredCourses = courses.filter((c) =>
-    c.title.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Reset to page 0 when search changes
+  useEffect(() => {
+    setCurrentPage(0);
+  }, [searchQuery]);
+
+  const handlePageChange = (newPage) => {
+    if (newPage >= 0 && newPage < totalPages) {
+      setCurrentPage(newPage);
+      window.scrollTo({ top: 500, behavior: "smooth" });
+    }
+  };
+
   const handleCourseClick = (course) => {
-    const slug = course.slug || slugify(course.title);
     navigate(`/courses/${course.slug || slugify(course.title)}`);
   };
 
@@ -164,7 +138,7 @@ export default function HomePage() {
       <section className="courses">
         <h2 className="courses-title">TẤT CẢ KHÓA HỌC</h2>
         <div className="course-grid">
-          {filteredCourses.map((course, index) => (
+          {courses.map((course, index) => (
             <div
               className="course-card"
               key={index}
@@ -209,17 +183,35 @@ export default function HomePage() {
       </section>
 
       {/* --- Pagination --- */}
-      <section className="pagination-container">
-        <button className="page-btn prev">← Trước</button>
-        <div className="pagination">
-          {[1, 2, 3, 4, 5].map((num) => (
-            <button key={num} className="page-number">
-              {num}
-            </button>
-          ))}
-        </div>
-        <button className="page-btn next">Sau →</button>
-      </section>
+      {totalPages > 1 && (
+        <section className="pagination-container">
+          <button 
+            className="page-btn prev" 
+            disabled={currentPage === 0}
+            onClick={() => handlePageChange(currentPage - 1)}
+          >
+            ← Trước
+          </button>
+          <div className="pagination">
+            {[...Array(totalPages)].map((_, index) => (
+              <button 
+                key={index} 
+                className={`page-number ${currentPage === index ? "active" : ""}`}
+                onClick={() => handlePageChange(index)}
+              >
+                {index + 1}
+              </button>
+            ))}
+          </div>
+          <button 
+            className="page-btn next"
+            disabled={currentPage === totalPages - 1}
+            onClick={() => handlePageChange(currentPage + 1)}
+          >
+            Sau →
+          </button>
+        </section>
+      )}
     </div>
   );
 }

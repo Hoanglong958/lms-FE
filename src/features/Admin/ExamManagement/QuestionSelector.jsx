@@ -140,28 +140,30 @@ export default function QuestionSelector({ open, onOpenChange, selectedQuestions
             )}
           </div>
 
-          <div className="qs-summary">
-            Đã chọn: {localSelected.length} câu hỏi
-          </div>
         </div>
 
         <div className="qs-footer">
-          <button
-            className="qs-btn primary"
-            onClick={() => {
-              onSelectQuestions && onSelectQuestions(localSelected);
-              onOpenChange && onOpenChange(false);
-            }}
-          >
-            Xác nhận
-          </button>
+          <div className="qs-summary">
+            Đã chọn: <strong>{localSelected.length}</strong> câu hỏi
+          </div>
+          <div className="qs-footer-actions">
+            <button
+              className="qs-btn primary"
+              onClick={() => {
+                onSelectQuestions && onSelectQuestions(localSelected);
+                onOpenChange && onOpenChange(false);
+              }}
+            >
+              Xác nhận
+            </button>
 
-          <button
-            className="qs-btn"
-            onClick={() => onOpenChange && onOpenChange(false)}
-          >
-            Hủy
-          </button>
+            <button
+              className="qs-btn"
+              onClick={() => onOpenChange && onOpenChange(false)}
+            >
+              Hủy
+            </button>
+          </div>
         </div>
       </div>
     </div>
