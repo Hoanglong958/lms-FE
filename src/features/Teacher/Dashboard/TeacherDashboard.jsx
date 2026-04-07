@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { BookOpen, Users, ClipboardCheck, Newspaper, GraduationCap } from "lucide-react";
 import { classService } from "@utils/classService";
 import { notificationService } from "@utils/notificationService";
@@ -7,11 +7,13 @@ import { Stomp } from '@stomp/stompjs';
 import { SERVER_URL } from "@config";
 import "./TeacherDashboard.css";
 import { useNavigate } from "react-router-dom";
+import StudentSuccessPanel from "@features/analytics/StudentSuccessPanel";
 
 export default function TeacherDashboard() {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
     const [classes, setClasses] = useState([]);
+    const [selectedClassId, setSelectedClassId] = useState(null);
     const [notifications, setNotifications] = useState([]);
     const [stats, setStats] = useState([
         {
@@ -65,6 +67,9 @@ export default function TeacherDashboard() {
                 const res = await classService.getMyClasses();
                 const classList = res.data || [];
                 setClasses(classList);
+                if (!selectedClassId && classList.length > 0) {
+                    setSelectedClassId(classList[0].id);
+                }
 
                 // 2. Calculate Total Students
                 const totalStudents = classList.reduce((sum, cls) => sum + (cls.totalStudents || 0), 0);
@@ -168,6 +173,13 @@ export default function TeacherDashboard() {
                     </div>
                 ))}
             </div>
+
+            <StudentSuccessPanel
+                classId={selectedClassId}
+                classOptions={classes.map((cls) => ({ id: cls.id, label: cls.className }))}
+                onClassChange={setSelectedClassId}
+                showClassSelector
+            />
 
             <div className="teacher-content-grid">
                 <div className="teacher-main-card">
