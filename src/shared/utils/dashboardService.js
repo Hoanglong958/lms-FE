@@ -15,6 +15,12 @@ export const dashboardService = {
 
   getUserGrowthByWeek: (weeks = 4) =>
     api.get(`/api/v1/dashboard/user-growth/week?weeks=${weeks}`),
+
+  getRevenueGrowthByMonth: (months = 12) =>
+    api.get(`/api/v1/dashboard/revenue-growth/month?months=${months}`),
+
+  getRecentTransactions: (limit = 10) =>
+    api.get(`/api/v1/dashboard/recent-transactions?limit=${limit}`),
 };
 
 export default dashboardService;

@@ -18,6 +18,8 @@ import StudentSuccessPanel from "@features/analytics/StudentSuccessPanel";
 import NewUsersTable from "./components/NewUsersTable";
 import NewCoursesTable from "./components/NewCoursesTable";
 import RecentQuizzesTable from "./components/RecentQuizzesTable";
+import RevenueGrowthChart from "./components/RevenueGrowthChart";
+import RecentTransactionsList from "./components/RecentTransactionsList";
 import { dashboardService } from "@utils/dashboardService";
 import { quizResultService } from "@utils/quizResultService.js";
 import { courseService } from "@utils/courseService.js";
@@ -31,6 +33,8 @@ const DashboardOverview = () => {
   const [newCourses, setNewCourses] = useState([]);
   const [courseProgress, setCourseProgress] = useState([]);
   const [newUsers, setNewUsers] = useState([]);
+  const [revenueDataReal, setRevenueDataReal] = useState([]);
+  const [recentTransactions, setRecentTransactions] = useState([]);
 
   useEffect(() => {
     let alive = true;
@@ -269,6 +273,55 @@ const DashboardOverview = () => {
       })
       .catch(() => { if (alive) setNewUsers([]); });
 
+    // Fetch Revenue Growth
+    dashboardService.getRevenueGrowthByMonth(12)
+      .then(res => {
+         const arr = Array.isArray(res?.data) ? res.data : [];
+         const mapped = arr.map(item => {
+             // period is "yyyy-MM", let's map to "T[MM]"
+             let mLabel = item.period || "";
+             if (mLabel.includes("-")) {
+                 mLabel = "T" + parseInt(mLabel.split("-")[1], 10);
+             }
+             return {
+                 month: mLabel,
+                 "Doanh thu": Number(item.revenue || 0)
+             };
+         });
+         // Reverse to show oldest to newest if backend returns newest to oldest
+         // Wait, backend returns newest to oldest (T12 to T1) in getUserGrowthByMonth? No, the loop in DashboardServiceImpl goes from older to newer:
+         //     for (int i = months - 1; i >= 0; i--) { start = now.minusMonths(i) ... add }
+         // So it's already older to newer.
+         if (alive) setRevenueDataReal(mapped);
+      })
+      .catch(() => { if (alive) setRevenueDataReal([]); });
+
+    // Fetch Recent Transactions
+    dashboardService.getRecentTransactions(10)
+      .then(res => {
+         const arr = Array.isArray(res?.data) ? res.data : [];
+         const mapped = arr.map(tx => {
+            let stText = "Đang xử lý";
+            if (tx.status === "PAID" || tx.status === "Thành công") stText = "Thành công";
+            else if (tx.status === "CANCELLED" || tx.status === "Thất bại") stText = "Thất bại";
+
+            const amtStr = Number(tx.amount || 0).toLocaleString("vi-VN") + "đ";
+            const dateObj = tx.time ? new Date(tx.time) : new Date();
+            const timeStr = dateObj.toLocaleDateString("vi-VN") + " " + dateObj.toLocaleTimeString("vi-VN", {hour: '2-digit', minute:'2-digit'});
+
+            return {
+               id: tx.id,
+               user: tx.user,
+               course: tx.course,
+               amount: amtStr,
+               status: stText,
+               time: timeStr
+            };
+         });
+         if (alive) setRecentTransactions(mapped);
+      })
+      .catch(() => { if (alive) setRecentTransactions([]); });
+
     return () => { alive = false; };
   }, []);
   return (
@@ -314,10 +367,25 @@ const DashboardOverview = () => {
           <StudentSuccessPanel showClassSelector />
         </section>
 
+        {/* === HÀNG 4: DOANH THU & GIAO DỊCH === */}
+        <section className="dashboard-card col-span-12">
+          <h3 className="dashboard-card-title">Biểu đồ doanh thu học phí</h3>
+          <div className="chart-container" style={{ height: '350px' }}>
+            <RevenueGrowthChart data={revenueDataReal} />
+          </div>
+        </section>
+
         {/* === HÀNG 5: BẢNG  === */}
         <section className="dashboard-card col-span-12 lg-col-span-7">
           <h3 className="dashboard-card-title">Người dùng mới</h3>
           <NewUsersTable users={newUsers} />
+        </section>
+        
+        <section className="dashboard-card col-span-12 lg-col-span-5">
+          <h3 className="dashboard-card-title">Giao dịch mới</h3>
+          <div className="max-h-[400px] overflow-y-auto pr-2">
+            <RecentTransactionsList transactions={recentTransactions} />
+          </div>
         </section>
 
 

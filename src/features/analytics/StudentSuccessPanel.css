@@ -1,4 +1,4 @@
-﻿.ssa-panel {
+.ssa-panel {
 
   background: #fff;
 
@@ -139,6 +139,82 @@
   border-top: 1px solid #e2e8f0;
 
   padding-top: 12px;
+
+}
+
+
+
+.ssa-correlation-group {
+
+  margin-top: 24px;
+
+  border-top: 1px solid #e2e8f0;
+
+  padding-top: 12px;
+
+}
+
+
+
+.ssa-correlation-group h4 {
+
+  margin: 0 0 12px;
+
+  color: #111827;
+
+  font-size: 1rem;
+
+}
+
+
+
+.ssa-correlation-grid {
+
+  display: grid;
+
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+
+  gap: 16px;
+
+}
+
+
+
+.ssa-correlation-card {
+
+  background: #f8fafc;
+
+  border: 1px solid #e2e8f0;
+
+  padding: 12px 16px;
+
+  border-radius: 12px;
+
+}
+
+
+
+.ssa-correlation-card p:first-child {
+
+  margin: 0 0 4px;
+
+  font-size: 0.85rem;
+
+  color: #475569;
+
+}
+
+
+
+.ssa-correlation-value {
+
+  font-size: 1.25rem;
+
+  font-weight: 600;
+
+  color: #0f172a;
+
+  margin: 0;
 
 }
 

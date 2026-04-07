@@ -63,9 +63,8 @@ const RecentQuizzesTable = ({ quizzes }) => {
                     <td className="td-cell">{participants}</td>
                     <td className="td-cell">
                       <span
-                        className={`pass-rate ${
-                          pr > 80 ? "pass-rate-high" : "pass-rate-low"
-                        }`}
+                        className={`pass-rate ${pr > 80 ? "pass-rate-high" : "pass-rate-low"
+                          }`}
                       >
                         {pr}%
                       </span>

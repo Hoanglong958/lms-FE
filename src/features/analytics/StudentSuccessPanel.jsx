@@ -65,7 +65,7 @@ export default function StudentSuccessPanel({
     if (analytics?.className) {
       return `Lớp ${analytics.className}`;
     }
-    return "Student Success Analytics";
+    return "Thống kê số lượng học viên hoàn thành";
   }, [analytics]);
 
   const renderStat = (label, value, suffix = "%") => (
@@ -134,7 +134,7 @@ export default function StudentSuccessPanel({
       {error && <p className="ssa-error">{error}</p>}
 
       {!selectedClassId && !loading && (
-        <p className="ssa-placeholder">Hãy chọn lớp để xem analytics.</p>
+        <p className="ssa-placeholder">Hãy chọn lớp để xem thống kê.</p>
       )}
 
       {loading && <p className="ssa-placeholder">Đang tải số liệu...</p>}
@@ -179,7 +179,7 @@ export default function StudentSuccessPanel({
             </section>
 
             <section>
-              <h4>Mastery theo loại</h4>
+              <h4>Tiến độ theo loại</h4>
               <div className="ssa-mastery-list">
                 {lessonMastery.map((item) => (
                   <div key={item.lessonType} className="ssa-mastery-item">
@@ -190,7 +190,7 @@ export default function StudentSuccessPanel({
                     <small>{item.averageProgressPercent.toFixed(1)}%</small>
                   </div>
                 ))}
-                {lessonMastery.length === 0 && <p className="ssa-placeholder">Chưa có dữ liệu mastery theo loại.</p>}
+                {lessonMastery.length === 0 && <p className="ssa-placeholder">Chưa có dữ liệu tiến độ theo loại.</p>}
               </div>
             </section>
 
