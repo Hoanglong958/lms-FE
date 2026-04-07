@@ -50,9 +50,22 @@ export default function ClassCalendarPage() {
                     const calculatedWeeks = calculateWeeks(classData.startDate, classData.endDate);
                     setWeeks(calculatedWeeks);
                     if (calculatedWeeks.length > 0) {
-                        const now = new Date();
-                        const currentWeek = calculatedWeeks.find(w => now >= w.startDate && now <= w.endDate);
-                        setSelectedWeek(currentWeek || calculatedWeeks[0]);
+                        const dateParam = searchParams.get("date");
+                        if (dateParam) {
+                            const targetDate = new Date(dateParam);
+                            const targetWeek = calculatedWeeks.find(w => targetDate >= w.startDate && targetDate <= w.endDate);
+                            if (targetWeek) {
+                                setSelectedWeek(targetWeek);
+                            } else {
+                                const now = new Date();
+                                const currentWeek = calculatedWeeks.find(w => now >= w.startDate && now <= w.endDate);
+                                setSelectedWeek(currentWeek || calculatedWeeks[0]);
+                            }
+                        } else {
+                            const now = new Date();
+                            const currentWeek = calculatedWeeks.find(w => now >= w.startDate && now <= w.endDate);
+                            setSelectedWeek(currentWeek || calculatedWeeks[0]);
+                        }
                     }
                 }
 

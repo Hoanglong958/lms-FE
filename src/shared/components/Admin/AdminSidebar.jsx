@@ -169,6 +169,7 @@ export default function AdminSidebar({ isOpen, onClose }) {
           className="admin-sidebar-item logout-btn"
           onClick={() => {
             localStorage.clear();
+            sessionStorage.clear();
             window.location.href = "/login";
           }}
         >

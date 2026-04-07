@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import "./ExamDetail.css";
+import "./styles/ExamDetail.css";
 import { useNavigate, useParams } from "react-router-dom";
 import { examService } from "@utils/examService.js";
 import { userService } from "@utils/userService.js";

@@ -10,14 +10,14 @@
 
 .qs-drawer {
     background: #fff;
-    border-top-left-radius: 16px;
-    border-top-right-radius: 16px;
     border-radius: 16px;
-    box-shadow: 0 -10px 30px rgba(0, 0, 0, .18);
-    width: 100%;
+    box-shadow: 0 -10px 30px rgba(0,0,0,.18);
+    width:calc(100% - 40px);
     max-width: 960px;
-    max-height: 90vh;
-    overflow: auto
+    max-height: 90vh; /* Fixed height container */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden /* We'll use overflow on the body instead */
 }
 
 .qs-header {
@@ -42,7 +42,10 @@
     padding: 14px 20px;
     display: flex;
     flex-direction: column;
-    gap: 12px
+    gap: 12px;
+    flex: 1; /* Grow to fill available space */
+    overflow-y: auto; /* Scroll only the body */
+    min-height: 0; /* Crucial for scrolling inside flex */
 }
 
 .qs-search {
@@ -150,9 +153,29 @@
 .qs-footer {
     display: flex;
     gap: 10px;
-    justify-content: flex-end;
+    align-items: center; /* Vertically align summary and buttons */
+    justify-content: space-between; /* Summary left, buttons right */
     padding: 12px 20px;
-    border-top: 1px solid #eee
+    border-top: 1px solid #eee;
+    background: #fdfdfd; /* Distinct footer color */
+    border-bottom-left-radius: 16px;
+    border-bottom-right-radius: 16px;
+}
+
+.qs-summary {
+    color: #4b5563;
+    font-size: 14px;
+    font-weight: 500
+}
+
+.qs-summary strong {
+    color: #ea580c;
+    font-size: 16px
+}
+
+.qs-footer-actions {
+    display: flex;
+    gap: 10px
 }
 
 .qs-btn {

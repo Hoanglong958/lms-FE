@@ -6,10 +6,10 @@ import "./Header.css";
 import mankaiLogo from "@assets/logos/mankai-logo.svg";
 import homeIcon from "@assets/icons/home-icon.svg";
 import bookIcon from "@assets/icons/book-icon.svg";
-import searchIcon from "@assets/icons/search-icon.svg";
+//import searchIcon from "@assets/icons/search-icon.svg";
 import notiIcon from "@assets/icons/noti-icon.svg";
 import avatar from "@assets/images/avatar.svg";
-import avatarDropDown from "@assets/images/avatar-dropdown.svg";
+//import avatarDropDown from "@assets/images/avatar-dropdown.svg";
 import logoutIcon from "@assets/icons/logout-icon.svg";
 import lessonIcon from "@assets/icons/lesson-icon.svg";
 import menuIcon from "@assets/icons/menu-icon.svg";
@@ -121,9 +121,14 @@ export default function Header() {
         </div>
 
         <div className="user-header-right-desktop">
-          <button className="user-header-icon-btn" onClick={() => navigate("/search")}>
-            <img src={searchIcon} alt="Search" />
-          </button>
+          
+          {/* <button
+            className="user-header-icon-btn theme-toggle-btn"
+            onClick={toggleTheme}
+            title={isDarkMode ? "Chuyển sang sáng" : "Chuyển sang tối"}
+          >
+            {isDarkMode ? <Sun size={20} color="#f59e0b" /> : <Moon size={20} color="#64748b" />}
+          </button> */}
           <NotificationDropdown />
           <div
             className="user-header-avatar-dropdown"

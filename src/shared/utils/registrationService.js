@@ -29,5 +29,17 @@ export const registrationService = {
 
     exportPdf: async (registrationId) => {
         return await api.get(`${API_URL}/${registrationId}/export/pdf`, { responseType: 'blob' });
+    },
+    
+    cancelRegistration: async (registrationId) => {
+        return await api.patch(`${API_URL}/${registrationId}/cancel`);
+    },
+
+    markPaymentSubmitted: async (registrationId) => {
+        return await api.patch(`${API_URL}/${registrationId}/payment-submitted`);
+    },
+
+    confirmBulkPayment: async (registrationIds) => {
+        return await api.patch(`${API_URL}/bulk-confirm`, registrationIds);
     }
 };

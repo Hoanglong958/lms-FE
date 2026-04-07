@@ -2,9 +2,11 @@ import React, { useState } from "react";
 import "./Dashboard.css"; // Import file CSS chung
 import { detailedReports } from "./mock/dashboardMock.js";
 import api from "../../../services/api";
+import { useNotification } from "@shared/notification";
 
 const DashboardDetails = () => {
   const [loading, setLoading] = useState(false);
+  const { error: notifyError } = useNotification();
   const reports = detailedReports;
 
   const handleExport = async (reportId, type) => {
@@ -27,7 +29,7 @@ const DashboardDetails = () => {
       link.remove();
     } catch (error) {
       console.error("Export failed:", error);
-      alert("Xuất báo cáo thất bại, vui lòng thử lại sau.");
+      notifyError("Xuất báo cáo thất bại, vui lòng thử lại sau.");
     } finally {
       setLoading(false);
     }

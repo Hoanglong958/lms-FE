@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
 import { postService } from "@utils/postService";
+import { commentService } from "@utils/commentService";
 import { Spin, message } from "antd";
 import dayjs from "dayjs";
 import "./baiviet.css";
@@ -13,6 +14,19 @@ export default function BlogDetail() {
     const [post, setPost] = useState(null);
     const [loading, setLoading] = useState(true);
     const [related, setRelated] = useState([]);
+    const [comments, setComments] = useState([]);
+    const [commentsLoading, setCommentsLoading] = useState(false);
+    const [commentText, setCommentText] = useState("");
+    const [commentSubmitting, setCommentSubmitting] = useState(false);
+    const [commentError, setCommentError] = useState("");
+    const loggedInUser = useMemo(() => {
+        try {
+            return JSON.parse(localStorage.getItem("loggedInUser") || "null");
+        } catch {
+            return null;
+        }
+    }, []);
+    const canComment = loggedInUser?.role === "ROLE_USER";
 
     useEffect(() => {
         const fetchPost = async () => {
@@ -21,9 +35,9 @@ export default function BlogDetail() {
                 const response = await postService.getPostById(id);
                 setPost(response.data);
 
-                const relResponse = await postService.getPosts({ size: 4 });
-                const relData = relResponse.data.content || relResponse.data || [];
-                setRelated(relData.filter(p => p.id !== Number(id)).slice(0, 4));
+                const relResponse = await postService.getRelatedPosts(id, 4);
+                const relData = Array.isArray(relResponse.data) ? relResponse.data : [];
+                setRelated(relData.filter((p) => p.id !== Number(id)).slice(0, 4));
             } catch (error) {
                 console.error(error);
                 message.error("Không thể tải chi tiết bài viết");
@@ -37,6 +51,54 @@ export default function BlogDetail() {
             window.scrollTo(0, 0);
         }
     }, [id]);
+
+    const loadComments = useCallback(async () => {
+        if (!id) return;
+        setCommentsLoading(true);
+        try {
+            const response = await commentService.getComments(id);
+            const data = Array.isArray(response.data) ? response.data : [];
+            setComments(data);
+        } catch (error) {
+            console.error("Fetch comments error:", error);
+            message.error("Không thể tải bình luận");
+        } finally {
+            setCommentsLoading(false);
+        }
+    }, [id]);
+
+    useEffect(() => {
+        if (id) {
+            loadComments();
+        }
+    }, [id, loadComments]);
+
+    const handleSubmitComment = async (event) => {
+        event.preventDefault();
+        if (!commentText.trim()) {
+            setCommentError("Nội dung bình luận không được để trống");
+            return;
+        }
+
+        setCommentSubmitting(true);
+        setCommentError("");
+
+        try {
+            await commentService.addComment(id, { content: commentText.trim() });
+            setCommentText("");
+            message.success("Bình luận của bạn đã được gửi");
+            await loadComments();
+        } catch (error) {
+            console.error("Submit comment error:", error);
+            const backendMessage = error?.response?.data?.message || error?.response?.data?.error;
+            const fallback = "Không thể gửi bình luận vào lúc này";
+            const errorMessage = backendMessage || fallback;
+            setCommentError(errorMessage);
+            message.error(errorMessage);
+        } finally {
+            setCommentSubmitting(false);
+        }
+    };
 
     if (loading) {
         return <div className="min-h-screen flex justify-center items-center"><Spin size="large" /></div>;
@@ -99,6 +161,66 @@ export default function BlogDetail() {
                             }}
                             dangerouslySetInnerHTML={{ __html: post.content }}
                         />
+
+                        <section className="comment-section">
+                            <div className="comment-header">
+                                <h3>Bình luận</h3>
+                                <span className="comment-count">
+                                    {comments.length} phản hồi
+                                </span>
+                            </div>
+                            <div className="comment-list">
+                                {commentsLoading ? (
+                                    <div className="comment-loader">
+                                        <Spin size="small" />
+                                        <span>Đang tải bình luận...</span>
+                                    </div>
+                                ) : comments.length === 0 ? (
+                                    <div className="comment-empty">
+                                        Chưa có bình luận nào. Hãy là người đầu tiên chia sẻ suy nghĩ!
+                                    </div>
+                                ) : (
+                                    comments.map((comment) => (
+                                        <div className="comment-card" key={comment.id}>
+                                            <strong>{comment.author?.fullName || "Học viên"}</strong>
+                                            <p>{comment.content}</p>
+                                            <div className="comment-meta">
+                                                <span>{dayjs(comment.createdAt).format("DD/MM/YYYY HH:mm")}</span>
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                            <div className="comment-form-wrapper">
+                                {canComment ? (
+                                    <form className="comment-form" onSubmit={handleSubmitComment}>
+                                        <textarea
+                                            value={commentText}
+                                            onChange={(e) => {
+                                                setCommentText(e.target.value);
+                                                if (commentError) setCommentError("");
+                                            }}
+                                            placeholder="Chia sẻ suy nghĩ của bạn về bài viết này..."
+                                            maxLength={1000}
+                                        />
+                                        {commentError && <span className="comment-error">{commentError}</span>}
+                                        <button type="submit" disabled={commentSubmitting}>
+                                            {commentSubmitting ? "Đang gửi..." : "Gửi bình luận"}
+                                        </button>
+                                    </form>
+                                ) : (
+                                    <div className="comment-locked">
+                                        {loggedInUser ? (
+                                            <p>Chỉ tài khoản sinh viên được phép bình luận. Vui lòng chuyển sang tài khoản học viên.</p>
+                                        ) : (
+                                            <p>
+                                                Vui lòng <Link to="/login">đăng nhập</Link> để tham gia bình luận.
+                                            </p>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        </section>
                     </article>
 
                     <aside>

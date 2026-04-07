@@ -4,6 +4,7 @@ import { FileText, Search, Clock, TrendingUp, CheckCircle2, Edit, Trash2, Chevro
 import { postService } from "@utils/postService";
 import dayjs from "dayjs";
 import { useNotification } from "@shared/notification";
+import AdminPagination from "@shared/components/Admin/AdminPagination";
 
 export default function PostManagement() {
     const { confirm, success, error } = useNotification();
@@ -715,57 +716,12 @@ export default function PostManagement() {
                 </table>
                 </div>
 
-                {/* Pagination */}
-                <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    padding: '16px 24px',
-                    borderTop: '1px solid #f1f5f9'
-                }}>
-                    <span style={{ fontSize: 14, color: '#6b7280' }}>
-                        Tổng {filtered.length} bài viết
-                    </span>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <button
-                            onClick={() => setPage((p) => Math.max(1, p - 1))}
-                            disabled={curPage <= 1}
-                            style={{
-                                padding: '8px 16px',
-                                borderRadius: 8,
-                                border: '1px solid #e5e7eb',
-                                background: 'white',
-                                color: curPage <= 1 ? '#9ca3af' : '#374151',
-                                fontSize: 14,
-                                fontWeight: 500,
-                                cursor: curPage <= 1 ? 'not-allowed' : 'pointer',
-                                transition: 'all 0.2s'
-                            }}
-                        >
-                            ‹ Trước
-                        </button>
-                        <span style={{ fontSize: 14, color: '#6b7280', fontWeight: 500 }}>
-                            Trang {curPage}/{totalPages}
-                        </span>
-                        <button
-                            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                            disabled={curPage >= totalPages}
-                            style={{
-                                padding: '8px 16px',
-                                borderRadius: 8,
-                                border: '1px solid #e5e7eb',
-                                background: 'white',
-                                color: curPage >= totalPages ? '#9ca3af' : '#374151',
-                                fontSize: 14,
-                                fontWeight: 500,
-                                cursor: curPage >= totalPages ? 'not-allowed' : 'pointer',
-                                transition: 'all 0.2s'
-                            }}
-                        >
-                            Sau ›
-                        </button>
-                    </div>
-                </div>
+                {/* Unified Admin Pagination */}
+                <AdminPagination
+                    currentPage={curPage}
+                    totalPages={totalPages}
+                    onPageChange={(p) => setPage(p)}
+                />
             </section >
         </div >
     );

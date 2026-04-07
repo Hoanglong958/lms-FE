@@ -949,9 +949,9 @@ export default function ClassDetail({ classData: propClassData, onBack }) {
                                 setModalContent({ type: 'teacher' });
                                 setShowDetailModal(true);
                             }, 100);
-                        } catch (error) {
-                            console.error("Failed to assign teachers:", error);
-                            error("Lỗi khi phân công giảng viên: " + (error.response?.data?.message || error.message));
+                        } catch (err) {
+                            console.error("Failed to assign teachers:", err);
+                            error("Lỗi khi phân công giảng viên: " + (err.response?.data?.message || err.message));
                         }
                     }}
                 />

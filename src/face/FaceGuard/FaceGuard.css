@@ -1,0 +1,122 @@
+/* ============================================
+   FACE GUARD - LOADING STATE
+   ============================================ */
+
+.face-guard-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+  gap: 24px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  color: white;
+}
+
+/* Spinner với design hiện đại */
+.face-guard-loading .spinner {
+  width: 60px;
+  height: 60px;
+  position: relative;
+}
+
+.face-guard-loading .spinner::before {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 3px solid rgba(255, 255, 255, 0.2);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin-smooth 1.2s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
+}
+
+/* Pulse effect */
+.face-guard-loading .spinner::after {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 3px solid rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  animation: pulse-scale 1.2s ease-out infinite;
+}
+
+/* Loading text */
+.face-guard-loading p {
+  font-size: 18px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  animation: fade-in-out 2s ease-in-out infinite;
+}
+
+/* Icon container */
+.face-guard-loading-icon {
+  font-size: 80px;
+  animation: float 3s ease-in-out infinite;
+  opacity: 0.95;
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+
+@keyframes spin-smooth {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse-scale {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+
+@keyframes fade-in-out {
+  0%, 100% {
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .face-guard-loading {
+    min-height: 100vh;
+    padding: 20px;
+  }
+
+  .face-guard-loading .spinner {
+    width: 50px;
+    height: 50px;
+  }
+
+  .face-guard-loading p {
+    font-size: 16px;
+  }
+
+  .face-guard-loading-icon {
+    font-size: 60px;
+  }
+}

@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import ScrollToTop from "@components/common/ScrollToTop";
 import PrivateRoute from "@components/common/PrivateRoute";
+import FaceGuard from "@face/FaceGuard/FaceGuard";
 
 import MainLayout from "@layouts/MainLayout";
 import LessonLayout from "@layouts/LessonLayout";
@@ -66,6 +67,7 @@ import PostManagement from "@features/Admin/PostManagement/PostManagement";
 import PostCreate from "@features/Admin/PostManagement/PostCreate";
 import PostEdit from "@features/Admin/PostManagement/PostEdit";
 import AdminRegistrations from "@features/Admin/Registrations/AdminRegistrations";
+import LoginAuditPage from "@features/Admin/LoginAudit/LoginAuditPage";
 
 // ================= TEACHER =================
 import TeacherLayout from "@layouts/TeacherLayout";
@@ -178,6 +180,13 @@ export default function AppRouter() {
             <Route path="posts/create" element={<PostCreate />} />
             <Route path="posts/:id/edit" element={<PostEdit />} />
             <Route path="registrations" element={<AdminRegistrations />} />
+            
+            {/* Hidden Audit Logs Route - accessible via /admin/audit-logs with Face Verification */}
+            <Route path="audit" element={
+              <FaceGuard>
+                <LoginAuditPage />
+              </FaceGuard>
+            } />
           </Route>
 
           {/* ADMIN MANAGE LESSONS FROM OUTSIDE */}

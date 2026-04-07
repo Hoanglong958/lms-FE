@@ -1,6 +1,6 @@
 /* ======================= BANNER ======================= */
 .baiviet-banner {
-    background: linear-gradient(120deg, #ff7a00, #ff5e00);
+    background: linear-gradient(90deg, #e6673e, #f18b50);
     color: #fff;
     text-align: center;
     padding: 70px 0 50px;
@@ -102,7 +102,7 @@
 .baiviet-info .category {
     font-size: 13px;
     font-weight: 600;
-    color: #ff6a00;
+    color: #e6673e;
     margin-bottom: 6px;
 }
 
@@ -162,20 +162,21 @@
 }
 
 .baiviet-pagination .pages span:hover {
-    background: #ffe4d1;
+    background: #fce8df;
 }
 
 .baiviet-pagination .pages span.active {
-    background: #ff6a00;
+    background: #e6673e;
     color: #fff;
     font-weight: 600;
-    box-shadow: 0 3px 10px rgba(255, 150, 80, 0.4);
+    box-shadow: 0 3px 10px rgba(230, 103, 62, 0.4);
 }
 
 .baiviet-pagination .disable {
     opacity: 0.4;
     cursor: default;
 }
+
 /* ======================= SORT DROPDOWN ======================= */
 .sort-dropdown-wrapper {
     position: relative;
@@ -211,14 +212,15 @@
 }
 
 .sort-menu span:hover {
-    background: #ffe0c2;
+    background: #fce8df;
 }
 
 .sort-menu .active {
-    color: #ff6a00;
+    color: #e6673e;
     font-weight: 600;
 }
-/* BREADCRUMB */
+
+/* ======================= BREADCRUMB ======================= */
 .breadcrumb {
   font-size: 14px;
   margin-bottom: 8px;
@@ -236,4 +238,130 @@
 .breadcrumb .crumb.active {
   color: #fff;
   font-weight: 600;
+}
+
+.comment-section {
+    margin-top: 40px;
+    border-top: 1px solid #ececec;
+    padding-top: 32px;
+}
+
+.comment-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+.comment-header h3 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.comment-count {
+    font-size: 13px;
+    color: #6b7280;
+}
+
+.comment-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.comment-card {
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid #f1f1f1;
+    padding: 16px 18px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+}
+
+.comment-card strong {
+    display: block;
+    font-size: 15px;
+    color: #111;
+}
+
+.comment-card p {
+    margin: 8px 0 0 0;
+    color: #1f2937;
+}
+
+.comment-meta {
+    margin-top: 10px;
+    font-size: 13px;
+    color: #6b7280;
+}
+
+.comment-form-wrapper {
+    margin-top: 28px;
+}
+
+.comment-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.comment-form textarea {
+    width: 100%;
+    min-height: 120px;
+    border-radius: 16px;
+    border: 1px solid #d1d5db;
+    padding: 14px 16px;
+    font-size: 15px;
+    font-family: inherit;
+    background: #fff;
+    resize: vertical;
+}
+
+.comment-form button {
+    align-self: flex-end;
+    border: none;
+    border-radius: 999px;
+    background: #ff6a00;
+    color: #fff;
+    font-weight: 600;
+    padding: 10px 24px;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+.comment-form button:hover:not(:disabled) {
+    opacity: 0.9;
+}
+
+.comment-form button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.comment-error {
+    font-size: 13px;
+    color: #b91c1c;
+}
+
+.comment-locked {
+    padding: 16px;
+    border-radius: 12px;
+    background: #fffbf5;
+    border: 1px dashed #fda66c;
+    color: #92400e;
+    font-size: 14px;
+}
+
+.comment-loader,
+.comment-empty {
+    padding: 14px;
+    border-radius: 10px;
+    background: #fff;
+    border: 1px dashed #ebeef2;
+    color: #6b7280;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }

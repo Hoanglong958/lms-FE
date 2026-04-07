@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { lessonVideoService } from "@utils/lessonVideoService.js";
 import { uploadService } from "@utils/uploadService";
-import "../Courses/CoursesCSS/LessonDocumentEditor.css";
+import "../Courses/styles/LessonDocumentEditor.css";
 import VideoProgress from "@components/VideoPlayer/VideoProgress";
 import NotificationModal from "@components/NotificationModal/NotificationModal";
 import { SERVER_URL } from "@config";

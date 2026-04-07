@@ -14,6 +14,11 @@ export const postService = {
         return api.get(`/api/v1/posts/${id}`);
     },
 
+    // GET /api/v1/posts/{id}/related
+    getRelatedPosts(id, size = 4) {
+        return api.get(`/api/v1/posts/${id}/related`, { params: { size } });
+    },
+
     // POST /api/v1/posts
     // payload: { title, slug, content, authorId, tagNames, status }
     createPost(payload) {

@@ -1,0 +1,69 @@
+/* Admin Pagination (ExamManagement Style) */
+.admin-pagination {
+  position: fixed;
+  right: 24px;
+  bottom: 16px;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: flex-end;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 8px 16px;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+  font-family: "Inter", sans-serif;
+}
+
+.admin-pagination .page-btn {
+  height: 36px;
+  min-width: 80px;
+  padding: 0 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  color: #475569;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.admin-pagination .page-btn:hover:not(:disabled) {
+  border-color: #f97316;
+  color: #f97316;
+  background: rgba(249, 115, 22, 0.05);
+}
+
+.admin-pagination .page-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: #f8fafc;
+  color: #94a3b8;
+}
+
+.admin-pagination .page-info {
+  color: #64748b;
+  font-weight: 600;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+/* Response/Dark mode adaptations if needed can be added here */
+@media (max-width: 768px) {
+  .admin-pagination {
+    right: 12px;
+    bottom: 12px;
+    padding: 6px 10px;
+  }
+  
+  .admin-pagination .page-btn {
+    min-width: 60px;
+    font-size: 13px;
+    padding: 0 8px;
+  }
+}

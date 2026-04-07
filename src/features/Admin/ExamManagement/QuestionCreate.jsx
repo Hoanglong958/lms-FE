@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import "./QuestionCreate.css";
+import "./styles/QuestionCreate.css";
 import { useNavigate } from "react-router-dom";
 import NotificationModal from "@components/NotificationModal/NotificationModal";
 import { questionService } from "@utils/questionService";

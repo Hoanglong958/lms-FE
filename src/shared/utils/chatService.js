@@ -26,6 +26,14 @@ export const chatService = {
         return api.get(`${CHAT_API}/messages/history`, { params: { roomId, page, size } });
     },
 
+    getAttachments(roomId, type, page = 0, size = 30) {
+        return api.get(`${CHAT_API}/messages/attachments`, { params: { roomId, type, page, size } });
+    },
+
+    searchMessages(roomId, keyword, page = 0, size = 20) {
+        return api.get(`${CHAT_API}/messages/search`, { params: { roomId, keyword, page, size } });
+    },
+
     getUnreadCount(roomId, userId) {
         return api.get(`${CHAT_API}/rooms/${roomId}/unread-count`, { params: { userId } });
     },
@@ -48,6 +56,10 @@ export const chatService = {
                 "Content-Type": "multipart/form-data",
             },
         });
+    },
+
+    deleteMessage(messageId, operatorUserId) {
+        return api.delete(`${CHAT_API}/messages/${messageId}`, { params: { operatorUserId } });
     },
 
     // WebSocket
@@ -101,6 +113,13 @@ export const chatService = {
         if (!stompClient || !stompClient.connected) return null;
         return stompClient.subscribe(`/topic/rooms/${roomId}/typing`, (msg) => {
             onTyping(msg.body); // Usually senderId
+        });
+    },
+
+    subscribeToReadReceipts(roomId, onReceipt) {
+        if (!stompClient || !stompClient.connected) return null;
+        return stompClient.subscribe(`/topic/rooms/${roomId}/read`, (msg) => {
+            onReceipt(JSON.parse(msg.body));
         });
     },
 

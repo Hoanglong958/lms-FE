@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
-import "./ExamDetailDialog.css";
+import "./styles/ExamDetailDialog.css";
 import { examService } from "@utils/examService.js";
-import NotificationModal from "@components/NotificationModal/NotificationModal";
+import { useNotification } from "@shared/notification";
 
 export default function ExamDetailDialog({ open, onOpenChange, exam, examId }) {
   const [examState, setExamState] = useState(null);
@@ -9,16 +9,7 @@ export default function ExamDetailDialog({ open, onOpenChange, exam, examId }) {
 
   const id = exam?.id ?? examId;
 
-  const [notification, setNotification] = useState({
-    isOpen: false,
-    title: "",
-    message: "",
-    type: "info",
-  });
-
-  const showNotification = (title, message, type = "info") => {
-    setNotification({ isOpen: true, title, message, type });
-  };
+  const { error: notifyError } = useNotification();
 
   useEffect(() => {
     if (open && exam) {
@@ -40,7 +31,7 @@ export default function ExamDetailDialog({ open, onOpenChange, exam, examId }) {
         (raw && (raw.data || raw.item || raw.content)) ?? raw ?? null;
       setExamState(data || null);
     } catch (error) {
-      alert("Không thể tải chi tiết kỳ thi");
+      notifyError("Không thể tải chi tiết kỳ thi");
       setExamState(null);
     } finally {
       setLoading(false);
@@ -269,13 +260,6 @@ export default function ExamDetailDialog({ open, onOpenChange, exam, examId }) {
           <div className="examd-empty">Không tìm thấy dữ liệu</div>
         )}
       </div>
-      <NotificationModal
-        isOpen={notification.isOpen}
-        onClose={() => setNotification((prev) => ({ ...prev, isOpen: false }))}
-        title={notification.title}
-        message={notification.message}
-        type={notification.type}
-      />
     </div>
   );
 }

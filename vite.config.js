@@ -31,6 +31,7 @@ export default defineConfig({
       "@config": path.resolve(__dirname, "./src/config"), // alias @config → src/config
       "@admin": path.resolve(__dirname, "./src/features/Admin"), // alias @admin → src/features/Admin
       "@shared": path.resolve(__dirname, "./src/shared"), // alias @shared → src/shared
+      "@face": path.resolve(__dirname, "./src/face"), // alias @face → src/face
     },
   },
   server: {

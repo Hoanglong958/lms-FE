@@ -6,7 +6,7 @@ import { lessonService } from "@utils/lessonService";
 import AdminHeader from "@components/Admin/AdminHeader";
 import LessonManager from "./LessonManager.jsx";
 import LessonDetailView from "./LessonDetailView.jsx";
-import styles from "./ManageLessons.module.css";
+import styles from "./styles/ManageLessons.module.css";
 import { slugify } from "@utils/slugify";
 import dayjs from "dayjs";
 import { FolderPlus, Book, ListOrdered, X, Save } from "lucide-react";

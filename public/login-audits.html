@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Audit đăng nhập</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #0b2640;
+      --primary: #38bdf8;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh; font-family: 'Segoe UI', system-ui, sans-serif;
+      background: radial-gradient(circle at 20% 20%, #1e293b 0, #0f172a 40%), radial-gradient(circle at 80% 0%, #0ea5e9 0, #0f172a 30%);
+      color: var(--text); display: flex; align-items: center; justify-content: center; padding: 24px;
+    }
+    .panel { width: 1100px; background: linear-gradient(145deg, rgba(56,189,248,0.08), rgba(14,165,233,0.03)); border: 1px solid rgba(148,163,184,0.25); border-radius: 20px; padding: 24px 28px; box-shadow: 0 25px 80px rgba(0,0,0,0.35); backdrop-filter: blur(8px); }
+    h1 { margin: 0 0 6px; font-size: 26px; letter-spacing: -0.3px; }
+    p.subtitle { margin: 0 0 18px; color: var(--muted); }
+    .controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-bottom: 16px; }
+    .field { background: rgba(255,255,255,0.04); border: 1px solid rgba(148,163,184,0.3); border-radius: 12px; padding: 10px 12px; }
+    label { font-size: 13px; color: var(--muted); display: block; margin-bottom: 4px; }
+    input, select { width: 100%; border: none; outline: none; background: transparent; color: var(--text); font-size: 14px; }
+    button { padding: 12px 16px; border: none; border-radius: 12px; background: linear-gradient(135deg, #22d3ee, #3b82f6); color: #0b1220; font-weight: 700; cursor: pointer; box-shadow: 0 12px 30px rgba(59,130,246,0.35); }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { text-align: left; padding: 10px 8px; font-size: 14px; border-bottom: 1px solid rgba(148,163,184,0.2); }
+    th { color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; }
+    tr:hover { background: rgba(56,189,248,0.07); }
+    .badge { padding: 4px 8px; border-radius: 10px; font-weight: 600; font-size: 12px; }
+    .role-user { background: rgba(16,185,129,0.2); color: #34d399; }
+    .role-teacher { background: rgba(59,130,246,0.18); color: #60a5fa; }
+  </style>
+</head>
+<body>
+  <div class="panel">
+    <h1>Nhật ký đăng nhập</h1>
+    <p class="subtitle">Chỉ dành cho ADMIN – xem IP, OS, mã thiết bị của sinh viên & giảng viên.</p>
+
+    <div class="controls">
+      <div class="field">
+        <label>Bearer token (JWT của admin)</label>
+        <input id="token" type="text" placeholder="dán token ...">
+      </div>
+      <div class="field">
+        <label>Role</label>
+        <select id="role">
+          <option value="">Sinh viên + Giảng viên</option>
+          <option value="ROLE_USER">Chỉ sinh viên</option>
+          <option value="ROLE_TEACHER">Chỉ giảng viên</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Số bản ghi</label>
+        <input id="limit" type="number" min="1" max="100" value="50">
+      </div>
+      <div style="display:flex; align-items:flex-end;">
+        <button id="load">Tải nhật ký</button>
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Thời gian</th>
+          <th>User</th>
+          <th>Role</th>
+          <th>IP</th>
+          <th>OS</th>
+          <th>Mã thiết bị</th>
+          <th>User-Agent</th>
+        </tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </div>
+
+  <script>
+    const rows = document.getElementById('rows');
+    const API_BASE = 'http://localhost:3900';
+
+    document.getElementById('load').onclick = async () => {
+      const token = document.getElementById('token').value.trim();
+      if (!token) return alert('Dán JWT của admin vào trước nhé');
+
+      const role = document.getElementById('role').value;
+      const limit = document.getElementById('limit').value || 50;
+      const params = new URLSearchParams({ limit });
+      if (role) params.append('role', role);
+
+      const res = await fetch(`${API_BASE}/api/v1/admin/login-audits?${params.toString()}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!res.ok) {
+        const text = await res.text();
+        return alert(`Lỗi: ${res.status} - ${text}`);
+      }
+      const data = await res.json();
+      renderRows(data.data || []);
+    };
+
+    function renderRows(items) {
+      rows.innerHTML = items.map(item => `
+        <tr>
+          <td>${new Date(item.loginAt).toLocaleString('vi-VN')}</td>
+          <td>${item.fullName || ''} (${item.gmail || ''})</td>
+          <td><span class="badge ${item.role === 'ROLE_TEACHER' ? 'role-teacher' : 'role-user'}">${item.role}</span></td>
+          <td>${item.ipAddress || ''}</td>
+          <td>${item.osName || ''}</td>
+          <td>${item.deviceId || ''}</td>
+          <td>${item.userAgent || ''}</td>
+        </tr>`).join('');
+    }
+  </script>
+</body>
+</html>

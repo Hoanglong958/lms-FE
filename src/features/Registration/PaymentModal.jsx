@@ -5,7 +5,15 @@ import "./PaymentModal.css";
 export default function PaymentModal({ registration, onClose, onPaymentConfirmed }) {
     const [bankInfo, setBankInfo] = useState(null);
     const [copied, setCopied] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const [loading, setLoading] = useState(true);
+
+    const isBulk = Array.isArray(registration);
+    const displayItems = isBulk ? registration : [registration];
+    const totalAmount = displayItems.reduce((sum, item) => sum + (item.amount || 0), 0);
+    const combinedRef = isBulk 
+        ? "BULK_" + displayItems.map(item => item.id).join("_")
+        : registration.transferRef;
 
     useEffect(() => {
         registrationService.getBankInfo()
@@ -20,8 +28,8 @@ export default function PaymentModal({ registration, onClose, onPaymentConfirmed
     const getQrUrl = () => {
         if (!bankInfo) return null;
         const { bankId, accountNo, accountName } = bankInfo;
-        const amount = Math.round(registration.amount || 0);
-        const desc = encodeURIComponent(registration.transferRef || "");
+        const amount = Math.round(totalAmount);
+        const desc = encodeURIComponent(combinedRef || "");
         return `https://img.vietqr.io/image/${bankId}-${accountNo}-compact2.png?amount=${amount}&addInfo=${desc}&accountName=${encodeURIComponent(accountName)}`;
     };
 
@@ -31,7 +39,23 @@ export default function PaymentModal({ registration, onClose, onPaymentConfirmed
         setTimeout(() => setCopied(false), 2000);
     };
 
-    if (!registration) return null;
+    const handlePaymentDone = async () => {
+        if (isSubmitting) return;
+        setIsSubmitting(true);
+        const targets = Array.isArray(displayItems) ? displayItems : [registration];
+        try {
+            await Promise.all(targets.map(item => registrationService.markPaymentSubmitted(item.id)));
+            onPaymentConfirmed?.();
+            onClose();
+        } catch (err) {
+            console.error("Failed to flag payment submitted", err);
+            alert(err.response?.data?.data || "Không thể gửi thông tin chuyển khoản.");
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    if (!registration || displayItems.length === 0) return null;
 
     return (
         <div className="payment-overlay" onClick={onClose}>
@@ -40,16 +64,18 @@ export default function PaymentModal({ registration, onClose, onPaymentConfirmed
                 <div className="payment-header">
                     <div className="payment-header-icon">💳</div>
                     <div>
-                        <h2>Thanh toán học phí</h2>
-                        <p className="payment-course-name">{registration.courseTitle}</p>
+                        <h2>Thanh toán học phí {isBulk ? `(${displayItems.length} khóa học)` : ""}</h2>
+                        <p className="payment-course-name">
+                            {isBulk ? displayItems.map(i => i.courseTitle).join(", ") : registration.courseTitle}
+                        </p>
                     </div>
                     <button className="payment-close-btn" onClick={onClose}>✕</button>
                 </div>
 
                 {/* Amount */}
                 <div className="payment-amount-section">
-                    <span className="payment-amount-label">Số tiền cần nộp</span>
-                    <span className="payment-amount-value">{formatAmount(registration.amount)} VNĐ</span>
+                    <span className="payment-amount-label">Tổng số tiền cần nộp</span>
+                    <span className="payment-amount-value">{formatAmount(totalAmount)} VNĐ</span>
                 </div>
 
                 {loading ? (
@@ -99,17 +125,17 @@ export default function PaymentModal({ registration, onClose, onPaymentConfirmed
                             </div>
 
                             <div className="payment-field">
-                                <span className="payment-field-label">Số tiền</span>
-                                <span className="payment-field-value payment-amount-highlight">{formatAmount(registration.amount)} VNĐ</span>
+                                <span className="payment-field-label">Tổng tiền</span>
+                                <span className="payment-field-value payment-amount-highlight">{formatAmount(totalAmount)} VNĐ</span>
                             </div>
 
                             <div className="payment-field payment-field-ref">
                                 <span className="payment-field-label">Nội dung chuyển khoản</span>
                                 <div className="payment-field-copy">
-                                    <span className="payment-field-value payment-mono transfer-ref">{registration.transferRef}</span>
+                                    <span className="payment-field-value payment-mono transfer-ref">{combinedRef}</span>
                                     <button
                                         className="payment-copy-btn payment-copy-ref"
-                                        onClick={() => copyToClipboard(registration.transferRef)}
+                                        onClick={() => copyToClipboard(combinedRef)}
                                     >
                                         Sao chép
                                     </button>
@@ -129,14 +155,16 @@ export default function PaymentModal({ registration, onClose, onPaymentConfirmed
                         </div>
                         <div className="payment-step">
                             <span className="step-num">2</span>
-                            <span>Nhập đúng nội dung chuyển khoản <strong>{registration.transferRef}</strong></span>
+                            <span>Nhập đúng nội dung chuyển khoản <strong>{combinedRef}</strong></span>
                         </div>
                         <div className="payment-step">
                             <span className="step-num">3</span>
-                            <span>Chờ admin xác nhận — bạn sẽ được thêm vào lớp học tự động</span>
+                            <span>Chờ admin xác nhận — {isBulk ? "các khóa học" : "khóa học"} sẽ được thêm vào lớp học tự động</span>
                         </div>
                     </div>
-                    <button className="payment-done-btn" onClick={onClose}>Đã chuyển khoản, đóng</button>
+                    <button className="payment-done-btn" onClick={handlePaymentDone} disabled={isSubmitting}>
+                        {isSubmitting ? "Đang gửi..." : "Đã chuyển khoản, đóng"}
+                    </button>
                 </div>
             </div>
         </div>

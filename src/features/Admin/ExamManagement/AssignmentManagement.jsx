@@ -1,5 +1,5 @@
 import React from "react";
-import "./AssignmentManagement.css";
+import "./styles/AssignmentManagement.css";
 import AdminHeader from "@components/Admin/AdminHeader";
 import { useOutletContext } from "react-router-dom";
 

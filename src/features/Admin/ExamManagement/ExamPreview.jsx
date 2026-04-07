@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import styles from "./ExamPreview.module.css";
+import styles from "./styles/ExamPreview.module.css";
 
 export default function ExamPreview() {
   const navigate = useNavigate();

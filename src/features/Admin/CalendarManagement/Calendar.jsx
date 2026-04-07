@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { classService } from "@utils/classService";
 import { courseService } from "@utils/courseService";
@@ -28,6 +28,21 @@ export default function CalendarManagement() {
   const [courses, setCourses] = useState([]);
   const [classCourses, setClassCourses] = useState([]);
 
+  const subjects = useMemo(() => {
+    if (!courses.length) return [];
+    const classCourseMap = new Map();
+    classCourses.forEach((cc) => {
+      if (cc.courseId && cc.id) {
+        classCourseMap.set(cc.courseId, cc.id);
+      }
+    });
+    return courses.map((course) => ({
+      courseId: course.id,
+      courseName: course.title || course.name || course.courseName || "Môn học",
+      classCourseId: classCourseMap.get(course.id) || null,
+    }));
+  }, [courses, classCourses]);
+
   // Period management
   const [periods, setPeriods] = useState([]);
   const [selectedPeriods, setSelectedPeriods] = useState([]);
@@ -54,7 +69,6 @@ export default function CalendarManagement() {
   const [endDate, setEndDate] = useState(null);
   const [weeks, setWeeks] = useState([]);
   const [selectedWeek, setSelectedWeek] = useState(null);
-  const [subjects, setSubjects] = useState([]);
   const [schedule, setSchedule] = useState({});
   const [draggingSubject, setDraggingSubject] = useState(null);
   const [editingItem, setEditingItem] = useState(null);
@@ -62,12 +76,10 @@ export default function CalendarManagement() {
   const [isCreateMode, setIsCreateMode] = useState(false);
   const [pendingChanges, setPendingChanges] = useState([]); // Array of changes to save
   const [refreshKey, setRefreshKey] = useState(0);
+  const outletContext = useOutletContext();
+  const toggleSidebar = outletContext?.toggleSidebar ?? (() => {});
 
-  // Get toggleSidebar from context
-  let toggleSidebar = () => { };
-  try {
-    toggleSidebar = useOutletContext()?.toggleSidebar || (() => { });
-  } catch { }
+
 
   // Load class info and courses
   useEffect(() => {
@@ -128,14 +140,6 @@ export default function CalendarManagement() {
               : [];
         setCourses(coursesData);
 
-        if (coursesData.length > 0) {
-          setSubjects(
-            coursesData.map((course) => ({
-              courseId: course.id,
-              courseName: course.title || course.name,
-            }))
-          );
-        }
       } catch (err) {
         console.error("Error loading data:", err);
         showNotification("Lỗi", "Không thể tải thông tin lớp học!", "error");
@@ -443,7 +447,8 @@ export default function CalendarManagement() {
             scheduleItemId: item.scheduleId || null, // null for new items
             dayIndex: dayIndex,
             periodId: item.periodId,
-            date: targetDate.toISOString().split('T')[0] // YYYY-MM-DD
+            date: targetDate.toISOString().split("T")[0], // YYYY-MM-DD
+            classCourseId: item.classCourseId || null,
           });
         });
       });
@@ -454,26 +459,34 @@ export default function CalendarManagement() {
         return;
       }
 
-      // 2. Find the classCourseId for this schedule
-      // We need to find which classCourse this schedule belongs to
-      let classCourseId = null;
-      if (scheduleItems.length > 0) {
-        const firstItem = Object.values(schedule)[0];
-        if (Object.keys(firstItem).length > 0) {
-          const firstScheduleItem = Object.values(firstItem)[0];
-          classCourseId = firstScheduleItem.classCourseId;
-        }
+      const usedClassCourseIds = [
+        ...new Set(
+          scheduleItems
+            .map((item) => item.classCourseId)
+            .filter((id) => id !== null && id !== undefined)
+        ),
+      ];
+
+      let payloadClassCourseId = usedClassCourseIds[0] || null;
+      if (!payloadClassCourseId && classCourses.length === 1) {
+        payloadClassCourseId = classCourses[0].id;
       }
 
-      if (!classCourseId) {
-        showNotification("Lỗi", "Không tìm thấy thông tin lớp-khóa học", "error");
+      if (!payloadClassCourseId) {
+        showNotification("Lỗi", "Chưa có khóa học nào được gán cho lớp hoặc không thể xác định lớp-khóa học", "error");
+        setSaving(false);
+        return;
+      }
+
+      if (usedClassCourseIds.length > 1) {
+        showNotification("Lỗi", "Không thể lưu nhiều lớp-khóa học trong cùng một lệnh. Vui lòng tạo lịch riêng cho từng khóa học.", "error");
         setSaving(false);
         return;
       }
 
       // 3. Call the new week update API
       const weekUpdateRequest = {
-        classCourseId: classCourseId,
+        classCourseId: payloadClassCourseId,
         weekStartDate: selectedWeek.startDate.toISOString().split('T')[0],
         weekEndDate: selectedWeek.endDate.toISOString().split('T')[0],
         scheduleItems: scheduleItems

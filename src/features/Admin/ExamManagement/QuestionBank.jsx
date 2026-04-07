@@ -4,6 +4,7 @@ import { FileQuestion, Book, CheckSquare, PenSquare, Search, Activity, ChevronDo
 import NotificationModal from "@components/NotificationModal/NotificationModal";
 import { questionService } from "@utils/questionService.js";
 import { useNotification } from "@shared/notification";
+import AdminPagination from "@shared/components/Admin/AdminPagination";
 
 export default function QuestionBank() {
   const navigate = useNavigate();
@@ -821,51 +822,12 @@ export default function QuestionBank() {
           </tbody>
         </table>
 
-        {/* Pagination */}
-        <div style={{
-          display: 'flex',
-          justifyContent: 'flex-end',
-          alignItems: 'center',
-          padding: '16px 24px',
-          gap: 10,
-          borderTop: '1px solid #f1f5f9'
-        }}>
-          <button
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-            disabled={page === 1 || loading}
-            style={{
-              padding: '8px 16px',
-              borderRadius: 8,
-              border: '1px solid #e5e7eb',
-              background: 'white',
-              color: page === 1 ? '#9ca3af' : '#374151',
-              fontSize: 14,
-              fontWeight: 500,
-              cursor: page === 1 ? 'not-allowed' : 'pointer'
-            }}
-          >
-            ‹ Trước
-          </button>
-          <span style={{ fontSize: 14, color: '#6b7280', fontWeight: 500 }}>
-            Trang {page}/{totalPages}
-          </span>
-          <button
-            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-            disabled={page >= totalPages || loading}
-            style={{
-              padding: '8px 16px',
-              borderRadius: 8,
-              border: '1px solid #e5e7eb',
-              background: 'white',
-              color: page >= totalPages ? '#9ca3af' : '#374151',
-              fontSize: 14,
-              fontWeight: 500,
-              cursor: page >= totalPages ? 'not-allowed' : 'pointer'
-            }}
-          >
-            Sau ›
-          </button>
-        </div>
+        {/* Unified Admin Pagination */}
+        <AdminPagination
+          currentPage={page}
+          totalPages={totalPages}
+          onPageChange={(p) => setPage(p)}
+        />
       </section>
 
       {/* Detail Modal */}

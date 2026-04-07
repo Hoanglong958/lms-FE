@@ -1,11 +1,12 @@
-import React, { useEffect, useMemo, useState } from "react";
-import "./ExamCreateDialog.css";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import "./styles/ExamCreateDialog.css";
 import { examService } from "@utils/examService";
 import { courseService } from "@utils/courseService";
 import { classService } from "@utils/classService";
 import { classCourseService } from "@utils/classCourseService";
 import QuestionSelector from "./QuestionSelector";
-import NotificationModal from "@components/NotificationModal/NotificationModal";
+import SearchableSelect from "@shared/components/SearchableSelect";
+import { useNotification } from "@shared/notification";
 
 export default function ExamCreateDialog({ open, onOpenChange, onSuccess, defaultCourseId, defaultClassId }) {
   const [submitting, setSubmitting] = useState(false);
@@ -28,20 +29,62 @@ export default function ExamCreateDialog({ open, onOpenChange, onSuccess, defaul
 
   const [defaultCourses, setDefaultCourses] = useState([]);
   const [classCourseOptions, setClassCourseOptions] = useState([]);
+  const [selectedClassLabel, setSelectedClassLabel] = useState("");
+  const [selectedCourseLabel, setSelectedCourseLabel] = useState("");
   const [classCourseLoading, setClassCourseLoading] = useState(false);
   const [classCourseError, setClassCourseError] = useState("");
-  const [classes, setClasses] = useState([]);
+  const getClassLabel = useCallback(
+    (item) =>
+      item?.className ||
+      item?.name ||
+      item?.title ||
+      item?.class_title ||
+      "",
+    []
+  );
+  const getClassOptionValue = useCallback(
+    (item) => String(item?.id ?? item?.classId ?? item?.uid ?? ""),
+    []
+  );
+  const fetchClassOptions = useCallback(async (query) => {
+    const params = { page: 0, size: 12 };
+    if (query?.trim()) params.q = query.trim();
+    try {
+      const res = await classService.getClasses(params);
+      const raw = res.data?.data ?? res.data;
+      if (Array.isArray(raw)) return raw;
+      const list = raw?.content ?? raw?.data ?? [];
+      return Array.isArray(list) ? list : [];
+    } catch (err) {
+      console.error("Class search failed", err);
+      return [];
+    }
+  }, []);
+  const getCourseLabel = useCallback(
+    (item) =>
+      item?.title ||
+      item?.courseTitle ||
+      item?.courseName ||
+      "",
+    []
+  );
+  const getCourseOptionValue = useCallback(
+    (item) => String(item?.id ?? item?.courseId ?? item?.course?.id ?? ""),
+    []
+  );
+  const filterClassCourseOptions = useCallback(
+    async (query) => {
+      const normalized = (query || "").trim().toLowerCase();
+      const list = Array.isArray(classCourseOptions) ? classCourseOptions : [];
+      if (!normalized) return list;
+      return list.filter((item) =>
+        getCourseLabel(item).toLowerCase().includes(normalized)
+      );
+    },
+    [classCourseOptions, getCourseLabel]
+  );
 
-  const [notification, setNotification] = useState({
-    isOpen: false,
-    title: "",
-    message: "",
-    type: "info",
-  });
-
-  const showNotification = (title, message, type = "info") => {
-    setNotification({ isOpen: true, title, message, type });
-  };
+  const { success, error: notifyError } = useNotification();
 
   useEffect(() => {
     if (open) {
@@ -56,8 +99,8 @@ export default function ExamCreateDialog({ open, onOpenChange, onSuccess, defaul
         endTime: "",
         autoAddQuestions: false,
         questionIds: [],
-        courseId: defaultCourseId || "",
-        classId: defaultClassId || "",
+        courseId: defaultCourseId ? String(defaultCourseId) : "",
+        classId: defaultClassId ? String(defaultClassId) : "",
       });
       setSubmitting(false);
       setShowQuestionSelector(false);
@@ -71,9 +114,6 @@ export default function ExamCreateDialog({ open, onOpenChange, onSuccess, defaul
         }));
         setDefaultCourses(mapped);
       });
-      classService.getClasses().then(res => {
-        setClasses(Array.isArray(res.data) ? res.data : (res.data?.data || []));
-      });
     }
   }, [open]);
 
@@ -82,6 +122,8 @@ export default function ExamCreateDialog({ open, onOpenChange, onSuccess, defaul
       setClassCourseOptions([]);
       setClassCourseLoading(false);
       setClassCourseError("");
+      setSelectedClassLabel("");
+      setSelectedCourseLabel("");
       return;
     }
 
@@ -141,6 +183,50 @@ export default function ExamCreateDialog({ open, onOpenChange, onSuccess, defaul
     };
   }, [form.classId, defaultCourses, open]);
 
+  useEffect(() => {
+    if (!form.classId) {
+      setSelectedClassLabel("");
+      return;
+    }
+    let active = true;
+    classService
+      .getClassDetail(form.classId)
+      .then((res) => {
+        if (!active) return;
+        const data = res.data?.data || res.data;
+        setSelectedClassLabel(
+          getClassLabel(data) || `Lớp ${form.classId}`
+        );
+      })
+      .catch(() => {
+        if (active) setSelectedClassLabel("");
+      });
+    return () => {
+      active = false;
+    };
+  }, [form.classId, getClassLabel]);
+
+  useEffect(() => {
+    if (!form.courseId) {
+      setSelectedCourseLabel("");
+      return;
+    }
+    let active = true;
+    courseService
+      .getCourseDetail(form.courseId)
+      .then((res) => {
+        if (!active) return;
+        const data = res.data?.data || res.data;
+        setSelectedCourseLabel(getCourseLabel(data));
+      })
+      .catch(() => {
+        if (active) setSelectedCourseLabel("");
+      });
+    return () => {
+      active = false;
+    };
+  }, [form.courseId, getCourseLabel]);
+
   const canSubmit = useMemo(() => {
     const baseOk =
       form.title?.trim() &&
@@ -174,17 +260,17 @@ export default function ExamCreateDialog({ open, onOpenChange, onSuccess, defaul
       const start = new Date(form.startTime).getTime();
       const end = new Date(form.endTime).getTime();
       if (!(start > 0 && end > 0) || end <= start) {
-        alert("Thời gian kết thúc phải sau thời gian bắt đầu");
+        notifyError("Thời gian kết thúc phải sau thời gian bắt đầu");
         setSubmitting(false);
         return;
       }
       if (start < Date.now() - 60000) {
-        alert("Thời gian bắt đầu phải là hiện tại hoặc tương lai");
+        notifyError("Thời gian bắt đầu phải là hiện tại hoặc tương lai");
         setSubmitting(false);
         return;
       }
       if (Number(form.passingScore) > Number(form.maxScore)) {
-        alert("Điểm đạt không được lớn hơn điểm tối đa");
+        notifyError("Điểm đạt không được lớn hơn điểm tối đa");
         setSubmitting(false);
         return;
       }
@@ -218,13 +304,14 @@ export default function ExamCreateDialog({ open, onOpenChange, onSuccess, defaul
       if (!ok) throw new Error("Create exam failed");
       const created = res?.data?.data || res?.data || null;
       if (onSuccess) onSuccess(created);
+      success("Tạo bài kiểm tra thành công");
       if (onOpenChange) onOpenChange(false);
     } catch (err) {
       const status = err?.response?.status;
       const data = err?.response?.data;
       const message = data?.message || data?.error || err.message || "Lỗi không xác định";
       try { console.error("Create exam error", data || err, { form }); } catch { void 0; }
-      showNotification("Lỗi", `Tạo bài kiểm tra thất bại! Status: ${status || "n/a"}. Message: ${message}`, "error");
+      notifyError(`Tạo bài kiểm tra thất bại! Status: ${status || "n/a"}. Message: ${message}`);
     } finally {
       setSubmitting(false);
     }
@@ -255,22 +342,26 @@ export default function ExamCreateDialog({ open, onOpenChange, onSuccess, defaul
             <div className="examdlg-grid2">
               <div className="examdlg-field">
                 <label htmlFor="courseId">Gắn vào khóa học</label>
-                <select
-                  id="courseId"
-                  name="courseId"
+                <SearchableSelect
                   value={form.courseId}
-                  onChange={handleChange}
+                  displayValue={selectedCourseLabel}
+                  placeholder="Nhập tên khóa học..."
                   disabled={!form.classId || classCourseLoading || classCourseOptions.length === 0}
-                >
-                  <option value="">
-                    {form.classId ? "-- Chọn khóa học --" : "-- Chọn lớp học trước --"}
-                  </option>
-                  {classCourseOptions.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.title}
-                    </option>
-                  ))}
-                </select>
+                  onOptionSelect={(option) => {
+                    if (option) {
+                      const nextCourseId = getCourseOptionValue(option);
+                      setForm((prev) => ({ ...prev, courseId: nextCourseId }));
+                      setSelectedCourseLabel(getCourseLabel(option));
+                    } else {
+                      setForm((prev) => ({ ...prev, courseId: "" }));
+                      setSelectedCourseLabel("");
+                    }
+                  }}
+                  fetchOptions={filterClassCourseOptions}
+                  getOptionLabel={getCourseLabel}
+                  getOptionValue={getCourseOptionValue}
+                  noOptionsText="Không tìm thấy khóa học"
+                />
                 {!form.classId && (
                   <div className="examdlg-note">
                     Chọn lớp học trước khi chọn khóa học để tránh gán nhầm.
@@ -285,14 +376,35 @@ export default function ExamCreateDialog({ open, onOpenChange, onSuccess, defaul
               </div>
               <div className="examdlg-field">
                 <label htmlFor="classId">Gắn vào lớp học</label>
-                <select id="classId" name="classId" value={form.classId} onChange={handleChange}>
-                  <option value="">-- Chọn lớp học --</option>
-                  {classes.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.className}
-                    </option>
-                  ))}
-                </select>
+                <SearchableSelect
+                  value={form.classId}
+                  displayValue={selectedClassLabel}
+                  placeholder="Nhập tên lớp học..."
+                  onOptionSelect={(option) => {
+                    if (option) {
+                      const nextClassId = getClassOptionValue(option);
+                      setForm((prev) => ({
+                        ...prev,
+                        classId: nextClassId,
+                        courseId: "",
+                      }));
+                      setSelectedClassLabel(getClassLabel(option));
+                      setSelectedCourseLabel("");
+                    } else {
+                      setForm((prev) => ({
+                        ...prev,
+                        classId: "",
+                        courseId: "",
+                      }));
+                      setSelectedClassLabel("");
+                      setSelectedCourseLabel("");
+                    }
+                  }}
+                  fetchOptions={fetchClassOptions}
+                  getOptionLabel={getClassLabel}
+                  getOptionValue={getClassOptionValue}
+                  noOptionsText="Không tìm thấy lớp học"
+                />
               </div>
             </div>
           </section>
@@ -374,13 +486,6 @@ export default function ExamCreateDialog({ open, onOpenChange, onSuccess, defaul
         )}
 
       </div>
-      <NotificationModal
-        isOpen={notification.isOpen}
-        onClose={() => setNotification((prev) => ({ ...prev, isOpen: false }))}
-        title={notification.title}
-        message={notification.message}
-        type={notification.type}
-      />
     </div>
   );
 }

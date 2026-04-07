@@ -4,7 +4,7 @@ import { quizQuestionService } from "@utils/quizQuestionService.js";
 import { questionService } from "@utils/questionService.js";
 
 // IMPORT CSS RIÊNG CHO TRANG NÀY
-import "./CoursesCSS/LessonDocumentEditor.css";
+import "./styles/LessonDocumentEditor.css";
 // We might keep LessonQuizEditor.css if it has specific styles for question list/modal, but let's see.
 // The user wants "create and edit same same".
 // We will still need the specific styles for the quiz questions list and modal, so we might need to keep importing it or merge it.
@@ -13,7 +13,7 @@ import "./CoursesCSS/LessonDocumentEditor.css";
 // Wait, LessonQuizEditor.css might conflict if it sets global styles.
 // Let's inspect LessonQuizEditor.css first? No, I already read it. It uses .lqz-* prefix.
 // So importing generic admin css won't break it.
-import "./CoursesCSS/LessonQuizEditor.css";
+import "./styles/LessonQuizEditor.css";
 
 import NotificationModal from "@components/NotificationModal/NotificationModal";
 

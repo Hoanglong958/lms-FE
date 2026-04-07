@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { registrationService } from "@utils/registrationService";
-import NotificationModal from "@components/NotificationModal/NotificationModal";
+import AdminPagination from "@shared/components/Admin/AdminPagination";
 import { useNotification } from "@shared/notification";
 import {
     Search,
@@ -27,17 +27,17 @@ import {
 } from "lucide-react";
 
 export default function AdminRegistrations() {
-    const { confirm, error } = useNotification();
+    const { confirm, success, error: notifyError, warning } = useNotification();
     const [registrations, setRegistrations] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState("ALL");
     const [search, setSearch] = useState("");
     const [bankInfo, setBankInfo] = useState(null);
-    const [notification, setNotification] = useState({ isOpen: false, title: "", message: "", type: "info" });
     const [confirming, setConfirming] = useState(null);
     const [sortConfig, setSortConfig] = useState({ key: "registrationDate", direction: "desc" });
     const [currentPage, setCurrentPage] = useState(1);
     const [selectedRows, setSelectedRows] = useState([]);
+    const [selectedDetail, setSelectedDetail] = useState(null);
     const pageSize = 10;
 
     useEffect(() => {
@@ -52,12 +52,7 @@ export default function AdminRegistrations() {
             setRegistrations(res.data?.data || []);
         } catch (err) {
             console.error(err);
-            setNotification({
-                isOpen: true,
-                title: "Lỗi",
-                message: "Không thể tải danh sách đăng ký",
-                type: "error"
-            });
+            notifyError("Không thể tải danh sách đăng ký");
         } finally {
             setLoading(false);
         }
@@ -106,27 +101,23 @@ export default function AdminRegistrations() {
         }
     };
 
-    const handleConfirm = async (id) => {
-        setConfirming(id);
+    const handleConfirm = async (registration) => {
+        if (!registration.paymentSubmitted) {
+            warning("Sinh viên chưa báo đã chuyển khoản. Vui lòng chờ họ gửi thông tin.");
+            return;
+        }
+        setConfirming(registration.id);
         try {
-            const response = await registrationService.confirmPayment(id);
+            const response = await registrationService.confirmPayment(registration.id);
             const enrolledClassName = response.data?.data?.enrolledClassName;
-            setNotification({
-                isOpen: true,
-                title: "Thành công!",
-                message: enrolledClassName
+            success(
+                enrolledClassName
                     ? `Đã xác nhận thanh toán và thêm sinh viên vào lớp "${enrolledClassName}".`
-                    : "Đã xác nhận thanh toán. Không tìm thấy lớp học nào cho khóa học này.",
-                type: "success"
-            });
+                    : "Đã xác nhận thanh toán. Không tìm thấy lớp học nào cho khóa học này."
+            );
             fetchAll();
         } catch (err) {
-            setNotification({
-                isOpen: true,
-                title: "Lỗi",
-                message: err.response?.data?.data || "Không thể xác nhận thanh toán.",
-                type: "error"
-            });
+            notifyError(err.response?.data?.data || "Không thể xác nhận thanh toán.");
         } finally {
             setConfirming(null);
         }
@@ -144,10 +135,17 @@ export default function AdminRegistrations() {
         });
         if (!isConfirmed) return;
 
-        for (const id of selectedRows) {
-            await handleConfirm(id);
+        try {
+            setLoading(true);
+            await registrationService.confirmBulkPayment(selectedRows);
+            success(`Đã xác nhận thanh toán cho ${selectedRows.length} bản ghi.`);
+            setSelectedRows([]);
+            fetchAll();
+        } catch (err) {
+            notifyError(err.response?.data?.data || "Không thể xác nhận thanh toán hàng loạt.");
+        } finally {
+            setLoading(false);
         }
-        setSelectedRows([]);
     };
 
     const handleSort = (key) => {
@@ -240,6 +238,166 @@ export default function AdminRegistrations() {
         }
     };
 
+    const renderDetailModal = () => {
+        if (!selectedDetail) return null;
+        const r = selectedDetail;
+
+        return (
+            <div style={{
+                position: 'fixed',
+                inset: 0,
+                zIndex: 1000,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: 'rgba(15, 23, 42, 0.4)',
+                backdropFilter: 'blur(4px)',
+                animation: 'fadeIn 0.2s ease'
+            }} onClick={() => setSelectedDetail(null)}>
+                <div style={{
+                    width: '90%',
+                    maxWidth: 500,
+                    background: 'white',
+                    borderRadius: 20,
+                    overflow: 'hidden',
+                    boxShadow: '0 20px 40px rgba(0, 0, 0, 0.15)',
+                    animation: 'slideUp 0.3s ease-out'
+                }} onClick={e => e.stopPropagation()}>
+                    {/* Header */}
+                    <div style={{
+                        padding: '24px',
+                        background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
+                        color: 'white',
+                        position: 'relative'
+                    }}>
+                        <button 
+                            onClick={() => setSelectedDetail(null)}
+                            style={{
+                                position: 'absolute',
+                                right: 16,
+                                top: 16,
+                                background: 'rgba(255, 255, 255, 0.2)',
+                                border: 'none',
+                                color: 'white',
+                                width: 28,
+                                height: 28,
+                                borderRadius: '50%',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: 18
+                            }}
+                        >×</button>
+                        <h3 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>Chi tiết đăng ký</h3>
+                        <p style={{ margin: '4px 0 0 0', fontSize: 13, opacity: 0.9 }}>ID: #{r.id}</p>
+                    </div>
+
+                    <div style={{ padding: '24px' }}>
+                        {/* Student Section */}
+                        <div style={{ marginBottom: 24 }}>
+                            <h4 style={{ margin: '0 0 16px 0', fontSize: 14, color: '#f97316', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5 }}>Thông tin sinh viên</h4>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                                    <div style={{ width: 36, height: 36, borderRadius: 8, background: '#fff7ed', color: '#f97316', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        <User size={18} />
+                                    </div>
+                                    <div style={{ fontSize: 15, fontWeight: 600, color: '#111827' }}>{r.studentName}</div>
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                                    <div style={{ width: 36, height: 36, borderRadius: 8, background: '#f0f9ff', color: '#0ea5e9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        <Mail size={18} />
+                                    </div>
+                                    <div style={{ fontSize: 14, color: '#4b5563' }}>{r.studentEmail}</div>
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                                    <div style={{ width: 36, height: 36, borderRadius: 8, background: '#f0fdf4', color: '#22c55e', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        <Phone size={18} />
+                                    </div>
+                                    <div style={{ fontSize: 14, color: '#4b5563' }}>{r.studentPhone || "N/A"}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Order & Payment Section */}
+                        <div style={{ background: '#f8fafc', borderRadius: 12, padding: 20 }}>
+                            <h4 style={{ margin: '0 0 16px 0', fontSize: 14, color: '#475569', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5 }}>Khóa học & Thanh toán</h4>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                                <div>
+                                    <p style={{ margin: '0 0 4px 0', fontSize: 12, color: '#94a3b8', fontWeight: 600 }}>KHÓA HỌC</p>
+                                    <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: '#1e293b' }}>{r.courseTitle}</p>
+                                </div>
+                                <div>
+                                    <p style={{ margin: '0 0 4px 0', fontSize: 12, color: '#94a3b8', fontWeight: 600 }}>HỌC PHÍ</p>
+                                    <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: '#ea580c' }}>{formatAmount(r.amount)}</p>
+                                </div>
+                                <div>
+                                    <p style={{ margin: '0 0 4px 0', fontSize: 12, color: '#94a3b8', fontWeight: 600 }}>MÃ CHUYỂN KHOẢN</p>
+                                    <p style={{ margin: 0, fontSize: 14, fontFamily: 'monospace', fontWeight: 600 }}>{r.transferRef || "—"}</p>
+                                </div>
+                                <div>
+                                    <p style={{ margin: '0 0 4px 0', fontSize: 12, color: '#94a3b8', fontWeight: 600 }}>TRẠNG THÁI</p>
+                                    <span style={{
+                                        fontSize: 11,
+                                        fontWeight: 700,
+                                        color: r.paymentStatus === "PAID" ? '#059669' : r.paymentStatus === "PENDING" ? '#d97706' : '#dc2626'
+                                    }}>
+                                        {r.paymentStatus === "PAID" ? "✓ ĐÃ THANH TOÁN" : r.paymentStatus === "PENDING" ? "⏳ CHỜ XÁC NHẬN" : "✗ ĐÃ HỦY"}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style={{ marginTop: 24, padding: '0 8px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
+                                <span style={{ color: '#94a3b8' }}>Ngày đăng ký:</span>
+                                <span style={{ color: '#64748b', fontWeight: 500 }}>{formatDate(r.registrationDate)}</span>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
+                                <span style={{ color: '#94a3b8' }}>Ngày nộp phí:</span>
+                                <span style={{ color: '#64748b', fontWeight: 500 }}>{formatDate(r.paymentDate)}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style={{ padding: '16px 24px 24px', borderTop: '1px solid #f1f5f9', display: 'flex', gap: 12 }}>
+                        <button 
+                            onClick={() => setSelectedDetail(null)}
+                            style={{
+                                flex: 1,
+                                padding: '10px',
+                                borderRadius: 8,
+                                border: '1px solid #e2e8f0',
+                                background: 'white',
+                                color: '#475569',
+                                fontWeight: 600,
+                                cursor: 'pointer'
+                            }}
+                        >Đóng</button>
+                        {r.paymentStatus === "PENDING" && (
+                            <button 
+                                onClick={() => {
+                                    handleConfirm(r);
+                                    setSelectedDetail(null);
+                                }}
+                                style={{
+                                    flex: 2,
+                                    padding: '10px',
+                                    borderRadius: 8,
+                                    border: 'none',
+                                    background: '#f97316',
+                                    color: 'white',
+                                    fontWeight: 700,
+                                    cursor: 'pointer'
+                                }}
+                            >Xác nhận thanh toán</button>
+                        )}
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
     if (loading) {
         return (
             <div style={{ padding: '24px', background: '#f9fafb', minHeight: '100vh' }}>
@@ -329,10 +487,21 @@ export default function AdminRegistrations() {
                         onMouseEnter={(e) => {
                             e.currentTarget.style.background = '#f97316';
                             e.currentTarget.style.borderColor = '#ea580c';
+                            e.currentTarget.style.color = 'white';
+                            const svg = e.currentTarget.querySelector('svg');
+                            if (svg) {
+                                svg.style.transition = 'transform 0.5s ease-in-out';
+                                svg.style.transform = 'rotate(180deg)';
+                            }
                         }}
                         onMouseLeave={(e) => {
                             e.currentTarget.style.background = 'white';
                             e.currentTarget.style.borderColor = '#e5e7eb';
+                            e.currentTarget.style.color = '#f97316';
+                            const svg = e.currentTarget.querySelector('svg');
+                            if (svg) {
+                                svg.style.transform = 'rotate(0deg)';
+                            }
                         }}
                     >
                         <RefreshCw size={16} />
@@ -958,6 +1127,15 @@ export default function AdminRegistrations() {
                                             fontFamily: 'monospace',
                                             letterSpacing: 0.5
                                         }}>{r.transferRef || "—"}</code>
+                                        <div style={{ marginTop: 4 }}>
+                                            <span style={{
+                                                fontSize: 11,
+                                                fontWeight: 600,
+                                                color: r.paymentSubmitted ? '#059669' : '#b45309'
+                                            }}>
+                                                {r.paymentSubmitted ? 'Sinh viên đã báo chuyển khoản' : 'Chưa gửi thông báo chuyển khoản'}
+                                            </span>
+                                        </div>
                                     </td>
 
                                     <td style={{ padding: '12px 16px', fontSize: 13, color: '#6b7280' }}>
@@ -993,7 +1171,7 @@ export default function AdminRegistrations() {
                                     <td style={{ padding: '12px 16px' }}>
                                         <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                                             <button
-                                                onClick={() => {/* Xem chi tiết */ }}
+                                                onClick={() => setSelectedDetail(r)}
                                                 title="Xem chi tiết"
                                                 style={{
                                                     background: '#f1f5f9',
@@ -1013,16 +1191,16 @@ export default function AdminRegistrations() {
 
                                             {r.paymentStatus === "PENDING" && (
                                                 <button
-                                                    onClick={() => handleConfirm(r.id)}
-                                                    disabled={confirming === r.id}
-                                                    title="Xác nhận thanh toán"
+                                                    onClick={() => handleConfirm(r)}
+                                                    disabled={confirming === r.id || !r.paymentSubmitted}
+                                                    title={!r.paymentSubmitted ? "Sinh viên chưa thông báo chuyển khoản" : "Xác nhận thanh toán"}
                                                     style={{
                                                         background: confirming === r.id ? '#f97316' : '#f97316',
                                                         border: 'none',
                                                         borderRadius: 6,
                                                         width: 30,
                                                         height: 30,
-                                                        cursor: confirming === r.id ? 'not-allowed' : 'pointer',
+                                                        cursor: confirming === r.id || !r.paymentSubmitted ? 'not-allowed' : 'pointer',
                                                         display: 'flex',
                                                         alignItems: 'center',
                                                         justifyContent: 'center',
@@ -1062,100 +1240,14 @@ export default function AdminRegistrations() {
                 </table>
             </div >
 
-            {/* Pagination */}
-            {
-                filtered.length > 0 && (
-                    <div style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        marginTop: 24,
-                        padding: '16px 0'
-                    }}>
-                        <div style={{ fontSize: 14, color: '#6b7280' }}>
-                            Hiển thị {(currentPage - 1) * pageSize + 1} -{" "}
-                            {Math.min(currentPage * pageSize, filtered.length)} trong số{" "}
-                            {filtered.length} kết quả
-                        </div>
-
-                        <div style={{ display: 'flex', gap: 8 }}>
-                            <button
-                                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                                disabled={currentPage === 1}
-                                style={{
-                                    background: 'white',
-                                    border: '1px solid #e5e7eb',
-                                    borderRadius: 8,
-                                    padding: '8px 12px',
-                                    cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    opacity: currentPage === 1 ? 0.5 : 1
-                                }}
-                            >
-                                <ChevronLeft size={16} />
-                            </button>
-
-                            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                                let pageNum;
-                                if (totalPages <= 5) {
-                                    pageNum = i + 1;
-                                } else if (currentPage <= 3) {
-                                    pageNum = i + 1;
-                                } else if (currentPage >= totalPages - 2) {
-                                    pageNum = totalPages - 4 + i;
-                                } else {
-                                    pageNum = currentPage - 2 + i;
-                                }
-
-                                return (
-                                    <button
-                                        key={pageNum}
-                                        onClick={() => setCurrentPage(pageNum)}
-                                        style={{
-                                            background: currentPage === pageNum ? '#f97316' : 'white',
-                                            color: currentPage === pageNum ? 'white' : '#374151',
-                                            border: '1px solid #e5e7eb',
-                                            borderRadius: 8,
-                                            padding: '8px 12px',
-                                            cursor: 'pointer',
-                                            fontSize: 14,
-                                            fontWeight: currentPage === pageNum ? 600 : 400
-                                        }}
-                                    >
-                                        {pageNum}
-                                    </button>
-                                );
-                            })}
-
-                            <button
-                                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                                disabled={currentPage === totalPages}
-                                style={{
-                                    background: 'white',
-                                    border: '1px solid #e5e7eb',
-                                    borderRadius: 8,
-                                    padding: '8px 12px',
-                                    cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    opacity: currentPage === totalPages ? 0.5 : 1
-                                }}
-                            >
-                                <ChevronRight size={16} />
-                            </button>
-                        </div>
-                    </div>
-                )
-            }
-
-            <NotificationModal
-                isOpen={notification.isOpen}
-                onClose={() => setNotification(n => ({ ...n, isOpen: false }))}
-                title={notification.title}
-                message={notification.message}
-                type={notification.type}
+            {/* Unified Admin Pagination */}
+            <AdminPagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={(p) => setCurrentPage(p)}
             />
+
+            {renderDetailModal()}
         </div >
     );
 }

@@ -10,6 +10,10 @@
   border-bottom: 1px solid #dddddd;
   box-sizing: border-box;
   margin: 0 auto;
+  overflow: visible; /* Giữ nguyên để menu con thò ra ngoài được */
+  position: sticky;
+  top: 0;
+  z-index: 9999 !important; /* Tăng vọt lên để đứng trên mọi nội dung khác */
 }
 .user-header-left {
   display: flex;

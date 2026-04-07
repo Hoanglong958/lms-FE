@@ -8,10 +8,6 @@ import { slugify } from "@utils/slugify";
 import { useEffect, useState, useMemo } from "react";
 
 import LessonContentDisplay from "@features/lesson/components/LessonContentDisplay";
-import VideoPlayer from "@features/lesson/components/VideoPlayer";
-import DocumentViewer from "@features/lesson/components/DocumentViewer";
-import QuizComponent from "@features/lesson/components/QuizComponent";
-
 import "./LessonPage.css";
 
 export default function LessonPage() {
@@ -62,14 +58,18 @@ export default function LessonPage() {
           })
         );
         setSessions(sessionsWithLessons);
+        if (sessionsWithLessons.flatMap(s => s.lessons || []).length === 0) {
+          setLoading(false);
+        }
       } catch (err) {
         console.error(err);
+        setLoading(false);
       }
     };
     loadSessionsAndLessons();
   }, [course]);
 
-  // 3. Tính toán danh sách bài học trực tiếp (Không dùng useMemo để đảm bảo luôn tươi mới)
+  // 3. Tính toán danh sách bài học trực tiếp
   const allLessons = useMemo(
     () => sessions.flatMap((s) => s.lessons || []),
     [sessions]
@@ -90,28 +90,26 @@ export default function LessonPage() {
       .getLesson(lessonId)
       .then((res) => {
         const data = Array.isArray(res.data) ? res.data[0] : res.data;
-        setLesson(data);
+        if (!data) {
+          setLesson(null);
+        } else {
+          setLesson(data);
+        }
       })
       .finally(() => setLoading(false));
   }, [lessonId]);
 
-  // 6. TÍNH TOÁN TIẾN ĐỘ (QUAN TRỌNG)
-  // -----------------------------------------------------------------
-  // Tìm vị trí bài học hiện tại
+  // 6. Tính toán tiến độ
   const currentLessonIndex = allLessons.findIndex(
     (l) => String(l.id) === String(lessonId)
   );
 
-  // Logic hiển thị text:
-  // - Mặc định là "..."
-  // - Nếu tìm thấy index -> hiện "X/Y Bài học"
   let progressText = "...";
-
   if (allLessons.length > 0 && currentLessonIndex !== -1) {
     progressText = `${currentLessonIndex + 1}/${allLessons.length} Bài học`;
   }
 
-  // 7. ACCESS CONTROL (SEQUENTIAL)
+  // 7. Access control
   useEffect(() => {
     if (!course || allLessons.length === 0 || !lessonId) return;
 
@@ -120,7 +118,6 @@ export default function LessonPage() {
       if (!user.id) return;
 
       try {
-        // Fetch progress
         const res = await userProgressService.getByCourse(user.id, course.id);
         const progressMap = {};
         (res.data || []).forEach(p => {
@@ -133,7 +130,6 @@ export default function LessonPage() {
         const currentIndex = allLessons.findIndex(l => String(l.id) === String(lessonId));
         if (currentIndex === -1) return;
 
-        // Find first incomplete lesson
         let firstIncompleteIndex = -1;
         for (let i = 0; i < allLessons.length; i++) {
           const lid = String(allLessons[i].id);
@@ -144,8 +140,6 @@ export default function LessonPage() {
           }
         }
 
-        // If all completed, firstIncompleteIndex is -1.
-        // If firstIncompleteIndex is found, we can only visit index <= firstIncompleteIndex.
         if (firstIncompleteIndex !== -1 && currentIndex > firstIncompleteIndex) {
           navigate(`/courses/${courseSlug}/${allLessons[firstIncompleteIndex].id}`, { replace: true });
         }
@@ -155,8 +149,6 @@ export default function LessonPage() {
     checkAccess();
   }, [lessonId, allLessons, course, courseSlug, navigate]);
 
-  // -----------------------------------------------------------------
-
   const handleNavigation = (dir) => {
     const newIndex = currentLessonIndex + dir;
     if (newIndex >= 0 && newIndex < allLessons.length) {
@@ -165,20 +157,56 @@ export default function LessonPage() {
     }
   };
 
-  // 7. Enrich lesson data with Context (CourseID, SessionID)
   const currentSession = sessions.find(s => s.lessons && s.lessons.some(l => l.id === lesson?.id));
   const enrichedLesson = lesson ? {
     ...lesson,
     courseId: course?.id,
-    sessionId: currentSession?.id || lesson.sessionId
+    sessionId: currentSession?.id || lesson?.sessionId
   } : null;
 
-  if (loading || !lesson)
+  // Render
+  if (loading) {
     return <div className="lesson-layout">Đang tải bài học...</div>;
+  }
+
+  if (allLessons.length === 0) {
+    return (
+      <div className="lesson-layout" style={{ 
+        display: 'flex', 
+        flexDirection: 'column', 
+        alignItems: 'center', 
+        justifyContent: 'center',
+        padding: '100px 20px',
+        textAlign: 'center'
+      }}>
+        <div style={{ fontSize: '64px', marginBottom: '20px' }}>📚</div>
+        <h2 style={{ color: '#374151', marginBottom: '10px' }}>Hiện tại khóa học chưa có bài học nào</h2>
+        <p style={{ color: '#6b7280' }}>Vui lòng quay lại sau khi giảng viên cập nhật nội dung.</p>
+        <button 
+          onClick={() => navigate('/home')}
+          style={{
+            marginTop: '20px',
+            padding: '10px 24px',
+            backgroundColor: '#2563eb',
+            color: 'white',
+            border: 'none',
+            borderRadius: '8px',
+            cursor: 'pointer',
+            fontWeight: '600'
+          }}
+        >
+          Quay lại trang chủ
+        </button>
+      </div>
+    );
+  }
+
+  if (!lesson) {
+    return <div className="lesson-layout">Không tìm thấy bài học này</div>;
+  }
 
   return (
     <div className="lesson-layout">
-      {/* Header */}
       <div className="lesson-header-top">
         <div className="breadcrumbs">
           <a href="/courses">Trang chủ</a>
@@ -192,16 +220,8 @@ export default function LessonPage() {
             disabled={currentLessonIndex <= 0}
             onClick={() => handleNavigation(-1)}
           >
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M19 12H5" />
               <path d="M12 19l-7-7 7-7" />
             </svg>
@@ -214,16 +234,8 @@ export default function LessonPage() {
             onClick={() => handleNavigation(1)}
           >
             <span className="nav-text">Bài tiếp theo</span>
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M5 12h14" />
               <path d="M12 5l7 7-7 7" />
             </svg>
@@ -236,8 +248,6 @@ export default function LessonPage() {
         progress={progressText}
         onNextLesson={() => handleNavigation(1)}
       />
-
-
     </div>
   );
 }
