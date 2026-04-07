@@ -38,11 +38,15 @@ export default function CourseRegistration() {
     }, [page, sortBy, regStatus]); // Re-fetch on page, sort, or status change
 
     const getReg = (id) => {
-        const regs = myRegistrations.filter(r => r.courseId === id);
+        const regs = myRegistrations.filter(r => r.courseId === id && !r.refundConfirmed);
         if (regs.length === 0) return null;
         // Ưu tiên bản ghi chưa hủy
         const activeReg = regs.find(r => r.paymentStatus !== "CANCELLED");
         return activeReg || regs[0];
+    };
+
+    const getRefundedReg = (id) => {
+        return myRegistrations.find(r => r.courseId === id && r.refundConfirmed);
     };
 
     useEffect(() => {
@@ -148,6 +152,11 @@ export default function CourseRegistration() {
             case "CANCELLED": return { label: "✗ Đã hủy", className: "status-cancelled" };
             default: return { label: "⏳ Chờ thanh toán", className: "status-pending" };
         }
+    };
+
+    const formatRefundDate = (value) => {
+        if (!value) return "—";
+        return new Date(value).toLocaleDateString("vi-VN");
     };
 
     // No early return for loading to prevent unmounting filters
@@ -262,9 +271,10 @@ export default function CourseRegistration() {
 
                 <div className="registration-grid">
                     {(Array.isArray(courses) ? courses : []).map(c => {
-                            const reg = getReg(c.id);
-                            const { label, className } = reg ? getStatusLabel(reg.paymentStatus) : {};
-                            return (
+                        const reg = getReg(c.id);
+                        const refundedReg = getRefundedReg(c.id);
+                        const { label, className } = reg ? getStatusLabel(reg.paymentStatus) : {};
+                        return (
                                 <div
                                     className="reg-course-card"
                                     id={`course-${c.id}`}
@@ -319,8 +329,13 @@ export default function CourseRegistration() {
                                                     {reg && reg.paymentStatus === "CANCELLED" && (
                                                         <span className={`status-badge ${className}`} style={{ alignSelf: "center" }}>{label}</span>
                                                     )}
+                                                    {refundedReg && (
+                                                        <span className="status-badge status-refunded" style={{ alignSelf: "center" }}>
+                                                            Đã hoàn tiền {formatRefundDate(refundedReg.refundConfirmedAt)}
+                                                        </span>
+                                                    )}
                                                     <button className="btn-register" onClick={() => handleRegister(c.id)}>
-                                                        {reg && reg.paymentStatus === "CANCELLED" ? "Đăng ký lại" : "Đăng ký ngay"}
+                                                        {refundedReg || (reg && reg.paymentStatus === "CANCELLED") ? "Đăng ký lại" : "Đăng ký ngay"}
                                                     </button>
                                                 </div>
                                             )}

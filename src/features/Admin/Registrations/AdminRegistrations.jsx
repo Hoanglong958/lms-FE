@@ -38,6 +38,9 @@ export default function AdminRegistrations() {
     const [currentPage, setCurrentPage] = useState(1);
     const [selectedRows, setSelectedRows] = useState([]);
     const [selectedDetail, setSelectedDetail] = useState(null);
+    const [transferRefSearch, setTransferRefSearch] = useState("");
+    const [transferRefResult, setTransferRefResult] = useState(null);
+    const [transferChecking, setTransferChecking] = useState(false);
     const pageSize = 10;
 
     useEffect(() => {
@@ -98,6 +101,58 @@ export default function AdminRegistrations() {
         } catch (err) {
             console.error("Export PDF failed:", err);
             error("Không thể xuất hóa đơn PDF");
+        }
+    };
+
+    const handleCheckTransferRef = async () => {
+        const code = transferRefSearch.trim();
+        if (!code) {
+            setTransferRefResult(null);
+            return;
+        }
+        setTransferChecking(true);
+        setTransferRefResult(null);
+        try {
+            const response = await registrationService.getByTransferRef(code);
+            const registration = response.data?.data;
+            setTransferRefResult({
+                success: true,
+                registration,
+                message: registration
+                    ? `Tìm thấy #${registration.id} • ${registration.studentName} (${registration.courseTitle})`
+                    : "Đã tìm thấy giao dịch."
+            });
+        } catch (err) {
+            setTransferRefResult({
+                success: false,
+                message: err.response?.data?.data || "Không tìm thấy mã chuyển khoản."
+            });
+        } finally {
+            setTransferChecking(false);
+        }
+    };
+
+    const handleConfirmRefund = async (registration) => {
+        const isConfirmed = await confirm({
+            title: "Xác nhận hoàn tiền",
+            message: `Đã đối chiếu mã ${registration.transferRef} chưa?\nXác nhận hoàn tiền cho ${registration.studentName}?`,
+            type: "warning",
+            confirmText: "Xác nhận",
+            cancelText: "Hủy"
+        });
+        if (!isConfirmed) return;
+
+        try {
+            setLoading(true);
+            await registrationService.confirmRefund(registration.id);
+            success(`Hoàn tiền cho ${registration.studentName} đã được xác nhận.`);
+            setTransferRefResult(null);
+            setSelectedDetail(null);
+            fetchAll();
+        } catch (err) {
+            notifyError(err.response?.data?.data || "Không thể xác nhận hoàn tiền.");
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -172,6 +227,33 @@ export default function AdminRegistrations() {
         });
     };
 
+    const formatRefundDate = (dt) => {
+        if (!dt) return "—";
+        return new Date(dt).toLocaleDateString("vi-VN");
+    };
+
+    const formatPaymentStatusLabel = (status) => {
+        switch (status) {
+            case "PENDING":
+                return "⏳ Chờ xác nhận";
+            case "PAID":
+                return "✓ Đã thanh toán";
+            case "REFUND_REQUESTED":
+                return "⌛ Yêu cầu hoàn tiền";
+            case "REFUNDED":
+                return "💸 Đã hoàn tiền";
+            case "CANCELLED":
+                return "✗ Đã hủy";
+            default:
+                return status || "—";
+        }
+    };
+
+    const canConfirmRefundFromTransfer = (registration) =>
+        registration?.paymentStatus === "REFUND_REQUESTED"
+        && registration?.refundRequested
+        && !registration?.refundConfirmed;
+
     // Filter và sort
     const filtered = registrations
         .filter(r => {
@@ -219,7 +301,9 @@ export default function AdminRegistrations() {
         cancelled: registrations.filter(r => r.paymentStatus === "CANCELLED").length,
         totalAmount: registrations
             .filter(r => r.paymentStatus === "PAID")
-            .reduce((sum, r) => sum + (r.amount || 0), 0)
+            .reduce((sum, r) => sum + (r.amount || 0), 0),
+        refundRequests: registrations.filter(r => r.refundRequested).length,
+        refundConfirmed: registrations.filter(r => r.refundConfirmed).length
     };
 
     const toggleRowSelection = (id) => {
@@ -357,6 +441,24 @@ export default function AdminRegistrations() {
                                 <span style={{ color: '#94a3b8' }}>Ngày nộp phí:</span>
                                 <span style={{ color: '#64748b', fontWeight: 500 }}>{formatDate(r.paymentDate)}</span>
                             </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
+                                <span style={{ color: '#94a3b8' }}>Hoàn tiền:</span>
+                                <span style={{
+                                    color: r.refundConfirmed ? '#047857' : r.refundRequested ? '#dc2626' : '#94a3af',
+                                    fontWeight: 600
+                                }}>
+                                    {r.refundConfirmed
+                                        ? `Đã hoàn tiền ${formatRefundDate(r.refundConfirmedAt)}`
+                                        : r.refundRequested
+                                            ? `Đã yêu cầu ${formatRefundDate(r.refundRequestedAt)}`
+                                            : r.paymentStatus === "PAID"
+                                                ? r.canRequestRefund
+                                                    ? "Có thể yêu cầu ngay"
+                                                    : `Có thể từ ${formatRefundDate(r.refundEligibleAt)}`
+                                                : "Chưa đóng học phí"
+                                    }
+                                </span>
+                            </div>
                         </div>
                     </div>
 
@@ -391,6 +493,24 @@ export default function AdminRegistrations() {
                                     cursor: 'pointer'
                                 }}
                             >Xác nhận thanh toán</button>
+                        )}
+                        {r.refundRequested && !r.refundConfirmed && (
+                            <button
+                                onClick={() => {
+                                    handleConfirmRefund(r);
+                                    setSelectedDetail(null);
+                                }}
+                                style={{
+                                    flex: 2,
+                                    padding: '10px',
+                                    borderRadius: 8,
+                                    border: 'none',
+                                    background: '#16a34a',
+                                    color: 'white',
+                                    fontWeight: 700,
+                                    cursor: 'pointer'
+                                }}
+                            >Xác nhận hoàn tiền</button>
                         )}
                     </div>
                 </div>
@@ -542,7 +662,7 @@ export default function AdminRegistrations() {
             {/* Stats Grid */}
             <section style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(4, 1fr)',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
                 gap: 20,
                 marginBottom: 32
             }}>
@@ -713,6 +833,88 @@ export default function AdminRegistrations() {
                         <TrendingUp size={20} />
                     </div>
                 </div>
+                <div style={{
+                    background: 'white',
+                    borderRadius: 12,
+                    padding: 20,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    border: '1px solid #e5e7eb',
+                    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+                    transition: 'all 0.2s'
+                        }}>
+                    <div>
+                        <h3 style={{
+                            margin: '0 0 8px 0',
+                            fontSize: 13,
+                            color: '#6b7280',
+                            fontWeight: 600,
+                            textTransform: 'uppercase',
+                            letterSpacing: 0.5
+                        }}>Yêu cầu hoàn tiền</h3>
+                        <p style={{
+                            margin: 0,
+                            fontSize: 32,
+                            fontWeight: 700,
+                            color: '#111827',
+                            lineHeight: 1
+                        }}>{stats.refundRequests}</p>
+                    </div>
+                    <div style={{
+                        width: 40,
+                        height: 40,
+                        borderRadius: 10,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        background: '#eef2ff',
+                        color: '#6366f1'
+                    }}>
+                        <Activity size={20} />
+                    </div>
+                </div>
+                <div style={{
+                    background: 'white',
+                    borderRadius: 12,
+                    padding: 20,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    border: '1px solid #e5e7eb',
+                    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+                    transition: 'all 0.2s'
+                }}>
+                    <div>
+                        <h3 style={{
+                            margin: '0 0 8px 0',
+                            fontSize: 13,
+                            color: '#6b7280',
+                            fontWeight: 600,
+                            textTransform: 'uppercase',
+                            letterSpacing: 0.5
+                        }}>Hoàn tiền đã xử lý</h3>
+                        <p style={{
+                            margin: 0,
+                            fontSize: 32,
+                            fontWeight: 700,
+                            color: '#111827',
+                            lineHeight: 1
+                        }}>{stats.refundConfirmed}</p>
+                    </div>
+                    <div style={{
+                        width: 40,
+                        height: 40,
+                        borderRadius: 10,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        background: '#dcfce7',
+                        color: '#047857'
+                    }}>
+                        <CheckCircle2 size={20} />
+                    </div>
+                </div>
             </section>
 
             {/* Bank Info Banner */}
@@ -764,9 +966,167 @@ export default function AdminRegistrations() {
                 </div>
             )}
 
+            <div style={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: 12,
+                alignItems: 'center',
+                marginTop: 12,
+                marginBottom: 16
+            }}>
+                <input
+                    type="text"
+                    placeholder="Nhập mã chuyển khoản để đối chiếu"
+                    value={transferRefSearch}
+                    onChange={e => setTransferRefSearch(e.target.value)}
+                    style={{
+                        flex: '1 1 280px',
+                        padding: '10px 14px',
+                        border: '1px solid #e5e7eb',
+                        borderRadius: 8,
+                        fontSize: 14
+                    }}
+                />
+                <button
+                    onClick={handleCheckTransferRef}
+                    disabled={!transferRefSearch.trim() || transferChecking}
+                    style={{
+                        padding: '10px 18px',
+                        borderRadius: 8,
+                        border: 'none',
+                        background: transferChecking ? '#f9731666' : '#f97316',
+                        color: 'white',
+                        fontWeight: 600,
+                        fontSize: 14,
+                        cursor: transferChecking ? 'not-allowed' : 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 6
+                    }}
+                >
+                    {transferChecking ? "Đang kiểm tra..." : "Kiểm tra mã"}
+                </button>
+            </div>
+            {transferRefResult && (
+                <div style={{
+                    marginBottom: 16,
+                    padding: 16,
+                    borderRadius: 12,
+                    border: transferRefResult.success ? '1px solid #22c55e' : '1px solid #dc2626',
+                    background: transferRefResult.success ? '#ecfdf5' : '#fff1f2',
+                    color: transferRefResult.success ? '#047857' : '#b91c1c'
+                }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+                        <strong style={{ fontSize: 15 }}>{transferRefResult.message}</strong>
+                        {transferRefResult.success && transferRefResult.registration && (
+                            <span style={{
+                                padding: '4px 10px',
+                                borderRadius: 999,
+                                fontSize: 12,
+                                fontWeight: 600,
+                                background: 'rgba(15, 23, 42, 0.08)',
+                                color: '#0f172a'
+                            }}>
+                                {formatPaymentStatusLabel(transferRefResult.registration.paymentStatus)}
+                            </span>
+                        )}
+                    </div>
+
+                    {transferRefResult.success && transferRefResult.registration && (
+                        <div style={{
+                            marginTop: 12,
+                            display: 'grid',
+                            gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+                            gap: 10,
+                            color: '#0f172a'
+                        }}>
+                            <div>
+                                <p style={{ margin: '0 0 4px 0', fontSize: 12, color: '#94a3af' }}>Sinh viên</p>
+                                <p style={{ margin: 0, fontWeight: 600 }}>{transferRefResult.registration.studentName}</p>
+                            </div>
+                            <div>
+                                <p style={{ margin: '0 0 4px 0', fontSize: 12, color: '#94a3af' }}>Khóa học</p>
+                                <p style={{ margin: 0, fontWeight: 600 }}>{transferRefResult.registration.courseTitle}</p>
+                            </div>
+                            <div>
+                                <p style={{ margin: '0 0 4px 0', fontSize: 12, color: '#94a3af' }}>Mã chuyển khoản</p>
+                                <p style={{ margin: 0, fontWeight: 600, fontFamily: 'monospace' }}>
+                                    {transferRefResult.registration.transferRef || "—"}
+                                </p>
+                            </div>
+                        </div>
+                    )}
+
+                    {transferRefResult.success && transferRefResult.registration && (
+                        <div style={{
+                            marginTop: 14,
+                            display: 'flex',
+                            flexWrap: 'wrap',
+                            gap: 10,
+                            alignItems: 'center'
+                        }}>
+                            {canConfirmRefundFromTransfer(transferRefResult.registration) ? (
+                                <button
+                                    onClick={() => handleConfirmRefund(transferRefResult.registration)}
+                                    disabled={loading}
+                                    style={{
+                                        padding: '8px 16px',
+                                        borderRadius: 8,
+                                        border: 'none',
+                                        background: loading ? '#a7f3d0' : '#16a34a',
+                                        color: 'white',
+                                        fontWeight: 700,
+                                        fontSize: 14,
+                                        cursor: loading ? 'not-allowed' : 'pointer',
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: 6
+                                    }}
+                                    type="button"
+                                >
+                                    <CheckCircle2 size={16} />
+                                    Xác nhận hoàn tiền
+                                </button>
+                            ) : (
+                                <span style={{
+                                    padding: '6px 12px',
+                                    borderRadius: 10,
+                                    background: '#f1f5f9',
+                                    color: '#0f172a',
+                                    fontWeight: 600,
+                                    fontSize: 13
+                                }}>
+                                    {transferRefResult.registration.refundConfirmed
+                                        ? `Đã hoàn tiền ${formatRefundDate(transferRefResult.registration.refundConfirmedAt)}`
+                                        : transferRefResult.registration.refundRequested
+                                            ? `Đã yêu cầu ${formatRefundDate(transferRefResult.registration.refundRequestedAt)}`
+                                            : 'Chưa có yêu cầu hoàn tiền'}
+                                </span>
+                            )}
+                            <button
+                                onClick={() => setSelectedDetail(transferRefResult.registration)}
+                                style={{
+                                    padding: '8px 16px',
+                                    borderRadius: 8,
+                                    border: '1px solid #e5e7eb',
+                                    background: 'white',
+                                    color: '#0f172a',
+                                    fontWeight: 600,
+                                    fontSize: 14,
+                                    cursor: 'pointer'
+                                }}
+                                type="button"
+                            >
+                                Xem chi tiết
+                            </button>
+                        </div>
+                    )}
+                </div>
+            )}
+
             {/* Filter Bar */}
             <section style={{
-                background: 'white',
+               background: 'white',
                 borderRadius: 12,
                 padding: '16px 24px',
                 display: 'flex',
@@ -823,6 +1183,8 @@ export default function AdminRegistrations() {
                             <option value="ALL">Tất cả trạng thái</option>
                             <option value="PENDING">⏳ Chờ xác nhận</option>
                             <option value="PAID">✓ Đã thanh toán</option>
+                            <option value="REFUND_REQUESTED">⌛ Hoàn tiền đang xử lý</option>
+                            <option value="REFUNDED">💸 Đã hoàn tiền</option>
                             <option value="CANCELLED">✗ Đã hủy</option>
                         </select>
                     </div>
@@ -993,6 +1355,18 @@ export default function AdminRegistrations() {
 
                             <th style={{
                                 padding: '12px 16px',
+                                textAlign: 'center',
+                                fontSize: 12,
+                                fontWeight: 600,
+                                color: '#6b7280',
+                                textTransform: 'uppercase',
+                                letterSpacing: 0.5,
+                                borderBottom: '1px solid #e5e7eb',
+                                width: 140
+                            }}>Hoàn tiền</th>
+
+                            <th style={{
+                                padding: '12px 16px',
                                 textAlign: 'left',
                                 fontSize: 12,
                                 fontWeight: 600,
@@ -1019,7 +1393,7 @@ export default function AdminRegistrations() {
                     <tbody>
                         {paginatedData.length === 0 ? (
                             <tr>
-                                <td colSpan={10} style={{
+                                <td colSpan={11} style={{
                                     padding: '48px',
                                     textAlign: 'center',
                                     borderBottom: '1px solid #e5e7eb'
@@ -1146,6 +1520,58 @@ export default function AdminRegistrations() {
                                         {formatDate(r.paymentDate)}
                                     </td>
 
+                                    <td style={{ padding: '12px 16px', textAlign: 'center' }}>
+                                        {r.refundConfirmed ? (
+                                            <span style={{
+                                                padding: '4px 10px',
+                                                borderRadius: 12,
+                                                fontSize: 11,
+                                                fontWeight: 600,
+                                                background: '#dcfce7',
+                                                color: '#0f766e'
+                                            }}>
+                                                Đã hoàn tiền {formatRefundDate(r.refundConfirmedAt)}
+                                            </span>
+                                        ) : r.refundRequested ? (
+                                            <span style={{
+                                                padding: '4px 10px',
+                                                borderRadius: 12,
+                                                fontSize: 11,
+                                                fontWeight: 600,
+                                                background: '#fde8e8',
+                                                color: '#b91c1c'
+                                            }}>
+                                                Đã yêu cầu {formatRefundDate(r.refundRequestedAt)}
+                                            </span>
+                                        ) : r.paymentStatus === "PAID" ? (
+                                            r.canRequestRefund ? (
+                                                <span style={{
+                                                    padding: '4px 10px',
+                                                    borderRadius: 12,
+                                                    fontSize: 11,
+                                                    fontWeight: 600,
+                                                    background: '#dcfce7',
+                                                    color: '#166534'
+                                                }}>
+                                                    Có thể yêu cầu
+                                                </span>
+                                            ) : (
+                                                <span style={{
+                                                    padding: '4px 10px',
+                                                    borderRadius: 12,
+                                                    fontSize: 11,
+                                                    fontWeight: 600,
+                                                    background: '#f8fafc',
+                                                    color: '#475569'
+                                                }}>
+                                                    Có thể từ {formatRefundDate(r.refundEligibleAt)}
+                                                </span>
+                                            )
+                                        ) : (
+                                            <span style={{ fontSize: 11, color: '#94a3af' }}>—</span>
+                                        )}
+                                    </td>
+
                                     <td style={{ padding: '12px 16px' }}>
                                         <span style={{
                                             display: 'inline-flex',
@@ -1156,14 +1582,23 @@ export default function AdminRegistrations() {
                                             fontSize: 12,
                                             fontWeight: 600,
                                             whiteSpace: 'nowrap',
-                                            background: r.paymentStatus === "PAID" ? '#f97316' :
-                                                r.paymentStatus === "PENDING" ? '#f59e0b' : '#fee2e2',
-                                            color: r.paymentStatus === "PAID" ? '#ffffff' :
-                                                r.paymentStatus === "PENDING" ? '#ffffff' : '#991b1b'
+                                            background:
+                                                r.paymentStatus === "PAID" ? '#f97316' :
+                                                r.paymentStatus === "PENDING" ? '#f59e0b' :
+                                                r.paymentStatus === "REFUND_REQUESTED" ? '#fde68a' :
+                                                r.paymentStatus === "REFUNDED" ? '#dcfce7' : '#fee2e2',
+                                            color:
+                                                r.paymentStatus === "PAID" || r.paymentStatus === "PENDING"
+                                                    ? '#ffffff'
+                                                    : r.paymentStatus === "REFUNDED"
+                                                        ? '#047857'
+                                                        : '#991b1b'
 
                                         }}>
                                             {r.paymentStatus === "PAID" && "✓ Đã thanh toán"}
                                             {r.paymentStatus === "PENDING" && "⏳ Chờ xác nhận"}
+                                            {r.paymentStatus === "REFUND_REQUESTED" && "⌛ Hoàn tiền"}
+                                            {r.paymentStatus === "REFUNDED" && "💸 Đã hoàn tiền"}
                                             {r.paymentStatus === "CANCELLED" && "✗ Đã hủy"}
                                         </span>
                                     </td>
@@ -1231,6 +1666,26 @@ export default function AdminRegistrations() {
                                             >
                                                 🖨️
                                             </button>
+                                            {r.refundRequested && !r.refundConfirmed && (
+                                                <button
+                                                    onClick={() => handleConfirmRefund(r)}
+                                                    title="Xác nhận hoàn tiền"
+                                                    style={{
+                                                        background: '#dcfce7',
+                                                        border: 'none',
+                                                        borderRadius: 6,
+                                                        width: 30,
+                                                        height: 30,
+                                                        cursor: 'pointer',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                        fontSize: 14
+                                                    }}
+                                                >
+                                                    💸
+                                                </button>
+                                            )}
                                         </div>
                                     </td>
                                 </tr>

@@ -39,6 +39,18 @@ export const registrationService = {
         return await api.patch(`${API_URL}/${registrationId}/payment-submitted`);
     },
 
+    requestRefund: async (registrationId) => {
+        return await api.patch(`${API_URL}/${registrationId}/request-refund`);
+    },
+
+    confirmRefund: async (registrationId) => {
+        return await api.patch(`${API_URL}/${registrationId}/confirm-refund`);
+    },
+
+    getByTransferRef: async (transferRef) => {
+        return await api.get(`${API_URL}/transfer-ref/${encodeURIComponent(transferRef)}`);
+    },
+
     confirmBulkPayment: async (registrationIds) => {
         return await api.patch(`${API_URL}/bulk-confirm`, registrationIds);
     }

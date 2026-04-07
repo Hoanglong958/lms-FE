@@ -212,6 +212,23 @@
     box-shadow: 0 4px 14px rgba(0,0,0,0.18);
 }
 
+.notif-cancel-btn {
+    padding: 9px 22px;
+    border-radius: 9px;
+    border: none;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    background: transparent;
+    color: #64748b;
+    transition: all 0.15s;
+}
+
+.notif-cancel-btn:hover {
+    background: #e2e8f0;
+    color: #0f172a;
+}
+
 .notif-btn:active {
     transform: translateY(0);
     box-shadow: none;

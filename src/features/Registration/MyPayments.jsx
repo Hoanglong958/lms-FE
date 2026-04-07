@@ -441,6 +441,7 @@ export default function MyPayments() {
     const totalPaid = paidRegs.reduce((sum, r) => sum + (r.amount || 0), 0);
 
     const formatAmount = (amt) => new Intl.NumberFormat("vi-VN").format(amt || 0) + " ₫";
+    const formatRefundDate = (value) => value ? new Date(value).toLocaleDateString("vi-VN") : "—";
 
     const handleSelectAll = (e) => {
         if (e.target.checked) setSelectedIds(pendingRegs.map(r => r.id));
@@ -457,6 +458,46 @@ export default function MyPayments() {
         const selected = pendingRegs.filter(r => selectedIds.includes(r.id));
         if (selected.length === 0) return;
         setSelectedReg(selected);
+    };
+
+    const handleRequestRefund = (registration) => {
+        if (!registration?.canRequestRefund) return;
+        
+        setNotification({
+            isOpen: true,
+            title: "Xác nhận yêu cầu",
+            message: `Bạn có chắc chắn muốn gửi yêu cầu hoàn tiền cho khóa học "${registration.courseTitle}"?`,
+            type: "warning",
+            confirmText: "Yêu cầu",
+            onConfirm: async () => {
+                // Đóng popup warning ngay lập tức
+                setNotification(n => ({ ...n, isOpen: false }));
+                
+                try {
+                    await registrationService.requestRefund(registration.id);
+                    // Hiển thị success sau một khoảng trễ nhỏ để CSS transition kịp kết thúc (tùy chọn)
+                    setTimeout(() => {
+                        setNotification({
+                            isOpen: true,
+                            title: "Yêu cầu hoàn tiền đã gửi",
+                            message: `Admin sẽ liên hệ bạn trong vòng 24h để xử lý hoàn tiền cho "${registration.courseTitle}".`,
+                            type: "success"
+                        });
+                        fetchRegistrations();
+                    }, 300);
+                } catch (err) {
+                    console.error("Request refund failed", err);
+                    setTimeout(() => {
+                        setNotification({
+                            isOpen: true,
+                            title: "Yêu cầu hoàn tiền thất bại",
+                            message: err.response?.data?.data || "Không thể gửi yêu cầu hoàn tiền.",
+                            type: "error"
+                        });
+                    }, 300);
+                }
+            }
+        });
     };
 
     if (loading) return (
@@ -586,16 +627,20 @@ export default function MyPayments() {
                         <span className="icon-paid"><History size={16} /></span>
                         Lịch sử thanh toán
                     </h3>
+                    <p className="refund-note">
+                        Bạn có thể gửi yêu cầu hoàn tiền từ ngày thứ 4 kể từ ngày đã đóng học phí.
+                    </p>
                 </div>
                 <div className="pay-table-wrap">
                     <table className="pay-table">
                         <thead>
-                            <tr>
-                                <th style={{ textAlign: "left" }}>Khóa học</th>
-                                <th style={{ textAlign: "left" }}>Ngày nộp</th>
-                                <th style={{ textAlign: "right" }}>Số tiền</th>
-                                <th style={{ textAlign: "center" }}>Trạng thái</th>
-                            </tr>
+                        <tr>
+                            <th style={{ textAlign: "left" }}>Khóa học</th>
+                            <th style={{ textAlign: "left" }}>Ngày nộp</th>
+                            <th style={{ textAlign: "right" }}>Số tiền</th>
+                            <th style={{ textAlign: "center" }}>Hoàn tiền</th>
+                            <th style={{ textAlign: "center" }}>Trạng thái</th>
+                        </tr>
                         </thead>
                         <tbody>
                             {paginatedPaidRegs.length === 0 ? (
@@ -606,17 +651,48 @@ export default function MyPayments() {
                                 </tr>
                             ) : (
                                 paginatedPaidRegs.map(r => (
-                                    <tr key={r.id}>
-                                        <td><span className="pay-course-name">{r.courseTitle}</span></td>
-                                        <td style={{ color: "#64748b" }}>
-                                            {r.paymentDate ? new Date(r.paymentDate).toLocaleDateString("vi-VN") : "—"}
-                                        </td>
-                                        <td style={{ textAlign: "right" }}>
-                                            <span className="pay-amount-paid">{formatAmount(r.amount)}</span>
-                                        </td>
-                                        <td style={{ textAlign: "center" }}>
-                                            <span className="status-paid">
-                                                <CheckCircle2 size={13} /> Đã nộp
+                                <tr key={r.id}>
+                                    <td><span className="pay-course-name">{r.courseTitle}</span></td>
+                                    <td style={{ color: "#64748b" }}>
+                                        {r.paymentDate ? new Date(r.paymentDate).toLocaleDateString("vi-VN") : "—"}
+                                    </td>
+                                    <td style={{ textAlign: "right" }}>
+                                        <span className="pay-amount-paid">{formatAmount(r.amount)}</span>
+                                    </td>
+                                    <td style={{ textAlign: "center" }}>
+                                        {r.refundConfirmed ? (
+                                            <span className="refund-chip confirmed">
+                                                Đã hoàn tiền {formatRefundDate(r.refundConfirmedAt)}
+                                            </span>
+                                        ) : r.paymentStatus === "REFUND_REQUESTED" ? (
+                                            <span className="refund-chip requested">
+                                                Đang xử lý {formatRefundDate(r.refundRequestedAt)}
+                                            </span>
+                                        ) : r.paymentStatus === "PAID" ? (
+                                            r.refundRequested ? (
+                                                <span className="refund-chip requested">
+                                                    Đã gửi {formatRefundDate(r.refundRequestedAt)}
+                                                </span>
+                                            ) : r.canRequestRefund ? (
+                                                <button
+                                                    className="btn-refund"
+                                                    type="button"
+                                                    onClick={() => handleRequestRefund(r)}
+                                                >
+                                                    Yêu cầu hoàn tiền
+                                                </button>
+                                            ) : (
+                                                <span className="refund-chip locked">
+                                                    Có thể yêu cầu từ {formatRefundDate(r.refundEligibleAt)}
+                                                </span>
+                                            )
+                                        ) : (
+                                            <span className="refund-chip muted">—</span>
+                                        )}
+                                    </td>
+                                    <td style={{ textAlign: "center" }}>
+                                        <span className="status-paid">
+                                            <CheckCircle2 size={13} /> Đã nộp
                                             </span>
                                         </td>
                                     </tr>

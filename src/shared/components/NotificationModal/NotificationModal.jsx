@@ -9,7 +9,7 @@ const CONFIG = {
     warning: { Icon: AlertTriangle},
 };
 
-const NotificationModal = ({ isOpen, onClose, title, message, type = 'info' }) => {
+const NotificationModal = ({ isOpen, onClose, title, message, type = 'info', onConfirm, confirmText = 'Xác nhận' }) => {
     // phase: 'closed' | 'opening' | 'open' | 'closing'
     const [phase, setPhase] = useState('closed');
     const timerRef = useRef(null);
@@ -72,8 +72,15 @@ const NotificationModal = ({ isOpen, onClose, title, message, type = 'info' }) =
                     <p>{message}</p>
                 </div>
 
-                <div className="notif-footer">
-                    <button className="notif-btn" onClick={handleClose}>Đóng</button>
+                <div className="notif-footer" style={{ gap: '10px', display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
+                    {onConfirm ? (
+                        <>
+                            <button className="notif-cancel-btn" onClick={handleClose}>Hủy</button>
+                            <button className="notif-btn" onClick={() => { if (phase === 'open') onConfirm(); }}>{confirmText}</button>
+                        </>
+                    ) : (
+                        <button className="notif-btn" onClick={handleClose}>Đóng</button>
+                    )}
                 </div>
             </div>
         </div>

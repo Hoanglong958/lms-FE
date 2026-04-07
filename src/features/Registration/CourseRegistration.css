@@ -249,6 +249,11 @@
     color: #991B1B;
 }
 
+.status-refunded {
+    background: #E0F2FE;
+    color: #0369A1;
+}
+
 .registration-content {
     transition: opacity 0.3s ease-in-out;
 }
@@ -373,6 +378,60 @@
     color: #fff;
     border-color: #F37142;
     box-shadow: 0 4px 12px rgba(243, 113, 66, 0.3);
+}
+
+/* ─── Refund helpers ─── */
+.refund-note {
+    margin: 8px 0 0;
+    font-size: 0.85rem;
+    color: #475569;
+}
+.refund-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #1f2937;
+    background: #f1f5f9;
+}
+.refund-chip.requested {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+.refund-chip.locked {
+    background: #f8fafc;
+    color: #475569;
+}
+.refund-chip.muted {
+    background: transparent;
+    color: #94a3b8;
+    font-weight: 500;
+}
+.refund-chip.confirmed {
+    background: #dcfce7;
+    color: #0f766e;
+}
+.btn-refund {
+    border: none;
+    background: #1d4ed8;
+    color: white;
+    border-radius: 999px;
+    padding: 6px 12px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.2s ease, background 0.2s ease;
+}
+.btn-refund:hover {
+    transform: translateY(-1px);
+    background: #1e40af;
+}
+.btn-refund:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
 }
 
 /* Responsive */
