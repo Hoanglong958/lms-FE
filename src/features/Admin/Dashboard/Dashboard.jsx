@@ -13,6 +13,7 @@ import StatCard from "./components/StatCard";
 // Biểu đồ
 import UserGrowthChart from "./components/UserGrowthChart";
 import CourseProgressChart from "./components/CourseProgressChart";
+import StudentSuccessPanel from "@features/analytics/StudentSuccessPanel";
 // Bảng và Danh sách
 import NewUsersTable from "./components/NewUsersTable";
 import NewCoursesTable from "./components/NewCoursesTable";
@@ -308,6 +309,9 @@ const DashboardOverview = () => {
           <div className="chart-container">
             <CourseProgressChart data={courseProgress} />
           </div>
+        </section>
+        <section className="dashboard-card col-span-12">
+          <StudentSuccessPanel showClassSelector />
         </section>
 
         {/* === HÀNG 5: BẢNG  === */}

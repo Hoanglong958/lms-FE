@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { studentSuccessAnalyticsService } from "@shared/utils/studentSuccessAnalyticsService";
-import { classService } from "@shared/utils/classService";
 import "./StudentSuccessPanel.css";
 
 export default function StudentSuccessPanel({
@@ -17,12 +16,17 @@ export default function StudentSuccessPanel({
 
   useEffect(() => {
     if (showClassSelector && classes.length === 0) {
-      classService
-        .getClasses({ page: 0, limit: 50 })
+      studentSuccessAnalyticsService
+        .getAccessibleClasses()
         .then((res) => {
-          const payload = Array.isArray(res?.data) ? res.data : res?.data?.content || [];
+          const payload = Array.isArray(res?.data)
+            ? res.data
+            : res?.data?.content || [];
           setClasses(
-            payload.map((cls) => ({ id: cls.id, label: cls.className || ("Lớp " + cls.id) }))
+            payload.map((cls) => ({
+              id: cls.id,
+              label: cls.className || `Lớp ${cls.id}`,
+            }))
           );
         })
         .catch(() => setClasses([]));
@@ -190,7 +194,7 @@ export default function StudentSuccessPanel({
               </div>
             </section>
 
-            <section>
+            {/* <section>
               <h4>Mastery theo kỹ năng / chuẩn đầu ra</h4>
               {skillMastery.length === 0 ? (
                 <p className="ssa-placeholder">Chưa có dữ liệu kỹ năng.</p>
@@ -210,7 +214,7 @@ export default function StudentSuccessPanel({
                   ))}
                 </div>
               )}
-            </section>
+            </section> */}
 
             <section>
               <h4>Tải giảng dạy</h4>
