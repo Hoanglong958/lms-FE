@@ -487,10 +487,21 @@ export default function AdminRegistrations() {
                         onMouseEnter={(e) => {
                             e.currentTarget.style.background = '#f97316';
                             e.currentTarget.style.borderColor = '#ea580c';
+                            e.currentTarget.style.color = 'white';
+                            const svg = e.currentTarget.querySelector('svg');
+                            if (svg) {
+                                svg.style.transition = 'transform 0.5s ease-in-out';
+                                svg.style.transform = 'rotate(180deg)';
+                            }
                         }}
                         onMouseLeave={(e) => {
                             e.currentTarget.style.background = 'white';
                             e.currentTarget.style.borderColor = '#e5e7eb';
+                            e.currentTarget.style.color = '#f97316';
+                            const svg = e.currentTarget.querySelector('svg');
+                            if (svg) {
+                                svg.style.transform = 'rotate(0deg)';
+                            }
                         }}
                     >
                         <RefreshCw size={16} />

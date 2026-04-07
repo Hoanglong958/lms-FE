@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { studentSuccessAnalyticsService } from "@shared/utils/studentSuccessAnalyticsService";
-import { classService } from "@shared/utils/classService";
 import "./StudentSuccessPanel.css";
 
 export default function StudentSuccessPanel({
@@ -17,12 +16,17 @@ export default function StudentSuccessPanel({
 
   useEffect(() => {
     if (showClassSelector && classes.length === 0) {
-      classService
-        .getClasses({ page: 0, limit: 50 })
+      studentSuccessAnalyticsService
+        .getAccessibleClasses()
         .then((res) => {
-          const payload = Array.isArray(res?.data) ? res.data : res?.data?.content || [];
+          const payload = Array.isArray(res?.data)
+            ? res.data
+            : res?.data?.content || [];
           setClasses(
-            payload.map((cls) => ({ id: cls.id, label: cls.className || ("Lớp " + cls.id) }))
+            payload.map((cls) => ({
+              id: cls.id,
+              label: cls.className || `Lớp ${cls.id}`,
+            }))
           );
         })
         .catch(() => setClasses([]));
@@ -61,7 +65,7 @@ export default function StudentSuccessPanel({
     if (analytics?.className) {
       return `Lớp ${analytics.className}`;
     }
-    return "Student Success Analytics";
+    return "Thống kê số lượng học viên hoàn thành";
   }, [analytics]);
 
   const renderStat = (label, value, suffix = "%") => (
@@ -130,7 +134,7 @@ export default function StudentSuccessPanel({
       {error && <p className="ssa-error">{error}</p>}
 
       {!selectedClassId && !loading && (
-        <p className="ssa-placeholder">Hãy chọn lớp để xem analytics.</p>
+        <p className="ssa-placeholder">Hãy chọn lớp để xem thống kê.</p>
       )}
 
       {loading && <p className="ssa-placeholder">Đang tải số liệu...</p>}
@@ -175,7 +179,7 @@ export default function StudentSuccessPanel({
             </section>
 
             <section>
-              <h4>Mastery theo loại</h4>
+              <h4>Tiến độ theo loại</h4>
               <div className="ssa-mastery-list">
                 {lessonMastery.map((item) => (
                   <div key={item.lessonType} className="ssa-mastery-item">
@@ -186,11 +190,11 @@ export default function StudentSuccessPanel({
                     <small>{item.averageProgressPercent.toFixed(1)}%</small>
                   </div>
                 ))}
-                {lessonMastery.length === 0 && <p className="ssa-placeholder">Chưa có dữ liệu mastery theo loại.</p>}
+                {lessonMastery.length === 0 && <p className="ssa-placeholder">Chưa có dữ liệu tiến độ theo loại.</p>}
               </div>
             </section>
 
-            <section>
+            {/* <section>
               <h4>Mastery theo kỹ năng / chuẩn đầu ra</h4>
               {skillMastery.length === 0 ? (
                 <p className="ssa-placeholder">Chưa có dữ liệu kỹ năng.</p>
@@ -210,7 +214,7 @@ export default function StudentSuccessPanel({
                   ))}
                 </div>
               )}
-            </section>
+            </section> */}
 
             <section>
               <h4>Tải giảng dạy</h4>
