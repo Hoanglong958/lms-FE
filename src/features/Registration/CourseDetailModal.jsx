@@ -36,7 +36,7 @@ export default function CourseDetailModal({ courseId, open, onClose }) {
       onCancel={onClose}
       footer={null}
       width={680}
-      destroyOnClose
+      destroyOnHidden
       centered
       closable
       styles={{ body: { padding: 0 }, content: { borderRadius: 16, overflow: "hidden", padding: 0 } }}

@@ -128,7 +128,7 @@ export default function CourseRegistration() {
             setNotification({
                 isOpen: true,
                 title: "Đăng ký thành công!",
-                message: "Khóa học đã được thêm vào mục chờ thanh toán. Vui lòng thanh toán học phí để được xếp vào lớp.",
+                message: "Khóa học đã được thêm vào mục chờ thanh toán. Vui lòng chuyển khoản đúng mã để hệ thống tự động xác nhận và xếp lớp.",
                 type: "success"
             });
             await fetchData();
@@ -146,7 +146,7 @@ export default function CourseRegistration() {
         switch (status) {
             case "PAID": return { label: "✓ Đã nộp học phí", className: "status-paid" };
             case "CANCELLED": return { label: "✗ Đã hủy", className: "status-cancelled" };
-            default: return { label: "⏳ Chờ thanh toán", className: "status-pending" };
+            default: return { label: "⏳ Chờ hệ thống xác nhận", className: "status-pending" };
         }
     };
 
@@ -348,11 +348,10 @@ export default function CourseRegistration() {
                         setPaymentReg(null);
                         setNotification({
                             isOpen: true,
-                            title: "Đã thông báo",
-                            message: "Cám ơn bạn đã gửi thông tin chuyển khoản. Hệ thống sẽ cập nhật khi admin xác nhận.",
-                            type: "success"
+                            title: "Đang chờ hệ thống xác nhận",
+                            message: "Khi SePay nhận giao dịch khớp mã chuyển khoản và số tiền, hệ thống sẽ tự động cập nhật và thêm bạn vào lớp.",
+                            type: "info"
                         });
-                        fetchData();
                     }}
                 />
             )}

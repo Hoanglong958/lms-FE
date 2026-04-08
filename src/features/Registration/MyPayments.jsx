@@ -410,7 +410,6 @@ export default function MyPayments() {
     const [registrations, setRegistrations] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedReg, setSelectedReg] = useState(null);
-    const [selectedIds, setSelectedIds] = useState([]);
     const [notification, setNotification] = useState({ isOpen: false, title: "", message: "", type: "info" });
     const [currentPage, setCurrentPage] = useState(1);
     const pageSize = 10;
@@ -441,23 +440,6 @@ export default function MyPayments() {
     const totalPaid = paidRegs.reduce((sum, r) => sum + (r.amount || 0), 0);
 
     const formatAmount = (amt) => new Intl.NumberFormat("vi-VN").format(amt || 0) + " ₫";
-
-    const handleSelectAll = (e) => {
-        if (e.target.checked) setSelectedIds(pendingRegs.map(r => r.id));
-        else setSelectedIds([]);
-    };
-
-    const handleSelectOne = (id) => {
-        setSelectedIds(prev =>
-            prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
-        );
-    };
-
-    const handleBulkPay = () => {
-        const selected = pendingRegs.filter(r => selectedIds.includes(r.id));
-        if (selected.length === 0) return;
-        setSelectedReg(selected);
-    };
 
     if (loading) return (
         <div className="pay-root">
@@ -498,13 +480,6 @@ export default function MyPayments() {
                         <span className="icon-pending"><Clock size={16} /></span>
                         Chờ thanh toán
                     </h3>
-                    {selectedIds.length > 0 && (
-                        <button className="btn-bulk-pay" onClick={handleBulkPay}>
-                            <QrCode size={16} />
-                            Thanh toán đã chọn
-                            <span className="badge">{selectedIds.length}</span>
-                        </button>
-                    )}
                 </div>
 
                 {pendingRegs.length === 0 ? (
@@ -517,14 +492,6 @@ export default function MyPayments() {
                         <table className="pay-table">
                             <thead>
                                 <tr>
-                                    <th style={{ textAlign: "center", width: "44px" }}>
-                                        <input
-                                            className="checkbox-custom"
-                                            type="checkbox"
-                                            onChange={handleSelectAll}
-                                            checked={selectedIds.length === pendingRegs.length && pendingRegs.length > 0}
-                                        />
-                                    </th>
                                     <th style={{ textAlign: "left" }}>Khóa học</th>
                                     <th style={{ textAlign: "left" }}>Mã TT</th>
                                     <th style={{ textAlign: "right" }}>Số tiền</th>
@@ -534,14 +501,6 @@ export default function MyPayments() {
                             <tbody>
                                 {pendingRegs.map(r => (
                                     <tr key={r.id}>
-                                        <td style={{ textAlign: "center" }}>
-                                            <input
-                                                className="checkbox-custom"
-                                                type="checkbox"
-                                                checked={selectedIds.includes(r.id)}
-                                                onChange={() => handleSelectOne(r.id)}
-                                            />
-                                        </td>
                                         <td><span className="pay-course-name">{r.courseTitle}</span></td>
                                         <td><code className="pay-ref-code">{r.transferRef}</code></td>
                                         <td style={{ textAlign: "right" }}>
@@ -641,11 +600,10 @@ export default function MyPayments() {
                     onPaymentConfirmed={() => {
                         setNotification({
                             isOpen: true,
-                            title: "Đã gửi thông tin",
-                            message: "Chúng tôi đã báo cho admin rằng bạn đã chuyển khoản. Hãy đợi xác nhận sau khi họ kiểm tra.",
-                            type: "success"
+                            title: "Đang chờ hệ thống xác nhận",
+                            message: "Khi SePay nhận giao dịch khớp mã chuyển khoản và số tiền, hệ thống sẽ tự động cập nhật và thêm bạn vào lớp.",
+                            type: "info"
                         });
-                        fetchRegistrations();
                     }}
                 />
             )}
