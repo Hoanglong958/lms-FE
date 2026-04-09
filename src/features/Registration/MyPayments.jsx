@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { registrationService } from "@utils/registrationService";
-import NotificationModal from "@components/NotificationModal/NotificationModal";
+import { useNotification } from "@shared/notification";
 import PaymentModal from "./PaymentModal";
 import "./CourseRegistration.css";
 import { CreditCard, History, Clock, QrCode, CheckCircle2, AlertCircle, Banknote } from "lucide-react";
@@ -407,27 +407,28 @@ const styles = `
 `;
 
 export default function MyPayments() {
+    const notify = useNotification();
     const [registrations, setRegistrations] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedReg, setSelectedReg] = useState(null);
-    const [notification, setNotification] = useState({ isOpen: false, title: "", message: "", type: "info" });
     const [currentPage, setCurrentPage] = useState(1);
     const pageSize = 10;
 
-    useEffect(() => {
-        fetchRegistrations();
-    }, []);
-
-    const fetchRegistrations = async () => {
+    const fetchRegistrations = useCallback(async () => {
         try {
             const res = await registrationService.getMyRegistrations();
             setRegistrations(res.data?.data || []);
         } catch (err) {
             console.error(err);
+            notify.error(err.response?.data?.data || "Không thể tải thông tin thanh toán");
         } finally {
             setLoading(false);
         }
-    };
+    }, [notify]);
+
+    useEffect(() => {
+        fetchRegistrations();
+    }, [fetchRegistrations]);
 
     const pendingRegs = registrations.filter(r => r.paymentStatus === "PENDING");
     const paidRegs = registrations.filter(r => r.paymentStatus === "PAID");
@@ -515,14 +516,23 @@ export default function MyPayments() {
                                                     className="btn-cancel"
                                                     style={{ flex: 1 }}
                                                     onClick={async () => {
-                                                        if (window.confirm("Bạn có chắc chắn muốn hủy đăng ký này không?")) {
-                                                            try {
-                                                                await registrationService.cancelRegistration(r.id);
-                                                                fetchRegistrations();
-                                                            } catch (err) {
-                                                                console.error(err);
-                                                                alert(err.response?.data?.data || "Không thể hủy đăng ký");
-                                                            }
+                                                        const confirmed = await notify.confirm({
+                                                            title: "Hủy đăng ký",
+                                                            message: "Bạn có chắc chắn muốn hủy đăng ký khóa học này không?",
+                                                            confirmText: "Hủy đăng ký",
+                                                            cancelText: "Không",
+                                                            type: "danger",
+                                                        });
+
+                                                        if (!confirmed) return;
+
+                                                        try {
+                                                            await registrationService.cancelRegistration(r.id);
+                                                            notify.success("Đã hủy đăng ký");
+                                                            fetchRegistrations();
+                                                        } catch (err) {
+                                                            console.error(err);
+                                                            notify.error(err.response?.data?.data || "Không thể hủy đăng ký");
                                                         }
                                                     }}
                                                 >
@@ -598,21 +608,13 @@ export default function MyPayments() {
                     registration={selectedReg}
                     onClose={() => setSelectedReg(null)}
                     onPaymentConfirmed={() => {
-                        setNotification({
-                            isOpen: true,
-                            title: "Đang chờ hệ thống xác nhận",
-                            message: "Khi SePay nhận giao dịch khớp mã chuyển khoản và số tiền, hệ thống sẽ tự động cập nhật và thêm bạn vào lớp.",
-                            type: "info"
-                        });
+                        notify.info(
+                            "Khi SePay nhận giao dịch khớp mã chuyển khoản và số tiền, hệ thống sẽ tự động cập nhật và thêm bạn vào lớp.",
+                            { title: "Đang chờ hệ thống xác nhận", duration: 8000 }
+                        );
                     }}
                 />
             )}
-
-            <NotificationModal
-                isOpen={notification.isOpen}
-                onClose={() => setNotification(n => ({ ...n, isOpen: false }))}
-                {...notification}
-            />
         </div>
     );
 }
