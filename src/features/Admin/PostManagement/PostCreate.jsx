@@ -4,7 +4,27 @@ import { ArrowLeftOutlined, SaveOutlined, PictureOutlined } from "@ant-design/ic
 import { useNavigate, useLocation } from "react-router-dom";
 import { postService } from "@utils/postService";
 import { CKEditor } from '@ckeditor/ckeditor5-react';
-import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
+
+// Modular CKEditor imports
+import { ClassicEditor } from '@ckeditor/ckeditor5-editor-classic';
+import { Essentials } from '@ckeditor/ckeditor5-essentials';
+import { Paragraph } from '@ckeditor/ckeditor5-paragraph';
+import { Heading } from '@ckeditor/ckeditor5-heading';
+import { Bold, Italic, Underline, Strikethrough, Code } from '@ckeditor/ckeditor5-basic-styles';
+import { Link } from '@ckeditor/ckeditor5-link';
+import { List } from '@ckeditor/ckeditor5-list';
+import { Image, ImageToolbar, ImageCaption, ImageStyle, ImageResize } from '@ckeditor/ckeditor5-image';
+import { Table, TableToolbar } from '@ckeditor/ckeditor5-table';
+import { Alignment } from '@ckeditor/ckeditor5-alignment';
+import { FontSize, FontFamily, FontColor, FontBackgroundColor } from '@ckeditor/ckeditor5-font';
+import { Highlight } from '@ckeditor/ckeditor5-highlight';
+import { CodeBlock } from '@ckeditor/ckeditor5-code-block';
+import { SourceEditing } from '@ckeditor/ckeditor5-source-editing';
+import { BlockQuote } from '@ckeditor/ckeditor5-block-quote';
+import { MediaEmbed } from '@ckeditor/ckeditor5-media-embed';
+import { Indent } from '@ckeditor/ckeditor5-indent';
+import { Autoformat } from '@ckeditor/ckeditor5-autoformat';
+import { Base64UploadAdapter } from '@ckeditor/ckeditor5-upload';
 
 const { Title, Text } = Typography;
 
@@ -64,7 +84,7 @@ export default function PostCreate() {
     };
 
     // Custom upload adapter cho Base64
-    class Base64UploadAdapter {
+    class Base64UploadAdapterImpl {
         constructor(loader) {
             this.loader = loader;
         }
@@ -102,7 +122,7 @@ export default function PostCreate() {
     // Plugin cho CKEditor
     function Base64UploadAdapterPlugin(editor) {
         editor.plugins.get('FileRepository').createUploadAdapter = (loader) => {
-            return new Base64UploadAdapter(loader);
+            return new Base64UploadAdapterImpl(loader);
         };
     }
 
@@ -140,6 +160,18 @@ export default function PostCreate() {
 
     // Cấu hình CKEditor
     const editorConfiguration = {
+        licenseKey: 'GPL',
+        plugins: [
+            Essentials, Paragraph, Heading, Bold, Italic, Underline, Strikethrough, Code,
+            Link, List, BlockQuote,
+            Image, ImageToolbar, ImageCaption, ImageStyle, ImageResize,
+            Table, TableToolbar,
+            Alignment,
+            FontSize, FontFamily, FontColor, FontBackgroundColor,
+            Highlight, CodeBlock, SourceEditing, MediaEmbed,
+            Indent, Autoformat,
+            Base64UploadAdapter
+        ],
         extraPlugins: [Base64UploadAdapterPlugin],
         toolbar: {
             items: [
@@ -295,14 +327,7 @@ export default function PostCreate() {
                                         }}
                                     />
                                 </div>
-                                
-                                
-                                
-                                
                             </Form.Item>
-
-                            
-                            
                         </Card>
                     </Col>
 
@@ -363,30 +388,30 @@ export default function PostCreate() {
             </Form>
 
             {/* CSS */}
-            <style jsx>{`
-                :global(.ck.ck-editor__editable_inline) {
+            <style>{`
+                .ck.ck-editor__editable_inline {
                     min-height: 400px;
                     max-height: 600px;
                 }
                 
-                :global(.ck.ck-editor) {
+                .ck.ck-editor {
                     width: 100%;
                 }
                 
-                :global(.ck.ck-toolbar) {
+                .ck.ck-toolbar {
                     border-radius: 8px 8px 0 0 !important;
                 }
                 
-                :global(.ck.ck-editor__main > .ck-editor__editable) {
+                .ck.ck-editor__main > .ck-editor__editable {
                     border-radius: 0 0 8px 8px !important;
                 }
                 
                 /* Style cho ảnh trong editor */
-                :global(.ck-content .image) {
+                .ck-content .image {
                     margin: 20px auto;
                 }
                 
-                :global(.ck-content .image img) {
+                .ck-content .image img {
                     max-width: 100%;
                     height: auto;
                     border-radius: 8px;
@@ -394,17 +419,17 @@ export default function PostCreate() {
                 }
                 
                 /* Style cho ảnh align */
-                :global(.ck-content .image-style-align-left) {
+                .ck-content .image-style-align-left {
                     float: left;
                     margin-right: 20px;
                 }
                 
-                :global(.ck-content .image-style-align-right) {
+                .ck-content .image-style-align-right {
                     float: right;
                     margin-left: 20px;
                 }
                 
-                :global(.ck-content .image-style-align-center) {
+                .ck-content .image-style-align-center {
                     margin-left: auto;
                     margin-right: auto;
                 }
