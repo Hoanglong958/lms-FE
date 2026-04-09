@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { registrationService } from "@utils/registrationService";
-import NotificationModal from "@components/NotificationModal/NotificationModal";
+import { useNotification } from "@shared/notification";
 import PaymentModal from "./PaymentModal";
 import "./CourseRegistration.css";
 import { CreditCard, History, Clock, QrCode, CheckCircle2, AlertCircle, Banknote } from "lucide-react";
@@ -407,28 +407,28 @@ const styles = `
 `;
 
 export default function MyPayments() {
+    const notify = useNotification();
     const [registrations, setRegistrations] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedReg, setSelectedReg] = useState(null);
-    const [selectedIds, setSelectedIds] = useState([]);
-    const [notification, setNotification] = useState({ isOpen: false, title: "", message: "", type: "info" });
     const [currentPage, setCurrentPage] = useState(1);
     const pageSize = 10;
 
-    useEffect(() => {
-        fetchRegistrations();
-    }, []);
-
-    const fetchRegistrations = async () => {
+    const fetchRegistrations = useCallback(async () => {
         try {
             const res = await registrationService.getMyRegistrations();
             setRegistrations(res.data?.data || []);
         } catch (err) {
             console.error(err);
+            notify.error(err.response?.data?.data || "Không thể tải thông tin thanh toán");
         } finally {
             setLoading(false);
         }
-    };
+    }, [notify]);
+
+    useEffect(() => {
+        fetchRegistrations();
+    }, [fetchRegistrations]);
 
     const pendingRegs = registrations.filter(r => r.paymentStatus === "PENDING");
     const paidRegs = registrations.filter(r => r.paymentStatus === "PAID");
@@ -441,23 +441,6 @@ export default function MyPayments() {
     const totalPaid = paidRegs.reduce((sum, r) => sum + (r.amount || 0), 0);
 
     const formatAmount = (amt) => new Intl.NumberFormat("vi-VN").format(amt || 0) + " ₫";
-
-    const handleSelectAll = (e) => {
-        if (e.target.checked) setSelectedIds(pendingRegs.map(r => r.id));
-        else setSelectedIds([]);
-    };
-
-    const handleSelectOne = (id) => {
-        setSelectedIds(prev =>
-            prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
-        );
-    };
-
-    const handleBulkPay = () => {
-        const selected = pendingRegs.filter(r => selectedIds.includes(r.id));
-        if (selected.length === 0) return;
-        setSelectedReg(selected);
-    };
 
     if (loading) return (
         <div className="pay-root">
@@ -498,13 +481,6 @@ export default function MyPayments() {
                         <span className="icon-pending"><Clock size={16} /></span>
                         Chờ thanh toán
                     </h3>
-                    {selectedIds.length > 0 && (
-                        <button className="btn-bulk-pay" onClick={handleBulkPay}>
-                            <QrCode size={16} />
-                            Thanh toán đã chọn
-                            <span className="badge">{selectedIds.length}</span>
-                        </button>
-                    )}
                 </div>
 
                 {pendingRegs.length === 0 ? (
@@ -517,14 +493,6 @@ export default function MyPayments() {
                         <table className="pay-table">
                             <thead>
                                 <tr>
-                                    <th style={{ textAlign: "center", width: "44px" }}>
-                                        <input
-                                            className="checkbox-custom"
-                                            type="checkbox"
-                                            onChange={handleSelectAll}
-                                            checked={selectedIds.length === pendingRegs.length && pendingRegs.length > 0}
-                                        />
-                                    </th>
                                     <th style={{ textAlign: "left" }}>Khóa học</th>
                                     <th style={{ textAlign: "left" }}>Mã TT</th>
                                     <th style={{ textAlign: "right" }}>Số tiền</th>
@@ -534,14 +502,6 @@ export default function MyPayments() {
                             <tbody>
                                 {pendingRegs.map(r => (
                                     <tr key={r.id}>
-                                        <td style={{ textAlign: "center" }}>
-                                            <input
-                                                className="checkbox-custom"
-                                                type="checkbox"
-                                                checked={selectedIds.includes(r.id)}
-                                                onChange={() => handleSelectOne(r.id)}
-                                            />
-                                        </td>
                                         <td><span className="pay-course-name">{r.courseTitle}</span></td>
                                         <td><code className="pay-ref-code">{r.transferRef}</code></td>
                                         <td style={{ textAlign: "right" }}>
@@ -556,14 +516,23 @@ export default function MyPayments() {
                                                     className="btn-cancel"
                                                     style={{ flex: 1 }}
                                                     onClick={async () => {
-                                                        if (window.confirm("Bạn có chắc chắn muốn hủy đăng ký này không?")) {
-                                                            try {
-                                                                await registrationService.cancelRegistration(r.id);
-                                                                fetchRegistrations();
-                                                            } catch (err) {
-                                                                console.error(err);
-                                                                alert(err.response?.data?.data || "Không thể hủy đăng ký");
-                                                            }
+                                                        const confirmed = await notify.confirm({
+                                                            title: "Hủy đăng ký",
+                                                            message: "Bạn có chắc chắn muốn hủy đăng ký khóa học này không?",
+                                                            confirmText: "Hủy đăng ký",
+                                                            cancelText: "Không",
+                                                            type: "danger",
+                                                        });
+
+                                                        if (!confirmed) return;
+
+                                                        try {
+                                                            await registrationService.cancelRegistration(r.id);
+                                                            notify.success("Đã hủy đăng ký");
+                                                            fetchRegistrations();
+                                                        } catch (err) {
+                                                            console.error(err);
+                                                            notify.error(err.response?.data?.data || "Không thể hủy đăng ký");
                                                         }
                                                     }}
                                                 >
@@ -639,22 +608,13 @@ export default function MyPayments() {
                     registration={selectedReg}
                     onClose={() => setSelectedReg(null)}
                     onPaymentConfirmed={() => {
-                        setNotification({
-                            isOpen: true,
-                            title: "Đã gửi thông tin",
-                            message: "Chúng tôi đã báo cho admin rằng bạn đã chuyển khoản. Hãy đợi xác nhận sau khi họ kiểm tra.",
-                            type: "success"
-                        });
-                        fetchRegistrations();
+                        notify.info(
+                            "Khi SePay nhận giao dịch khớp mã chuyển khoản và số tiền, hệ thống sẽ tự động cập nhật và thêm bạn vào lớp.",
+                            { title: "Đang chờ hệ thống xác nhận", duration: 8000 }
+                        );
                     }}
                 />
             )}
-
-            <NotificationModal
-                isOpen={notification.isOpen}
-                onClose={() => setNotification(n => ({ ...n, isOpen: false }))}
-                {...notification}
-            />
         </div>
     );
 }

@@ -27,16 +27,14 @@ import {
 } from "lucide-react";
 
 export default function AdminRegistrations() {
-    const { confirm, success, error: notifyError, warning } = useNotification();
+    const { error: notifyError } = useNotification();
     const [registrations, setRegistrations] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState("ALL");
     const [search, setSearch] = useState("");
     const [bankInfo, setBankInfo] = useState(null);
-    const [confirming, setConfirming] = useState(null);
     const [sortConfig, setSortConfig] = useState({ key: "registrationDate", direction: "desc" });
     const [currentPage, setCurrentPage] = useState(1);
-    const [selectedRows, setSelectedRows] = useState([]);
     const [selectedDetail, setSelectedDetail] = useState(null);
     const pageSize = 10;
 
@@ -80,7 +78,7 @@ export default function AdminRegistrations() {
             link.remove();
         } catch (err) {
             console.error("Export Excel failed:", err);
-            error("Không thể xuất file Excel");
+            notifyError("Không thể xuất file Excel");
         }
     };
 
@@ -97,54 +95,8 @@ export default function AdminRegistrations() {
             link.remove();
         } catch (err) {
             console.error("Export PDF failed:", err);
-            error("Không thể xuất hóa đơn PDF");
-        }
-    };
-
-    const handleConfirm = async (registration) => {
-        if (!registration.paymentSubmitted) {
-            warning("Sinh viên chưa báo đã chuyển khoản. Vui lòng chờ họ gửi thông tin.");
-            return;
-        }
-        setConfirming(registration.id);
-        try {
-            const response = await registrationService.confirmPayment(registration.id);
-            const enrolledClassName = response.data?.data?.enrolledClassName;
-            success(
-                enrolledClassName
-                    ? `Đã xác nhận thanh toán và thêm sinh viên vào lớp "${enrolledClassName}".`
-                    : "Đã xác nhận thanh toán. Không tìm thấy lớp học nào cho khóa học này."
-            );
-            fetchAll();
-        } catch (err) {
-            notifyError(err.response?.data?.data || "Không thể xác nhận thanh toán.");
+            notifyError("Không thể xuất hóa đơn PDF");
         } finally {
-            setConfirming(null);
-        }
-    };
-
-    const handleBulkConfirm = async () => {
-        if (selectedRows.length === 0) return;
-
-        const isConfirmed = await confirm({
-            title: "Xác nhận thanh toán hàng loạt",
-            message: `Xác nhận ${selectedRows.length} khoản thanh toán đã chọn?`,
-            type: "warning",
-            confirmText: "Xác nhận",
-            cancelText: "Hủy"
-        });
-        if (!isConfirmed) return;
-
-        try {
-            setLoading(true);
-            await registrationService.confirmBulkPayment(selectedRows);
-            success(`Đã xác nhận thanh toán cho ${selectedRows.length} bản ghi.`);
-            setSelectedRows([]);
-            fetchAll();
-        } catch (err) {
-            notifyError(err.response?.data?.data || "Không thể xác nhận thanh toán hàng loạt.");
-        } finally {
-            setLoading(false);
         }
     };
 
@@ -220,22 +172,6 @@ export default function AdminRegistrations() {
         totalAmount: registrations
             .filter(r => r.paymentStatus === "PAID")
             .reduce((sum, r) => sum + (r.amount || 0), 0)
-    };
-
-    const toggleRowSelection = (id) => {
-        setSelectedRows(prev =>
-            prev.includes(id)
-                ? prev.filter(rowId => rowId !== id)
-                : [...prev, id]
-        );
-    };
-
-    const toggleAllRows = () => {
-        if (selectedRows.length === paginatedData.length) {
-            setSelectedRows([]);
-        } else {
-            setSelectedRows(paginatedData.map(r => r.id));
-        }
     };
 
     const renderDetailModal = () => {
@@ -342,7 +278,7 @@ export default function AdminRegistrations() {
                                         fontWeight: 700,
                                         color: r.paymentStatus === "PAID" ? '#059669' : r.paymentStatus === "PENDING" ? '#d97706' : '#dc2626'
                                     }}>
-                                        {r.paymentStatus === "PAID" ? "✓ ĐÃ THANH TOÁN" : r.paymentStatus === "PENDING" ? "⏳ CHỜ XÁC NHẬN" : "✗ ĐÃ HỦY"}
+                                        {r.paymentStatus === "PAID" ? "✓ ĐÃ THANH TOÁN" : r.paymentStatus === "PENDING" ? "⏳ CHỜ SEPAY" : "✗ ĐÃ HỦY"}
                                     </span>
                                 </div>
                             </div>
@@ -360,7 +296,20 @@ export default function AdminRegistrations() {
                         </div>
                     </div>
 
-                    <div style={{ padding: '16px 24px 24px', borderTop: '1px solid #f1f5f9', display: 'flex', gap: 12 }}>
+                    <div style={{ padding: '16px 24px 24px', borderTop: '1px solid #f1f5f9', display: 'flex', flexDirection: 'column', gap: 12 }}>
+                        {r.paymentStatus === "PENDING" && (
+                            <div style={{
+                                padding: '10px 12px',
+                                borderRadius: 10,
+                                background: '#fff7ed',
+                                color: '#c2410c',
+                                fontSize: 13,
+                                lineHeight: 1.5
+                            }}>
+                                SePay sẽ tự đối soát theo mã chuyển khoản và số tiền. Khi giao dịch khớp, hệ thống sẽ tự cập nhật trạng thái và thêm học viên vào lớp.
+                            </div>
+                        )}
+                        <div style={{ display: 'flex', gap: 12 }}>
                         <button 
                             onClick={() => setSelectedDetail(null)}
                             style={{
@@ -374,24 +323,7 @@ export default function AdminRegistrations() {
                                 cursor: 'pointer'
                             }}
                         >Đóng</button>
-                        {r.paymentStatus === "PENDING" && (
-                            <button 
-                                onClick={() => {
-                                    handleConfirm(r);
-                                    setSelectedDetail(null);
-                                }}
-                                style={{
-                                    flex: 2,
-                                    padding: '10px',
-                                    borderRadius: 8,
-                                    border: 'none',
-                                    background: '#f97316',
-                                    color: 'white',
-                                    fontWeight: 700,
-                                    cursor: 'pointer'
-                                }}
-                            >Xác nhận thanh toán</button>
-                        )}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -742,23 +674,23 @@ export default function AdminRegistrations() {
                     </div>
                     <div style={{ flex: 1 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 4 }}>
-                            <strong>{bankInfo.bankName}</strong>
+                            <strong>SePay QR</strong>
                             <span style={{ color: '#9ca3af' }}>•</span>
-                            <span>STK: <code style={{
+                            <span>acc: <code style={{
                                 background: '#f3f4f6',
                                 padding: '2px 6px',
                                 borderRadius: 4,
                                 fontSize: 12
-                            }}>{bankInfo.accountNo}</code></span>
+                            }}>{bankInfo.qrAcc}</code></span>
                             <span style={{ color: '#9ca3af' }}>•</span>
-                            <span>Chủ TK: <strong>{bankInfo.accountName}</strong></span>
+                            <span>bank: <strong>{bankInfo.qrBank}</strong></span>
                         </div>
                         <p style={{
                             margin: 0,
                             fontSize: 12,
                             color: '#6b7280'
                         }}>
-                            💡 Đối chiếu nội dung chuyển khoản với cột "Mã TT" để xác nhận
+                            💡 Webhook SePay sẽ tự đối chiếu mã chuyển khoản và số tiền để xác nhận
                         </p>
                     </div>
                 </div>
@@ -821,33 +753,11 @@ export default function AdminRegistrations() {
                             }}
                         >
                             <option value="ALL">Tất cả trạng thái</option>
-                            <option value="PENDING">⏳ Chờ xác nhận</option>
+                            <option value="PENDING">⏳ Chờ SePay</option>
                             <option value="PAID">✓ Đã thanh toán</option>
                             <option value="CANCELLED">✗ Đã hủy</option>
                         </select>
                     </div>
-
-                    {selectedRows.length > 0 && (
-                        <button
-                            onClick={handleBulkConfirm}
-                            style={{
-                                background: '#f97316',
-                                color: 'white',
-                                border: 'none',
-                                padding: '8px 16px',
-                                borderRadius: 8,
-                                fontWeight: 600,
-                                fontSize: 14,
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 8,
-                                boxShadow: '0 2px 4px rgba(16, 185, 129, 0.2)'
-                            }}
-                        >
-                            ✅ Xác nhận ({selectedRows.length})
-                        </button>
-                    )}
                 </div>
             </section>
 
@@ -862,26 +772,6 @@ export default function AdminRegistrations() {
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                     <thead style={{ background: '#f9fafb' }}>
                         <tr>
-                            <th style={{
-                                padding: '12px 16px',
-                                textAlign: 'left',
-                                fontSize: 12,
-                                fontWeight: 600,
-                                color: '#6b7280',
-                                textTransform: 'uppercase',
-                                letterSpacing: 0.5,
-                                borderBottom: '1px solid #e5e7eb',
-                                width: 40
-                            }}>
-                                <input
-                                    type="checkbox"
-                                    checked={selectedRows.length === paginatedData.length && paginatedData.length > 0}
-                                    onChange={toggleAllRows}
-                                    style={{ cursor: 'pointer' }}
-                                />
-                            </th>
-
-                            {/* ✅ Fix: bỏ display:flex khỏi th, đưa vào div bên trong */}
                             <th style={{
                                 padding: '12px 16px',
                                 textAlign: 'left',
@@ -1019,7 +909,7 @@ export default function AdminRegistrations() {
                     <tbody>
                         {paginatedData.length === 0 ? (
                             <tr>
-                                <td colSpan={10} style={{
+                                <td colSpan={9} style={{
                                     padding: '48px',
                                     textAlign: 'center',
                                     borderBottom: '1px solid #e5e7eb'
@@ -1060,16 +950,6 @@ export default function AdminRegistrations() {
                                     onMouseEnter={e => e.currentTarget.style.background = r.paymentStatus === "PENDING" ? '#fef3c7' : '#f9fafb'}
                                     onMouseLeave={e => e.currentTarget.style.background = r.paymentStatus === "PENDING" ? '#fffbeb' : 'white'}
                                 >
-                                    <td style={{ padding: '12px 16px' }}>
-                                        <input
-                                            type="checkbox"
-                                            checked={selectedRows.includes(r.id)}
-                                            onChange={() => toggleRowSelection(r.id)}
-                                            disabled={r.paymentStatus !== "PENDING"}
-                                            style={{ cursor: 'pointer' }}
-                                        />
-                                    </td>
-
                                     <td style={{ padding: '12px 16px', fontSize: 13, color: '#9ca3af', fontWeight: 500 }}>
                                         #{r.id}
                                     </td>
@@ -1131,9 +1011,9 @@ export default function AdminRegistrations() {
                                             <span style={{
                                                 fontSize: 11,
                                                 fontWeight: 600,
-                                                color: r.paymentSubmitted ? '#059669' : '#b45309'
+                                                color: r.paymentStatus === "PAID" ? '#059669' : r.paymentStatus === "CANCELLED" ? '#991b1b' : '#b45309'
                                             }}>
-                                                {r.paymentSubmitted ? 'Sinh viên đã báo chuyển khoản' : 'Chưa gửi thông báo chuyển khoản'}
+                                                {r.paymentStatus === "PAID" ? 'Đã đối soát qua SePay' : r.paymentStatus === "CANCELLED" ? 'Đăng ký đã hủy' : 'Đang chờ webhook SePay'}
                                             </span>
                                         </div>
                                     </td>
@@ -1163,7 +1043,7 @@ export default function AdminRegistrations() {
 
                                         }}>
                                             {r.paymentStatus === "PAID" && "✓ Đã thanh toán"}
-                                            {r.paymentStatus === "PENDING" && "⏳ Chờ xác nhận"}
+                                            {r.paymentStatus === "PENDING" && "⏳ Chờ SePay"}
                                             {r.paymentStatus === "CANCELLED" && "✗ Đã hủy"}
                                         </span>
                                     </td>
@@ -1188,30 +1068,6 @@ export default function AdminRegistrations() {
                                             >
                                                 👁️
                                             </button>
-
-                                            {r.paymentStatus === "PENDING" && (
-                                                <button
-                                                    onClick={() => handleConfirm(r)}
-                                                    disabled={confirming === r.id || !r.paymentSubmitted}
-                                                    title={!r.paymentSubmitted ? "Sinh viên chưa thông báo chuyển khoản" : "Xác nhận thanh toán"}
-                                                    style={{
-                                                        background: confirming === r.id ? '#f97316' : '#f97316',
-                                                        border: 'none',
-                                                        borderRadius: 6,
-                                                        width: 30,
-                                                        height: 30,
-                                                        cursor: confirming === r.id || !r.paymentSubmitted ? 'not-allowed' : 'pointer',
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        justifyContent: 'center',
-                                                        fontSize: 14
-                                                    }}
-                                                >
-                                                    {confirming === r.id ? (
-                                                        <span style={{ color: '#ea580c', fontSize: 11, fontWeight: 700 }}>...</span>
-                                                    ) : "✅"}
-                                                </button>
-                                            )}
 
                                             <button
                                                 onClick={() => handlePrintInvoice(r.id)}

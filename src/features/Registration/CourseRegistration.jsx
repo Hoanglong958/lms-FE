@@ -1,21 +1,21 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation } from "react-router-dom";
 import { registrationService } from "@utils/registrationService";
 import { courseService } from "@utils/courseService";
 import { Input, Select } from "antd";
 import { SearchOutlined } from "@ant-design/icons";
 import { SERVER_URL } from "@config";
-import NotificationModal from "@components/NotificationModal/NotificationModal";
+import { useNotification } from "@shared/notification";
 import PaymentModal from "./PaymentModal";
 import CourseDetailModal from "./CourseDetailModal";
 import "./CourseRegistration.css";
 import AdminPagination from "@shared/components/Admin/AdminPagination";
 
 export default function CourseRegistration() {
+    const notify = useNotification();
     const [courses, setCourses] = useState([]);
     const [myRegistrations, setMyRegistrations] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [notification, setNotification] = useState({ isOpen: false, title: "", message: "", type: "info" });
     const [paymentReg, setPaymentReg] = useState(null); // registration currently being paid
     const [detailCourseId, setDetailCourseId] = useState(null);
     const [detailVisible, setDetailVisible] = useState(false);
@@ -33,17 +33,46 @@ export default function CourseRegistration() {
     const location = useLocation();
     const hasHandledDeepLink = useRef(false);
 
-    useEffect(() => { 
-        fetchData(); 
-    }, [page, sortBy, regStatus]); // Re-fetch on page, sort, or status change
-
-    const getReg = (id) => {
+    const getReg = useCallback((id) => {
         const regs = myRegistrations.filter(r => r.courseId === id);
         if (regs.length === 0) return null;
         // Ưu tiên bản ghi chưa hủy
         const activeReg = regs.find(r => r.paymentStatus !== "CANCELLED");
         return activeReg || regs[0];
-    };
+    }, [myRegistrations]);
+
+    const fetchData = useCallback(async () => {
+        setLoading(true);
+        try {
+            const params = {
+                q: searchTerm,
+                page: page,
+                size: pageSize,
+                sort: sortBy,
+                regStatus: regStatus
+            };
+
+            const [cRes, mRes] = await Promise.all([
+                courseService.getCoursesPaging(params),
+                registrationService.getMyRegistrations()
+            ]);
+
+            const courseData = cRes.data?.data;
+            setCourses(courseData?.content || []);
+            setTotalPages(courseData?.totalPages || 0);
+            setTotalElements(courseData?.totalElements || 0);
+            setMyRegistrations(mRes.data?.data || []);
+        } catch (err) {
+            console.error(err);
+            notify.error(err.response?.data?.data || "Không thể tải danh sách khóa học");
+        } finally {
+            setLoading(false);
+        }
+    }, [notify, page, pageSize, regStatus, searchTerm, sortBy]);
+
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]); // Re-fetch on filter change
 
     useEffect(() => {
         if (!loading && courses.length > 0 && !hasHandledDeepLink.current) {
@@ -72,35 +101,7 @@ export default function CourseRegistration() {
                 hasHandledDeepLink.current = true;
             }
         }
-    }, [loading, courses, myRegistrations, location.search]);
-
-    const fetchData = async () => {
-        setLoading(true);
-        try {
-            const params = {
-                q: searchTerm,
-                page: page,
-                size: pageSize,
-                sort: sortBy,
-                regStatus: regStatus
-            };
-
-            const [cRes, mRes] = await Promise.all([
-                courseService.getCoursesPaging(params),
-                registrationService.getMyRegistrations()
-            ]);
-            
-            const courseData = cRes.data?.data;
-            setCourses(courseData?.content || []);
-            setTotalPages(courseData?.totalPages || 0);
-            setTotalElements(courseData?.totalElements || 0);
-            setMyRegistrations(mRes.data?.data || []);
-        } catch (err) {
-            console.error(err);
-        } finally {
-            setLoading(false);
-        }
-    };
+    }, [loading, courses, myRegistrations, location.search, getReg]);
 
     const handleSearchChange = (e) => {
         setSearchTerm(e.target.value);
@@ -124,21 +125,18 @@ export default function CourseRegistration() {
 
     const handleRegister = async (courseId) => {
         try {
-            const res = await registrationService.register(courseId);
-            setNotification({
-                isOpen: true,
+            await registrationService.register(courseId);
+            notify.success("Đăng ký thành công!", {
                 title: "Đăng ký thành công!",
-                message: "Khóa học đã được thêm vào mục chờ thanh toán. Vui lòng thanh toán học phí để được xếp vào lớp.",
-                type: "success"
+                duration: 7000,
             });
+            notify.info(
+                "Khóa học đã được thêm vào mục chờ thanh toán. Vui lòng chuyển khoản đúng mã để hệ thống tự động xác nhận và xếp lớp.",
+                { title: "Hướng dẫn thanh toán", duration: 9000 }
+            );
             await fetchData();
         } catch (err) {
-            setNotification({
-                isOpen: true,
-                title: "Lỗi",
-                message: err.response?.data?.data || "Lỗi đăng ký",
-                type: "error"
-            });
+            notify.error(err.response?.data?.data || "Lỗi đăng ký");
         }
     };
 
@@ -146,7 +144,7 @@ export default function CourseRegistration() {
         switch (status) {
             case "PAID": return { label: "✓ Đã nộp học phí", className: "status-paid" };
             case "CANCELLED": return { label: "✗ Đã hủy", className: "status-cancelled" };
-            default: return { label: "⏳ Chờ thanh toán", className: "status-pending" };
+            default: return { label: "⏳ Chờ hệ thống xác nhận", className: "status-pending" };
         }
     };
 
@@ -346,22 +344,13 @@ export default function CourseRegistration() {
                     onClose={() => setPaymentReg(null)}
                     onPaymentConfirmed={() => {
                         setPaymentReg(null);
-                        setNotification({
-                            isOpen: true,
-                            title: "Đã thông báo",
-                            message: "Cám ơn bạn đã gửi thông tin chuyển khoản. Hệ thống sẽ cập nhật khi admin xác nhận.",
-                            type: "success"
-                        });
-                        fetchData();
+                        notify.info(
+                            "Khi SePay nhận giao dịch khớp mã chuyển khoản và số tiền, hệ thống sẽ tự động cập nhật và thêm bạn vào lớp.",
+                            { title: "Đang chờ hệ thống xác nhận", duration: 8000 }
+                        );
                     }}
                 />
             )}
-
-            <NotificationModal
-                isOpen={notification.isOpen}
-                onClose={() => setNotification(n => ({ ...n, isOpen: false }))}
-                {...notification}
-            />
             <CourseDetailModal
                 courseId={detailCourseId}
                 open={detailVisible}
