@@ -5,15 +5,9 @@ import "./PaymentModal.css";
 export default function PaymentModal({ registration, onClose, onPaymentConfirmed }) {
     const [bankInfo, setBankInfo] = useState(null);
     const [copied, setCopied] = useState(false);
-    const [isSubmitting, setIsSubmitting] = useState(false);
     const [loading, setLoading] = useState(true);
-
-    const isBulk = Array.isArray(registration);
-    const displayItems = isBulk ? registration : [registration];
-    const totalAmount = displayItems.reduce((sum, item) => sum + (item.amount || 0), 0);
-    const combinedRef = isBulk 
-        ? "BULK_" + displayItems.map(item => item.id).join("_")
-        : registration.transferRef;
+    const totalAmount = registration?.amount || 0;
+    const transferRef = registration?.transferRef || "";
 
     useEffect(() => {
         registrationService.getBankInfo()
@@ -27,10 +21,11 @@ export default function PaymentModal({ registration, onClose, onPaymentConfirmed
 
     const getQrUrl = () => {
         if (!bankInfo) return null;
-        const { bankId, accountNo, accountName } = bankInfo;
-        const amount = Math.round(totalAmount);
-        const desc = encodeURIComponent(combinedRef || "");
-        return `https://img.vietqr.io/image/${bankId}-${accountNo}-compact2.png?amount=${amount}&addInfo=${desc}&accountName=${encodeURIComponent(accountName)}`;
+        const qrAcc = bankInfo.qrAcc || "VQRQAIDPS9130";
+        const qrBank = bankInfo.qrBank || "MBBank";
+        const amount = totalAmount || 0;
+        const des = transferRef || "";
+        return `https://qr.sepay.vn/img?acc=${encodeURIComponent(qrAcc)}&bank=${encodeURIComponent(qrBank)}&amount=${amount}&des=${encodeURIComponent(des)}`;
     };
 
     const copyToClipboard = (text) => {
@@ -39,23 +34,12 @@ export default function PaymentModal({ registration, onClose, onPaymentConfirmed
         setTimeout(() => setCopied(false), 2000);
     };
 
-    const handlePaymentDone = async () => {
-        if (isSubmitting) return;
-        setIsSubmitting(true);
-        const targets = Array.isArray(displayItems) ? displayItems : [registration];
-        try {
-            await Promise.all(targets.map(item => registrationService.markPaymentSubmitted(item.id)));
-            onPaymentConfirmed?.();
-            onClose();
-        } catch (err) {
-            console.error("Failed to flag payment submitted", err);
-            alert(err.response?.data?.data || "Không thể gửi thông tin chuyển khoản.");
-        } finally {
-            setIsSubmitting(false);
-        }
+    const handlePaymentDone = () => {
+        onPaymentConfirmed?.();
+        onClose();
     };
 
-    if (!registration || displayItems.length === 0) return null;
+    if (!registration) return null;
 
     return (
         <div className="payment-overlay" onClick={onClose}>
@@ -64,10 +48,8 @@ export default function PaymentModal({ registration, onClose, onPaymentConfirmed
                 <div className="payment-header">
                     <div className="payment-header-icon">💳</div>
                     <div>
-                        <h2>Thanh toán học phí {isBulk ? `(${displayItems.length} khóa học)` : ""}</h2>
-                        <p className="payment-course-name">
-                            {isBulk ? displayItems.map(i => i.courseTitle).join(", ") : registration.courseTitle}
-                        </p>
+                        <h2>Thanh toán học phí</h2>
+                        <p className="payment-course-name">{registration.courseTitle}</p>
                     </div>
                     <button className="payment-close-btn" onClick={onClose}>✕</button>
                 </div>
@@ -99,20 +81,15 @@ export default function PaymentModal({ registration, onClose, onPaymentConfirmed
 
                         {/* Bank Details */}
                         <div className="payment-details">
-                            <h3>Thông tin chuyển khoản</h3>
+                            <h3>Thông tin QR SePay</h3>
 
                             <div className="payment-field">
-                                <span className="payment-field-label">Ngân hàng</span>
-                                <span className="payment-field-value">{bankInfo.bankName}</span>
-                            </div>
-
-                            <div className="payment-field">
-                                <span className="payment-field-label">Số tài khoản</span>
+                                <span className="payment-field-label">Account</span>
                                 <div className="payment-field-copy">
-                                    <span className="payment-field-value payment-mono">{bankInfo.accountNo}</span>
+                                    <span className="payment-field-value payment-mono">{bankInfo.qrAcc}</span>
                                     <button
                                         className="payment-copy-btn"
-                                        onClick={() => copyToClipboard(bankInfo.accountNo)}
+                                        onClick={() => copyToClipboard(bankInfo.qrAcc)}
                                     >
                                         {copied ? "✓ Đã sao" : "Sao chép"}
                                     </button>
@@ -120,8 +97,8 @@ export default function PaymentModal({ registration, onClose, onPaymentConfirmed
                             </div>
 
                             <div className="payment-field">
-                                <span className="payment-field-label">Chủ tài khoản</span>
-                                <span className="payment-field-value">{bankInfo.accountName}</span>
+                                <span className="payment-field-label">Bank</span>
+                                <span className="payment-field-value">{bankInfo.qrBank}</span>
                             </div>
 
                             <div className="payment-field">
@@ -132,10 +109,10 @@ export default function PaymentModal({ registration, onClose, onPaymentConfirmed
                             <div className="payment-field payment-field-ref">
                                 <span className="payment-field-label">Nội dung chuyển khoản</span>
                                 <div className="payment-field-copy">
-                                    <span className="payment-field-value payment-mono transfer-ref">{combinedRef}</span>
+                                    <span className="payment-field-value payment-mono transfer-ref">{transferRef}</span>
                                     <button
                                         className="payment-copy-btn payment-copy-ref"
-                                        onClick={() => copyToClipboard(combinedRef)}
+                                        onClick={() => copyToClipboard(transferRef)}
                                     >
                                         Sao chép
                                     </button>
@@ -155,15 +132,15 @@ export default function PaymentModal({ registration, onClose, onPaymentConfirmed
                         </div>
                         <div className="payment-step">
                             <span className="step-num">2</span>
-                            <span>Nhập đúng nội dung chuyển khoản <strong>{combinedRef}</strong></span>
+                            <span>Nhập đúng nội dung chuyển khoản <strong>{transferRef}</strong></span>
                         </div>
                         <div className="payment-step">
                             <span className="step-num">3</span>
-                            <span>Chờ admin xác nhận — {isBulk ? "các khóa học" : "khóa học"} sẽ được thêm vào lớp học tự động</span>
+                            <span>Hệ thống sẽ tự xác nhận khi SePay nhận đúng giao dịch khớp mã và số tiền</span>
                         </div>
                     </div>
-                    <button className="payment-done-btn" onClick={handlePaymentDone} disabled={isSubmitting}>
-                        {isSubmitting ? "Đang gửi..." : "Đã chuyển khoản, đóng"}
+                    <button className="payment-done-btn" onClick={handlePaymentDone}>
+                        Tôi đã chuyển khoản
                     </button>
                 </div>
             </div>

@@ -7,7 +7,7 @@ import "../Dashboard.css";
 // SỬA 1: Đảm bảo bạn nhận vào prop là { users }
 const NewUsersTable = ({ users }) => {
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const itemsPerPage = 5;
 
   const filteredUsers = Array.isArray(users) ? users : [];
 

@@ -15,10 +15,6 @@ export const registrationService = {
         return await api.get(`${API_URL}/all`);
     },
 
-    confirmPayment: async (registrationId) => {
-        return await api.patch(`${API_URL}/${registrationId}/confirm-payment`);
-    },
-
     getBankInfo: async () => {
         return await api.get(`${API_URL}/bank-info`);
     },
@@ -33,13 +29,5 @@ export const registrationService = {
     
     cancelRegistration: async (registrationId) => {
         return await api.patch(`${API_URL}/${registrationId}/cancel`);
-    },
-
-    markPaymentSubmitted: async (registrationId) => {
-        return await api.patch(`${API_URL}/${registrationId}/payment-submitted`);
-    },
-
-    confirmBulkPayment: async (registrationIds) => {
-        return await api.patch(`${API_URL}/bulk-confirm`, registrationIds);
     }
 };

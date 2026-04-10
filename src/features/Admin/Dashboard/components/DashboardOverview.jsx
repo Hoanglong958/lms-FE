@@ -10,6 +10,8 @@ import {
   newCoursesData,
   recentQuizzesData,
   topStudentsData,
+  revenueData,
+  recentTransactionsData,
 } from "../mock/dashboardMock.js";
 
 // Import các component con
@@ -18,6 +20,8 @@ import NewUsersTable from "./NewUsersTable";
 import NewCoursesTable from "./NewCoursesTable";
 import RecentQuizzesTable from "./RecentQuizzesTable";
 import TopStudentsList from "./TopStudentsList";
+import RevenueGrowthChart from "./RevenueGrowthChart";
+import RecentTransactionsList from "./RecentTransactionsList";
 
 // Import file CSS của bạn
 import "../Dashboard.css";
@@ -70,16 +74,22 @@ const DashboardOverview = () => {
       </section>{" "}
       <section className="dashboard-card col-span-12 lg-col-span-7">
         {" "}
-        <h3 className="dashboard-card-title">Doanh thu / Lượt đăng ký</h3>{" "}
-        <div className="chart-container-placeholder">
-          [Area Chart Component]{" "}
+        <h3 className="dashboard-card-title">Biểu đồ tăng trưởng học phí</h3>{" "}
+        <div style={{ height: '300px', width: '100%' }}>
+          <RevenueGrowthChart data={revenueData} />
         </div>{" "}
       </section>
-      {/* === HÀNG 5: 2 BẢNG === */}{" "}
-      <section className="dashboard-card col-span-12 lg-col-span-6">
+      {/* === HÀNG 5: BẢNG + GIAO DỊCH === */}{" "}
+      <section className="dashboard-card col-span-12 lg-col-span-8">
         <h3 className="dashboard-card-title">Người dùng mới</h3>
         <NewUsersTable users={newUsersData} />{" "}
       </section>{" "}
+      <section className="dashboard-card col-span-12 lg-col-span-4">
+        <h3 className="dashboard-card-title">Giao dịch mới</h3>
+        <div className="max-h-[400px] overflow-y-auto pr-2">
+          <RecentTransactionsList transactions={recentTransactionsData} />
+        </div>
+      </section>
       <section className="dashboard-card col-span-12 lg-col-span-6">
         <h3 className="dashboard-card-title">Khóa học mới tạo</h3>
         <NewCoursesTable courses={newCoursesData} />{" "}

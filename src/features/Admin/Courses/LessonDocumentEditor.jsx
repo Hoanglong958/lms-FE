@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { CKEditor } from "@ckeditor/ckeditor5-react";
-import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 import { lessonDocumentService } from "@utils/lessonDocumentService.js";
 import { uploadService } from "@utils/uploadService";
 import VideoProgress from "@components/VideoPlayer/VideoProgress";
@@ -8,21 +7,27 @@ import NotificationModal from "@components/NotificationModal/NotificationModal";
 import "./styles/LessonDocumentEditor.css";
 import { SERVER_URL } from "@config";
 
-// Toolbar dùng chung
-const CKEDITOR_TOOLBAR = [
-  "heading",
-  "|",
-  "bold",
-  "italic",
-  "underline",
-  "|",
-  "bulletedList",
-  "numberedList",
-  "blockQuote",
-  "|",
-  "undo",
-  "redo",
-];
+/* Modular CKEditor Imports */
+import { ClassicEditor } from '@ckeditor/ckeditor5-editor-classic';
+import { Essentials } from '@ckeditor/ckeditor5-essentials';
+import { Paragraph } from '@ckeditor/ckeditor5-paragraph';
+import { Heading } from '@ckeditor/ckeditor5-heading';
+import { Bold, Italic, Underline, Strikethrough, Code } from '@ckeditor/ckeditor5-basic-styles';
+import { Link } from '@ckeditor/ckeditor5-link';
+import { List } from '@ckeditor/ckeditor5-list';
+import { Image, ImageToolbar, ImageCaption, ImageStyle, ImageResize } from '@ckeditor/ckeditor5-image';
+import { Table, TableToolbar } from '@ckeditor/ckeditor5-table';
+import { Base64UploadAdapter } from '@ckeditor/ckeditor5-upload';
+import { Alignment } from '@ckeditor/ckeditor5-alignment';
+import { FontSize, FontFamily, FontColor, FontBackgroundColor } from '@ckeditor/ckeditor5-font';
+import { Highlight } from '@ckeditor/ckeditor5-highlight';
+import { CodeBlock } from '@ckeditor/ckeditor5-code-block';
+import { SourceEditing } from '@ckeditor/ckeditor5-source-editing';
+import { BlockQuote } from '@ckeditor/ckeditor5-block-quote';
+import { MediaEmbed } from '@ckeditor/ckeditor5-media-embed';
+import { Indent } from '@ckeditor/ckeditor5-indent';
+import { Autoformat } from '@ckeditor/ckeditor5-autoformat';
+import { GeneralHtmlSupport } from '@ckeditor/ckeditor5-html-support';
 
 export default function LessonDocumentEditor({ document, onUpdated }) {
   const [editing, setEditing] = useState(false);
@@ -76,12 +81,6 @@ export default function LessonDocumentEditor({ document, onUpdated }) {
     );
   };
 
-  const closeNotification = () => {
-    setNotification((prev) => ({ ...prev, isOpen: false }));
-  };
-
-  const [uploading, setUploading] = useState(false);
-
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -89,7 +88,6 @@ export default function LessonDocumentEditor({ document, onUpdated }) {
     try {
       const res = await uploadService.uploadImage(file);
       const url = res.data.url || res.data;
-      setForm((prev) => ({ ...prev, imageUrl: url }));
       setForm((prev) => ({ ...prev, imageUrl: url }));
     } catch (err) {
       showNotification("Lỗi", "Upload ảnh thất bại", "error");
@@ -105,7 +103,6 @@ export default function LessonDocumentEditor({ document, onUpdated }) {
     try {
       const res = await uploadService.uploadVideo(file);
       const url = res.data.url || res.data;
-      setForm((prev) => ({ ...prev, videoUrl: url }));
       setForm((prev) => ({ ...prev, videoUrl: url }));
     } catch (err) {
       showNotification("Lỗi", "Upload video thất bại", "error");
@@ -155,6 +152,59 @@ export default function LessonDocumentEditor({ document, onUpdated }) {
     }
   };
 
+  const [uploading, setUploading] = useState(false);
+
+  const editorConfiguration = {
+    licenseKey: 'GPL',
+    plugins: [
+        Essentials, Paragraph, Heading, Bold, Italic, Underline, Strikethrough, Code,
+        Link, List, Table, TableToolbar, 
+        Image, ImageToolbar, ImageCaption, ImageStyle, ImageResize,
+        Base64UploadAdapter, Alignment, 
+        FontSize, FontFamily, FontColor, FontBackgroundColor,
+        Highlight, CodeBlock, SourceEditing, BlockQuote, MediaEmbed, 
+        Indent, Autoformat, GeneralHtmlSupport
+    ],
+    toolbar: [
+        'heading', '|', 
+        'fontSize', 'fontFamily', 'fontColor', 'fontBackgroundColor', 'highlight', '|',
+        'bold', 'italic', 'underline', 'strikethrough', 'code', 'link', '|',
+        'alignment', 'bulletedList', 'numberedList', 'outdent', 'indent', '|',
+        'imageUpload', 'blockQuote', 'insertTable', 'mediaEmbed', 'codeBlock', 'sourceEditing', '|',
+        'undo', 'redo'
+    ],
+    heading: {
+        options: [
+            { model: 'paragraph', title: 'Thẻ (P)', class: 'ck-heading_paragraph' },
+            { model: 'heading1', view: 'h1', title: 'Tiêu đề 1 (H1)', class: 'ck-heading_heading1' },
+            { model: 'heading2', view: 'h2', title: 'Tiêu đề 2 (H2)', class: 'ck-heading_heading2' },
+            { model: 'heading3', view: 'h3', title: 'Tiêu đề 3 (H3)', class: 'ck-heading_heading3' },
+            { model: 'heading4', view: 'h4', title: 'Tiêu đề 4 (H4)', class: 'ck-heading_heading4' },
+            { model: 'heading5', view: 'h5', title: 'Tiêu đề 5 (H5)', class: 'ck-heading_heading5' }
+        ]
+    },
+    fontSize: {
+        options: [ 10, 12, 14, 'default', 18, 20, 24, 28, 32 ]
+    },
+    htmlSupport: {
+        allow: [
+            {
+                name: /.*/,
+                attributes: true,
+                classes: true,
+                styles: true
+            }
+        ]
+    },
+    image: {
+        toolbar: ['imageTextAlternative', 'imageStyle:inline', 'imageStyle:block', 'imageStyle:side', '|', 'imageResize', '|', 'toggleImageCaption'],
+        resizeUnit: '%'
+    },
+    table: { contentToolbar: ['tableColumn', 'tableRow', 'mergeTableCells'] },
+    language: 'vi',
+    placeholder: 'Chỉnh sửa nội dung tài liệu...',
+  };
+
   if (!document) return <p>Đang tải tài liệu...</p>;
 
   if (!editing) {
@@ -163,20 +213,7 @@ export default function LessonDocumentEditor({ document, onUpdated }) {
         <div className="lde-header">
           <h3 className="lde-title">{document.title}</h3>
           <button className="lde-btn-edit" onClick={() => setEditing(true)}>
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-            </svg>
-            Sửa tài liệu
+            ✏️ Sửa tài liệu
           </button>
         </div>
         <div
@@ -200,7 +237,6 @@ export default function LessonDocumentEditor({ document, onUpdated }) {
         )}
         {document.videoUrl && (
           <div style={{ marginTop: "12px", marginBottom: "12px" }}>
-            {/* Prepend server URL if relative */}
             {(() => {
               const fullVideoUrl = document.videoUrl.startsWith("/")
                 ? `${SERVER_URL}${document.videoUrl}`
@@ -217,190 +253,72 @@ export default function LessonDocumentEditor({ document, onUpdated }) {
             })()}
           </div>
         )}
-        <p>
-        </p>
       </div>
     );
   }
 
-  // Display Logic (Editing active)
-  if (editing) {
-    return (
-      <div className="admin-form-container">
-        <h3 className="admin-form-title">✏️ Chỉnh sửa tài liệu</h3>
+  return (
+    <div className="admin-form-container">
+      <h3 className="admin-form-title">✏️ Chỉnh sửa tài liệu</h3>
 
-        <div className="admin-form-group">
-          <label className="admin-form-label">Tiêu đề</label>
-          <input
-            className="admin-input"
-            value={form.title}
-            onChange={(e) => setForm({ ...form, title: e.target.value })}
-            autoFocus
-            placeholder="Nhập tiêu đề tài liệu"
-          />
-        </div>
-
-        <div className="admin-form-group">
-          <label className="admin-form-label">Nội dung</label>
-          <div style={{ borderRadius: "10px", overflow: "hidden", border: "1px solid #cbd5e1" }}>
-            <CKEditor
-              editor={ClassicEditor}
-              data={form.content}
-              config={{ toolbar: CKEDITOR_TOOLBAR }}
-              onChange={(event, editor) =>
-                setForm((prev) => ({ ...prev, content: editor.getData() }))
-              }
-            />
-          </div>
-        </div>
-
-        <div className="admin-form-group">
-          <label className="admin-form-label">Ảnh Thumbnail (Tùy chọn)</label>
-          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-            <label className="admin-btn admin-btn-secondary" style={{ display: "inline-flex", alignItems: "center", gap: "6px", cursor: "pointer" }}>
-              📷 Chọn ảnh
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleImageUpload}
-                disabled={uploading}
-                hidden
-              />
-            </label>
-            {form.imageUrl && <span style={{ fontSize: "13px", color: "#166534" }}>✅ Đã có ảnh</span>}
-          </div>
-          {form.imageUrl && (
-            <div style={{ marginTop: "8px" }}>
-              <img src={form.imageUrl.startsWith("/") ? `${SERVER_URL}${form.imageUrl}` : form.imageUrl} alt="preview" style={{ height: "60px", borderRadius: "6px" }} onError={(e) => e.target.style.display = 'none'} />
-            </div>
-          )}
-        </div>
-
-        <div className="admin-form-group">
-          <label className="admin-form-label">Video bài học (Tùy chọn)</label>
-          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-            <label className="admin-btn admin-btn-secondary" style={{ display: "inline-flex", alignItems: "center", gap: "6px", cursor: "pointer" }}>
-              🎥 Chọn video
-              <input
-                type="file"
-                accept="video/*"
-                onChange={handleVideoUpload}
-                disabled={uploading}
-                hidden
-              />
-            </label>
-            {form.videoUrl && <span style={{ fontSize: "13px", color: "#166534" }}>✅ Đã có video</span>}
-          </div>
-        </div>
-
-        <div className="admin-form-group">
-          <label className="admin-form-label">File PDF (Tùy chọn)</label>
-          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-            <label className="admin-btn admin-btn-secondary" style={{ display: "inline-flex", alignItems: "center", gap: "6px", cursor: "pointer" }}>
-              📄 Chọn PDF
-              <input
-                type="file"
-                accept="application/pdf"
-                onChange={handlePdfUpload}
-                disabled={uploading}
-                hidden
-              />
-            </label>
-            {form.pdfUrl && <span style={{ fontSize: "13px", color: "#166534" }}>✅ Đã có PDF</span>}
-          </div>
-        </div>
-
-
-
-        <div style={{ marginTop: "32px", display: "flex", justifyContent: "flex-end", gap: "12px" }}>
-          <button className="admin-btn admin-btn-secondary" onClick={() => setEditing(false)} disabled={uploading}>
-            Hủy bỏ
-          </button>
-          <button className="admin-btn admin-btn-primary" onClick={handleSave} disabled={uploading}>
-            {uploading ? "Đang tải lên..." : "Lưu thay đổi"}
-          </button>
-        </div>
-
-        <NotificationModal
-          isOpen={notification.isOpen}
-          onClose={closeNotification}
-          title={notification.title}
-          message={notification.message}
-          type={notification.type}
+      <div className="admin-form-group">
+        <label className="admin-form-label">Tiêu đề</label>
+        <input
+          className="admin-input"
+          value={form.title}
+          onChange={(e) => setForm({ ...form, title: e.target.value })}
+          autoFocus
+          placeholder="Nhập tiêu đề tài liệu"
         />
       </div>
-    );
-  }
 
-  // View Mode
-  return (
-    <div className="lde-wrapper">
-      <div className="lde-header">
-        <h3 className="lde-title">{document.title}</h3>
-        <button className="lde-btn-edit" onClick={() => setEditing(true)}>
-          ✏️ Sửa tài liệu
+      <div className="admin-form-group">
+        <label className="admin-form-label">Nội dung</label>
+        <div style={{ borderRadius: "10px", overflow: "hidden", border: "1px solid #cbd5e1" }}>
+          <CKEditor
+            editor={ClassicEditor}
+            config={editorConfiguration}
+            data={form.content}
+            onChange={(event, editor) =>
+              setForm((prev) => ({ ...prev, content: editor.getData() }))
+            }
+          />
+        </div>
+      </div>
+
+      <div className="admin-form-group">
+        <label className="admin-form-label">Ảnh Thumbnail (Tùy chọn)</label>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <label className="admin-btn admin-btn-secondary" style={{ display: "inline-flex", alignItems: "center", gap: "6px", cursor: "pointer" }}>
+            📷 Chọn ảnh
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+              disabled={uploading}
+              hidden
+            />
+          </label>
+          {form.imageUrl && <span style={{ fontSize: "13px", color: "#166534" }}>✅ Đã có ảnh</span>}
+        </div>
+      </div>
+
+      <div style={{ marginTop: "32px", display: "flex", justifyContent: "flex-end", gap: "12px" }}>
+        <button className="admin-btn admin-btn-secondary" onClick={() => setEditing(false)} disabled={uploading}>
+          Hủy bỏ
+        </button>
+        <button className="admin-btn admin-btn-primary" onClick={handleSave} disabled={uploading}>
+          {uploading ? "Đang tải lên..." : "Lưu thay đổi"}
         </button>
       </div>
 
-      <div
-        className="lde-content html-content"
-        dangerouslySetInnerHTML={{ __html: document.content }}
+      <NotificationModal
+        isOpen={notification.isOpen}
+        onClose={() => setNotification((prev) => ({ ...prev, isOpen: false }))}
+        title={notification.title}
+        message={notification.message}
+        type={notification.type}
       />
-
-      {document.imageUrl && (
-        <div style={{ marginTop: "16px" }}>
-          <img
-            src={
-              document.imageUrl.startsWith("/")
-                ? `${SERVER_URL}${document.imageUrl}`
-                : document.imageUrl
-            }
-            alt={document.title}
-            className="lde-image"
-            style={{ maxWidth: "100%", borderRadius: "8px" }}
-            onError={(e) => {
-              e.target.style.display = 'none';
-            }}
-          />
-        </div>
-      )}
-
-      {document.videoUrl && (
-        <div style={{ marginTop: "16px", marginBottom: "12px" }}>
-          {(() => {
-            const fullVideoUrl = document.videoUrl.startsWith("/")
-              ? `${SERVER_URL}${document.videoUrl}`
-              : document.videoUrl;
-
-            if (/youtube\.com|youtu\.be/.test(fullVideoUrl)) {
-              return (
-                <a href={fullVideoUrl} className="lde-link" target="_blank" rel="noreferrer">
-                  Link Video (YouTube)
-                </a>
-              );
-            }
-            return <VideoProgress src={fullVideoUrl} />;
-          })()}
-        </div>
-      )}
-
-      {document.pdfUrl && (
-        <div className="lde-pdf-container">
-          <div className="lde-pdf-icon">📄</div>
-          <div className="lde-pdf-info">
-            <div className="lde-pdf-title">Tài liệu đính kèm PDF</div>
-            <a
-              href={document.pdfUrl.startsWith("/") ? `${SERVER_URL}${document.pdfUrl}` : document.pdfUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="lde-pdf-link"
-            >
-              📥 Tải xuống / Xem tài liệu
-            </a>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
-
