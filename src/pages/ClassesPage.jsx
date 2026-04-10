@@ -5,11 +5,15 @@ import { FaUserTie, FaRegClock, FaUsers } from "react-icons/fa";
 import { classService } from "@utils/classService";
 import { classStudentService } from "@utils/classStudentService";
 import { classTeacherService } from "@utils/classTeacherService";
+import AdminPagination from "@shared/components/Admin/AdminPagination";
 
 const ClassesPage = () => {
   const [classes, setClasses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const pageSize = 10;
 
   const mapClassesToState = (rawList) => {
     const mapped = rawList.map((c) => {
@@ -75,56 +79,62 @@ const ClassesPage = () => {
           }
         }
 
-        // 1. Fetch ALL classes
-        const res = await classService.getClasses();
-        const data = res.data?.data?.content || res.data?.data || res.data?.content || res.data || [];
-        const allClasses = Array.isArray(data) ? data : [];
-
         if (userId) {
-          // 2. Filter classes by checking student enrollment
-          // Since backend doesn't support filter params, we check each class
+          const res = await classStudentService.getStudentClasses(userId, {
+            page: currentPage - 1,
+            size: pageSize
+          });
+          const data = res.data?.data || res.data || {};
+          let content = data.content;
+          if (!content && Array.isArray(data)) {
+            content = data;
+          } else if (!content) {
+            content = [];
+          }
+
+          if (mounted) {
+            setTotalPages(data.totalPages || Math.ceil(content.length / pageSize) || 1);
+          }
+
+          // Fetch extra details if not returned directly by backend payload
           const enrollmentChecks = await Promise.all(
-            allClasses.map(async (cls) => {
+            content.map(async (item) => {
               try {
-                const sRes = await classStudentService.getClassStudents(cls.id);
-                const students = sRes.data?.data || sRes.data || [];
-                // Check if current user is in this list
-                const isEnrolled = Array.isArray(students) && students.some(s =>
-                  String(s.studentId) === String(userId) || String(s.id) === String(userId)
-                );
-
-                if (!isEnrolled) return null;
-
-                // 2.5 Fetch Teacher for this class
-                let assignedTeacher = "Chưa phân công";
-                try {
-                  const tRes = await classTeacherService.getClassTeachers(cls.id);
-                  const teachers = tRes.data?.data || tRes.data || [];
-                  if (teachers.length > 0) {
-                    // Assuming first teacher or combine names
-                    assignedTeacher = teachers.map(t => t.fullName || t.teacherName || t.name).join(", ");
+                const cls = item.clazz || item.classResponse || item.classDto || item;
+                
+                let assignedTeacher = cls.assignedTeacher || "Chưa phân công";
+                if (!cls.assignedTeacher && (cls.id || cls.classId)) {
+                  try {
+                    const tRes = await classTeacherService.getClassTeachers(cls.id || cls.classId);
+                    const teachers = tRes.data?.data || tRes.data || [];
+                    if (teachers.length > 0) {
+                      assignedTeacher = teachers.map(t => t.fullName || t.teacherName || t.name).join(", ");
+                    }
+                  } catch (e) {
+                    console.warn("Failed to fetch teacher for class", e);
                   }
-                } catch (e) {
-                  console.warn("Failed to fetch teacher for class " + cls.id);
+                }
+                
+                let studentCount = cls.studentCount || cls.student_count || 0;
+                if (!studentCount && (cls.id || cls.classId)) {
+                   try {
+                     const sRes = await classStudentService.getClassStudents(cls.id || cls.classId);
+                     const students = sRes.data?.data || sRes.data || [];
+                     studentCount = students.length;
+                   } catch (e) {
+                     console.warn("Failed to fetch students");
+                   }
                 }
 
-                return { ...cls, assignedTeacher, studentCount: students.length };
+                return { ...cls, id: cls.id || cls.classId, assignedTeacher, studentCount };
               } catch (err) {
-                console.warn(`Failed to check students for class ${cls.id}`, err);
-                return null;
+                return item;
               }
             })
           );
 
-          // Filter out nulls
-          const myClasses = enrollmentChecks.filter(c => c !== null);
-
-          if (mounted) mapClassesToState(myClasses);
+          if (mounted) mapClassesToState(enrollmentChecks);
         } else {
-          // No user logged in, maybe show empty or all? 
-          // Request implies "YX`our classes", so likely empty if not logged in.
-          // But to be safe/friendly, let's just show all or empty. 
-          // "Danh sách lớp học của bạn" implies ownership.
           if (mounted) setClasses([]);
         }
 
@@ -136,7 +146,7 @@ const ClassesPage = () => {
       }
     })();
     return () => { mounted = false; };
-  }, []);
+  }, [currentPage]);
 
   const grid = useMemo(() => classes, [classes]);
 
@@ -194,6 +204,14 @@ const ClassesPage = () => {
             )
           })}
       </div>
+
+      {!loading && grid.length > 0 && (
+        <AdminPagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={(page) => setCurrentPage(page)}
+        />
+      )}
     </div>
   );
 };

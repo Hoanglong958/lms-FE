@@ -22,8 +22,8 @@ const getClassStudents = (classId) => {
  * @param {number} studentId - ID của học viên
  * @returns {Promise} Response containing list of classes
  */
-const getStudentClasses = (studentId) =>
-  api.get(`${BASE_PATH}/by-student`, { params: { studentId: parseInt(studentId) } });
+const getStudentClasses = (studentId, params = {}) =>
+  api.get(`${BASE_PATH}/by-student`, { params: { studentId: parseInt(studentId), ...params } });
 
 /**
  * POST /api/v1/classes/students
