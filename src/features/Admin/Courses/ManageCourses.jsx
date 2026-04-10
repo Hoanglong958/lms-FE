@@ -137,6 +137,7 @@ export default function ManageCourses() {
   const [formData, setFormData] = useState(initialFormData);
 
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [levelFilter, setLevelFilter] = useState("");
   const [errors, setErrors] = useState({});
   const [uploading, setUploading] = useState(false);
@@ -165,11 +166,20 @@ export default function ManageCourses() {
   // Load courses
   const loadCourses = async () => {
     try {
-      const res = await courseService.getCoursesPaging({
+      let res;
+      const params = {
         page: page,
         size: pageSize,
-        q: searchTerm,
-      });
+      };
+
+      if (debouncedSearchTerm.trim()) {
+        res = await courseService.searchCourses({
+          ...params,
+          q: debouncedSearchTerm.trim()
+        });
+      } else {
+        res = await courseService.getCoursesPaging(params);
+      }
       
       let apiData = [];
       let paging = { totalElements: 0, totalPages: 0 };
@@ -191,14 +201,22 @@ export default function ManageCourses() {
     }
   };
 
+  // Debounce search term
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 500); // 500ms debounce
+    return () => clearTimeout(handler);
+  }, [searchTerm]);
+
   useEffect(() => {
     loadCourses();
-  }, [page, pageSize]);
+  }, [page, pageSize, debouncedSearchTerm, levelFilter]);
 
   // Reset to page 0 when searching
   useEffect(() => {
     setPage(0);
-  }, [searchTerm, levelFilter]);
+  }, [debouncedSearchTerm, levelFilter]);
 
   // Input change
   const handleInputChange = (e) => {

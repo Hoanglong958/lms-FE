@@ -5,7 +5,7 @@ import Pagination from "@components/common/Pagination";
 
 const RecentQuizzesTable = ({ quizzes }) => {
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
+  const itemsPerPage = 7;
   const normalizedQuizzes = Array.isArray(quizzes) ? quizzes : [];
   const totalPages = Math.ceil(normalizedQuizzes.length / itemsPerPage);
   const startIdx = (currentPage - 1) * itemsPerPage;
@@ -58,14 +58,15 @@ const RecentQuizzesTable = ({ quizzes }) => {
                       <div>{quiz.title}</div>
                       {quiz.lessonTitle ? (
                         <div className="cell-subtitle">{quiz.lessonTitle}</div>
-                      ) : null}
+                      ) : (
+                        <div className="cell-subtitle" style={{ visibility: "hidden" }}>
+                          Không có bài học
+                        </div>
+                      )}
                     </td>
                     <td className="td-cell">{participants}</td>
                     <td className="td-cell">
-                      <span
-                        className={`pass-rate ${pr > 80 ? "pass-rate-high" : "pass-rate-low"
-                          }`}
-                      >
+                      <span className={`pass-rate ${pr > 80 ? "pass-rate-high" : "pass-rate-low"}`}>
                         {pr}%
                       </span>
                     </td>

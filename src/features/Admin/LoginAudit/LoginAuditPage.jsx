@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import api from '@config';
+import api from '@services/api';
 import './LoginAuditPage.css';
 
 const LoginAuditPage = () => {
@@ -23,7 +23,7 @@ const LoginAuditPage = () => {
       const params = new URLSearchParams({ limit: limit.toString() });
       if (role) params.append('role', role);
       
-      const response = await api.get(`/admin/login-audits?${params.toString()}`);
+      const response = await api.get(`/api/v1/admin/login-audits?${params.toString()}`);
       setLogs(response.data?.data || []);
     } catch (err) {
       setError(err.response?.data?.message || 'Lỗi khi tải nhật ký');
@@ -44,6 +44,10 @@ const LoginAuditPage = () => {
       setCanScroll(isScrollable);
     }
   }, []);
+
+  useEffect(() => {
+    fetchLogs();
+  }, [fetchLogs]);
 
   // Run check on component mount and when logs change
   useEffect(() => {

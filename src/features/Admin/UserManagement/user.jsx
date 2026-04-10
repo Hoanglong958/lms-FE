@@ -17,7 +17,7 @@ export default function UserManagement({ currentUserRole = "admin" }) {
 
 	// Pagination states
 	const [page, setPage] = useState(0);
-	const [pageSize, setPageSize] = useState(10);
+	const [pageSize, setPageSize] = useState(12);
 	const [totalElements, setTotalElements] = useState(0);
 	const [totalPages, setTotalPages] = useState(0);
 

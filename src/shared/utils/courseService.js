@@ -12,6 +12,11 @@ export const courseService = {
     return api.get("/api/v1/courses/paging", { params });
   },
 
+  // GET /api/v1/courses/search
+  searchCourses(params) {
+    return api.get("/api/v1/courses/search", { params });
+  },
+
   // GET /api/v1/courses/detail
   getCourseDetail(id) {
     return api.get(`/api/v1/courses/detail`, { params: { id } });
