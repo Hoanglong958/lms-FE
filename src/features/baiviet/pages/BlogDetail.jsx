@@ -144,9 +144,9 @@ export default function BlogDetail() {
                             </div>
                         </div>
 
-                        {post.image && (
+                        {(post.imageUrl || post.image) && (
                             <img
-                                src={post.image}
+                                src={post.imageUrl || post.image}
                                 alt={post.title}
                                 style={{ width: "100%", borderRadius: "8px", marginBottom: "25px", objectFit: "cover", maxHeight: "400px" }}
                             />
@@ -232,7 +232,7 @@ export default function BlogDetail() {
                                 {related.map((r) => (
                                     <Link key={r.id} to={`/bai-viet/${r.id}`} style={{ textDecoration: "none", color: "inherit", display: "flex", gap: "10px" }}>
                                         <img
-                                            src={r.image || fallbackImage}
+                                            src={r.imageUrl || r.image || fallbackImage}
                                             alt={r.title}
                                             style={{ width: "80px", height: "60px", objectFit: "cover", borderRadius: "6px" }}
                                             onError={(e) => (e.currentTarget.src = fallbackImage)}

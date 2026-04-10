@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { Form, Input, Button, Select, message, Card, Row, Col, Typography, Breadcrumb, Divider, Spin, Tooltip, Badge } from "antd";
-import { ArrowLeftOutlined, SaveOutlined, EyeOutlined, FullscreenOutlined, FileTextOutlined, TagOutlined } from "@ant-design/icons";
+import { Form, Input, Button, Select, message, Card, Row, Col, Typography, Breadcrumb, Divider, Spin, Tooltip, Badge, Upload } from "antd";
+import { ArrowLeftOutlined, SaveOutlined, EyeOutlined, FullscreenOutlined, FileTextOutlined, TagOutlined, PlusOutlined, LoadingOutlined } from "@ant-design/icons";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { postService } from "@utils/postService";
+import { uploadService } from "@utils/uploadService";
 import { CKEditor } from '@ckeditor/ckeditor5-react';
 import { ClassicEditor } from '@ckeditor/ckeditor5-editor-classic';
 import { Essentials } from '@ckeditor/ckeditor5-essentials';
@@ -11,7 +12,7 @@ import { Heading } from '@ckeditor/ckeditor5-heading';
 import { Bold, Italic, Underline, Strikethrough, Code } from '@ckeditor/ckeditor5-basic-styles';
 import { Link } from '@ckeditor/ckeditor5-link';
 import { List } from '@ckeditor/ckeditor5-list';
-import { Image, ImageToolbar, ImageCaption, ImageStyle, ImageResize } from '@ckeditor/ckeditor5-image';
+import { Image, ImageToolbar, ImageCaption, ImageStyle, ImageResize, ImageUpload, ImageInsert } from '@ckeditor/ckeditor5-image';
 import { Table, TableToolbar } from '@ckeditor/ckeditor5-table';
 import { Alignment } from '@ckeditor/ckeditor5-alignment';
 import { FontSize, FontFamily, FontColor, FontBackgroundColor } from '@ckeditor/ckeditor5-font';
@@ -50,6 +51,9 @@ export default function PostEdit() {
   const [editorContent, setEditorContent] = useState("");
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [initialValues, setInitialValues] = useState(null);
+  const [uploading, setUploading] = useState(false);
+
+  const imageUrl = Form.useWatch("imageUrl", form);
 
   const isTeacher = location.pathname.startsWith("/teacher");
   const basePath = isTeacher ? "/teacher/posts" : "/admin/posts";
@@ -122,12 +126,35 @@ export default function PostEdit() {
     }
   };
 
+  const customUpload = async (options) => {
+    const { file, onSuccess, onError } = options;
+    setUploading(true);
+    try {
+      const res = await uploadService.uploadImage(file);
+      const url = res.data?.data || res.data;
+      form.setFieldsValue({ imageUrl: url });
+      onSuccess("ok");
+    } catch (err) {
+      onError(err);
+      message.error("Tải ảnh thất bại!");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const uploadButton = (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+      {uploading ? <LoadingOutlined style={{ fontSize: 24, color: '#f97316' }} /> : <PlusOutlined style={{ fontSize: 24, color: '#9ca3af' }} />}
+      <div style={{ marginTop: 8, color: '#6b7280', fontSize: 13, fontWeight: 500 }}>Tải ảnh</div>
+    </div>
+  );
+
   const editorConfiguration = {
     licenseKey: 'GPL',
     plugins: [
       Essentials, Paragraph, Heading, Bold, Italic, Underline, Strikethrough, Code,
       Link, List, BlockQuote,
-      Image, ImageToolbar, ImageCaption, ImageStyle, ImageResize,
+      Image, ImageToolbar, ImageCaption, ImageStyle, ImageResize, ImageUpload, ImageInsert,
       Table, TableToolbar,
       Alignment,
       FontSize, FontFamily, FontColor, FontBackgroundColor,
@@ -169,6 +196,7 @@ export default function PostEdit() {
           title: post.title,
           slug: post.slug,
           content: post.content || '',
+          imageUrl: post.imageUrl || '',
           status: post.status,
           tagNames: post.tags || []
         });
@@ -197,6 +225,7 @@ export default function PostEdit() {
         title: values.title,
         slug: values.slug,
         content: values.content ?? editorContent,
+        imageUrl: values.imageUrl,
         authorId: user.id || 1,
         tagNames: values.tagNames || [],
         status: values.status,
@@ -270,7 +299,7 @@ export default function PostEdit() {
         <Row gutter={24}>
           {/* Cột trái: editor */}
           <Col xs={24} lg={17}>
-            <Card className="editor-card" bordered={false}>
+            <Card className="editor-card" variant="borderless">
               <Form.Item
                 label={
                   <span className="form-label">
@@ -301,7 +330,7 @@ export default function PostEdit() {
                 }
               >
                 <Input
-                  addonBefore={<span className="slug-addon">/bai-viet/</span>}
+                  prefix={<span className="slug-addon" style={{ marginRight: '4px' }}>/bai-viet/</span>}
                   placeholder="url-bai-viet"
                   className="slug-input"
                 />
@@ -341,13 +370,13 @@ export default function PostEdit() {
                     config={editorConfiguration}
                     data={editorContent}
                     onReady={(editor) => {
-                      form.setFieldValue("content", editor.getData() || "");
+                      form.setFieldsValue({ content: editor.getData() || "" });
                       editor.editing.view.document.on('paste', (evt) => handlePaste(evt, editor));
                     }}
                     onChange={(event, editor) => {
                       const data = editor.getData();
                       setEditorContent(data);
-                      form.setFieldValue("content", data);
+                      form.setFieldsValue({ content: data });
                       form.validateFields(['content']).catch(() => {});
                     }}
                   />
@@ -359,7 +388,7 @@ export default function PostEdit() {
           {/* Cột phải: sidebar */}
           <Col xs={24} lg={7}>
             <div className="sidebar-sticky">
-              <Card className="publish-card" bordered={false}>
+              <Card className="publish-card" variant="borderless">
                 <div className="card-header">
                   <Title level={5}>Cập nhật</Title>
                 </div>
@@ -385,6 +414,27 @@ export default function PostEdit() {
                   <ContentStats wordCount={wordCount} charCount={contentPlainText.length} />
                 </div>
 
+                <Form.Item name="imageUrl" hidden>
+                  <Input type="hidden" />
+                </Form.Item>
+                <Form.Item
+                  label={<span className="form-label">Ảnh đại diện</span>}
+                >
+                  <Upload
+                    name="file"
+                    listType="picture-card"
+                    showUploadList={false}
+                    customRequest={customUpload}
+                    style={{ width: '100%' }}
+                  >
+                    {imageUrl ? (
+                      <img src={imageUrl} alt="thumbnail" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }} />
+                    ) : (
+                      uploadButton
+                    )}
+                  </Upload>
+                </Form.Item>
+
                 <Button
                   type="primary"
                   htmlType="submit"
@@ -398,7 +448,7 @@ export default function PostEdit() {
                 </Button>
               </Card>
 
-              <Card className="taxonomy-card" bordered={false}>
+              <Card className="taxonomy-card" variant="borderless">
                 <div className="card-header">
                   <Title level={5}>
                     <TagOutlined className="mr-2" />
@@ -430,7 +480,7 @@ export default function PostEdit() {
         </Row>
       </Form>
 
-      <style jsx>{`
+      <style>{`
         /* =========================================
            CONTAINER
         ========================================= */

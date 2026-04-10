@@ -586,36 +586,49 @@ export default function PostManagement() {
                                 <tr key={post.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
                                     <td style={{ padding: '16px', color: '#9ca3af', fontSize: 14, verticalAlign: 'top' }}>#{post.id}</td>
                                     <td style={{ padding: '16px', verticalAlign: 'top' }}>
-                                        <div style={{ minWidth: 0 }}>
-                                            <span
-                                                onClick={() => navigate(`${post.id}/edit`)}
-                                                style={{
-                                                    fontWeight: 600,
-                                                    fontSize: 15,
-                                                    color: '#374151',
-                                                    cursor: 'pointer',
-                                                    transition: 'color 0.2s',
-                                                    display: 'block',
-                                                    width: '100%',
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0 }}>
+                                            {post.imageUrl ? (
+                                                <img 
+                                                    src={post.imageUrl} 
+                                                    alt={post.title} 
+                                                    style={{ width: '48px', height: '48px', objectFit: 'cover', borderRadius: '8px', flexShrink: 0 }}
+                                                />
+                                            ) : (
+                                                <div style={{ width: '48px', height: '48px', background: '#f3f4f6', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                                    <FileText size={20} color="#9ca3af" />
+                                                </div>
+                                            )}
+                                            <div style={{ minWidth: 0, flex: 1 }}>
+                                                <span
+                                                    onClick={() => navigate(`${post.id}/edit`)}
+                                                    style={{
+                                                        fontWeight: 600,
+                                                        fontSize: 15,
+                                                        color: '#374151',
+                                                        cursor: 'pointer',
+                                                        transition: 'color 0.2s',
+                                                        display: 'block',
+                                                        width: '100%',
+                                                        overflow: 'hidden',
+                                                        textOverflow: 'ellipsis',
+                                                        whiteSpace: 'nowrap'
+                                                    }}
+                                                    onMouseEnter={(e) => e.target.style.color = '#f97316'}
+                                                    onMouseLeave={(e) => e.target.style.color = '#374151'}
+                                                >
+                                                    {post.title || 'Không có tiêu đề'}
+                                                </span>
+                                                <div style={{
+                                                    fontSize: 12,
+                                                    color: '#9ca3af',
+                                                    fontStyle: 'italic',
+                                                    marginTop: 2,
                                                     overflow: 'hidden',
                                                     textOverflow: 'ellipsis',
                                                     whiteSpace: 'nowrap'
-                                                }}
-                                                onMouseEnter={(e) => e.target.style.color = '#f97316'}
-                                                onMouseLeave={(e) => e.target.style.color = '#374151'}
-                                            >
-                                                {post.title || 'Không có tiêu đề'}
-                                            </span>
-                                            <div style={{
-                                                fontSize: 12,
-                                                color: '#9ca3af',
-                                                fontStyle: 'italic',
-                                                marginTop: 2,
-                                                overflow: 'hidden',
-                                                textOverflow: 'ellipsis',
-                                                whiteSpace: 'nowrap'
-                                            }}>
-                                                Slug: {post.slug || 'N/A'}
+                                                }}>
+                                                    Slug: {post.slug || 'N/A'}
+                                                </div>
                                             </div>
                                         </div>
                                     </td>
