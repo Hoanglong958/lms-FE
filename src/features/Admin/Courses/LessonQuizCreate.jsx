@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { lessonQuizService } from "@utils/lessonQuizService.js";
 import NotificationModal from "@components/NotificationModal/NotificationModal";
-import "./CoursesCSS/LessonDocumentEditor.css";
+import "./styles/LessonDocumentEditor.css";
 
 export default function LessonQuizCreate({ lesson, onCreated }) {
   const [form, setForm] = useState({

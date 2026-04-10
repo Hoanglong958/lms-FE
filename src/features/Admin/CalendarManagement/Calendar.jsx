@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { classService } from "@utils/classService";
 import { courseService } from "@utils/courseService";
@@ -28,6 +28,21 @@ export default function CalendarManagement() {
   const [courses, setCourses] = useState([]);
   const [classCourses, setClassCourses] = useState([]);
 
+  const subjects = useMemo(() => {
+    if (!courses.length) return [];
+    const classCourseMap = new Map();
+    classCourses.forEach((cc) => {
+      if (cc.courseId && cc.id) {
+        classCourseMap.set(cc.courseId, cc.id);
+      }
+    });
+    return courses.map((course) => ({
+      courseId: course.id,
+      courseName: course.title || course.name || course.courseName || "Môn học",
+      classCourseId: classCourseMap.get(course.id) || null,
+    }));
+  }, [courses, classCourses]);
+
   // Period management
   const [periods, setPeriods] = useState([]);
   const [selectedPeriods, setSelectedPeriods] = useState([]);
@@ -54,7 +69,6 @@ export default function CalendarManagement() {
   const [endDate, setEndDate] = useState(null);
   const [weeks, setWeeks] = useState([]);
   const [selectedWeek, setSelectedWeek] = useState(null);
-  const [subjects, setSubjects] = useState([]);
   const [schedule, setSchedule] = useState({});
   const [draggingSubject, setDraggingSubject] = useState(null);
   const [editingItem, setEditingItem] = useState(null);
@@ -62,12 +76,10 @@ export default function CalendarManagement() {
   const [isCreateMode, setIsCreateMode] = useState(false);
   const [pendingChanges, setPendingChanges] = useState([]); // Array of changes to save
   const [refreshKey, setRefreshKey] = useState(0);
+  const outletContext = useOutletContext();
+  const toggleSidebar = outletContext?.toggleSidebar ?? (() => {});
 
-  // Get toggleSidebar from context
-  let toggleSidebar = () => { };
-  try {
-    toggleSidebar = useOutletContext()?.toggleSidebar || (() => { });
-  } catch { }
+
 
   // Load class info and courses
   useEffect(() => {
@@ -128,14 +140,6 @@ export default function CalendarManagement() {
               : [];
         setCourses(coursesData);
 
-        if (coursesData.length > 0) {
-          setSubjects(
-            coursesData.map((course) => ({
-              courseId: course.id,
-              courseName: course.title || course.name,
-            }))
-          );
-        }
       } catch (err) {
         console.error("Error loading data:", err);
         showNotification("Lỗi", "Không thể tải thông tin lớp học!", "error");
@@ -150,8 +154,9 @@ export default function CalendarManagement() {
   // Load Schedules when Reference Data (classCourses, selectedWeek) changes
   useEffect(() => {
     const fetchSchedules = async () => {
+      // Clear schedule immediately when dependencies change
       if (!classId || !selectedWeek || classCourses.length === 0) {
-        if (!selectedWeek && Object.keys(schedule).length > 0) setSchedule({});
+        setSchedule({});  // IMPORTANT: Clear old schedule
         return;
       }
 
@@ -174,18 +179,32 @@ export default function CalendarManagement() {
         // Map to existing schedule structure: { [dayIndex]: { [periodId]: Item } }
         // dayIndex 0 = Monday of the selected week.
         const newSchedule = {};
-        const weekStart = new Date(selectedWeek.startDate);
-        weekStart.setHours(0, 0, 0, 0);
-        const weekEnd = new Date(selectedWeek.endDate);
-        weekEnd.setHours(23, 59, 59, 999);
+
+        // Use YYYY-MM-DD string comparison to avoid timezone bugs
+        const toDateStr = (d) => {
+          if (d instanceof Date) {
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${y}-${m}-${day}`;
+          }
+          return String(d).substring(0, 10); // "2026-02-09" from ISO/LocalDate string
+        };
+
+        const weekStartStr = toDateStr(selectedWeek.startDate);
+        const weekEndStr = toDateStr(selectedWeek.endDate);
+
+        console.log("[TKB] Week range:", weekStartStr, "->", weekEndStr, "| Total items from API:", allSchedules.length);
 
         allSchedules.forEach(item => {
-          const itemDate = new Date(item.date);
-          if (itemDate >= weekStart && itemDate <= weekEnd) {
-            // Calculate day index (0=Monday, ..., 6=Sunday)
-            // Be careful with timezone/day diff.
-            const diffTime = itemDate.getTime() - weekStart.getTime();
-            const diffDays = Math.round(diffTime / (1000 * 3600 * 24));
+          const itemDateStr = toDateStr(item.date);
+
+          // String comparison works for YYYY-MM-DD format (lexicographic = chronological)
+          if (itemDateStr >= weekStartStr && itemDateStr <= weekEndStr) {
+            // Calculate day index from dates (both normalized to local midnight)
+            const itemD = new Date(itemDateStr + 'T00:00:00');
+            const weekD = new Date(weekStartStr + 'T00:00:00');
+            const diffDays = Math.round((itemD - weekD) / (1000 * 3600 * 24));
 
             if (diffDays >= 0 && diffDays <= 6) {
               if (!newSchedule[diffDays]) newSchedule[diffDays] = {};
@@ -199,15 +218,20 @@ export default function CalendarManagement() {
                 periodId: item.periodId,
                 classCourseId: item.classCourseId || classCourses.find(cc => cc.courseId === item.courseId)?.id,
                 scheduleId: item.id,
-                date: item.date // Add this line
+                date: item.date
               };
             }
           }
         });
+
+        console.log("[TKB] Filtered schedule for week:", weekStartStr, "| Days with items:", Object.keys(newSchedule).length);
+
+        // Always set schedule (even if empty) to ensure UI updates
         setSchedule(newSchedule);
 
       } catch (error) {
         console.error("Error loading schedules", error);
+        setSchedule({});  // Clear on error too
         showNotification("Lỗi", "Không thể tải lịch học", "error");
       }
     };
@@ -395,72 +419,88 @@ export default function CalendarManagement() {
 
   const [saving, setSaving] = useState(false);
 
-  // This is the "Pattern Save" for Create Mode
+  // This is the "Pattern Save" for Create Mode - NOW SAVES ONLY CURRENT WEEK
   const handleSaveSchedulePattern = async () => {
     setSaving(true);
     try {
-      // 1. Group by Course -> List of { dayIndex, periodId }
-      const courseMap = {};
+      if (!selectedWeek) {
+        showNotification("Lỗi", "Vui lòng chọn tuần để lưu lịch", "error");
+        setSaving(false);
+        return;
+      }
+
+      // 1. Collect all schedule items for the current week
+      const scheduleItems = [];
+      const weekDays = getWeekDays(selectedWeek);
 
       Object.keys(schedule).forEach((dayIdx) => {
         const daySchedule = schedule[dayIdx];
         if (!daySchedule) return;
 
+        const dayIndex = Number(dayIdx); // 0-6
+        if (dayIndex < 0 || dayIndex > 6) return;
+
+        const targetDate = weekDays[dayIndex];
+
         Object.values(daySchedule).forEach((item) => {
-          const cId = item.subjectId;
-          const pId = item.periodId;
-          const dIdx = Number(dayIdx); // 0-6
-
-          if (!courseMap[cId]) {
-            courseMap[cId] = [];
-          }
-          courseMap[cId].push({ dayIndex: dIdx, periodId: pId });
-        });
-      });
-
-      // 2. Create requests with 1-to-1 mapping (periodIds[i] <-> daysOfWeek[i])
-      const requests = [];
-
-      Object.keys(courseMap).forEach((courseId) => {
-        const items = courseMap[courseId];
-        // items is array of { dayIndex, periodId }
-
-        const periodIds = [];
-        const daysOfWeek = [];
-
-        items.forEach(({ dayIndex, periodId }) => {
-          if (periodId && (dayIndex >= 0 && dayIndex <= 6)) {
-            periodIds.push(Number(periodId));
-            daysOfWeek.push(dayIndex + 1); // 0->1 ... 6->7
-          }
-        });
-
-        if (periodIds.length > 0) {
-          requests.push({
-            classId: Number(classId),
-            courseId: Number(courseId),
-            periodIds,
-            daysOfWeek
+          scheduleItems.push({
+            scheduleItemId: item.scheduleId || null, // null for new items
+            dayIndex: dayIndex,
+            periodId: item.periodId,
+            date: targetDate.toISOString().split("T")[0], // YYYY-MM-DD
+            classCourseId: item.classCourseId || null,
           });
-        }
+        });
       });
 
-      if (requests.length === 0) {
-        showNotification("Thông báo", "Không có lịch để lưu", "info");
+      if (scheduleItems.length === 0) {
+        showNotification("Thông báo", "Không có lịch để lưu cho tuần này", "info");
         setSaving(false);
         return;
       }
 
-      // 3. Execute sequentially
-      for (const req of requests) {
-        await scheduleService.createManual(req);
+      const usedClassCourseIds = [
+        ...new Set(
+          scheduleItems
+            .map((item) => item.classCourseId)
+            .filter((id) => id !== null && id !== undefined)
+        ),
+      ];
+
+      let payloadClassCourseId = usedClassCourseIds[0] || null;
+      if (!payloadClassCourseId && classCourses.length === 1) {
+        payloadClassCourseId = classCourses[0].id;
       }
 
-      showNotification("Thành công", "Đã lưu cấu hình thời khóa biểu", "success");
+      if (!payloadClassCourseId) {
+        showNotification("Lỗi", "Chưa có khóa học nào được gán cho lớp hoặc không thể xác định lớp-khóa học", "error");
+        setSaving(false);
+        return;
+      }
+
+      if (usedClassCourseIds.length > 1) {
+        showNotification("Lỗi", "Không thể lưu nhiều lớp-khóa học trong cùng một lệnh. Vui lòng tạo lịch riêng cho từng khóa học.", "error");
+        setSaving(false);
+        return;
+      }
+
+      // 3. Call the new week update API
+      const weekUpdateRequest = {
+        classCourseId: payloadClassCourseId,
+        weekStartDate: selectedWeek.startDate.toISOString().split('T')[0],
+        weekEndDate: selectedWeek.endDate.toISOString().split('T')[0],
+        scheduleItems: scheduleItems
+      };
+
+      await scheduleService.updateWeekSchedule(weekUpdateRequest);
+
+      showNotification("Thành công", `Đã lưu lịch cho tuần ${selectedWeek.weekNumber}`, "success");
+      
+      // Refresh the schedule data
+      setRefreshKey(prev => prev + 1);
 
     } catch (error) {
-      console.error("Save schedule error", error);
-      // Show detailed error if available from backend
+      console.error("Save week schedule error", error);
       const msg = error.response?.data?.data || error.response?.data?.message || "Có lỗi khi lưu lịch học";
       showNotification("Lỗi", msg, "error");
     } finally {
@@ -597,10 +637,10 @@ export default function CalendarManagement() {
                     setIsCreateMode(true);
                     setShowSubjectSidebar(true);
                   }}
-                  title="Tạo lịch học"
+                  title="Tạo lịch học cho tuần hiện tại"
                   style={{ backgroundColor: "#6f42c1", color: "white", border: "none" }}
                 >
-                  ⚡ Tạo lịch học
+                  ⚡ Tạo lịch (tuần này)
                 </button>
 
                 <button

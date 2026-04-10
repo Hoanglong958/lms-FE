@@ -3,8 +3,10 @@ import { Link, useOutletContext, useNavigate } from "react-router-dom";
 import { courseService } from "@utils/courseService.js";
 import { uploadService } from "@utils/uploadService";
 import { SERVER_URL } from "@config";
+import { useNotification } from "@shared/notification";
+import AdminPagination from "@shared/components/Admin/AdminPagination";
 
-import styles from "./ManageCourses.module.css";
+import styles from "./styles/ManageCourses.module.css";
 import AdminHeader from "@components/Admin/AdminHeader";
 import { slugify } from "@utils/slugify";
 import {
@@ -27,7 +29,9 @@ import {
   Plus,
   Pencil,
   Trash2,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Eye,
+  EyeOff
 } from "lucide-react";
 
 // Giá trị khởi tạo form
@@ -36,11 +40,12 @@ const initialFormData = {
   description: "",
   level: "",
   totalSessions: 0,
+  tuitionFee: 0,
   imageUrl: "",
 };
 
 // Component dòng khóa học
-function CourseRow({ course, onEdit, onDelete }) {
+function CourseRow({ course, onEdit, onToggleActive }) {
   const navigate = useNavigate();
 
   const handleRowClick = (e) => {
@@ -54,7 +59,7 @@ function CourseRow({ course, onEdit, onDelete }) {
     <tr
       className={styles.tableRow}
       onClick={handleRowClick}
-      style={{ cursor: "pointer" }}
+      style={{ cursor: "pointer", opacity: course.isActive ? 1 : 0.55 }}
     >
       <td>
         <img
@@ -89,6 +94,16 @@ function CourseRow({ course, onEdit, onDelete }) {
         </span>
       </td>
       <td>{course.totalSessions || 0}</td>
+      <td style={{ fontWeight: 600, color: '#0f172a' }}>
+        {new Intl.NumberFormat("vi-VN").format(course.tuitionFee || 0)} ₫
+      </td>
+      <td>
+        <span
+          className={`${styles.statusBadge} ${course.isActive ? styles.statusActive : styles.statusInactive}`}
+        >
+          {course.isActive ? "Đang hiện" : "Đã ẩn"}
+        </span>
+      </td>
       <td className={styles.colActions}>
         <div className={styles.rowActions} style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
           <button
@@ -101,11 +116,11 @@ function CourseRow({ course, onEdit, onDelete }) {
           </button>
           <button
             type="button"
-            className={`${styles.btnIcon} ${styles.btnIconDelete}`}
-            title="Xóa"
-            onClick={onDelete}
+            className={`${styles.btnIcon} ${styles.btnIconToggle}`}
+            title={course.isActive ? "Ẩn khóa học" : "Hiện khóa học"}
+            onClick={onToggleActive}
           >
-            🗑️
+            {course.isActive ? <EyeOff size={16} /> : <Eye size={16} />}
           </button>
         </div>
       </td>
@@ -115,15 +130,23 @@ function CourseRow({ course, onEdit, onDelete }) {
 
 // Component Trang Chính
 export default function ManageCourses() {
+  const { confirm, success, error: notifyError } = useNotification();
   const [courses, setCourses] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [currentCourse, setCurrentCourse] = useState(null);
   const [formData, setFormData] = useState(initialFormData);
 
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [levelFilter, setLevelFilter] = useState("");
   const [errors, setErrors] = useState({});
   const [uploading, setUploading] = useState(false);
+
+  // Pagination states
+  const [page, setPage] = useState(0);
+  const [pageSize, setPageSize] = useState(10);
+  const [totalElements, setTotalElements] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
 
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
@@ -134,7 +157,7 @@ export default function ManageCourses() {
       const url = res.data.url || res.data;
       setFormData((prev) => ({ ...prev, imageUrl: url }));
     } catch (err) {
-      alert("Upload ảnh thất bại");
+      notifyError("Upload ảnh thất bại");
     } finally {
       setUploading(false);
     }
@@ -143,14 +166,57 @@ export default function ManageCourses() {
   // Load courses
   const loadCourses = async () => {
     try {
-      const res = await courseService.getCourses();
-      setCourses(res.data);
-    } catch { }
+      let res;
+      const params = {
+        page: page,
+        size: pageSize,
+      };
+
+      if (debouncedSearchTerm.trim()) {
+        res = await courseService.searchCourses({
+          ...params,
+          q: debouncedSearchTerm.trim()
+        });
+      } else {
+        res = await courseService.getCoursesPaging(params);
+      }
+      
+      let apiData = [];
+      let paging = { totalElements: 0, totalPages: 0 };
+
+      if (res.data && res.data.data) {
+        apiData = res.data.data.content || res.data.data.data || [];
+        paging = {
+          totalElements: res.data.data.totalElements || 0,
+          totalPages: res.data.data.totalPages || 0
+        };
+      }
+
+      setCourses(apiData);
+      setTotalElements(paging.totalElements);
+      setTotalPages(paging.totalPages);
+    } catch (err) {
+      console.error("Load Courses Error:", err);
+      setCourses([]);
+    }
   };
+
+  // Debounce search term
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 500); // 500ms debounce
+    return () => clearTimeout(handler);
+  }, [searchTerm]);
 
   useEffect(() => {
     loadCourses();
-  }, []);
+  }, [page, pageSize, debouncedSearchTerm, levelFilter]);
+
+  // Reset to page 0 when searching
+  useEffect(() => {
+    setPage(0);
+  }, [debouncedSearchTerm, levelFilter]);
 
   // Input change
   const handleInputChange = (e) => {
@@ -180,19 +246,35 @@ export default function ManageCourses() {
       description: course.description,
       level: course.level || "",
       totalSessions: course.totalSessions || 0,
+      tuitionFee: course.tuitionFee || 0,
       imageUrl: course.imageUrl || "",
     });
     setErrors({});
     setShowModal(true);
   };
 
-  const handleDelete = async (course) => {
-    if (!window.confirm("Bạn có chắc muốn xóa khóa học này?")) return;
+  const handleToggleActive = async (course) => {
+    const isConfirmed = await confirm({
+      title: course.isActive ? "Ẩn khóa học" : "Hiện khóa học",
+      message: course.isActive
+        ? "Khóa học sẽ bị ẩn với học viên và giảng viên."
+        : "Khóa học sẽ hiển thị lại với học viên và giảng viên.",
+      type: "warning",
+      confirmText: course.isActive ? "Ẩn" : "Hiện",
+      cancelText: "Hủy"
+    });
+    if (!isConfirmed) return;
 
     try {
-      await courseService.deleteCourse(course.id);
+      await courseService.toggleCourseActive(course.id);
       loadCourses();
-    } catch { }
+      success(course.isActive ? "Khóa học đã bị ẩn" : "Khóa học đã được hiển thị");
+    } catch (err) {
+      notifyError(
+        "Không thể thay đổi trạng thái khóa học: " +
+          (err.response?.data?.message || err.message)
+      );
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -217,29 +299,23 @@ export default function ManageCourses() {
     try {
       if (currentCourse) {
         await courseService.updateCourse(currentCourse.id, payload);
+        success("Cập nhật khóa học thành công");
       } else {
         await courseService.addCourse(payload);
+        success("Tạo khóa học mới thành công");
       }
 
       loadCourses();
       setShowModal(false);
-    } catch { }
+    } catch (err) {
+      notifyError(
+        "Không thể lưu khóa học: " +
+          (err.response?.data?.message || err.message)
+      );
+    }
   };
 
-  // Filtering
-  const normalizedSearch = searchTerm.trim().toLowerCase();
-  const displayedCourses = courses.filter((course) => {
-    // Filter by search term
-    const matchesSearch = !normalizedSearch ||
-      [course.title, course.description]
-        .filter(Boolean)
-        .some((field) => field.toLowerCase().includes(normalizedSearch));
-
-    // Filter by level
-    const matchesLevel = !levelFilter || course.level === levelFilter;
-
-    return matchesSearch && matchesLevel;
-  });
+  const displayedCourses = Array.isArray(courses) ? courses : [];
 
   let toggleSidebar = () => { };
   try {
@@ -255,6 +331,7 @@ export default function ManageCourses() {
         formData.description !== initialFormData.description ||
         formData.level !== initialFormData.level ||
         String(formData.totalSessions) !== String(initialFormData.totalSessions) ||
+        String(formData.tuitionFee) !== String(initialFormData.tuitionFee) ||
         formData.imageUrl !== initialFormData.imageUrl
       );
     }
@@ -264,28 +341,22 @@ export default function ManageCourses() {
       formData.description !== currentCourse.description ||
       (formData.level || "") !== (currentCourse.level || "") ||
       String(formData.totalSessions) !== String(currentCourse.totalSessions || 0) ||
+      String(formData.tuitionFee) !== String(currentCourse.tuitionFee || 0) ||
       (formData.imageUrl || "") !== (currentCourse.imageUrl || "")
     );
   }, [formData, currentCourse]);
 
   // Stats calculation
   const stats = {
-    total: courses.length,
-    beginner: courses.filter(c => c.level === 'BEGINNER').length,
-    intermediate: courses.filter(c => c.level === 'INTERMEDIATE').length,
-    advanced: courses.filter(c => c.level === 'ADVANCED').length
+    total: totalElements,
+    beginner: Array.isArray(courses) ? courses.filter(c => c.level === 'BEGINNER').length : 0,
+    intermediate: Array.isArray(courses) ? courses.filter(c => c.level === 'INTERMEDIATE').length : 0,
+    advanced: Array.isArray(courses) ? courses.filter(c => c.level === 'ADVANCED').length : 0
   };
 
   return (
     <div className={styles.page}>
-      {/* Breadcrumbs */}
-      <div className={styles.breadcrumbs}>
-        <span className={styles.breadcrumbOrange}>Quản lý khóa học</span>
-        <span className={styles.breadcrumbSeparator}> / </span>
-        <span className={styles.breadcrumbGray}>Dashboard</span>
-        <span className={styles.breadcrumbSeparator}> / </span>
-        <span className={styles.breadcrumbDark}>Khóa học</span>
-      </div>
+      
 
       {/* Header */}
       <div className={styles.headerTop}>
@@ -386,6 +457,8 @@ export default function ManageCourses() {
               <th className={styles.colDesc}>Mô tả</th>
               <th>Cấp độ</th>
               <th>Tổng buổi</th>
+              <th>Học phí</th>
+              <th>Trạng thái</th>
               <th className={styles.colActions}>Thao tác</th>
             </tr>
           </thead>
@@ -395,11 +468,18 @@ export default function ManageCourses() {
                 key={course.id}
                 course={course}
                 onEdit={() => handleEdit(course)}
-                onDelete={() => handleDelete(course)}
+                onToggleActive={() => handleToggleActive(course)}
               />
             ))}
           </tbody>
         </table>
+
+        {/* Unified Admin Pagination */}
+        <AdminPagination
+          currentPage={page + 1}
+          totalPages={totalPages}
+          onPageChange={(p) => setPage(p - 1)}
+        />
       </div>
 
       {showModal && (
@@ -591,6 +671,26 @@ export default function ManageCourses() {
                           <Activity size={12} /> {errors.level}
                         </div>
                       )}
+                    </div>
+                  </div>
+
+                  {/* Tuition Fee */}
+                  <div className={styles.customInputGroup}>
+                    <div className={styles.customLabel}>
+                      <Zap />
+                      Học phí (VNĐ)
+                    </div>
+                    <div className={styles.inputWrapper}>
+                      <input
+                        type="number"
+                        name="tuitionFee"
+                        className={styles.customInput}
+                        value={formData.tuitionFee}
+                        onChange={handleInputChange}
+                        placeholder="0"
+                        min="0"
+                        step="1000"
+                      />
                     </div>
                   </div>
                 </div>

@@ -1,0 +1,200 @@
+/* Main Container */
+.ls-user-sidebar {
+  width: 310px;
+  transition: width 180ms ease;
+  overflow: hidden;
+  border-left: 1px solid #eee;
+  box-sizing: border-box;
+  padding: 16px;
+  background: #fff;
+  min-height: calc(100vh);
+  display: flex;
+  flex-direction: column;
+}
+
+.ls-user-sidebar.minimized {
+  width: 56px;
+  padding: 16px 8px; /* Reduce padding when minified */
+}
+
+/* Header */
+.ls-user-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-left: 8px;
+}
+
+.ls-user-toggle {
+  background: none;
+  cursor: pointer;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+}
+
+.ls-user-title {
+  margin-left: 12px;
+  color: #dd673c;
+  font-size: 18px;
+  font-family: "SF Pro Display", sans-serif;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.ls-user-sidebar.minimized .ls-user-title {
+  display: none;
+}
+
+/* Topic List */
+.ls-user-topic-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.ls-user-sidebar.minimized .ls-user-topic-list {
+  display: none;
+}
+
+/* Session Block */
+.ls-user-session-block {
+  margin-bottom: 12px;
+}
+
+.ls-user-session-summary {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  padding: 10px 8px;
+  font-family: "SF Pro Display", sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+  color: #000;
+}
+
+/* Hide default marker */
+.ls-user-session-block > summary::-webkit-details-marker {
+  display: none;
+}
+
+.ls-user-dropdown-icon {
+  width: 16px;
+  height: 16px;
+  transition: transform 160ms ease;
+  transform: rotate(180deg);
+  opacity: 0.7;
+}
+
+.ls-user-session-block[open] .ls-user-dropdown-icon {
+  transform: rotate(0deg);
+}
+
+/* Lesson List */
+.ls-user-lesson-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.ls-user-lesson-item {
+  display: flex;
+  align-items: flex-start; /* Align top for content flow */
+  cursor: pointer;
+  padding: 8px 12px 8px 0; /* Left padding handled by border/margin logic */
+  margin-bottom: 4px;
+  border-radius: 0 8px 8px 0; /* Rounded right side */
+  transition: background 0.2s;
+  position: relative;
+  min-height: 50px;
+}
+
+.ls-user-lesson-item:hover {
+  background: #f9f9f9;
+}
+
+/* ACTIVE STATE */
+.ls-user-lesson-item.active {
+  background: #fff9f5;
+}
+
+/* ORANGE BORDER for Active */
+.ls-user-lesson-item::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: transparent;
+  border-radius: 0 4px 4px 0;
+}
+
+.ls-user-lesson-item.active::before {
+  background: #f05123;
+}
+
+/* Icon */
+.ls-user-item-icon {
+  width: 20px;
+  height: 20px;
+  margin: 2px 12px 0 16px; /* Adjust margin for alignment */
+  flex-shrink: 0;
+}
+/* If active or completed, icon might change color or style via JS or filters, 
+   but typically SVG src change is handled in JSX. 
+   Green checkmark is usually colorful. */
+
+/* Content */
+.ls-user-item-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.ls-user-item-title {
+  font-family: "SF Pro Display", sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  color: #333;
+  line-height: 1.4;
+  margin-bottom: 4px;
+}
+
+.ls-user-lesson-item.active .ls-user-item-title {
+  color: #000;
+  font-weight: 600;
+}
+
+/* Metadata (Type • Duration) */
+.ls-user-item-meta {
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+  color: #757575;
+  font-weight: 400;
+}
+
+.ls-user-meta-dot {
+  width: 3px;
+  height: 3px;
+  background-color: #757575;
+  border-radius: 50%;
+  margin: 0 6px;
+}
+
+/* Empty State */
+.ls-user-item-empty {
+  padding: 8px 24px;
+  font-style: italic;
+  color: #999;
+  font-size: 13px;
+}

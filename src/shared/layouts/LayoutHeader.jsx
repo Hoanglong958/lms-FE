@@ -6,19 +6,21 @@ import "./Header.css";
 import mankaiLogo from "@assets/logos/mankai-logo.svg";
 import homeIcon from "@assets/icons/home-icon.svg";
 import bookIcon from "@assets/icons/book-icon.svg";
-import searchIcon from "@assets/icons/search-icon.svg";
+//import searchIcon from "@assets/icons/search-icon.svg";
 import notiIcon from "@assets/icons/noti-icon.svg";
 import avatar from "@assets/images/avatar.svg";
-import avatarDropDown from "@assets/images/avatar-dropdown.svg";
+//import avatarDropDown from "@assets/images/avatar-dropdown.svg";
 import logoutIcon from "@assets/icons/logout-icon.svg";
 import lessonIcon from "@assets/icons/lesson-icon.svg";
 import menuIcon from "@assets/icons/menu-icon.svg";
 import logoutIcon2 from "@assets/icons/logout-icon-2.svg";
+import NotificationDropdown from "@components/Notification/NotificationDropdown";
 
 export default function Header() {
   const navigate = useNavigate();
   const [openDropdown, setOpenDropdown] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [unreadChatCount, setUnreadChatCount] = useState(0);
 
   // Safe user parsing
   const user = (() => {
@@ -54,6 +56,33 @@ export default function Header() {
 
   const userAvatar = getAvatarSrc(user.imageUrl || user.avatar);
 
+  React.useEffect(() => {
+    if (!user.id) return;
+
+    const fetchUnreadChat = async () => {
+      try {
+        const { chatService } = await import("@utils/chatService");
+        const res = await chatService.getTotalUnreadCount(user.id);
+        setUnreadChatCount(res.data);
+      } catch (err) {
+        console.error("Failed to fetch unread chat count", err);
+      }
+    };
+
+    fetchUnreadChat();
+    // Poll every 1 minute for unread chat count if not using sockets for global count
+    const interval = setInterval(fetchUnreadChat, 60000);
+    
+    window.addEventListener('chat-read', fetchUnreadChat);
+    window.addEventListener('chat-unread-updated', fetchUnreadChat);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('chat-read', fetchUnreadChat);
+      window.removeEventListener('chat-unread-updated', fetchUnreadChat);
+    };
+  }, [user.id]);
+
   return (
     <>
       {/* HEADER CHÍNH */}
@@ -72,21 +101,35 @@ export default function Header() {
                 <img src={homeIcon} alt="Home" />
                 <span>Trang Chủ</span>
               </div>
-              <div className="user-header-menu-item" onClick={() => navigate("/baiviet")}>
+              <div className="user-header-menu-item" onClick={() => navigate("/bai-viet")}>
                 <img src={bookIcon} alt="Posts" />
                 <span>Bài Viết</span>
+              </div>
+              <div className="user-header-menu-item" onClick={() => handleNavigate("/chat")}>
+                <div style={{ position: 'relative' }}>
+                  <img src={notiIcon} alt="Chat" style={{ filter: 'hue-rotate(180deg)' }} />
+                  {unreadChatCount > 0 && (
+                    <span className="chat-notification-badge">
+                      {unreadChatCount > 99 ? '99+' : unreadChatCount}
+                    </span>
+                  )}
+                </div>
+                <span>Trò chuyện</span>
               </div>
             </div>
           </nav>
         </div>
 
         <div className="user-header-right-desktop">
-          <button className="user-header-icon-btn" onClick={() => navigate("/search")}>
-            <img src={searchIcon} alt="Search" />
-          </button>
-          <button className="user-header-icon-btn">
-            <img src={notiIcon} alt="Notification" />
-          </button>
+          
+          {/* <button
+            className="user-header-icon-btn theme-toggle-btn"
+            onClick={toggleTheme}
+            title={isDarkMode ? "Chuyển sang sáng" : "Chuyển sang tối"}
+          >
+            {isDarkMode ? <Sun size={20} color="#f59e0b" /> : <Moon size={20} color="#64748b" />}
+          </button> */}
+          <NotificationDropdown />
           <div
             className="user-header-avatar-dropdown"
             onMouseLeave={() => setOpenDropdown(false)}
@@ -120,6 +163,9 @@ export default function Header() {
                 </div>
                 <div className="user-header-dropdown-item" onClick={() => handleNavigate("/home")}>
                   Khóa học của tôi
+                </div>
+                <div className="user-header-dropdown-item" onClick={() => handleNavigate("/my-payments")}>
+                  Thanh toán của tôi
                 </div>
 
                 {/* 🔒 Đăng xuất */}
@@ -161,8 +207,17 @@ export default function Header() {
             <a onClick={() => handleNavigate("/lessons")}>
               <img src={lessonIcon} alt="Bài học" /> Bài học
             </a>
-            <a onClick={() => handleNavigate("/posts")}>
+            <a onClick={() => handleNavigate("/bai-viet")}>
               <img src={bookIcon} alt="Bài viết" /> Bài viết
+            </a>
+            <a onClick={() => handleNavigate("/chat")} style={{ position: 'relative' }}>
+              <img src={notiIcon} alt="Trò chuyện" style={{ filter: 'hue-rotate(180deg)' }} /> 
+              Trò chuyện
+              {unreadChatCount > 0 && (
+                <span className="chat-notification-badge-mobile">
+                  {unreadChatCount}
+                </span>
+              )}
             </a>
           </nav>
           <div className="user-header-divider-mobile"></div>

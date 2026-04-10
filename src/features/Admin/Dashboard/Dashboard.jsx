@@ -13,10 +13,13 @@ import StatCard from "./components/StatCard";
 // Biểu đồ
 import UserGrowthChart from "./components/UserGrowthChart";
 import CourseProgressChart from "./components/CourseProgressChart";
+import StudentSuccessPanel from "@features/analytics/StudentSuccessPanel";
 // Bảng và Danh sách
 import NewUsersTable from "./components/NewUsersTable";
 import NewCoursesTable from "./components/NewCoursesTable";
 import RecentQuizzesTable from "./components/RecentQuizzesTable";
+import RevenueGrowthChart from "./components/RevenueGrowthChart";
+import RecentTransactionsList from "./components/RecentTransactionsList";
 import { dashboardService } from "@utils/dashboardService";
 import { quizResultService } from "@utils/quizResultService.js";
 import { courseService } from "@utils/courseService.js";
@@ -29,6 +32,9 @@ const DashboardOverview = () => {
   const [recentQuizzes, setRecentQuizzes] = useState([]);
   const [newCourses, setNewCourses] = useState([]);
   const [courseProgress, setCourseProgress] = useState([]);
+  const [newUsers, setNewUsers] = useState([]);
+  const [revenueDataReal, setRevenueDataReal] = useState([]);
+  const [recentTransactions, setRecentTransactions] = useState([]);
 
   useEffect(() => {
     let alive = true;
@@ -87,19 +93,19 @@ const DashboardOverview = () => {
       .then((res) => {
         const raw = res?.data;
         const o = raw && typeof raw === "object" && !Array.isArray(raw) ? raw : {};
-        const totalUsers = toNumber(o?.totalUsers ?? o?.usersCount ?? o?.studentsCount ?? o?.students);
-        const courses = toNumber(o?.coursesCount ?? o?.totalCourses ?? o?.courses);
-        const completedExams = toNumber(o?.completedExams ?? o?.examsCompleted ?? o?.quizCompleted ?? o?.attemptsCompleted);
-        const avgScore = toNumber(o?.averageScore ?? o?.avgScore);
-        const completionRate = toNumber(o?.courseCompletionRate ?? o?.completionRate);
-        const classes = toNumber(o?.classesCount ?? o?.totalClasses);
+        const totalUsers = toNumber(o?.totalUsers?.value ?? o?.totalUsers ?? o?.usersCount);
+        const courses = toNumber(o?.totalCourses?.value ?? o?.totalCourses ?? o?.coursesCount);
+        const completedExams = toNumber(o?.totalExams?.value ?? o?.totalExams ?? o?.completedExams);
+        const avgScore = toNumber(o?.averageExamScore?.value ?? o?.averageScore ?? o?.avgScore);
+        const completionRate = toNumber(o?.courseCompletionRate?.value ?? o?.courseCompletionRate ?? o?.completionRate);
+        const classes = toNumber(o?.totalClasses?.value ?? o?.totalClasses ?? o?.classesCount);
 
-        const usersChange = o?.usersChange ?? o?.usersChangeRate ?? o?.usersDelta ?? o?.totalUsers?.change;
-        const coursesChange = o?.coursesChange ?? o?.coursesDelta ?? o?.coursesCount?.change;
-        const examsChange = o?.examsChange ?? o?.examsDelta ?? o?.completedExams?.change;
-        const avgScoreChange = o?.avgScoreChange ?? o?.averageScoreDelta ?? o?.averageScore?.change;
-        const completionChange = o?.completionRateChange ?? o?.courseCompletionDelta ?? o?.courseCompletionRate?.change;
-        const classesChange = o?.classesChange ?? o?.classesDelta ?? o?.classesCount?.change;
+        const usersChange = o?.totalUsers?.growthPercentage ?? o?.usersChange;
+        const coursesChange = o?.totalCourses?.growthPercentage ?? o?.coursesChange;
+        const examsChange = o?.totalExams?.growthPercentage ?? o?.examsChange;
+        const avgScoreChange = o?.averageExamScore?.growthPercentage ?? o?.avgScoreChange;
+        const completionChange = o?.courseCompletionRate?.growthPercentage ?? o?.completionChange;
+        const classesChange = o?.totalClasses?.growthPercentage ?? o?.classesChange;
 
         const row1 = [
           {
@@ -159,7 +165,15 @@ const DashboardOverview = () => {
             ? raw.data
             : [];
         const mapped = arr.map((item, idx) => {
-          const month = item?.month || item?.label || `T${idx + 1}`;
+          // backend trả về `period` dạng "yyyy-MM", convert thành "TM"
+          const periodStr = item?.period || item?.month || item?.label || "";
+          let monthLabel;
+          if (periodStr && periodStr.includes("-")) {
+            const monthNum = parseInt(periodStr.split("-")[1], 10);
+            monthLabel = `T${monthNum}`;
+          } else {
+            monthLabel = periodStr || `T${idx + 1}`;
+          }
           const count =
             item?.count ??
             item?.userCount ??
@@ -167,7 +181,7 @@ const DashboardOverview = () => {
             item?.users ??
             item?.total ??
             0;
-          return { month: String(month), "Người dùng": Number(count) || 0 };
+          return { month: monthLabel, "Người dùng": Number(count) || 0 };
         });
         if (alive) setUserGrowthData(mapped);
       })
@@ -195,28 +209,33 @@ const DashboardOverview = () => {
       });
 
     // Fetch Course Progress
-    courseService.getCoursesPaging({ page: 0, size: 5 })
+    courseService.getCourses()
       .then(async (res) => {
         if (!alive) return;
-        const courses = res?.data?.content || [];
-        if (!courses.length) {
+        const raw = res?.data;
+        // handle both array and paginated response
+        const courses = Array.isArray(raw)
+          ? raw
+          : Array.isArray(raw?.data) ? raw.data
+          : Array.isArray(raw?.content) ? raw.content
+          : Array.isArray(raw?.data?.content) ? raw.data.content
+          : [];
+        const top5 = courses.slice(0, 5);
+        if (!top5.length) {
           setCourseProgress([]);
           return;
         }
 
         try {
           // Fetch progress for each course
-          const progressPromises = courses.map(c =>
+          const progressPromises = top5.map(c =>
             dashboardService.getCourseProgress(c.id).then(r => ({ id: c.id, ...r.data })).catch(() => null)
           );
 
           const results = await Promise.all(progressPromises);
 
-          const chartData = courses.map((course, index) => {
+          const chartData = top5.map((course, index) => {
             const stats = results[index] || {};
-            // Mapping API response to Chart keys
-            // Assuming API returns { completed: number, inProgress: number } or similar
-            // Adjust keys based on actual API response debug
             const completed = stats.completed ?? stats.finished ?? stats.completedCount ?? 0;
             const inProgress = stats.inProgress ?? stats.learning ?? stats.studyingCount ?? 0;
 
@@ -234,6 +253,74 @@ const DashboardOverview = () => {
         }
       })
       .catch(e => console.error("Failed to load courses for progress", e));
+
+    // Fetch new users from API
+    dashboardService
+      .getNewUsers()
+      .then((res) => {
+        const raw = res?.data;
+        const arr = Array.isArray(raw) ? raw : Array.isArray(raw?.data) ? raw.data : [];
+        const mapped = arr.map((u) => ({
+          id: u.id,
+          name: u.fullName || u.full_name || u.name || `#${u.id}`,
+          email: u.gmail || u.email || "",
+          role: u.role || "USER",
+          date: u.createdAt
+            ? new Date(u.createdAt).toLocaleDateString("vi-VN")
+            : "",
+        }));
+        if (alive) setNewUsers(mapped);
+      })
+      .catch(() => { if (alive) setNewUsers([]); });
+
+    // Fetch Revenue Growth
+    dashboardService.getRevenueGrowthByMonth(12)
+      .then(res => {
+         const arr = Array.isArray(res?.data) ? res.data : [];
+         const mapped = arr.map(item => {
+             // period is "yyyy-MM", let's map to "T[MM]"
+             let mLabel = item.period || "";
+             if (mLabel.includes("-")) {
+                 mLabel = "T" + parseInt(mLabel.split("-")[1], 10);
+             }
+             return {
+                 month: mLabel,
+                 "Doanh thu": Number(item.revenue || 0)
+             };
+         });
+         // Reverse to show oldest to newest if backend returns newest to oldest
+         // Wait, backend returns newest to oldest (T12 to T1) in getUserGrowthByMonth? No, the loop in DashboardServiceImpl goes from older to newer:
+         //     for (int i = months - 1; i >= 0; i--) { start = now.minusMonths(i) ... add }
+         // So it's already older to newer.
+         if (alive) setRevenueDataReal(mapped);
+      })
+      .catch(() => { if (alive) setRevenueDataReal([]); });
+
+    // Fetch Recent Transactions
+    dashboardService.getRecentTransactions(10)
+      .then(res => {
+         const arr = Array.isArray(res?.data) ? res.data : [];
+         const mapped = arr.map(tx => {
+            let stText = "Đang xử lý";
+            if (tx.status === "PAID" || tx.status === "Thành công") stText = "Thành công";
+            else if (tx.status === "CANCELLED" || tx.status === "Thất bại") stText = "Thất bại";
+
+            const amtStr = Number(tx.amount || 0).toLocaleString("vi-VN") + "đ";
+            const dateObj = tx.time ? new Date(tx.time) : new Date();
+            const timeStr = dateObj.toLocaleDateString("vi-VN") + " " + dateObj.toLocaleTimeString("vi-VN", {hour: '2-digit', minute:'2-digit'});
+
+            return {
+               id: tx.id,
+               user: tx.user,
+               course: tx.course,
+               amount: amtStr,
+               status: stText,
+               time: timeStr
+            };
+         });
+         if (alive) setRecentTransactions(mapped);
+      })
+      .catch(() => { if (alive) setRecentTransactions([]); });
 
     return () => { alive = false; };
   }, []);
@@ -276,11 +363,29 @@ const DashboardOverview = () => {
             <CourseProgressChart data={courseProgress} />
           </div>
         </section>
+        <section className="dashboard-card col-span-12">
+          <StudentSuccessPanel showClassSelector />
+        </section>
+
+        {/* === HÀNG 4: DOANH THU & GIAO DỊCH === */}
+        <section className="dashboard-card col-span-12">
+          <h3 className="dashboard-card-title">Biểu đồ doanh thu học phí</h3>
+          <div className="chart-container" style={{ height: '350px' }}>
+            <RevenueGrowthChart data={revenueDataReal} />
+          </div>
+        </section>
 
         {/* === HÀNG 5: BẢNG  === */}
         <section className="dashboard-card col-span-12 lg-col-span-7">
           <h3 className="dashboard-card-title">Người dùng mới</h3>
-          <NewUsersTable users={newUsersData} />
+          <NewUsersTable users={newUsers} />
+        </section>
+        
+        <section className="dashboard-card col-span-12 lg-col-span-5">
+          <h3 className="dashboard-card-title">Giao dịch mới</h3>
+          <div className="max-h-[400px] overflow-y-auto pr-2">
+            <RecentTransactionsList transactions={recentTransactions} />
+          </div>
         </section>
 
 

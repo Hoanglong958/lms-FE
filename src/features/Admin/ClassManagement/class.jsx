@@ -7,9 +7,11 @@ import { classTeacherService } from "@utils/classTeacherService";
 import { classStudentService } from "@utils/classStudentService";
 import { courseService } from "@utils/courseService";
 import { classCourseService } from "@utils/classCourseService";
+import AdminPagination from "@shared/components/Admin/AdminPagination";
 import ClassDetail from "./ClassDetail";
 import ClassDetailModal from "./ClassDetailModal";
-import NotificationModal from "@components/NotificationModal/NotificationModal";
+import SearchableSelect from "@shared/components/SearchableSelect";
+import { useNotification } from "@shared/notification";
 import "./class.css";
 
 
@@ -35,7 +37,7 @@ export default function ClassManagement() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [editingClass, setEditingClass] = useState(null);
-  const [confirmDelete, setConfirmDelete] = useState(null);
+  const [confirmToggle, setConfirmToggle] = useState(null);
   const [classes, setClasses] = useState([]);
   const [assigningClass, setAssigningClass] = useState(null);
   const [modalState, setModalState] = useState({
@@ -44,42 +46,38 @@ export default function ClassManagement() {
     data: null,
   });
 
-  const [notification, setNotification] = useState({
-    isOpen: false,
-    title: "",
-    message: "",
-    type: "info",
-  });
+  // Pagination states
+  const [page, setPage] = useState(0);
+  const [pageSize, setPageSize] = useState(10);
+  const [totalElements, setTotalElements] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
 
-  const showNotification = (title, message, type = "info") => {
-    setNotification({ isOpen: true, title, message, type });
-  };
+  const { success, error: notifyError } = useNotification();
 
   // --- Load classes từ API khi component mount ---
   const fetchClasses = useCallback(async () => {
     try {
-      const res = await classService.getClasses({
-        page: 0,
-        size: 1000,
-        keyword: searchQuery,
+      const res = await classService.getClassesPaging({
+        page: page,
+        size: pageSize,
+        q: searchQuery,
         status: statusFilter === "all" ? null : statusFilter,
       });
 
-      // Xử lý nhiều cấu trúc response khác nhau
       let apiData = [];
-      if (res.data.data && res.data.data.content) {
-        apiData = res.data.data.content;
-      } else if (res.data.content) {
-        apiData = res.data.content;
-      } else if (res.data.data && Array.isArray(res.data.data)) {
-        apiData = res.data.data;
-      } else if (Array.isArray(res.data)) {
-        apiData = res.data;
+      let paging = { totalElements: 0, totalPages: 0 };
+
+      // Handle paginated response
+      if (res.data) {
+        apiData = res.data.content || res.data.data?.content || res.data.data || [];
+        paging = {
+          totalElements: res.data.totalElements || res.data.data?.totalElements || 0,
+          totalPages: res.data.totalPages || res.data.data?.totalPages || 0
+        };
       }
 
       // Map API response to expected structure
       const mappedClasses = apiData.map((item) => {
-        // Calculate end date if not provided (3 months after start date)
         let endDate = item.endDate || item.end_date || "N/A";
         if (endDate === "N/A" && item.startDate) {
           try {
@@ -89,7 +87,6 @@ export default function ClassManagement() {
             endDate = end.toISOString().split("T")[0];
           } catch (_e) {
             endDate = "N/A";
-            void _e;
           }
         }
 
@@ -97,20 +94,11 @@ export default function ClassManagement() {
           id: item.id,
           name: item.className || item.name || item.class_name || "Chưa có tên",
           subtitle: item.description || item.subtitle || item.sub_title || "",
-          code:
-            item.classCode ||
-            item.code ||
-            item.class_code ||
-            `CLASS-${item.id}`,
-          teacher:
-            item.instructorName ||
-            item.teacher ||
-            item.instructor ||
-            item.teacherName ||
-            "Chưa phân công",
+          code: item.classCode || item.code || item.class_code || `CLASS-${item.id}`,
+          teacher: item.instructorName || item.teacher || item.instructor || item.teacherName || "Chưa phân công",
+          isActive: item.isActive !== undefined ? item.isActive : true,
           students: item.maxStudents || item.students || item.max_students || 0,
-          active:
-            item.activeStudents || item.active || item.active_students || 0,
+          active: item.activeStudents || item.active || item.active_students || 0,
           progress: item.progress || item.completion || 0,
           startDate: item.startDate || item.start_date || "N/A",
           endDate: endDate,
@@ -119,68 +107,48 @@ export default function ClassManagement() {
         };
       });
 
-
-
-      // Fetch teachers and students for each class
+      // Fetch additional details if needed (existing logic)
       const classesWithDetails = await Promise.all(mappedClasses.map(async (cls) => {
         if (!cls.id) return cls;
-
         let updatedCls = { ...cls };
-
         // 1. Fetch Teachers
         try {
-          // If we already have a teacher name from the main API, skip unless we want to verify
-          // But user might want relational data prioritised? Currently code prioritizes relational if main API missed it?
-          // Actually existing code prioritised main API if it existed.
-          // Let's stick to existing logic: if teacher is missing or placeholder, try fetching.
-          // Or just fetch to be safe if 'Chưa phân công'.
-
           if (updatedCls.teacher === "Chưa phân công") {
             const tRes = await classTeacherService.getClassTeachers(cls.id);
-            let teachers = [];
-            if (tRes.data?.data && Array.isArray(tRes.data.data)) teachers = tRes.data.data;
-            else if (Array.isArray(tRes.data)) teachers = tRes.data;
-
+            let teachers = Array.isArray(tRes.data?.data) ? tRes.data.data : (Array.isArray(tRes.data) ? tRes.data : []);
             if (teachers.length > 0) {
               const instructor = teachers.find(t => t.role === "INSTRUCTOR") || teachers[0];
-              if (instructor && instructor.teacherName) {
-                updatedCls.teacher = instructor.teacherName;
-              }
+              if (instructor?.teacherName) updatedCls.teacher = instructor.teacherName;
             }
           }
-        } catch (e) {
-          // console.warn(`Failed to fetch teacher for class ${cls.id}`, e);
-        }
+        } catch (e) {}
 
-        // 2. Fetch Students (To sync count with Detail View)
+        // 2. Fetch Students
         try {
           const sRes = await classStudentService.getClassStudents(cls.id);
-          let studentsData = [];
-          if (sRes.data?.data && Array.isArray(sRes.data.data)) studentsData = sRes.data.data;
-          else if (Array.isArray(sRes.data)) studentsData = sRes.data;
-
-          // Update count
+          let studentsData = Array.isArray(sRes.data?.data) ? sRes.data.data : (Array.isArray(sRes.data) ? sRes.data : []);
           updatedCls.students = studentsData.length;
-
-          // Optional: Update active count if needed
-          // updatedCls.active = studentsData.filter(s => s.status === 'ACTIVE').length;
-        } catch (e) {
-          // console.warn(`Failed to fetch students for class ${cls.id}`, e);
-        }
+        } catch (e) {}
 
         return updatedCls;
       }));
 
       setClasses(classesWithDetails);
+      setTotalElements(paging.totalElements);
+      setTotalPages(paging.totalPages);
     } catch (err) {
       console.error("Failed to fetch classes", err);
-      alert("Không thể tải danh sách lớp học!");
     }
-  }, [searchQuery, statusFilter]);
+  }, [page, pageSize, searchQuery, statusFilter]);
 
   useEffect(() => {
     fetchClasses();
   }, [fetchClasses]);
+
+  // Reset to page 0 when filtering
+  useEffect(() => {
+    setPage(0);
+  }, [searchQuery, statusFilter]);
 
   // --- Thêm lớp mới ---
   // --- Thêm lớp mới ---
@@ -191,7 +159,7 @@ export default function ClassManagement() {
     );
 
     if (isDuplicate) {
-      alert("Mã lớp đã tồn tại. Vui lòng chọn mã lớp khác.");
+      notifyError("Mã lớp đã tồn tại. Vui lòng chọn mã lớp khác.");
       return;
     }
 
@@ -232,7 +200,10 @@ export default function ClassManagement() {
           });
         } catch (teacherErr) {
           console.error("Failed to assign teacher:", teacherErr);
-          alert("Lớp đã tạo nhưng lỗi khi gán giảng viên: " + teacherErr.message);
+          notifyError(
+            "Lớp đã tạo nhưng lỗi khi gán giảng viên: " +
+              (teacherErr.response?.data?.message || teacherErr.message)
+          );
         }
       }
 
@@ -251,10 +222,12 @@ export default function ClassManagement() {
 
       await fetchClasses(); // Reload list from API
       setIsAddOpen(false);
-      alert("Tạo lớp học thành công!");
+      success("Tạo lớp học thành công!");
     } catch (error) {
       console.error("Create class error:", error);
-      alert("Lỗi khi tạo lớp học: " + (error.response?.data?.message || error.message));
+      notifyError(
+        "Lỗi khi tạo lớp học: " + (error.response?.data?.message || error.message)
+      );
     }
   }
 
@@ -267,7 +240,7 @@ export default function ClassManagement() {
     );
 
     if (isDuplicate) {
-      alert("Mã lớp đã tồn tại. Vui lòng chọn mã lớp khác.");
+      notifyError("Mã lớp đã tồn tại. Vui lòng chọn mã lớp khác.");
       return;
     }
 
@@ -302,19 +275,47 @@ export default function ClassManagement() {
       // Assuming 'assign' adds/updates the role.
       if (payload.teacherId) {
         try {
+          const normalizedTeacherId = parseInt(payload.teacherId);
+          if (Number.isNaN(normalizedTeacherId)) {
+            console.warn("Skip assign teacher: invalid teacherId", payload.teacherId);
+            throw new Error("invalid-teacher-id");
+          }
+
+          let alreadyAssigned = false;
+          try {
+            const existingRes = await classTeacherService.getClassTeachers(id);
+            let existing = [];
+            if (existingRes.data?.data && Array.isArray(existingRes.data.data)) existing = existingRes.data.data;
+            else if (Array.isArray(existingRes.data)) existing = existingRes.data;
+            alreadyAssigned = existing.some(t => String(t.teacherId) === String(normalizedTeacherId));
+          } catch (checkErr) {
+            console.warn("Failed to check existing teachers before assign", checkErr);
+          }
+
+          if (alreadyAssigned) {
+            console.log("Teacher already assigned, skip re-assign:", normalizedTeacherId);
+            throw new Error("already-assigned");
+          }
+
           const assignPayload = {
             classId: parseInt(id),
-            teacherId: parseInt(payload.teacherId),
+            teacherId: normalizedTeacherId,
             role: "INSTRUCTOR",
             note: "Updated from Class Management"
           };
           console.log("Assigning teacher:", assignPayload);
           await classTeacherService.assignTeacherToClass(assignPayload);
-        } catch (teacherErr) {
-          console.error("Failed to assign teacher. Payload:", payload, "Error:", teacherErr);
-          const msg = teacherErr.response?.data?.message || teacherErr.message;
-          alert("Lớp đã cập nhật, nhưng lỗi khi phân công giảng viên Relational: " + msg);
-        }
+          } catch (teacherErr) {
+            if (teacherErr?.message === "already-assigned" || teacherErr?.message === "invalid-teacher-id") {
+              // Skip noisy alerts for non-critical cases
+            } else {
+              console.error("Failed to assign teacher. Payload:", payload, "Error:", teacherErr);
+              const msg = teacherErr.response?.data?.message || teacherErr.message;
+              notifyError(
+                "Lớp đã cập nhật, nhưng lỗi khi phân công giảng viên Relational: " + msg
+              );
+            }
+          }
       }
 
       // 4. Update Course Assignment
@@ -365,29 +366,36 @@ export default function ClassManagement() {
         )
       );
       setEditingClass(null);
-      alert("Cập nhật lớp học thành công!");
+      success("Cập nhật lớp học thành công!");
     } catch (error) {
       console.error("Failed to update class:", error);
-      alert("Lỗi khi cập nhật lớp học: " + (error.response?.data?.message || error.message));
+      notifyError(
+        "Lỗi khi cập nhật lớp học: " + (error.response?.data?.message || error.message)
+      );
     }
   }
 
-  // --- Xóa lớp ---
-  function handleRequestDelete(cls) {
-    setConfirmDelete(cls);
+  // --- Ẩn/Hiện lớp ---
+  function handleRequestToggle(cls) {
+    setConfirmToggle(cls);
   }
 
-  async function handleConfirmDelete() {
-    if (!confirmDelete) return;
+  async function handleConfirmToggle() {
+    if (!confirmToggle) return;
     try {
-      await classService.deleteClass(confirmDelete.id);
-      setClasses((prev) => prev.filter((c) => c.id !== confirmDelete.id));
-      alert("Xóa lớp học thành công!");
+      await classService.toggleClassActive(confirmToggle.id);
+      await fetchClasses();
+      success(
+        confirmToggle.isActive ? "Lớp học đã bị ẩn" : "Lớp học đã được hiển thị"
+      );
     } catch (error) {
-      console.error("Failed to delete class:", error);
-      alert("Lỗi khi xóa lớp học: " + (error.response?.data?.message || error.message));
+      console.error("Failed to toggle class:", error);
+      notifyError(
+        "Lỗi khi thay đổi trạng thái lớp học: " +
+          (error.response?.data?.message || error.message)
+      );
     } finally {
-      setConfirmDelete(null);
+      setConfirmToggle(null);
     }
   }
 
@@ -472,22 +480,8 @@ export default function ClassManagement() {
 
   // --- Lọc và tìm kiếm ---
   const filtered = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
-    let result = classes;
-    if (q) {
-      result = result.filter((c) => {
-        return (
-          c.name.toLowerCase().includes(q) ||
-          c.teacher.toLowerCase().includes(q) ||
-          c.code.toLowerCase().includes(q)
-        );
-      });
-    }
-    if (statusFilter !== "all") {
-      result = result.filter((c) => c.status === statusFilter);
-    }
-    return result;
-  }, [classes, searchQuery, statusFilter]);
+    return Array.isArray(classes) ? classes : [];
+  }, [classes]);
 
   const [selectedClassId, setSelectedClassId] = useState("");
 
@@ -501,11 +495,7 @@ export default function ClassManagement() {
         marginBottom: 16,
         fontWeight: 500
       }}>
-        <span style={{ color: '#f97316', fontWeight: 600 }}>Quản lý lớp học</span>
-        <span style={{ color: '#d1d5db', margin: '0 4px' }}> / </span>
-        <span style={{ color: '#9ca3af' }}>Dashboard</span>
-        <span style={{ color: '#d1d5db', margin: '0 4px' }}> / </span>
-        <span style={{ color: '#374151', fontWeight: 600 }}>Tất cả lớp học</span>
+        
       </div>
 
       {/* Header */}
@@ -878,19 +868,34 @@ export default function ClassManagement() {
               {filtered.map((c) => (
                 <tr
                   key={c.id}
-                  style={{ ...styles.tr, cursor: "pointer" }}
+                  style={{ ...styles.tr, cursor: "pointer", opacity: c.isActive ? 1 : 0.55 }}
                   onClick={() => navigate(`/admin/classes/${c.id}`, { state: { classData: c } })}
                 >
                   <td style={styles.td}>
                     <div style={{ display: "grid", rowGap: 4 }}>
-                      <div
-                        style={{
-                          fontWeight: 600,
-                          fontSize: 14,
-                          color: "#111827",
-                        }}
-                      >
-                        {c.name}
+                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <div
+                          style={{
+                            fontWeight: 600,
+                            fontSize: 14,
+                            color: "#111827",
+                          }}
+                        >
+                          {c.name}
+                        </div>
+                        <span
+                          style={{
+                            padding: "3px 8px",
+                            borderRadius: 999,
+                            fontSize: 11,
+                            fontWeight: 700,
+                            background: c.isActive ? "#dcfce7" : "#f1f5f9",
+                            color: c.isActive ? "#166534" : "#475569",
+                            border: c.isActive ? "1px solid #bbf7d0" : "1px solid #e2e8f0",
+                          }}
+                        >
+                          {c.isActive ? "Đang hiện" : "Đã ẩn"}
+                        </span>
                       </div>
                       <div style={styles.classSubtitle}>{c.subtitle}</div>
                     </div>
@@ -950,11 +955,11 @@ export default function ClassManagement() {
                         ✏️
                       </button>
                       <button
-                        className="btn-icon delete"
-                        title="Xóa"
-                        onClick={() => handleRequestDelete(c)}
+                        className="btn-icon toggle"
+                        title={c.isActive ? "Ẩn lớp học" : "Hiện lớp học"}
+                        onClick={() => handleRequestToggle(c)}
                       >
-                        🗑️
+                        {c.isActive ? "🙈" : "👁️"}
                       </button>
                     </div>
                   </td>
@@ -973,6 +978,13 @@ export default function ClassManagement() {
             </tbody>
           </table>
         </div>
+
+        {/* Unified Admin Pagination */}
+        <AdminPagination
+          currentPage={page + 1}
+          totalPages={totalPages}
+          onPageChange={(p) => setPage(p - 1)}
+        />
       </div>
 
       {/* Modals */}
@@ -994,24 +1006,29 @@ export default function ClassManagement() {
       }
 
       {
-        confirmDelete && (
+        confirmToggle && (
           <ConfirmModal
-            title="Xóa lớp học"
-            message={`Bạn có chắc muốn xóa '${confirmDelete.name}'?`}
-            onCancel={() => setConfirmDelete(null)}
-            onConfirm={handleConfirmDelete}
+            title={confirmToggle.isActive ? "Ẩn lớp học" : "Hiện lớp học"}
+            message={
+              confirmToggle.isActive
+                ? `Bạn có chắc muốn ẩn '${confirmToggle.name}'?`
+                : `Bạn có chắc muốn hiện '${confirmToggle.name}'?`
+            }
+            confirmText={confirmToggle.isActive ? "Ẩn" : "Hiện"}
+            onCancel={() => setConfirmToggle(null)}
+            onConfirm={handleConfirmToggle}
           />
         )
       }
 
-      {assigningClass && (
-        <AssignTeachersModal
-          classData={assigningClass}
-          onClose={() => setAssigningClass(null)}
-          onSubmit={async (selectedTeacherIds) => {
-            try {
-              // Assign all selected teachers to the class
-              const promises = selectedTeacherIds.map(async (teacherId) => {
+        {assigningClass && (
+          <AssignTeachersModal
+            classData={assigningClass}
+            onClose={() => setAssigningClass(null)}
+            onSubmit={async (selectedTeacherIds) => {
+              try {
+                // Assign all selected teachers to the class
+                const promises = selectedTeacherIds.map(async (teacherId) => {
                 try {
                   await classTeacherService.assignTeacherToClass({
                     classId: assigningClass.id,
@@ -1030,12 +1047,15 @@ export default function ClassManagement() {
 
               await Promise.all(promises);
 
-              alert("Phân công giảng viên thành công!");
+              success("Phân công giảng viên thành công!");
               await fetchClasses(); // Reload list
               setAssigningClass(null);
             } catch (error) {
               console.error("Failed to assign teachers:", error);
-              alert("Lỗi khi phân công giảng viên: " + (error.response?.data?.message || error.message));
+              notifyError(
+                "Lỗi khi phân công giảng viên: " +
+                  (error.response?.data?.message || error.message)
+              );
             }
           }}
         />
@@ -1182,7 +1202,6 @@ function AddClassModal({ onClose, onSubmit }) {
   const [teacherId, setTeacherId] = useState(""); // Store ID
   const [students, setStudents] = useState("0");
   // const [courseId, setCourseId] = useState(""); // Removed course input
-  // const [courses, setCourses] = useState([]); // Removed course fetching
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [status, setStatus] = useState("upcoming");
@@ -1386,7 +1405,7 @@ function EditClassModal({ cls, onClose, onSubmit }) {
   const [teacher, setTeacher] = useState(cls.teacher || "");
   const [teacherId, setTeacherId] = useState(""); // New state for ID
   const [courseId, setCourseId] = useState("");
-  const [courses, setCourses] = useState([]);
+  const [selectedCourseLabel, setSelectedCourseLabel] = useState("");
   const [students, setStudents] = useState(String(cls.students) || "0");
   const [active, setActive] = useState(String(cls.active) || "0");
   const [progress, setProgress] = useState(String(cls.progress) || "0");
@@ -1399,6 +1418,38 @@ function EditClassModal({ cls, onClose, onSubmit }) {
   const [teachers, setTeachers] = useState([]);
   const [initialTeacherId, setInitialTeacherId] = useState("");
   const [initialCourseId, setInitialCourseId] = useState("");
+
+  const getCourseLabel = useCallback(
+    (item) =>
+      item?.courseTitle ||
+      item?.course?.title ||
+      item?.courseName ||
+      item?.title ||
+      item?.name ||
+      "",
+    []
+  );
+
+  const getCourseOptionValue = useCallback(
+    (item) =>
+      String(item?.id ?? item?.courseId ?? item?.course?.id ?? ""),
+    []
+  );
+
+  const fetchCourseOptions = useCallback(async (query) => {
+    const params = { page: 0, size: 12 };
+    if (query?.trim()) params.q = query.trim();
+    try {
+      const res = await courseService.getCoursesPaging(params);
+      const raw = res?.data?.data ?? res?.data;
+      if (Array.isArray(raw)) return raw;
+      const list = raw?.content ?? raw?.data ?? [];
+      return Array.isArray(list) ? list : [];
+    } catch (err) {
+      console.error("Course search failed", err);
+      return [];
+    }
+  }, []);
 
   // Sync state with cls prop when it changes
   useEffect(() => {
@@ -1449,29 +1500,20 @@ function EditClassModal({ cls, onClose, onSubmit }) {
   }, [cls.teacher]); // Updated dependency to re-run if class changes
 
   useEffect(() => {
-    // Load courses
-    courseService.getCourses()
+    if (!cls?.id) return;
+    setSelectedCourseLabel("");
+    classCourseService.getClassCourses(cls.id)
       .then((res) => {
-        let data = [];
-        if (res.data?.data) data = res.data.data;
-        else if (Array.isArray(res.data)) data = res.data;
-        setCourses(data);
+        const assigned = res.data?.data || res.data;
+        if (Array.isArray(assigned) && assigned.length > 0) {
+          const primary = assigned[0];
+          setCourseId(primary.courseId);
+          setInitialCourseId(primary.courseId);
+          setSelectedCourseLabel(getCourseLabel(primary));
+        }
       })
-      .catch(err => console.error("Failed to load courses", err));
-
-    // Load existing assigned course
-    if (cls.id) {
-      classCourseService.getClassCourses(cls.id)
-        .then(res => {
-          const assigned = res.data?.data || res.data;
-          if (Array.isArray(assigned) && assigned.length > 0) {
-            setCourseId(assigned[0].courseId);
-            setInitialCourseId(assigned[0].courseId);
-          }
-        })
-        .catch(err => console.warn("Failed to load assigned course", err));
-    }
-  }, [cls.id]);
+      .catch((err) => console.warn("Failed to load assigned course", err));
+  }, [cls.id, getCourseLabel]);
 
   function validate() {
     const nextErrors = {};
@@ -1620,25 +1662,31 @@ function EditClassModal({ cls, onClose, onSubmit }) {
               </div>
             </div>
 
-            {/* Khóa học */}
             <div className="form-group-mb">
               <label className="custom-label">
                 <div className="label-icon icon-pink"><BookOpen size={16} color="white" /></div>
                 Khóa học
               </label>
-              <div className="select-wrapper">
-                <select
-                  className="custom-select"
-                  value={courseId}
-                  onChange={(e) => setCourseId(e.target.value)}
-                >
-                  <option value="">-- Chọn khóa học --</option>
-                  {courses.map((c) => (
-                    <option key={c.id} value={c.id}>{c.courseName || c.name || c.title}</option>
-                  ))}
-                </select>
-                <div className="select-icon">▼</div>
-              </div>
+              <SearchableSelect
+                value={courseId}
+                displayValue={selectedCourseLabel}
+                placeholder="Nhập tên hoặc mã khóa học..."
+                onOptionSelect={(option) => {
+                  if (option) {
+                    setCourseId(getCourseOptionValue(option));
+                    setSelectedCourseLabel(getCourseLabel(option));
+                  } else {
+                    setCourseId("");
+                    setSelectedCourseLabel("");
+                  }
+                }}
+                fetchOptions={fetchCourseOptions}
+                getOptionLabel={getCourseLabel}
+                getOptionValue={getCourseOptionValue}
+                inputClassName="custom-input"
+                clearable
+                noOptionsText="Không tìm thấy khóa học"
+              />
             </div>
 
             {/* Dates */}
@@ -1687,6 +1735,7 @@ function EditClassModal({ cls, onClose, onSubmit }) {
 }
 
 function AssignTeachersModal({ classData, onClose, onSubmit }) {
+  const { error: notifyError } = useNotification();
   const [teachers, setTeachers] = useState([]);
   const [selectedTeachers, setSelectedTeachers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -1729,7 +1778,7 @@ function AssignTeachersModal({ classData, onClose, onSubmit }) {
         }
       } catch (error) {
         console.error("Failed to load teachers:", error);
-        alert("Lỗi khi tải danh sách giảng viên!");
+        notifyError("Lỗi khi tải danh sách giảng viên!");
       } finally {
         setLoading(false);
       }
@@ -1891,7 +1940,7 @@ function AssignTeachersModal({ classData, onClose, onSubmit }) {
   );
 }
 
-function ConfirmModal({ title, message, onCancel, onConfirm }) {
+function ConfirmModal({ title, message, onCancel, onConfirm, confirmText = "Xóa" }) {
   return (
     <div style={modalStyles.backdrop} role="dialog" aria-modal="true">
       <div style={modalStyles.container}>
@@ -1910,7 +1959,7 @@ function ConfirmModal({ title, message, onCancel, onConfirm }) {
             onClick={onConfirm}
             style={{ ...styles.primaryButton, background: "#b91c1c" }}
           >
-            Xóa
+            {confirmText}
           </button>
         </div>
       </div>

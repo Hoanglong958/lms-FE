@@ -50,9 +50,22 @@ export default function ClassCalendarPage() {
                     const calculatedWeeks = calculateWeeks(classData.startDate, classData.endDate);
                     setWeeks(calculatedWeeks);
                     if (calculatedWeeks.length > 0) {
-                        const now = new Date();
-                        const currentWeek = calculatedWeeks.find(w => now >= w.startDate && now <= w.endDate);
-                        setSelectedWeek(currentWeek || calculatedWeeks[0]);
+                        const dateParam = searchParams.get("date");
+                        if (dateParam) {
+                            const targetDate = new Date(dateParam);
+                            const targetWeek = calculatedWeeks.find(w => targetDate >= w.startDate && targetDate <= w.endDate);
+                            if (targetWeek) {
+                                setSelectedWeek(targetWeek);
+                            } else {
+                                const now = new Date();
+                                const currentWeek = calculatedWeeks.find(w => now >= w.startDate && now <= w.endDate);
+                                setSelectedWeek(currentWeek || calculatedWeeks[0]);
+                            }
+                        } else {
+                            const now = new Date();
+                            const currentWeek = calculatedWeeks.find(w => now >= w.startDate && now <= w.endDate);
+                            setSelectedWeek(currentWeek || calculatedWeeks[0]);
+                        }
                     }
                 }
 
@@ -102,20 +115,28 @@ export default function ClassCalendarPage() {
                 const weekStart = new Date(selectedWeek.startDate).getTime();
                 const weekEnd = new Date(selectedWeek.endDate).getTime();
 
+                const toDateStr = (d) => {
+                    if (d instanceof Date) {
+                        const y = d.getFullYear();
+                        const m = String(d.getMonth() + 1).padStart(2, '0');
+                        const day = String(d.getDate()).padStart(2, '0');
+                        return `${y}-${m}-${day}`;
+                    }
+                    return String(d).substring(0, 10);
+                };
+
+                const weekStartStr = toDateStr(selectedWeek.startDate);
+                const weekEndStr = toDateStr(selectedWeek.endDate);
+
                 const newSchedule = {};
 
                 allSchedules.forEach(item => {
-                    const itemDate = new Date(item.date);
-                    // Match items within the selected week
-                    const dcheck = new Date(itemDate); dcheck.setHours(0, 0, 0, 0);
-                    const startCheck = new Date(selectedWeek.startDate); startCheck.setHours(0, 0, 0, 0);
-                    const endCheck = new Date(selectedWeek.endDate); endCheck.setHours(23, 59, 59, 999);
+                    const itemDateStr = toDateStr(item.date);
 
-                    if (dcheck >= startCheck && dcheck <= endCheck) {
-                        const d1 = new Date(itemDate); d1.setHours(0, 0, 0, 0);
-                        const d2 = new Date(selectedWeek.startDate); d2.setHours(0, 0, 0, 0);
-
-                        const diffTime = d1 - d2;
+                    if (itemDateStr >= weekStartStr && itemDateStr <= weekEndStr) {
+                        const itemD = new Date(itemDateStr + 'T00:00:00');
+                        const weekD = new Date(weekStartStr + 'T00:00:00');
+                        const diffTime = itemD - weekD;
                         const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
 
                         if (diffDays >= 0 && diffDays <= 6) {

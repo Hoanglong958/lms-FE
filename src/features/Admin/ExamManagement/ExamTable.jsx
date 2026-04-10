@@ -1,10 +1,12 @@
 import React from "react";
-import "./ExamTable.css";
+import "./styles/ExamTable.css";
 
 export default function ExamTable({ exams = [], loading = false, onEdit, onDelete, onViewDetail, canDelete = true }) {
   const columns = [
     "Tên kỳ thi",
-    "Số câu hỏi",
+    "Khóa học",
+    "Lớp học",
+    "Số câu học",
     "Thời gian",
     "Điểm đạt",
     "Bắt đầu",
@@ -73,6 +75,8 @@ export default function ExamTable({ exams = [], loading = false, onEdit, onDelet
                     )}
                   </div>
                 </td>
+                <td>{exam.courseName || exam.courseId || "-"}</td>
+                <td>{exam.className || exam.classId || "-"}</td>
                 <td>{exam.totalQuestions ?? exam.questions?.length ?? 0}</td>
                 <td>{formatDuration(exam)}</td>
                 <td>{exam.passingScore ? `${exam.passingScore}/${exam.maxScore}` : "N/A"}</td>

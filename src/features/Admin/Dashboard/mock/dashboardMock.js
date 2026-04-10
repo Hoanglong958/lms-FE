@@ -47,22 +47,27 @@ export const overviewStatCardsRow2 = [
  */
 export const detailedReports = [
   {
+    id: "users",
     title: "Báo cáo người dùng",
     description: "Danh sách user, role, thời gian đăng ký",
   },
   {
+    id: "courses",
     title: "Báo cáo khóa học",
     description: "Số lượng khóa, học viên, % hoàn thành",
   },
   {
+    id: "progress",
     title: "Báo cáo tiến độ học viên",
     description: "Điểm, tiến độ từng user theo khóa",
   },
   {
+    id: "quizzes",
     title: "Báo cáo bài thi/quiz",
     description: "Kết quả chi tiết, điểm TB, tỉ lệ pass/fail",
   },
   {
+    id: "revenue",
     title: "Báo cáo doanh thu",
     description: "Doanh thu, đơn đăng ký, top khóa học",
   },
@@ -319,4 +324,15 @@ export const topStudentsData = [
   { id: 3, name: "Lê Văn C", courses: 11, score: 95.2 },
   { id: 4, name: "Phạm Thị D", courses: 9, score: 94.7 },
   { id: 5, name: "Hoàng Văn E", courses: 8, score: 93.5 },
+];
+
+/**
+ * Danh sách: Giao dịch mới nhất
+ */
+export const recentTransactionsData = [
+  { id: "TX101", user: "Nguyễn Văn A", course: "React Nâng cao", amount: "1,200,000đ", status: "Thành công", time: "2 giờ trước" },
+  { id: "TX102", user: "Trần Thị B", course: "Node.js Backend", amount: "950,000đ", status: "Thành công", time: "4 giờ trước" },
+  { id: "TX103", user: "Lê Văn C", course: "UI/UX Design", amount: "800,000đ", status: "Đang xử lý", time: "5 giờ trước" },
+  { id: "TX104", user: "Phạm Thị D", course: "Python cho AI", amount: "1,500,000đ", status: "Thành công", time: "1 ngày trước" },
+  { id: "TX105", user: "Hoàng Văn E", course: "C++ Cơ bản", amount: "600,000đ", status: "Thất bại", time: "1 ngày trước" },
 ];

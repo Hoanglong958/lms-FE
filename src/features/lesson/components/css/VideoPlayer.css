@@ -1,0 +1,137 @@
+/* src/features/lesson/components/VideoPlayer.css */
+.video-player-wrapper {
+  width: 100%;
+  margin: 0 auto;
+  aspect-ratio: 16 / 9;
+  background-color: #000;
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 18px;
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.video-player-wrapper iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+.video-player-wrapper.loading,
+.video-player-wrapper.empty {
+  background-color: #111;
+  font-weight: 500;
+}
+
+/* CONTAINER INFO */
+.video-info-container {
+  font-family: "SF Pro Display", sans-serif;
+  color: #000;
+}
+
+/* HEADER: Title + Progress */
+.vp-info-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px; /* Spacing between Title and Date */
+}
+
+.vp-title {
+  font-weight: 700; /* Bold */
+  font-size: 28px; /* Large */
+  line-height: 1.2;
+  margin: 0;
+  color: #000;
+  max-width: 70%;
+}
+
+.vp-progress-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+/* CIRCULAR CHART SIMULATION (CSS only or SVG) */
+.vp-progress-circle {
+  width: 24px;
+  height: 24px;
+  position: relative;
+  /* Background circle logic can be complex, using simple border for now or SVG in JSX */
+}
+
+/* DATE INFO */
+.vp-meta-date {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: #676767;
+  margin-bottom: 24px; /* Spacing before description */
+}
+.vp-meta-date svg {
+  color: #999;
+}
+
+/* DESCRIPTION BOX */
+.vp-desc-box {
+  background-color: #f9f9f9; /* Light Gray */
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.vp-desc-header {
+  font-weight: 700;
+  font-size: 16px;
+  margin-bottom: 12px;
+  color: #000;
+}
+
+.vp-desc-content {
+  font-size: 15px;
+  line-height: 1.6;
+  color: #444;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+
+.vp-desc-content.collapsed {
+  max-height: 100px; /* Limit height if collapsed */
+  -webkit-mask-image: linear-gradient(
+    180deg,
+    #000 60%,
+    transparent
+  ); /* Fade out */
+}
+
+.vp-desc-content.expanded {
+  max-height: none;
+}
+
+.vp-desc-toggle {
+  margin-top: 12px;
+  background: none;
+  border: none;
+  padding: 0;
+  font-weight: 600;
+  color: #f05123; /* Orange */
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.vp-desc-toggle:hover {
+  text-decoration: underline;
+}
+
+.no-desc {
+  font-style: italic;
+  color: #999;
+}

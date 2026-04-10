@@ -1,17 +1,24 @@
 import React, { useEffect, useState } from "react";
 import { FileText, Clock, TrendingUp, CheckCircle2, Search, Activity, ChevronDown } from "lucide-react";
 import NotificationModal from "@components/NotificationModal/NotificationModal";
-import "./ExamManagement.css";
+import "./styles/ExamManagement.css";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import { examService } from "@utils/examService.js";
+import { courseService } from "@utils/courseService";
+import { classService } from "@utils/classService";
 import ExamCreateDialog from "./ExamCreateDialog";
 import ExamEditDialog from "./ExamEditDialog";
 import ExamTable from "./ExamTable";
+import { useNotification } from "@shared/notification";
+import AdminPagination from "@shared/components/Admin/AdminPagination";
 
 export default function ExamManagement() {
+  const { confirm, error } = useNotification();
   const navigate = useNavigate();
   const user = (() => { try { return JSON.parse(localStorage.getItem("loggedInUser") || "{}"); } catch { return {}; } })();
-  const isAdmin = String(user?.role || "").toUpperCase() === "ROLE_ADMIN";
+  const userRole = String(user?.role || "").toUpperCase();
+  const canManage = userRole === "ROLE_ADMIN" || userRole === "ROLE_TEACHER";
+  const isAdmin = userRole === "ROLE_ADMIN"; // Keep for specific admin-only checks if any
 
   const [exams, setExams] = useState([]);
   const [search, setSearch] = useState("");
@@ -28,9 +35,23 @@ export default function ExamManagement() {
   const [studentsTotal, setStudentsTotal] = useState(0);
   const [avgScoreGlobal, setAvgScoreGlobal] = useState(0);
 
+  const [allCourses, setAllCourses] = useState([]);
+  const [allClasses, setAllClasses] = useState([]);
+
   const loadExams = async () => {
     try {
       setLoading(true);
+
+      // Fetch metadata first
+      const [courseRes, classRes] = await Promise.all([
+        courseService.getCourses(),
+        classService.getClasses()
+      ]);
+      const cList = Array.isArray(courseRes.data) ? courseRes.data : (courseRes.data?.data || []);
+      const lList = Array.isArray(classRes.data) ? classRes.data : (classRes.data?.data || []);
+      setAllCourses(cList);
+      setAllClasses(lList);
+
       const res = await examService.getExams();
       const raw = res?.data ?? {};
       const apiArr = Array.isArray(raw)
@@ -97,6 +118,10 @@ export default function ExamManagement() {
         startTime: e.startTime || e.startAt,
         endTime: e.endTime || e.endAt,
         status: e.status || "Đang mở",
+        courseId: e.courseId,
+        classId: e.classId,
+        courseName: cList.find(c => c.id === e.courseId)?.title || "",
+        className: lList.find(l => l.id === e.classId)?.className || "",
       }));
       setExams(mapped);
       const sumFromList = mapped.reduce((s, e) => s + (Number(e.students) || 0), 0);
@@ -139,7 +164,7 @@ export default function ExamManagement() {
       const status = err?.response?.status;
       const msg = err?.response?.data?.message || err?.message || "Không thể tải danh sách kỳ thi";
       if (status === 400) {
-        alert(`Lỗi 400: ${msg}`);
+        error(`Lỗi 400: ${msg}`);
       }
       setExams([]);
     } finally {
@@ -164,28 +189,32 @@ export default function ExamManagement() {
     setOpenEdit(true);
   };
 
-  const handleDelete = (exam) => {
-    (async () => {
-      if (!isAdmin) {
-        alert("Bạn không có quyền xóa kỳ thi. Vui lòng đăng nhập tài khoản ADMIN.");
-        return;
+  const handleDelete = async (exam) => {
+    if (!canManage) {
+      error("Bạn không có quyền xóa kỳ thi.");
+      return;
+    }
+    const isConfirmed = await confirm({
+      title: "Xác nhận xóa",
+      message: `Bạn có chắc muốn xóa "${exam.name}" không?`,
+      type: "danger",
+      confirmText: "Xóa",
+      cancelText: "Hủy"
+    });
+    if (!isConfirmed) return;
+    try {
+      await examService.deleteExam(exam.id);
+      await loadExams();
+    } catch (err) {
+      const status = err?.response?.status;
+      const backend = err?.response?.data;
+      const msg = backend?.message || backend?.data || err?.message || "Xóa kỳ thi thất bại";
+      if (status === 401 || status === 403) {
+        error("Bạn không có quyền xóa kỳ thi. Vui lòng đăng nhập tài khoản ADMIN.");
+      } else {
+        error(`${status || ""} ${msg}`.trim());
       }
-      const ok = window.confirm(`Bạn có chắc muốn xóa "${exam.name}" không?`);
-      if (!ok) return;
-      try {
-        await examService.deleteExam(exam.id);
-        await loadExams();
-      } catch (err) {
-        const status = err?.response?.status;
-        const backend = err?.response?.data;
-        const msg = backend?.message || backend?.data || err?.message || "Xóa kỳ thi thất bại";
-        if (status === 401 || status === 403) {
-          alert("Bạn không có quyền xóa kỳ thi. Vui lòng đăng nhập tài khoản ADMIN.");
-        } else {
-          alert(`${status || ""} ${msg}`.trim());
-        }
-      }
-    })();
+    }
   };
 
   const handleDeleteById = (id) => {
@@ -238,11 +267,7 @@ export default function ExamManagement() {
         marginBottom: 16,
         fontWeight: 500
       }}>
-        <span style={{ color: '#f97316', fontWeight: 600 }}>Quản lý bài kiểm tra</span>
-        <span style={{ color: '#d1d5db', margin: '0 4px' }}> / </span>
-        <span style={{ color: '#9ca3af' }}>Dashboard</span>
-        <span style={{ color: '#d1d5db', margin: '0 4px' }}> / </span>
-        <span style={{ color: '#374151', fontWeight: 600 }}>Tất cả bài thi</span>
+
       </div>
 
       {/* Header */}
@@ -606,32 +631,19 @@ export default function ExamManagement() {
         loading={loading}
         onEdit={handleEdit}
         onDelete={handleDeleteById}
-        canDelete={isAdmin}
+        canDelete={canManage}
         onViewDetail={(id) => {
-          navigate(`/admin/exam/${id}/detail`);
+          const basePath = isAdmin ? "/admin" : "/teacher";
+          navigate(`${basePath}/exam/${id}/detail`);
         }}
       />
 
       {/* Pagination */}
-      <div className="exam-pagination">
-        <button
-          className="page-btn"
-          disabled={curPage <= 1}
-          onClick={() => setPage((p) => Math.max(1, p - 1))}
-        >
-          ‹ Trước
-        </button>
-        <span className="page-info">
-          Trang {curPage}/{totalPages}
-        </span>
-        <button
-          className="page-btn"
-          disabled={curPage >= totalPages}
-          onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-        >
-          Sau ›
-        </button>
-      </div>
+      <AdminPagination
+        currentPage={curPage}
+        totalPages={totalPages}
+        onPageChange={(p) => setPage(p)}
+      />
 
       <ExamCreateDialog
         open={openCreate}

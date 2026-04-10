@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import "./QuestionBankBulk.css";
+import "./styles/QuestionBankBulk.css";
 import { useNavigate } from "react-router-dom";
 import NotificationModal from "@components/NotificationModal/NotificationModal";
 import { questionService } from "@utils/questionService";
@@ -53,7 +53,9 @@ export default function QuestionBankBulk() {
         try {
             await questionService.bulkCreate(arr);
             showNotification("Thành công", `Đã tạo ${arr.length} câu hỏi thành công!`, "success");
-            setTimeout(() => navigate("/admin/question-bank"), 1500);
+            const user = JSON.parse(localStorage.getItem("loggedInUser") || "{}");
+            const isAdmin = String(user?.role || "").toUpperCase() === "ROLE_ADMIN";
+            setTimeout(() => navigate(`/${isAdmin ? "admin" : "teacher"}/question-bank`), 1500);
         } catch (error) {
             console.error(error);
             showNotification("Lỗi", "Tạo câu hỏi thất bại.", "error");
@@ -80,7 +82,9 @@ export default function QuestionBankBulk() {
                 await questionService.importUrl(importUrl);
             }
             showNotification("Thành công", "Import câu hỏi từ Excel thành công!", "success");
-            setTimeout(() => navigate("/admin/question-bank"), 1500);
+            const user = JSON.parse(localStorage.getItem("loggedInUser") || "{}");
+            const isAdmin = String(user?.role || "").toUpperCase() === "ROLE_ADMIN";
+            setTimeout(() => navigate(`/${isAdmin ? "admin" : "teacher"}/question-bank`), 1500);
         } catch (error) {
             console.error(error);
             showNotification("Lỗi", "Import thất bại. Vui lòng kiểm tra file/URL.", "error");
@@ -124,7 +128,11 @@ export default function QuestionBankBulk() {
                                 spellCheck="false"
                             />
                             <div className="qb-action-row">
-                                <button className="qb-btn cancel" onClick={() => navigate("/admin/question-bank")}>
+                                <button className="qb-btn cancel" onClick={() => {
+                                    const user = JSON.parse(localStorage.getItem("loggedInUser") || "{}");
+                                    const isAdmin = String(user?.role || "").toUpperCase() === "ROLE_ADMIN";
+                                    navigate(`/${isAdmin ? "admin" : "teacher"}/question-bank`);
+                                }}>
                                     Hủy
                                 </button>
                                 <button className="qb-btn submit" onClick={handleSubmitJSON} disabled={loading}>
@@ -180,7 +188,11 @@ export default function QuestionBankBulk() {
                             </div>
 
                             <div className="qb-action-row">
-                                <button className="qb-btn cancel" onClick={() => navigate("/admin/question-bank")}>
+                                <button className="qb-btn cancel" onClick={() => {
+                                    const user = JSON.parse(localStorage.getItem("loggedInUser") || "{}");
+                                    const isAdmin = String(user?.role || "").toUpperCase() === "ROLE_ADMIN";
+                                    navigate(`/${isAdmin ? "admin" : "teacher"}/question-bank`);
+                                }}>
                                     Hủy
                                 </button>
                                 <button className="qb-btn submit" onClick={handleImportExcel} disabled={loading}>

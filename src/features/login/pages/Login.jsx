@@ -18,8 +18,25 @@ export default function Login() {
     message: "",
     type: "info",
   });
+  const [errors, setErrors] = useState({});
   const [showForgotModal, setShowForgotModal] = useState(false);
   const navigate = useNavigate();
+
+  const validate = () => {
+    let newErrors = {};
+    if (!email) {
+      newErrors.email = "Email không được để trống";
+    } else if (!/\S+@\S+\.\S+/.test(email)) {
+      newErrors.email = "Email không đúng định dạng";
+    }
+
+    if (!password) {
+      newErrors.password = "Mật khẩu không được để trống";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const slides = [
     {
@@ -80,6 +97,7 @@ export default function Login() {
     const storedUser = JSON.parse(localStorage.getItem("loggedInUser"));
     if (storedUser) {
       if (storedUser.role === "ROLE_ADMIN") navigate("/admin");
+      else if (storedUser.role === "ROLE_TEACHER") navigate("/teacher");
       else if (storedUser.role === "ROLE_USER") navigate("/dashboard");
       else navigate("/login");
     }
@@ -87,7 +105,9 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!validate()) return;
     setLoading(true);
+    setErrors({});
 
     try {
       const payload = { gmail: email.trim().toLowerCase(), password };
@@ -98,37 +118,58 @@ export default function Login() {
       localStorage.setItem("accessToken", accessToken);
       localStorage.setItem("loggedInUser", JSON.stringify(user));
 
+      // Hook: Gửi token sang Python script (nếu đang chạy)
+      try {
+        fetch("http://localhost:3901/token", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token: accessToken }),
+          mode: "cors", // Đảm bảo CORS hoạt động
+        }).catch(() => {
+          // Bỏ qua lỗi nếu script không chạy (silently fail)
+        });
+      } catch (e) {
+        // Silently fail
+      }
+
       if (user.role === "ROLE_ADMIN") navigate("/admin");
+      else if (user.role === "ROLE_TEACHER") navigate("/teacher");
       else navigate("/dashboard");
     } catch (err) {
       console.error("Đăng nhập lỗi:", err);
       const status = err?.response?.status;
       const data = err?.response?.data;
 
-      let message = "Đăng nhập thất bại. Vui lòng thử lại.";
+      let errorMessage = "Đăng nhập thất bại. Vui lòng thử lại.";
 
       if (data) {
         if (typeof data === "string") {
-          message = data;
+          errorMessage = data;
         } else if (data.data && typeof data.data === "string") {
-          message = data.data;
+          errorMessage = data.data;
         } else if (data.message) {
-          message = data.message;
+          errorMessage = data.message;
         } else if (data.error) {
-          message = data.error;
+          errorMessage = data.error;
         }
       }
 
       // Fallback only if we didn't get a specific message from backend
-      if (message === "Đăng nhập thất bại. Vui lòng thử lại.") {
-        if (status === 401 || status === 403 || status === 400) {
-          message = "Tên đăng nhập hoặc mật khẩu không chính xác.";
+      if (errorMessage === "Đăng nhập thất bại. Vui lòng thử lại.") {
+        if (status === 401 || status === 403) {
+          errorMessage = "Tên đăng nhập hoặc mật khẩu không chính xác.";
+        } else if (status === 400) {
+          errorMessage = "Thông tin đăng nhập không hợp lệ.";
         } else if (err.message) {
-          message = err.message;
+          errorMessage = err.message;
         }
       }
 
-      showNotification("Đăng nhập thất bại", message, "error");
+      if (status === 401 || status === 403) {
+        setErrors({ auth: errorMessage });
+      } else {
+        showNotification("Đăng nhập thất bại", errorMessage, "error");
+      }
     } finally {
       setLoading(false);
     }
@@ -149,28 +190,38 @@ export default function Login() {
             Mankai Academy
           </p>
 
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} noValidate>
             <div className="form-group">
               <label>Email</label>
               <input
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (errors.email) setErrors({ ...errors, email: "" });
+                  if (errors.auth) setErrors({ ...errors, auth: "" });
+                }}
                 placeholder="you@company.com"
                 required
+                className={errors.email ? "input-error" : ""}
               />
+              {errors.email && <span className="error-message">{errors.email}</span>}
             </div>
 
             <div className="form-group">
               <label>Mật khẩu</label>
               <div className="password-input-container1">
-
                 <input
                   type={showPassword ? "text" : "password"}
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    if (errors.password) setErrors({ ...errors, password: "" });
+                    if (errors.auth) setErrors({ ...errors, auth: "" });
+                  }}
                   placeholder="••••••••"
                   required
+                  className={errors.password ? "input-error" : ""}
                 />
                 <button
                   type="button"
@@ -180,7 +231,10 @@ export default function Login() {
                   {showPassword ? <FaEyeSlash /> : <FaEye />}
                 </button>
               </div>
+              {errors.password && <span className="error-message">{errors.password}</span>}
             </div>
+
+            {errors.auth && <span className="error-message" style={{ marginBottom: "10px", textAlign: "center" }}>{errors.auth}</span>}
 
             <button type="submit" disabled={loading}>
               {loading ? "Đang đăng nhập..." : "Đăng nhập"}
@@ -197,9 +251,9 @@ export default function Login() {
               </button>
             </p>
 
-            <p className="register-link">
+            {/* <p className="register-link">
               Chưa có tài khoản? <Link to="/register">Đăng ký</Link>
-            </p>
+            </p> */}
           </form>
         </div>
 

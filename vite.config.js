@@ -9,6 +9,10 @@ const __dirname = path.dirname(__filename);
 
 // https://vite.dev/config/
 export default defineConfig({
+  define: {
+    global: 'globalThis',
+    "process.env": {},
+  },
   plugins: [react(), svgr()],
   resolve: {
     alias: {
@@ -26,6 +30,8 @@ export default defineConfig({
       "@services": path.resolve(__dirname, "./src/services"), // alias @services → src/services
       "@config": path.resolve(__dirname, "./src/config"), // alias @config → src/config
       "@admin": path.resolve(__dirname, "./src/features/Admin"), // alias @admin → src/features/Admin
+      "@shared": path.resolve(__dirname, "./src/shared"), // alias @shared → src/shared
+      "@face": path.resolve(__dirname, "./src/face"), // alias @face → src/face
     },
   },
   server: {

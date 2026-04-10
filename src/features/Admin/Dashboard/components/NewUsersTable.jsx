@@ -1,43 +1,15 @@
-// Đường dẫn: features/Admin/Dashboard/components/NewUsersTable.jsx
-// (ĐÃ SỬA LỖI)
-
-import React, { useState, useMemo } from "react";
+import React, { useState } from "react";
 import Pagination from "@components/common/Pagination";
 // Import file CSS của bạn
 import "../Dashboard.css";
 
-// Hàm lọc theo tháng hiện tại
-const filterByCurrentMonth = (users) => {
-  if (!users || users.length === 0) return [];
-  
-  const now = new Date();
-  const currentMonth = now.getMonth() + 1; // 1-12
-  const currentYear = now.getFullYear();
-  
-  return users.filter((user) => {
-    if (!user.date) return false;
-    
-    // Parse date từ format "d/m/yyyy" hoặc "dd/mm/yyyy"
-    const dateParts = user.date.split("/");
-    if (dateParts.length !== 3) return false;
-    
-    const day = parseInt(dateParts[0], 10);
-    const month = parseInt(dateParts[1], 10);
-    const year = parseInt(dateParts[2], 10);
-    
-    return month === currentMonth && year === currentYear;
-  });
-};
 
 // SỬA 1: Đảm bảo bạn nhận vào prop là { users }
 const NewUsersTable = ({ users }) => {
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const itemsPerPage = 5;
 
-  // Lọc theo tháng hiện tại
-  const filteredUsers = useMemo(() => {
-    return filterByCurrentMonth(users);
-  }, [users]);
+  const filteredUsers = Array.isArray(users) ? users : [];
 
   // Tính toán pagination
   const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);

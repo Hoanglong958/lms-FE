@@ -12,13 +12,34 @@ export default function Register() {
   const [showPassword, setShowPassword] = useState(false);
   const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
-  const [notification, setNotification] = useState({
-    isOpen: false,
-    title: "",
-    message: "",
-    type: "info",
-  });
+  const [errors, setErrors] = useState({});
   const navigate = useNavigate();
+
+  const validate = () => {
+    let newErrors = {};
+    if (!fullName.trim()) {
+      newErrors.fullName = "Họ và tên không được để trống";
+    }
+
+    if (!email) {
+      newErrors.email = "Email không được để trống";
+    } else if (!/\S+@\S+\.\S+/.test(email)) {
+      newErrors.email = "Email không đúng định dạng";
+    }
+
+    if (!password) {
+      newErrors.password = "Mật khẩu không được để trống";
+    } else if (password.length < 6) {
+      newErrors.password = "Mật khẩu phải có ít nhất 6 ký tự";
+    }
+
+    if (phone && !/^\d+$/.test(phone)) {
+      newErrors.phone = "Số điện thoại chỉ được chứa chữ số";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const showNotification = (title, message, type = "info") => {
     setNotification({ isOpen: true, title, message, type });
@@ -26,7 +47,9 @@ export default function Register() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!validate()) return;
     setLoading(true);
+    setErrors({});
 
     const payload = { fullName, gmail: email, password, phone, role: "ROLE_USER" };
 
@@ -39,17 +62,18 @@ export default function Register() {
       const status = err?.response?.status;
       const data = err?.response?.data;
 
-      let message = "Có lỗi xảy ra, vui lòng thử lại!";
+      let errorMessage = "Có lỗi xảy ra, vui lòng thử lại!";
 
       if (status === 409) {
-        message = "Email này đã được sử dụng. Vui lòng chọn email khác.";
+        errorMessage = "Email này đã được sử dụng. Vui lòng chọn email khác.";
+        setErrors({ email: errorMessage });
       } else if (data) {
-        message = typeof data === "string" ? data : (data.message || data.error || message);
+        errorMessage = typeof data === "string" ? data : (data.message || data.error || errorMessage);
+        showNotification("Đăng ký thất bại", errorMessage, "error");
       } else if (err.message) {
-        message = err.message;
+        errorMessage = err.message;
+        showNotification("Đăng ký thất bại", errorMessage, "error");
       }
-
-      showNotification("Đăng ký thất bại", message, "error");
     } finally {
       setLoading(false);
     }
@@ -69,16 +93,21 @@ export default function Register() {
             Tạo tài khoản để truy cập kho học liệu và các khóa học miễn phí!
           </p>
 
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} noValidate>
             <div className="form-group">
               <label>Họ và tên</label>
               <input
                 type="text"
                 value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
+                onChange={(e) => {
+                  setFullName(e.target.value);
+                  if (errors.fullName) setErrors({ ...errors, fullName: "" });
+                }}
                 placeholder="Nguyen Van A"
                 required
+                className={errors.fullName ? "input-error" : ""}
               />
+              {errors.fullName && <span className="error-message">{errors.fullName}</span>}
             </div>
 
             <div className="form-group">
@@ -86,10 +115,15 @@ export default function Register() {
               <input
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (errors.email) setErrors({ ...errors, email: "" });
+                }}
                 placeholder="you@company.com"
                 required
+                className={errors.email ? "input-error" : ""}
               />
+              {errors.email && <span className="error-message">{errors.email}</span>}
             </div>
 
             <div className="form-group">
@@ -98,9 +132,13 @@ export default function Register() {
                 <input
                   type={showPassword ? "text" : "password"}
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    if (errors.password) setErrors({ ...errors, password: "" });
+                  }}
                   placeholder="••••••••"
                   required
+                  className={errors.password ? "input-error" : ""}
                 />
                 <button
                   type="button"
@@ -110,6 +148,7 @@ export default function Register() {
                   {showPassword ? <FaEyeSlash /> : <FaEye />}
                 </button>
               </div>
+              {errors.password && <span className="error-message">{errors.password}</span>}
             </div>
 
             <div className="form-group">
@@ -117,9 +156,14 @@ export default function Register() {
               <input
                 type="text"
                 value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+                onChange={(e) => {
+                  setPhone(e.target.value);
+                  if (errors.phone) setErrors({ ...errors, phone: "" });
+                }}
                 placeholder="0123456789"
+                className={errors.phone ? "input-error" : ""}
               />
+              {errors.phone && <span className="error-message">{errors.phone}</span>}
             </div>
 
             <button type="submit" disabled={loading}>

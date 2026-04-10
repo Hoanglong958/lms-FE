@@ -1,11 +1,21 @@
 import React, { useState } from "react";
 import { CKEditor } from "@ckeditor/ckeditor5-react";
-import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 import { lessonDocumentService } from "@utils/lessonDocumentService.js";
 import { uploadService } from "@utils/uploadService";
 import NotificationModal from "@components/NotificationModal/NotificationModal";
-import "./CoursesCSS/LessonDocumentEditor.css";
+import "./styles/LessonDocumentEditor.css";
 import { SERVER_URL } from "@config";
+
+// Modular CKEditor imports
+import { ClassicEditor } from '@ckeditor/ckeditor5-editor-classic';
+import { Essentials } from '@ckeditor/ckeditor5-essentials';
+import { Paragraph } from '@ckeditor/ckeditor5-paragraph';
+import { Heading } from '@ckeditor/ckeditor5-heading';
+import { Bold, Italic, Underline } from '@ckeditor/ckeditor5-basic-styles';
+import { Link } from '@ckeditor/ckeditor5-link';
+import { List } from '@ckeditor/ckeditor5-list';
+import { BlockQuote } from '@ckeditor/ckeditor5-block-quote';
+import { Autoformat } from '@ckeditor/ckeditor5-autoformat';
 
 // Dùng cùng toolbar
 const CKEDITOR_TOOLBAR = [
@@ -22,6 +32,25 @@ const CKEDITOR_TOOLBAR = [
   "undo",
   "redo",
 ];
+
+const editorConfiguration = {
+  licenseKey: 'GPL',
+  plugins: [
+    Essentials,
+    Paragraph,
+    Heading,
+    Bold,
+    Italic,
+    Underline,
+    Link,
+    List,
+    BlockQuote,
+    Autoformat,
+  ],
+  toolbar: CKEDITOR_TOOLBAR,
+  language: 'vi',
+  placeholder: 'Nhập nội dung tài liệu...',
+};
 
 export default function LessonDocumentCreate({ lesson, onCreated }) {
   const [form, setForm] = useState({
@@ -43,6 +72,23 @@ export default function LessonDocumentCreate({ lesson, onCreated }) {
 
   const showNotification = (title, message, type = "info") => {
     setNotification({ isOpen: true, title, message, type });
+  };
+
+  const normalizeOptionalValue = (value) => {
+    if (typeof value !== "string") return value ?? null;
+    const trimmed = value.trim();
+    return trimmed ? trimmed : null;
+  };
+
+  const getErrorMessage = (err, fallback) => {
+    const payload = err?.response?.data;
+    return (
+      payload?.data ||
+      payload?.message ||
+      (typeof payload === "string" ? payload : null) ||
+      err?.message ||
+      fallback
+    );
   };
 
   const handleImageUpload = async (e) => {
@@ -98,7 +144,11 @@ export default function LessonDocumentCreate({ lesson, onCreated }) {
 
     const payload = {
       lessonId: lesson.id,
-      ...form,
+      title: form.title.trim(),
+      content: normalizeOptionalValue(form.content),
+      imageUrl: normalizeOptionalValue(form.imageUrl),
+      videoUrl: normalizeOptionalValue(form.videoUrl),
+      pdfUrl: normalizeOptionalValue(form.pdfUrl),
       sortOrder: Number(form.sortOrder),
     };
 
@@ -106,7 +156,7 @@ export default function LessonDocumentCreate({ lesson, onCreated }) {
       const res = await lessonDocumentService.addDocument(payload);
       onCreated(res.data);
     } catch (err) {
-      showNotification("Lỗi", "Tạo tài liệu thất bại.", "error");
+      showNotification("Lỗi", getErrorMessage(err, "Tạo tài liệu thất bại."), "error");
     }
   };
 
@@ -134,7 +184,7 @@ export default function LessonDocumentCreate({ lesson, onCreated }) {
           <CKEditor
             editor={ClassicEditor}
             data={form.content}
-            config={{ toolbar: CKEDITOR_TOOLBAR }}
+            config={editorConfiguration}
             onChange={(event, editor) =>
               setForm((prev) => ({ ...prev, content: editor.getData() }))
             }

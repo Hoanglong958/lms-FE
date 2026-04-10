@@ -1,0 +1,383 @@
+.ssa-panel {
+
+  background: #fff;
+
+  border: 1px solid #e5e7eb;
+
+  border-radius: 16px;
+
+  padding: 24px;
+
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+
+  margin-bottom: 24px;
+
+}
+
+
+
+.ssa-panel-header {
+
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: flex-end;
+
+  gap: 1rem;
+
+  flex-wrap: wrap;
+
+}
+
+
+
+.ssa-panel-header h3 {
+
+  margin: 0;
+
+  font-size: 1.3rem;
+
+  font-weight: 600;
+
+}
+
+
+
+.ssa-subtitle {
+
+  margin: 4px 0 0;
+
+  color: #6b7280;
+
+  font-size: 0.9rem;
+
+}
+
+
+
+.ssa-class-select {
+
+  border: 1px solid #d1d5db;
+
+  border-radius: 999px;
+
+  padding: 6px 16px;
+
+  background: #f8fafc;
+
+}
+
+
+
+.ssa-stat-grid {
+
+  display: grid;
+
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+
+  gap: 12px;
+
+  margin-top: 18px;
+
+}
+
+
+
+.ssa-stat-card {
+
+  padding: 12px 16px;
+
+  border-radius: 12px;
+
+  background: #f1f5f9;
+
+}
+
+
+
+.ssa-stat-label {
+
+  color: #475569;
+
+  font-size: 0.85rem;
+
+  margin: 0 0 4px;
+
+}
+
+
+
+.ssa-stat-value {
+
+  margin: 0;
+
+  font-size: 1.4rem;
+
+  font-weight: 600;
+
+}
+
+
+
+.ssa-grid {
+
+  margin-top: 24px;
+
+  display: grid;
+
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+
+  gap: 20px;
+
+}
+
+
+
+.ssa-grid section {
+
+  border-top: 1px solid #e2e8f0;
+
+  padding-top: 12px;
+
+}
+
+
+
+.ssa-correlation-group {
+
+  margin-top: 24px;
+
+  border-top: 1px solid #e2e8f0;
+
+  padding-top: 12px;
+
+}
+
+
+
+.ssa-correlation-group h4 {
+
+  margin: 0 0 12px;
+
+  color: #111827;
+
+  font-size: 1rem;
+
+}
+
+
+
+.ssa-correlation-grid {
+
+  display: grid;
+
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+
+  gap: 16px;
+
+}
+
+
+
+.ssa-correlation-card {
+
+  background: #f8fafc;
+
+  border: 1px solid #e2e8f0;
+
+  padding: 12px 16px;
+
+  border-radius: 12px;
+
+}
+
+
+
+.ssa-correlation-card p:first-child {
+
+  margin: 0 0 4px;
+
+  font-size: 0.85rem;
+
+  color: #475569;
+
+}
+
+
+
+.ssa-correlation-value {
+
+  font-size: 1.25rem;
+
+  font-weight: 600;
+
+  color: #0f172a;
+
+  margin: 0;
+
+}
+
+
+
+.ssa-grid h4 {
+
+  margin: 0 0 10px;
+
+  color: #111827;
+
+  font-size: 1rem;
+
+}
+
+
+
+.ssa-grid ul {
+
+  list-style: none;
+
+  margin: 0;
+
+  padding: 0;
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 10px;
+
+}
+
+
+
+.ssa-risk-header {
+
+  display: flex;
+
+  justify-content: space-between;
+
+  font-weight: 500;
+
+  font-size: 0.95rem;
+
+}
+
+
+
+.ssa-risk-name {
+
+  color: #111827;
+
+}
+
+
+
+.ssa-risk-score {
+
+  color: #475569;
+
+  font-size: 0.85rem;
+
+}
+
+
+
+.ssa-risk-reason {
+
+  margin: 4px 0 0;
+
+  font-size: 0.9rem;
+
+  color: #475569;
+
+}
+
+
+
+.ssa-mastery-list {
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 8px;
+
+}
+
+
+
+.ssa-mastery-item {
+
+  display: grid;
+
+  grid-template-columns: auto 1fr auto;
+
+  align-items: center;
+
+  gap: 12px;
+
+}
+
+
+
+.ssa-progress-bar {
+
+  height: 6px;
+
+  border-radius: 999px;
+
+  background: #e2e8f0;
+
+  overflow: hidden;
+
+  position: relative;
+
+}
+
+
+
+.ssa-progress-bar div {
+
+  height: 100%;
+
+  background: linear-gradient(90deg, #38bdf8, #22c55e);
+
+}
+
+
+
+.ssa-mastery-item small {
+
+  color: #475569;
+
+}
+
+
+
+.ssa-placeholder,
+
+.ssa-error {
+
+  padding: 12px;
+
+  border-radius: 12px;
+
+  background: #f8fafc;
+
+  color: #475569;
+
+  margin-top: 12px;
+
+}
+
+
+
+.ssa-error {
+
+  background: #fee2e2;
+
+  color: #b91c1c;
+
+}
+
+  

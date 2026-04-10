@@ -180,7 +180,6 @@ export default function ProfileEdit() {
             // Schema: { "fullName": "string", "phone": "string", "avatar": "string" }
             const payload = {
                 fullName: `${formData.lastName} ${formData.firstName}`.trim(),
-                phone: formData.phone,
                 avatar: formData.avatar
             };
 
@@ -285,7 +284,7 @@ export default function ProfileEdit() {
                                     />
                                 </div>
 
-                                <div className="form-group">
+                                {/* <div className="form-group">
                                     <label htmlFor="phone">Số điện thoại</label>
                                     <input
                                         type="tel"
@@ -296,7 +295,7 @@ export default function ProfileEdit() {
                                         readOnly
                                         className="form-input readonly"
                                     />
-                                </div>
+                                </div> */}
                             </div>
 
                             <button

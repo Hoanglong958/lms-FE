@@ -1,12 +1,34 @@
 // Đường dẫn: features/Admin/Dashboard/components/NewCoursesTable.jsx
 // (ĐÃ SỬA LỖI)
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 // Import file CSS của bạn
 import "../Dashboard.css";
+import Pagination from "@components/common/Pagination";
 
 // SỬA 1: Đảm bảo bạn nhận vào prop là { courses }
 const NewCoursesTable = ({ courses }) => {
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
+  const normalizedCourses = Array.isArray(courses) ? courses : [];
+  const totalPages = Math.ceil(normalizedCourses.length / itemsPerPage);
+  const startIdx = (currentPage - 1) * itemsPerPage;
+  const currentCourses = normalizedCourses.slice(startIdx, startIdx + itemsPerPage);
+
+  useEffect(() => {
+    if (totalPages === 0) {
+      setCurrentPage(1);
+      return;
+    }
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+
   // Hàm helper map dữ liệu sang hiển thị
   const getDisplayInfo = (course) => {
     // Ưu tiên hiển thị Level nếu Status không có hoặc null
@@ -49,39 +71,51 @@ const NewCoursesTable = ({ courses }) => {
   };
 
   return (
-    <div className="table-container">
-      <table className="data-table">
-        <thead className="data-table-header">
-          <tr>
-            <th className="th-cell">ID</th>
-            <th className="th-cell">Tiêu đề</th>
-            {/* Đã bỏ cột Giảng viên */}
-            <th className="th-cell">Trạng thái / Cấp độ</th>
-          </tr>
-        </thead>
-        <tbody>
-          {courses &&
-            courses.map((course) => {
-              const { label, cssClass } = getDisplayInfo(course);
-              return (
-                <tr key={course.id} className="data-table-row">
-                  <td className="td-cell font-medium">{course.id}</td>
-                  <td className="td-cell">
-                    <div>{course.title}</div>
-                    <div className="cell-subtitle">{course.description || course.category || "Không có mô tả"}</div>
-                  </td>
-                  {/* Đã bỏ cột Giảng viên */}
-                  <td className="td-cell">
-                    <span className={`status-badge ${cssClass}`}>
-                      {label}
-                    </span>
-                  </td>
-                </tr>
-              );
-            })}
-        </tbody>
-      </table>
-    </div>
+    <>
+      <div className="table-container">
+        <table className="data-table">
+          <thead className="data-table-header">
+            <tr>
+              <th className="th-cell">ID</th>
+              <th className="th-cell">Tiêu đề</th>
+              {/* Đã bỏ cột Giảng viên */}
+              <th className="th-cell">Trạng thái / Cấp độ</th>
+            </tr>
+          </thead>
+          <tbody>
+            {currentCourses && currentCourses.length > 0 ? (
+              currentCourses.map((course) => {
+                const { label, cssClass } = getDisplayInfo(course);
+                return (
+                  <tr key={course.id} className="data-table-row">
+                    <td className="td-cell font-medium">{course.id}</td>
+                    <td className="td-cell">
+                      <div>{course.title}</div>
+                      <div className="cell-subtitle">{course.description || course.category || "Không có mô tả"}</div>
+                    </td>
+                    {/* Đã bỏ cột Giảng viên */}
+                    <td className="td-cell">
+                      <span className={`status-badge ${cssClass}`}>
+                        {label}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })
+            ) : (
+              <tr>
+                <td colSpan="3" className="td-cell" style={{ textAlign: "center", padding: "2rem" }}>
+                  Chưa có khóa học mới
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+      {totalPages > 1 && (
+        <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />
+      )}
+    </>
   );
 };
 

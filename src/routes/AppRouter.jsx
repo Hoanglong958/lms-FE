@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import ScrollToTop from "@components/common/ScrollToTop";
 import PrivateRoute from "@components/common/PrivateRoute";
+import FaceGuard from "@face/FaceGuard/FaceGuard";
 
 import MainLayout from "@layouts/MainLayout";
 import LessonLayout from "@layouts/LessonLayout";
@@ -18,7 +19,7 @@ import SearchPage from "@features/search/pages/SearchPage";
 import LessonPage from "@features/lesson/pages/LessonPage";
 import QuizExamPage from "@features/lesson/components/QuizExamPage";
 import Login from "@features/login/pages/login";
-import Register from "@features/login/pages/Register";
+// import Register from "@features/login/pages/Register";
 
 // ⭐ USER CLASS PAGE
 import ClassesPage from "@pages/ClassesPage";
@@ -30,6 +31,9 @@ import ClassRoadmapPage from "@pages/ClassRoadmapPage";
 import JavaExamPage from "@pages/JavaExamPage";
 import JavaExamResult from "@pages/JavaExamResult";
 import JavaExamCard from "@pages/JavaExamCard";
+import CourseRegistration from "@features/Registration/CourseRegistration";
+import MyPayments from "@features/Registration/MyPayments";
+import ChatLayout from "@features/Chat/ChatLayout";
 
 // ================= ADMIN =================
 import DashboardPage from "@features/Admin/Dashboard/DashboardPage";
@@ -62,6 +66,14 @@ import Roadmap from "@features/Admin/Roadmap/Roadmap";
 import PostManagement from "@features/Admin/PostManagement/PostManagement";
 import PostCreate from "@features/Admin/PostManagement/PostCreate";
 import PostEdit from "@features/Admin/PostManagement/PostEdit";
+import AdminRegistrations from "@features/Admin/Registrations/AdminRegistrations";
+import LoginAuditPage from "@features/Admin/LoginAudit/LoginAuditPage";
+
+// ================= TEACHER =================
+import TeacherLayout from "@layouts/TeacherLayout";
+import TeacherDashboard from "@features/Teacher/Dashboard/TeacherDashboard";
+import TeacherClassList from "@features/Teacher/ClassManagement/TeacherClassList";
+import TeacherClassDetail from "@features/Teacher/ClassManagement/TeacherClassDetail";
 
 export default function AppRouter() {
   return (
@@ -75,7 +87,7 @@ export default function AppRouter() {
         {/* ================= AUTH ROUTES ================= */}
         <Route element={<AuthLayout />}>
           <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
+          {/* <Route path="/register" element={<Register />} /> */}
         </Route>
 
         {/* ================= USER ROUTES ================= */}
@@ -93,7 +105,7 @@ export default function AppRouter() {
             {/* BLOG */}
             <Route path="/bai-viet" element={<BlogList />} />
             <Route path="/bai-viet/:id" element={<BlogDetail />} />
-            <Route path="/baiviet" element={<Posts />} />
+            <Route path="/baiviet" element={<Navigate to="/bai-viet" replace />} />
 
             <Route path="/search" element={<SearchPage />} />
 
@@ -106,6 +118,9 @@ export default function AppRouter() {
             <Route path="/java-exam/start" element={<JavaExamPage />} />
             <Route path="/java-exam/result" element={<JavaExamResult />} />
             <Route path="/profile/edit" element={<ProfileEdit />} />
+            <Route path="/registrations" element={<CourseRegistration />} />
+            <Route path="/my-payments" element={<MyPayments />} />
+            <Route path="/chat" element={<ChatLayout />} />
           </Route>
 
           {/* COURSE LESSONS */}
@@ -131,6 +146,7 @@ export default function AppRouter() {
             <Route path="users" element={<UserManagement />} />
             <Route path="classes" element={<ClassManagement />} />
             <Route path="classes/:id" element={<ClassDetail />} />
+            <Route path="profile/edit" element={<ProfileEdit />} />
 
             {/* Admin Home */}
             <Route path="home" element={<AdminHomePage />} />
@@ -163,6 +179,14 @@ export default function AppRouter() {
             <Route path="posts" element={<PostManagement />} />
             <Route path="posts/create" element={<PostCreate />} />
             <Route path="posts/:id/edit" element={<PostEdit />} />
+            <Route path="registrations" element={<AdminRegistrations />} />
+            
+            {/* Hidden Audit Logs Route - accessible via /admin/audit-logs with Face Verification */}
+            <Route path="audit" element={
+              <FaceGuard>
+                <LoginAuditPage />
+              </FaceGuard>
+            } />
           </Route>
 
           {/* ADMIN MANAGE LESSONS FROM OUTSIDE */}
@@ -170,6 +194,37 @@ export default function AppRouter() {
             path="/admin/courses/:courseSlug"
             element={<ManageLessons />}
           />
+        </Route>
+
+        {/* ================= TEACHER ROUTES ================= */}
+        <Route element={<PrivateRoute role="ROLE_TEACHER" />}>
+          <Route path="/teacher" element={<TeacherLayout />}>
+            <Route index element={<Navigate to="dashboard" replace />} />
+            <Route path="dashboard" element={<TeacherDashboard />} />
+            <Route path="profile/edit" element={<ProfileEdit />} />
+
+            {/* Class Management */}
+            <Route path="classes" element={<TeacherClassList />} />
+            <Route path="classes/:id" element={<TeacherClassDetail />} />
+
+            {/* Lesson Management */}
+            <Route path="lessons/:courseId" element={<ManageLessons />} />
+
+            {/* Reuse Admin components for compatible features */}
+            <Route path="exam" element={<ExamManagement />} />
+            <Route path="exam/:examId/detail" element={<ExamDetail />} />
+            <Route path="exam/:examId/preview" element={<ExamPreview />} />
+            
+            <Route path="question-bank" element={<QuestionBank />} />
+            <Route path="question-bank/create" element={<QuestionCreate />} />
+            <Route path="question-bank/add" element={<QuestionBankCreate />} />
+            <Route path="question-bank/bulk" element={<QuestionBankBulk />} />
+
+            <Route path="posts" element={<PostManagement />} />
+            <Route path="posts/create" element={<PostCreate />} />
+            <Route path="posts/:id/edit" element={<PostEdit />} />
+            <Route path="chat" element={<ChatLayout />} />
+          </Route>
         </Route>
 
         {/* NOT FOUND → LOGIN */}

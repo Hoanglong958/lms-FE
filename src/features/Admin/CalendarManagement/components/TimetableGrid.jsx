@@ -48,8 +48,8 @@ export default function TimetableGrid({
       subjectData = subject.item;
     }
 
-    if (checkSlotAvailability(dayIndex, periodId)) {
-      const newSchedule = { ...schedule };
+      if (checkSlotAvailability(dayIndex, periodId)) {
+        const newSchedule = { ...schedule };
 
       // Remove from old if it was a schedule move (logic to be enhanced if needed)
       if (subject.type === "schedule") {
@@ -69,6 +69,7 @@ export default function TimetableGrid({
         subjectName: subjectData.courseName || subjectData.subjectName,
         periodId: periodId,
         startTime: periodId, // Using periodId as key
+        classCourseId: subjectData.classCourseId,
       };
 
       onScheduleChange?.(newSchedule, {

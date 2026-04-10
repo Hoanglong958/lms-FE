@@ -1,11 +1,8 @@
 import React, { useMemo, useState, useEffect, useRef } from "react";
-// GIẢ ĐỊNH: userService.js đã implement các API createUser, updateUser, deleteUser, toggleStatus
 import { userService } from "@utils/userService";
-import NotificationModal from "@components/NotificationModal/NotificationModal";
-
-// GIẢ ĐỊNH: Các component khác (AddUserModal, EditUserModal, ConfirmModal, 
-// RoleBadge, StatusBadge, RowActions, PageStyles, getInitials, styles, modalStyles) tồn tại
-// ... (Các imports giả định, styles, helper components)
+import { useNotification } from "@shared/notification";
+import { ShieldUser } from "lucide-react";
+import AdminPagination from "@shared/components/Admin/AdminPagination";
 
 
 export default function UserManagement({ currentUserRole = "admin" }) {
@@ -16,57 +13,59 @@ export default function UserManagement({ currentUserRole = "admin" }) {
 	const [isAddOpen, setIsAddOpen] = useState(false);
 	const [editingUser, setEditingUser] = useState(null);
 	const [confirmDelete, setConfirmDelete] = useState(null);
-	const [confirmLock, setConfirmLock] = useState(null); // Sử dụng để xác nhận Khóa/Mở khóa
+	const [confirmLock, setConfirmLock] = useState(null);
 
-	const [notification, setNotification] = useState({
-		isOpen: false,
-		title: "",
-		message: "",
-		type: "info",
-	});
+	// Pagination states
+	const [page, setPage] = useState(0);
+	const [pageSize, setPageSize] = useState(12);
+	const [totalElements, setTotalElements] = useState(0);
+	const [totalPages, setTotalPages] = useState(0);
 
-	const showNotification = (title, message, type = "info") => {
-		setNotification({ isOpen: true, title, message, type });
-	};
+	const { success, error: notifyError, info } = useNotification();
 
 	// 🔥 Gọi API lấy danh sách user
 	useEffect(() => {
 		fetchUsers();
-	}, []);
+	}, [page, pageSize, roleFilter]); // Trigger when page, pageSize or role filter changes
+
+	// Reset to page 0 when searching or filtering
+	useEffect(() => {
+		setPage(0);
+	}, [searchQuery, roleFilter]);
 
 	async function fetchUsers() {
 		try {
 			const res = await userService.getAllUsers({
-				page: 0,
-				size: 1000,
+				page: page,
+				size: pageSize,
 				keyword: searchQuery,
 				role: roleFilter === "all" ? null : roleFilter
 			});
 
-			// Xử lý nhiều cấu trúc response khác nhau
 			let apiData = [];
-			if (res.data.data && res.data.data.content) {
-				// Cấu trúc: { data: { content: [...] } }
-				apiData = res.data.data.content;
-			} else if (res.data.content) {
-				// Cấu trúc: { content: [...] }
-				apiData = res.data.content;
-			} else if (res.data.data && Array.isArray(res.data.data)) {
-				// Cấu trúc: { data: [...] }
-				apiData = res.data.data;
-			} else if (Array.isArray(res.data)) {
-				// Cấu trúc: [...]
-				apiData = res.data;
+			let paging = { totalElements: 0, totalPages: 0 };
+
+			if (res.data.data) {
+				apiData = res.data.data.content || res.data.data;
+				paging = res.data.data.pagination || {
+					totalElements: res.data.data.totalElements || 0,
+					totalPages: res.data.data.totalPages || 0
+				};
+			} else {
+				apiData = res.data.content || res.data;
+				paging = {
+					totalElements: res.data.totalElements || 0,
+					totalPages: res.data.totalPages || 0
+				};
 			}
 
 			setUsers(Array.isArray(apiData) ? apiData : []);
+			setTotalElements(paging.totalElements);
+			setTotalPages(paging.totalPages);
 		} catch (error) {
+			console.error("Fetch Users Error:", error);
 		}
 	}
-
-	// ============================================
-	// CRUD HANDLERS
-	// ============================================
 
 	async function handleAddUser(payload) {
 		try {
@@ -83,9 +82,9 @@ export default function UserManagement({ currentUserRole = "admin" }) {
 			await fetchUsers();
 
 			setIsAddOpen(false);
-			showNotification("Thành công", "Tạo người dùng thành công", "success");
+			success("Tạo người dùng thành công");
 		} catch (err) {
-			showNotification("Lỗi", "Không thể tạo người dùng: " + (err.response?.data?.message || err.message), "error");
+			notifyError("Không thể tạo người dùng: " + (err.response?.data?.message || err.message));
 		}
 	}
 
@@ -93,16 +92,16 @@ export default function UserManagement({ currentUserRole = "admin" }) {
 		try {
 			const apiPayload = {
 				fullName: payload.name,
-				// gmail: payload.email, // Thường không cho sửa email
+				gmail: payload.email,
 				role: payload.role,
-				isActive: true // Giữ nguyên hoặc update nếu có field
+				isActive: true
 			};
 			await userService.updateUser(id, apiPayload);
 			await fetchUsers();
 			setEditingUser(null);
-			showNotification("Thành công", "Cập nhật người dùng thành công", "success");
+			success("Cập nhật người dùng thành công");
 		} catch (err) {
-			showNotification("Lỗi", "Không thể cập nhật người dùng", "error");
+			notifyError("Không thể cập nhật người dùng");
 		}
 	}
 
@@ -118,10 +117,10 @@ export default function UserManagement({ currentUserRole = "admin" }) {
 			// Cập nhật UI ngay lập tức bằng cách lọc bỏ user đã xóa
 			setUsers((prev) => prev.filter((u) => u.id !== confirmDelete.id));
 			setConfirmDelete(null);
-			showNotification("Thành công", "Đã xóa người dùng thành công!", "success");
+			success("Đã xóa người dùng thành công!");
 		} catch (err) {
 			console.error("Delete Error:", err);
-			showNotification("Lỗi", "Không thể xóa người dùng: " + (err.response?.data?.message || err.message), "error");
+			notifyError("Không thể xóa người dùng: " + (err.response?.data?.message || err.message));
 		}
 	}
 
@@ -151,10 +150,10 @@ export default function UserManagement({ currentUserRole = "admin" }) {
 			await userService.updateUser(confirmLock.id, apiPayload);
 			await fetchUsers();
 			setConfirmLock(null);
-			showNotification("Thành công", "Cập nhật trạng thái thành công", "success");
+			success("Cập nhật trạng thái thành công");
 		} catch (err) {
 			console.error("Lock/Unlock Error:", err);
-			showNotification("Lỗi", "Có lỗi xảy ra khi thay đổi trạng thái tài khoản. " + (err.response?.data?.message || err.message), "error");
+			notifyError("Có lỗi xảy ra khi thay đổi trạng thái tài khoản. " + (err.response?.data?.message || err.message));
 		}
 	}
 
@@ -170,7 +169,7 @@ export default function UserManagement({ currentUserRole = "admin" }) {
 
 	function handleViewUser(user) {
 		// Logic điều hướng đến trang chi tiết người dùng
-		showNotification("Thông tin", `Xem tài khoản: ${user.fullName}`, "info");
+		info(`Xem tài khoản: ${user.fullName}`);
 	}
 
 	// ============================================
@@ -181,38 +180,8 @@ export default function UserManagement({ currentUserRole = "admin" }) {
 	// user.jsx (dòng 105 - useMemo)
 
 	const filteredUsers = useMemo(() => {
-		// 🔥 Sửa lỗi: Đảm bảo users là một mảng trước khi gọi filter.
-		// Nếu users là null, undefined, hoặc một đối tượng không phải array,
-		// sử dụng mảng rỗng [] thay thế.
-		const usersToFilter = Array.isArray(users) ? users : [];
-
-		const normalizedQuery = searchQuery.trim().toLowerCase();
-
-		const filtered = usersToFilter.filter((u) => {
-			const matchQuery =
-				normalizedQuery.length === 0 ||
-				(u.fullName && u.fullName.toLowerCase().includes(normalizedQuery)) ||
-				(u.gmail && u.gmail.toLowerCase().includes(normalizedQuery));
-
-			const matchRole = roleFilter === "all" ? true : u.role === roleFilter;
-
-			return matchQuery && matchRole;
-		});
-
-		// Sắp xếp: ROLE_USER -> ROLE_TEACHER -> ROLE_ADMIN
-		const roleOrder = {
-			"ROLE_USER": 1,
-			"ROLE_TEACHER": 2,
-			"ROLE_ADMIN": 3
-		};
-
-		return filtered.sort((a, b) => {
-			const roleA = roleOrder[a.role] || 99;
-			const roleB = roleOrder[b.role] || 99;
-			return roleA - roleB;
-		});
-
-	}, [users, searchQuery, roleFilter]); // [users] là dependency
+		return Array.isArray(users) ? users : [];
+	}, [users]);
 
 
 
@@ -220,16 +189,66 @@ export default function UserManagement({ currentUserRole = "admin" }) {
 		<div style={styles.page}>
 			<PageStyles />
 
-			{/* Header */}
 			<header style={styles.header}>
-				<div>
-					<h1 style={styles.title}>Quản lý người dùng</h1>
-					<p style={styles.subtitle}>Danh sách người dùng và quản lý quyền truy cập</p>
+				<div style={{ display: 'flex', alignItems: 'center', gap: 16, flex: 1 }}>
+
+					{/* Icon Box */}
+					<div
+						style={{
+							width: 48,
+							height: 48,
+							background: 'linear-gradient(135deg,  #f97316, #ea580c)',
+							borderRadius: 12,
+							display: 'flex',
+							alignItems: 'center',
+							justifyContent: 'center',
+							color: 'white',
+							boxShadow: '0 4px 12px rgba(249, 115, 22, 0.3)',
+							flexShrink: 0
+						}}
+					>
+						<ShieldUser size={24} />
+					</div>
+
+					{/* Text */}
+					<div>
+						<h1
+							style={{
+								fontSize: 24,
+								fontWeight: 700,
+								color: '#111827',
+								margin: '0 0 4px 0',
+								lineHeight: 1.2
+							}}
+						>
+							Quản lý người dùng
+						</h1>
+
+						<p
+							style={{
+								fontSize: 14,
+								color: '#6b7280',
+								margin: 0,
+								fontWeight: 500
+							}}
+						>
+							Danh sách người dùng và quản lý quyền truy cập
+						</p>
+					</div>
 				</div>
+
 				<button
 					type="button"
 					style={styles.primaryButton}
 					onClick={() => setIsAddOpen(true)}
+					onMouseEnter={(e) => {
+						e.currentTarget.style.background = '#ea580c';
+						e.currentTarget.style.boxShadow = '0 4px 8px rgba(249, 115, 22, 0.3)';
+					}}
+					onMouseLeave={(e) => {
+						e.currentTarget.style.background = '#f97316';
+						e.currentTarget.style.boxShadow = '0 2px 4px rgba(249, 115, 22, 0.2)';
+					}}
 				>
 					<span style={styles.plusIcon}>+</span> Thêm người dùng
 				</button>
@@ -268,7 +287,7 @@ export default function UserManagement({ currentUserRole = "admin" }) {
 				</label>
 			</section>
 
-			{/* Table */}
+			{/* Table and Pagination */}
 			<div style={styles.card}>
 				<div style={{ overflowX: "auto" }}>
 					<table style={styles.table}>
@@ -320,6 +339,13 @@ export default function UserManagement({ currentUserRole = "admin" }) {
 						</tbody>
 					</table>
 				</div>
+
+				{/* Unified Admin Pagination */}
+				<AdminPagination
+					currentPage={page + 1}
+					totalPages={totalPages}
+					onPageChange={(p) => setPage(p - 1)}
+				/>
 			</div>
 
 			{/* Modals */}
@@ -351,7 +377,7 @@ export default function UserManagement({ currentUserRole = "admin" }) {
 						message={`Bạn có chắc chắn muốn xóa người dùng '${confirmDelete.fullName}'?`}
 						onCancel={() => setConfirmDelete(null)}
 						onConfirm={handleConfirmDelete}
-						confirmLabel="Xóa"
+						confirmLabel="🗑️ Xóa"
 					/>
 				)
 			}
@@ -364,7 +390,7 @@ export default function UserManagement({ currentUserRole = "admin" }) {
 						message={`Bạn có chắc chắn muốn ${confirmLock.isActive ? 'khóa' : 'mở khóa'} tài khoản '${confirmLock.fullName}'?`}
 						onCancel={() => setConfirmLock(null)}
 						onConfirm={handleConfirmLock}
-						confirmLabel={confirmLock.isActive ? 'Khóa' : 'Mở khóa'}
+						confirmLabel={confirmLock.isActive ? '🔒 Khóa' : '🔓 Mở khóa'}
 						// Ensure style object is valid
 						confirmStyle={confirmLock.isActive ? { ...modalStyles.dangerBtn } : { ...modalStyles.primaryBtn }}
 					/>
@@ -545,7 +571,7 @@ function EditUserModal({ user, onClose, onSubmit, allowedRoles }) {
 							Hủy
 						</button>
 						<button type="submit" style={styles.primaryButton}>
-							Lưu thay đổi
+							✏️ Lưu thay đổi
 						</button>
 					</div>
 				</form>
@@ -619,19 +645,9 @@ function RowActions({ onView, onLock, onEdit, onDelete, isActive, role }) {
 					aria-label={isActive ? "Khóa tài khoản" : "Mở khóa tài khoản"}
 					title={isActive ? "Khóa tài khoản" : "Mở khóa tài khoản"}
 					onClick={() => onLock && onLock()}
-					style={{ ...styles.iconButton, marginLeft: 6, color: isActive ? "#6b7280" : "#ef4444" }}
+					style={{ ...styles.iconButton, marginLeft: 6 }}
 				>
-					{isActive ? (
-						<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-							<rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-							<path d="M7 11V7a5 5 0 0 1 9.9-1"></path>
-						</svg>
-					) : (
-						<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-							<rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-							<path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-						</svg>
-					)}
+					{isActive ? "🔒" : "🔓"}
 				</button>
 			)}
 
@@ -642,12 +658,9 @@ function RowActions({ onView, onLock, onEdit, onDelete, isActive, role }) {
 					aria-label="Chỉnh sửa"
 					title="Chỉnh sửa"
 					onClick={() => onEdit && onEdit()}
-					style={{ ...styles.iconButton, marginLeft: 6, color: "#3b82f6" }}
+					style={{ ...styles.iconButton, marginLeft: 6 }}
 				>
-					<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-						<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-						<path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-					</svg>
+					✏️
 				</button>
 			)}
 
@@ -658,14 +671,9 @@ function RowActions({ onView, onLock, onEdit, onDelete, isActive, role }) {
 					aria-label="Xóa"
 					title="Xóa"
 					onClick={() => onDelete && onDelete()}
-					style={{ ...styles.iconButton, marginLeft: 6, color: "#ef4444" }}
+					style={{ ...styles.iconButton, marginLeft: 6 }}
 				>
-					<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-						<polyline points="3 6 5 6 21 6"></polyline>
-						<path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-						<line x1="10" y1="11" x2="10" y2="17"></line>
-						<line x1="14" y1="11" x2="14" y2="17"></line>
-					</svg>
+					🗑️
 				</button>
 			)}
 
@@ -713,7 +721,7 @@ const styles = {
 		display: "flex",
 		alignItems: "center",
 		justifyContent: "space-between",
-		marginBottom: 16
+		marginBottom: 32
 	},
 	title: {
 		fontSize: 28,
@@ -727,14 +735,19 @@ const styles = {
 		fontSize: 14
 	},
 	primaryButton: {
-		background: "#ef6c00",
+		background: "#f97316",
 		color: "#fff",
 		border: "none",
-		padding: "10px 16px",
-		borderRadius: 10,
+		padding: "10px 20px",
+		borderRadius: 8,
 		fontWeight: 600,
+		fontSize: 14,
 		cursor: "pointer",
-		boxShadow: "0 2px 8px rgba(239,108,0,0.25)"
+		display: "flex",
+		alignItems: "center",
+		gap: 8,
+		boxShadow: "0 2px 4px rgba(249, 115, 22, 0.2)",
+		transition: "all 0.2s"
 	},
 	secondaryButton: {
 		background: "#ffffff",
@@ -1088,6 +1101,37 @@ const modalStyles = {
 		fontWeight: 600,
 		cursor: "pointer",
 		boxShadow: "0 2px 8px rgba(16,185,129,0.25)"
+	},
+	btn: {
+		padding: "6px 12px",
+		borderRadius: 6,
+		border: "1px solid #e5e7eb",
+		background: "white",
+		fontSize: 13,
+		fontWeight: 500,
+		color: "#374151",
+		cursor: "pointer",
+		transition: "all 0.2s"
+	},
+	btnActive: {
+		padding: "6px 12px",
+		borderRadius: 6,
+		border: "1px solid #f97316",
+		background: "#f97316",
+		fontSize: 13,
+		fontWeight: 600,
+		color: "white",
+		cursor: "default",
+	},
+	btnDisabled: {
+		padding: "6px 12px",
+		borderRadius: 6,
+		border: "1px solid #f3f4f6",
+		background: "#f9fafb",
+		fontSize: 13,
+		fontWeight: 500,
+		color: "#9ca3af",
+		cursor: "not-allowed",
 	}
 };
 

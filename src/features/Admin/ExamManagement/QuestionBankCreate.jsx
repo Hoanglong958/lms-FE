@@ -1,7 +1,8 @@
 import React, { useState } from "react";
-import "./QuestionBankCreate.css";
+import "./styles/QuestionBankCreate.css";
 import { useNavigate } from "react-router-dom";
 import { questionService } from "@utils/questionService.js";
+import { useNotification } from "@shared/notification";
 
 export default function QuestionBankCreate() {
   const navigate = useNavigate();
@@ -14,6 +15,9 @@ export default function QuestionBankCreate() {
   const [submitting, setSubmitting] = useState(false);
   const user = (() => { try { return JSON.parse(localStorage.getItem("loggedInUser") || "{}"); } catch { return {}; } })();
   const isAdmin = String(user?.role || "").toUpperCase() === "ROLE_ADMIN";
+  const isTeacher = String(user?.role || "").toUpperCase() === "ROLE_TEACHER";
+  const canManage = isAdmin || isTeacher;
+  const { success, error: notifyError } = useNotification();
 
   const handleOptionChange = (value, index) => {
     const newOps = [...options];
@@ -42,15 +46,18 @@ export default function QuestionBankCreate() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!isAdmin) return alert("Chỉ ADMIN được phép tạo mới câu hỏi");
+    if (!canManage) {
+      notifyError("Chỉ ADMIN hoặc GIẢNG VIÊN được phép tạo mới câu hỏi");
+      return;
+    }
     if (!questionText.trim()) return;
     if (!category.trim()) {
-      alert("Danh mục không được để trống");
+      notifyError("Danh mục không được để trống");
       return;
     }
     const cleaned = type === "Trắc nghiệm" ? options.filter((x) => x && x.trim()) : [];
     if (type === "Trắc nghiệm" && cleaned.length < 2) {
-      alert("Cần ít nhất 2 lựa chọn đáp án");
+      notifyError("Cần ít nhất 2 lựa chọn đáp án");
       return;
     }
     let answer = correctAnswer?.trim();
@@ -70,7 +77,8 @@ export default function QuestionBankCreate() {
     try {
       setSubmitting(true);
       await questionService.create(payload);
-      navigate("/admin/question-bank");
+      success("Tạo câu hỏi thành công");
+      navigate(`/${isAdmin ? "admin" : "teacher"}/question-bank`);
     } catch (err) {
       setSubmitting(false);
       const msg =
@@ -78,7 +86,7 @@ export default function QuestionBankCreate() {
         err?.response?.data?.error ||
         err?.message ||
         "Tạo câu hỏi thất bại";
-      alert(msg);
+      notifyError(msg);
     }
   };
 
@@ -88,9 +96,9 @@ export default function QuestionBankCreate() {
         <h2 className="qb-title">Tạo câu hỏi mới</h2>
         <p className="qb-sub">Nhập thông tin chi tiết cho câu hỏi</p>
 
-        {!isAdmin && (
+        {!canManage && (
           <div style={{ marginBottom: 12, padding: "10px 12px", borderRadius: 8, background: "#fee2e2", color: "#991b1b", fontWeight: 600 }}>
-            Chỉ ADMIN được phép tạo mới câu hỏi
+            Chỉ ADMIN hoặc GIẢNG VIÊN được phép tạo mới câu hỏi
           </div>
         )}
 
@@ -176,8 +184,8 @@ export default function QuestionBankCreate() {
 
         {/* Buttons */}
         <div className="qb-actions">
-          <button className="qb-btn cancel" onClick={() => navigate("/admin/question-bank")}>Hủy</button>
-          <button className="qb-btn submit" disabled={!isAdmin || submitting} onClick={handleSubmit}>
+          <button className="qb-btn cancel" onClick={() => navigate(`/${isAdmin ? "admin" : "teacher"}/question-bank`)}>Hủy</button>
+          <button className="qb-btn submit" disabled={!canManage || submitting} onClick={handleSubmit}>
             {submitting ? "Đang lưu..." : "Lưu câu hỏi"}
           </button>
         </div>

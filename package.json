@@ -1,62 +1,166 @@
 {
+
   "name": "base-react",
+
   "private": true,
+
   "version": "0.0.0",
+
   "type": "module",
+
   "scripts": {
+
     "dev": "vite",
+
     "build": "vite build",
+
     "lint": "eslint .",
+
     "preview": "vite preview"
+
   },
+
   "dependencies": {
+
     "@ant-design/charts": "^2.6.5",
-    "@ckeditor/ckeditor5-build-classic": "^39.0.2",
-    "@ckeditor/ckeditor5-markdown-gfm": "^47.2.0",
-    "@ckeditor/ckeditor5-react": "^11.0.0",
+
+    "@ckeditor/ckeditor5-alignment": "^48.0.0",
+
+    "@ckeditor/ckeditor5-autoformat": "^48.0.0",
+
+    "@ckeditor/ckeditor5-basic-styles": "^48.0.0",
+
+    "@ckeditor/ckeditor5-block-quote": "^48.0.0",
+
+    "@ckeditor/ckeditor5-code-block": "^48.0.0",
+
+    "@ckeditor/ckeditor5-core": "^48.0.0",
+
+    "@ckeditor/ckeditor5-editor-classic": "^48.0.0",
+
+    "@ckeditor/ckeditor5-essentials": "^48.0.0",
+
+    "@ckeditor/ckeditor5-font": "^48.0.0",
+
+    "@ckeditor/ckeditor5-heading": "^48.0.0",
+
+    "@ckeditor/ckeditor5-highlight": "^48.0.0",
+
+    "@ckeditor/ckeditor5-html-support": "^48.0.0",
+
+    "@ckeditor/ckeditor5-image": "^48.0.0",
+
+    "@ckeditor/ckeditor5-indent": "^48.0.0",
+
+    "@ckeditor/ckeditor5-link": "^48.0.0",
+
+    "@ckeditor/ckeditor5-list": "^48.0.0",
+
+    "@ckeditor/ckeditor5-markdown-gfm": "^48.0.0",
+
+    "@ckeditor/ckeditor5-media-embed": "^48.0.0",
+
+    "@ckeditor/ckeditor5-paragraph": "^48.0.0",
+
+    "@ckeditor/ckeditor5-react": "^6.3.0",
+
+    "@ckeditor/ckeditor5-source-editing": "^48.0.0",
+
+    "@ckeditor/ckeditor5-table": "^48.0.0",
+
+    "@ckeditor/ckeditor5-ui": "^48.0.0",
+
+    "@ckeditor/ckeditor5-upload": "^48.0.0",
+
     "@fortawesome/fontawesome-svg-core": "^7.1.0",
+
     "@fortawesome/free-solid-svg-icons": "^7.1.0",
+
     "@fortawesome/react-fontawesome": "^3.1.0",
+
     "@reduxjs/toolkit": "^2.9.0",
+
     "@stomp/stompjs": "^7.0.0",
+
     "antd": "^5.27.4",
+
     "axios": "^1.13.2",
+
     "chart.js": "^4.5.1",
-    "ckeditor5": "^47.2.0",
+
     "dayjs": "^1.11.19",
+
     "lucide-react": "^0.553.0",
+
     "prop-types": "^15.8.1",
+
     "react": "^19.1.1",
+
     "react-chartjs-2": "^5.3.1",
+
     "react-dom": "^19.1.1",
+
     "react-easy-crop": "^5.5.6",
+
     "react-icons": "^5.5.0",
+
+    "react-is": "^19.2.3",
+
     "react-markdown": "^10.1.0",
+
     "react-redux": "^9.2.0",
+
     "react-router-dom": "^7.9.3",
+
     "recharts": "^3.4.1",
+
     "remark-breaks": "^4.0.0",
+
     "remark-gfm": "^4.0.1",
+
     "sockjs-client": "^1.6.1"
+
   },
+
   "devDependencies": {
+
     "@eslint/js": "^9.36.0",
+
     "@tailwindcss/postcss": "^4.1.14",
+
     "@types/react": "^19.1.16",
+
     "@types/react-dom": "^19.1.9",
+
     "@vitejs/plugin-react-swc": "^4.1.0",
+
     "autoprefixer": "^10.4.21",
+
     "baseline-browser-mapping": "^2.9.11",
+
     "eslint": "^9.36.0",
+
     "eslint-plugin-react-hooks": "^5.2.0",
+
     "eslint-plugin-react-refresh": "^0.4.22",
+
     "globals": "^16.4.0",
+
     "postcss": "^8.5.6",
+
     "tailwindcss": "^4.1.16",
+
     "vite": "npm:rolldown-vite@7.1.14",
+
     "vite-plugin-svgr": "^4.5.0"
+
   },
+
   "overrides": {
+
     "vite": "npm:rolldown-vite@7.1.14"
+
   }
+
 }
+

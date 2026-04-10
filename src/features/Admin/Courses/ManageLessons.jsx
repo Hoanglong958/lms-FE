@@ -6,13 +6,15 @@ import { lessonService } from "@utils/lessonService";
 import AdminHeader from "@components/Admin/AdminHeader";
 import LessonManager from "./LessonManager.jsx";
 import LessonDetailView from "./LessonDetailView.jsx";
-import styles from "./ManageLessons.module.css";
+import styles from "./styles/ManageLessons.module.css";
 import { slugify } from "@utils/slugify";
 import dayjs from "dayjs";
 import { FolderPlus, Book, ListOrdered, X, Save } from "lucide-react";
+import { useNotification } from "@shared/notification";
 
 export default function ManageLessons() {
-  const { courseSlug } = useParams();
+  const { confirm } = useNotification();
+  const { courseSlug, courseId } = useParams();
   const navigate = useNavigate();
   const [course, setCourse] = useState(null);
   const [sessions, setSessions] = useState([]);
@@ -27,15 +29,22 @@ export default function ManageLessons() {
   useEffect(() => {
     const loadCourse = async () => {
       try {
-        const res = await courseService.getCourses();
-        const c = res.data.find((c) => slugify(c.title) === courseSlug);
-        setCourse(c);
+        if (courseId) {
+          const res = await courseService.getCourseDetail(courseId);
+          setCourse(res.data?.data || res.data);
+        } else if (courseSlug) {
+          const res = await courseService.getCourses();
+          const list = Array.isArray(res.data) ? res.data : res.data?.data || res.data?.courses || [];
+          const c = list.find((c) => slugify(c.title) === courseSlug);
+          setCourse(c);
+        }
       } catch (err) {
-        navigate("/admin/courses");
+        // Handle error - maybe stay on page or navigate back depending on context
+        console.error("Failed to load course", err);
       }
     };
-    if (courseSlug) loadCourse();
-  }, [courseSlug]);
+    if (courseSlug || courseId) loadCourse();
+  }, [courseSlug, courseId]);
 
   useEffect(() => {
     if (!course?.id) return;
@@ -76,7 +85,14 @@ export default function ManageLessons() {
   };
 
   const handleDeleteSession = async (id) => {
-    if (!window.confirm("Xóa chương học này?")) return;
+    const isConfirmed = await confirm({
+      title: "Xác nhận xóa",
+      message: "Bạn có chắc chắn muốn xóa chương học này?",
+      type: "danger",
+      confirmText: "Xóa",
+      cancelText: "Hủy"
+    });
+    if (!isConfirmed) return;
     await sessionService.deleteSession(id);
     setSessions(sessions.filter((s) => s.id !== id));
     if (selectedLesson?.sessionId === id) setSelectedLesson(null);
@@ -113,7 +129,13 @@ export default function ManageLessons() {
         title={`Quản lý nội dung cho: ${course?.title || ""}`}
         subtitle={course?.description || ""}
         onMenuToggle={toggleSidebar}
-        onBack={() => navigate(`/admin/courses`)}
+        onBack={() => {
+          if (courseId) {
+            navigate(-1); // Go back to where we came from (likely ClassDetail)
+          } else {
+            navigate(`/admin/courses`);
+          }
+        }}
         actions={
           <button
             onClick={handleAddSession}

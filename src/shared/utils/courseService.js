@@ -12,6 +12,11 @@ export const courseService = {
     return api.get("/api/v1/courses/paging", { params });
   },
 
+  // GET /api/v1/courses/search
+  searchCourses(params) {
+    return api.get("/api/v1/courses/search", { params });
+  },
+
   // GET /api/v1/courses/detail
   getCourseDetail(id) {
     return api.get(`/api/v1/courses/detail`, { params: { id } });
@@ -30,5 +35,10 @@ export const courseService = {
   // DELETE /api/v1/courses/{id}
   deleteCourse(id) {
     return api.delete(`/api/v1/courses/${id}`);
+  },
+
+  // PATCH /api/v1/courses/{id}/toggle-active
+  toggleCourseActive(id) {
+    return api.patch(`/api/v1/courses/${id}/toggle-active`);
   },
 };

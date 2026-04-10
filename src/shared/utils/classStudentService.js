@@ -8,17 +8,22 @@ const BASE_PATH = "/api/v1/classes/students";
  * @param {number} classId - ID của lớp học
  * @returns {Promise} Response containing array of students in class
  */
-const getClassStudents = (classId) =>
-  api.get(BASE_PATH, { params: { classId: parseInt(classId) } });
+const getClassStudents = (classId) => {
+  const idValue = parseInt(classId);
+  if (isNaN(idValue)) {
+    return Promise.reject(new Error("Invalid classId"));
+  }
+  return api.get(BASE_PATH, { params: { classId: idValue } });
+};
 
 /**
- * GET /api/v1/classes/students?studentId={studentId}
+ * GET /api/v1/classes/students/by-student?studentId={studentId}
  * Lấy danh sách lớp học của học viên
  * @param {number} studentId - ID của học viên
  * @returns {Promise} Response containing list of classes
  */
-const getStudentClasses = (studentId) =>
-  api.get(BASE_PATH, { params: { studentId: parseInt(studentId) } });
+const getStudentClasses = (studentId, params = {}) =>
+  api.get(`${BASE_PATH}/by-student`, { params: { studentId: parseInt(studentId), ...params } });
 
 /**
  * POST /api/v1/classes/students

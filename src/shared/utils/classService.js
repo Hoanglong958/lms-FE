@@ -10,6 +10,8 @@ const getClassDetail = (id) =>
 const addClass = (data) => api.post(CLASS_BASE_PATH, data);
 const updateClass = (id, data) => api.put(`${CLASS_BASE_PATH}/${id}`, data);
 const deleteClass = (id) => api.delete(`${CLASS_BASE_PATH}/${id}`);
+const toggleClassActive = (id) =>
+  api.patch(`${CLASS_BASE_PATH}/${id}/toggle-active`);
 
 export const classService = {
   getClasses,
@@ -18,9 +20,11 @@ export const classService = {
   addClass,
   updateClass,
   deleteClass,
+  toggleClassActive,
   // Backward compatibility helpers (legacy names still used in some files)
   getAllClasses: (params) => getClasses(params),
   createClass: (data) => addClass(data),
+  getMyClasses: () => api.get(`${CLASS_BASE_PATH}/my-classes`),
 };
 
 export default classService;

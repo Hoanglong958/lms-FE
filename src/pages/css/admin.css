@@ -1,0 +1,127 @@
+/* ==============================
+   🔹 RESET CSS CHO ADMIN LAYOUT
+   ============================== */
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  width: 100%;
+  font-family: "Inter", sans-serif;
+  background-color: #f9fafb;
+  color: #111827;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+  border: none;
+  outline: none;
+  background: none;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+ul,
+ol {
+  list-style: none;
+}
+
+/* ==============================
+   🔹 ADMIN LAYOUT STRUCTURE
+   ============================== */
+
+.admin-layout {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+  background-color: #f9fafb;
+}
+
+/* Vùng chính chứa header và content */
+.admin-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* Chặn content tràn ra khỏi header */
+}
+
+/* ==============================
+   🔹 ADMIN CONTENT AREA
+   ============================== */
+
+.admin-content {
+  flex: 1;
+  overflow-y: auto; /* Chỉ content được cuộn */
+  background-color: #f3f4f6;
+  padding: 20px;
+  padding-top: 20px; /* Tạo khoảng cách với header */
+  box-sizing: border-box;
+  scroll-behavior: smooth;
+}
+
+/* Thanh cuộn tuỳ chỉnh */
+.admin-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.admin-content::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+/* === RESPONSIVE === */
+
+/* Sidebar overlay cho mobile */
+.admin-sidebar-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  transition: opacity 0.3s ease;
+}
+
+@media (max-width: 640px) {
+  .admin-sidebar-overlay {
+    display: block;
+  }
+
+  .admin-layout {
+    flex-direction: column;
+  }
+
+  .admin-main {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .admin-content {
+    padding: 1rem;
+    padding-top: 1rem;
+  }
+}
+
+/* Tablet / iPad (641px - 1024px) */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .admin-content {
+    padding: 1.5rem;
+    padding-top: 1.5rem;
+  }
+}

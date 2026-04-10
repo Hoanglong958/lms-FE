@@ -68,6 +68,16 @@ export default function AdminSidebar({ isOpen, onClose }) {
             Dashboard
           </NavLink>
 
+          <NavLink
+            to="/admin/profile/edit"
+            className={({ isActive }) =>
+              isActive ? "admin-sidebar-item active" : "admin-sidebar-item"
+            }
+          >
+            <i className="fa-solid fa-user-pen"></i>
+            Hồ sơ của tôi
+          </NavLink>
+
           {/* Quản lý người dùng - không dropdown */}
           <NavLink
             to="/admin/users"
@@ -130,6 +140,15 @@ export default function AdminSidebar({ isOpen, onClose }) {
             <i className="fa-solid fa-newspaper"></i>
             Quản lý bài viết
           </NavLink>
+          <NavLink
+            to="/admin/registrations"
+            className={({ isActive }) =>
+              isActive ? "admin-sidebar-item active" : "admin-sidebar-item"
+            }
+          >
+            <i className="fa-solid fa-money-bill-wave"></i>
+            Quản lý học phí
+          </NavLink>
 
         </nav>
       </div>
@@ -150,6 +169,7 @@ export default function AdminSidebar({ isOpen, onClose }) {
           className="admin-sidebar-item logout-btn"
           onClick={() => {
             localStorage.clear();
+            sessionStorage.clear();
             window.location.href = "/login";
           }}
         >

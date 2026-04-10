@@ -1,0 +1,352 @@
+.class-detail-container {
+  padding: 40px 24px;
+  max-width: 1300px;
+  margin: 0 auto;
+  font-family: "SF Pro Display", sans-serif;
+  min-height: 80vh;
+  color: #111827;
+}
+
+/* HERO SECTION */
+.cd-hero {
+  background: white;
+  border-radius: 24px;
+  padding: 40px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  margin-bottom: 40px;
+  border: 1px solid rgba(0, 0, 0, 0.03);
+}
+
+.cd-hero-bg {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 50%; /* Widen to match card proportion */
+  height: 100%;
+  background-image: url("https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&w=1000&q=80");
+  background-size: cover;
+  background-position: center;
+  z-index: 0;
+  pointer-events: none;
+  /* Mask for the white fade */
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 40%);
+  mask-image: linear-gradient(to right, transparent 0%, black 40%);
+  opacity: 0.9;
+}
+
+.cd-header-content {
+  position: relative;
+  z-index: 1;
+  max-width: 700px;
+}
+
+.cd-status-badge {
+  display: inline-flex;
+  padding: 6px 14px;
+  border-radius: 30px;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 16px;
+}
+.status-upcoming {
+  background: #e0f2fe;
+  color: #0284c7;
+}
+.status-active {
+  background: #dcfce7;
+  color: #166534;
+}
+.status-finished {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.cd-title {
+  font-size: 40px;
+  font-weight: 800;
+  line-height: 1.2;
+  margin-bottom: 12px;
+  color: #111827;
+}
+
+.cd-description {
+  font-size: 16px;
+  color: #6b7280;
+  line-height: 1.6;
+}
+
+/* KEY STATS ROW IN HERO */
+.cd-stats-row {
+  display: flex;
+  gap: 32px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+.cd-stat-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cd-stat-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: #fff0e5;
+  color: #ff6b00;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+}
+
+.cd-stat-info h4 {
+  font-size: 13px;
+  font-weight: 600;
+  color: #9ca3af;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.cd-stat-info span {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+/* ACTION BUTTONS ROW */
+.cd-actions-row {
+  display: flex;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.cd-btn-action {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 24px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  font-weight: 700;
+  color: #374151;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
+  text-decoration: none;
+}
+
+.cd-btn-action:hover {
+  border-color: #ff6b00;
+  color: #ff6b00;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(255, 107, 0, 0.1);
+}
+
+.cd-btn-icon-box {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+/* Specific colors for icons */
+.icon-schedule {
+  background: #e0e7ff;
+  color: #4f46e5;
+}
+.icon-path {
+  background: #ecfdf5;
+  color: #10b981;
+}
+
+.cd-btn-action:hover .cd-btn-icon-box {
+  transform: scale(1.1);
+}
+
+/* SECTIONS GRID - Increased distinction */
+.cd-sections-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 40px; /* Increased gap */
+}
+
+@media (max-width: 1024px) {
+  .cd-sections-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* CARDS - sharper separation */
+.cd-card {
+  background: white;
+  border-radius: 20px;
+  padding: 32px; /* More internal padding */
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05),
+    0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  border: 1px solid rgba(0, 0, 0, 0.03);
+  margin-bottom: 0px; /* Reset margins if any */
+}
+
+.cd-section-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 20px;
+  color: #111827;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cd-card-header {
+  margin-bottom: 20px;
+}
+
+/* STUDENTS LIST */
+.students-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.student-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 12px;
+  background: #f9fafb;
+  border: 1px solid #f3f4f6;
+  transition: all 0.2s;
+}
+
+.student-card:hover {
+  background: #fff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transform: translateY(-2px);
+}
+
+.st-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #ff6b00;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.st-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.st-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.st-code {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+/* COURSE LIST */
+.courses-list-modern {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+.course-item-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  color: inherit;
+}
+
+.course-item-row:hover {
+  border-color: #ff6b00;
+  box-shadow: 0 4px 12px rgba(255, 107, 0, 0.1);
+  transform: translateX(4px);
+}
+
+.course-code-badge {
+  background: #f3f4f6;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #4b5563;
+  min-width: 80px;
+  text-align: center;
+}
+
+.course-title-row {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1f2937;
+  flex: 1;
+}
+
+.course-arrow {
+  color: #d1d5db;
+  font-size: 20px;
+}
+
+.course-item-row:hover .course-arrow {
+  color: #ff6b00;
+}
+
+/* SIDEBAR INFO */
+.sidebar-info-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid #f3f4f6;
+  font-size: 14px;
+}
+
+.sidebar-info-row:last-child {
+  border-bottom: none;
+}
+
+.sidebar-label {
+  color: #6b7280;
+  font-weight: 500;
+}
+.sidebar-value {
+  color: #111827;
+  font-weight: 600;
+  text-align: right;
+}
+
+.empty-note {
+  font-style: italic;
+  color: #9ca3af;
+  text-align: center;
+  padding: 20px;
+}
