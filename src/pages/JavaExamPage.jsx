@@ -285,9 +285,12 @@ export default function JavaExamPage() {
       registrationService.getMyRegistrations(),
     ])
       .then(([clsRes, regRes]) => {
-        const clsArr = Array.isArray(clsRes?.data) ? clsRes.data : [];
-        const regArr = Array.isArray(regRes?.data) ? regRes.data : [];
-        const classIds = new Set(clsArr.map((c) => String(c.classId || c.id)));
+        // Class list typically comes from Page<ClassStudentResponseDTO> -> clsRes.data.content
+        const clsArr = clsRes?.data?.content || (Array.isArray(clsRes?.data) ? clsRes.data : []);
+        // My registrations typically comes from ResponseWrapper -> regRes.data.data
+        const regArr = regRes?.data?.data || (Array.isArray(regRes?.data) ? regRes.data : []);
+        
+        const classIds = new Set(clsArr.map((c) => String(c.classId || c.classroomId || c.id)));
         const courseIds = new Set(
           regArr
             .filter((r) => String(r.paymentStatus) === "PAID")
@@ -606,9 +609,9 @@ export default function JavaExamPage() {
     const role = String(currentUser?.role || "");
     const now = Date.now();
     const withinWindow = (e) => {
-      const st = e?.startTime ? new Date(e.startTime).getTime() : 0;
       const et = e?.endTime ? new Date(e.endTime).getTime() : 0;
-      if (st && now < st) return false;
+      // Chỉ ẩn những bài đã kết thúc (endTime đã qua).
+      // Những bài UPCOMING (now < st) vẫn nên hiển thị để sinh viên biết chuẩn bị.
       if (et && now > et) return false;
       return true;
     };
